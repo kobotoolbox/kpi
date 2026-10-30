@@ -24,8 +24,6 @@ from kobo.apps.subsequences.actions.automatic_bedrock_qual import AutomaticBedro
 from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
     OSS120,
     ClaudeSonnet,
-    MantleClient,
-    RuntimeClient,
 )
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_INTEGER,
@@ -62,9 +60,12 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_QUAL_SELECT_ONE_UUID,
     BEDROCK_QUAL_TEXT_UUID,
     BEDROCK_VALIDATION_MAIN_UUID,
-    FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+    FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
 )
-from kobo.apps.subsequences.tests.utils import mock_get_response
+from kobo.apps.subsequences.tests.utils import (
+    MockMantleClient,
+    MockRuntimeClient,
+)
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
@@ -103,6 +104,17 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             question_xpath='settings_fixture_image',
         )
         self.image_action = self.image_feature.to_action()
+        mock_clients = {
+            'mantle': MockMantleClient(text='LLM Text'),
+            'runtime': MockRuntimeClient(text='LLM Text'),
+        }
+        patched_clients = patch.object(
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=mock_clients,
+        )
+        patched_clients.start()
+        self.addCleanup(patched_clients.stop)
 
     def _add_submission(self, include_image=False):
         # add a submission
@@ -293,23 +305,17 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                 },
             },
         }
-        with patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(
-                model=model, text='LLM text'
-            ),
-        ):
-            response = self.client.patch(
-                supplement_details_url, data=payload, format='json'
-            )
+
+        response = self.client.patch(
+            supplement_details_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
         transcript_uuid = transcript_dict['_uuid']
         version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
             BEDROCK_QUAL_TEXT_UUID
         ]['_versions'][0]
         version_data = version['_data']
-        assert version_data['value'] == 'LLM text'
+        assert version_data['value'] == 'LLM Text'
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
@@ -328,24 +334,19 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
             '_version': '20250820',
             'settings_fixture_image': {
                 Action.AUTOMATIC_BEDROCK_QUAL: {
-                    'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+                    'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
                 },
             },
         }
-        with patch.object(
-            MantleClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(model=model, text='5'),
-        ):
-            response = self.client.patch(
-                supplement_details_url, data=payload, format='json'
-            )
+        response = self.client.patch(
+            supplement_details_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
         version = response.data['settings_fixture_image'][
             Action.AUTOMATIC_BEDROCK_QUAL
-        ][FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID]['_versions'][0]
+        ][FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID]['_versions'][0]
         version_data = version['_data']
-        assert version_data['value'] == 5
+        assert version_data['value'] == 'LLM Text'
         assert version_data['status'] == 'complete'
         assert 'verified' in version
         assert not version['verified']
@@ -405,18 +406,11 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         action_data = {'uuid': BEDROCK_QUAL_TEXT_UUID}
 
         # No TranscriptionNotFound is raised even though there is no transcript
-        with patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(
-                model=model, text='response'
-            ),
-        ):
-            result = self.action.revise_data(submission, {}, action_data)
+        result = self.action.revise_data(submission, {}, action_data)
 
         version = result[BEDROCK_QUAL_TEXT_UUID]['_versions'][0]
         assert version['_data']['status'] == 'complete'
-        assert version['_data']['value'] == 'response'
+        assert version['_data']['value'] == 'LLM Text'
         # Dependency points at the submission itself, not a transcript
         assert version['_dependency'] == {
             '_actionId': 'submission',
@@ -664,7 +658,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def test_generate_image_request_data(self):
         mock_templates_by_type = {
-            QUESTION_TYPE_INTEGER: 'prompt',
+            QUESTION_TYPE_TEXT: 'prompt',
         }
 
         submission_uuid = self._add_submission(include_image=True)
@@ -673,7 +667,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         )[0]
 
         action_data = {
-            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
@@ -697,7 +691,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         self.asset.deployment.mock_submissions([submission])
         action_data = {
-            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with self.assertRaises(AttachmentNotFoundException):
@@ -730,7 +724,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         attachment.media_file.delete()
 
         action_data = {
-            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with self.assertRaises(AttachmentNotFoundException):
@@ -753,16 +747,9 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',
             side_effect=InvalidResponseFromLLMException('Cannot parse'),
         ):
-            with patch.object(
-                RuntimeClient,
-                'make_request',
-                lambda _, request_data, model: mock_get_response(
-                    model=model, text='LLM text'
-                ),
-            ):
-                return_value = self.action.run_external_process(
-                    {}, {}, action_data=action_data
-                )
+            return_value = self.action.run_external_process(
+                {}, {}, action_data=action_data
+            )
         assert return_value.get('status') == 'failed'
         assert return_value.get('error') == 'Cannot parse'
 
@@ -771,11 +758,18 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
+
+        mock_clients = {
+            'runtime': MockRuntimeClient(
+                error=ClientError({'Error': {'Message': 'Bad'}}, '')
+            )
+        }
+
         # mock error on invoke
         with patch.object(
-            RuntimeClient,
-            'make_request',
-            side_effect=ClientError({'Error': {'Message': 'Bad'}}, ''),
+            self.action,
+            'get_clients_for_models',
+            return_value=mock_clients,
         ):
             return_value = self.action.run_external_process(
                 {}, {}, action_data=action_data
@@ -814,10 +808,8 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             self.action, 'get_response_from_llm', return_value='response'
         ) as patched_get_response_from_llm:
             self.action.run_external_process({}, {}, action_data=action_data)
-        patched_get_response_from_llm.assert_called_once()
-        assert (
-            patched_get_response_from_llm.call_args.args[1].model_id == OSS120.model_id
-        )
+        patched_get_response_from_llm.assert_called_once_with(ANY, ANY, OSS120)
+
 
     @data(InvalidResponseFromLLMException, ClientError)
     def test_run_external_process_calls_default_if_primary_fails(self, error_class):
@@ -844,7 +836,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         # make sure get_response_from_llm was called twice with
         # the two different models in the correct order
         patched_get_response_from_llm.assert_has_calls(
-            [call(ANY, OSS120), call(ANY, ClaudeSonnet)], any_order=False
+            [call(ANY, ANY, OSS120), call(ANY, ANY, ClaudeSonnet)], any_order=False
         )
         assert len(patched_get_response_from_llm.call_args) == 2
 
@@ -905,11 +897,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
         # Verify that the backup model was called after the timeout
         patched_get_response_from_llm.assert_has_calls(
-            [
-                call(ANY, OSS120),
-                call(ANY, ClaudeSonnet)
-            ],
-            any_order=False
+            [call(ANY, ANY, OSS120), call(ANY, ANY, ClaudeSonnet)], any_order=False
         )
 
         # Verify it exited gracefully
@@ -937,11 +925,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
         # Verify that the backup model was called after the primary connection failed
         patched_get_response_from_llm.assert_has_calls(
-            [
-                call(ANY, OSS120),
-                call(ANY, ClaudeSonnet)
-            ],
-            any_order=False
+            [call(ANY, ANY, OSS120), call(ANY, ANY, ClaudeSonnet)], any_order=False
         )
 
         #  Verify it exited gracefully
@@ -966,16 +950,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
             AutomaticQARateThrottle, 'timer', new=staticmethod(lambda: time.time())
         )
         patcher.start()
-        client_patcher = patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(
-                model=model, text='LLM text'
-            ),
-        )
-        client_patcher.start()
         self.addCleanup(patcher.stop)
-        self.addCleanup(client_patcher.stop)
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(

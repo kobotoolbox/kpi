@@ -197,10 +197,10 @@
       "action": "manual_qual",
       "params": [
         {
-          "type": "qualInteger",
+          "type": "qualText",
           "uuid": "18ec9071-472c-46ec-8592-dd18fb6fd716",
           "labels": {
-            "_default": "How many people are in the image?"
+            "_default": "Describe the image"
           }
         }
       ]

@@ -28,24 +28,26 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import AutomaticBedrockQual
 from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
     OSS120,
     ClaudeSonnet,
     Gemma4,
-    MantleClient,
     RuntimeClient,
 )
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.constants import (
-    FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+    FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
     FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
     FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
     FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
 )
 from kobo.apps.subsequences.tests.utils import (
+    MockMantleClient,
+    MockRuntimeClient,
     get_mock_claude_response,
-    mock_get_response,
+    get_mock_oss_response,
 )
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
@@ -2081,12 +2083,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             },
         )
+        clients = {
+            'runtime': MockRuntimeClient(text='1', request_id='12345'),
+        }
         with patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(
-                model=model, text='1', request_id='12345'
-            ),
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=clients,
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2120,13 +2123,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 query={'meta/rootUuid': add_uuid_prefix(instance.root_uuid)},
             )
         )[0]
-
+        clients = {'mantle': MockMantleClient(request_id='12345')}
         with patch.object(
-            MantleClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(
-                model=model, text='1', request_id='12345'
-            ),
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=clients,
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2138,7 +2139,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'settings_fixture_image': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_INTEGER_UUID,
+                            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
                         }
                     },
                 },
@@ -2172,11 +2173,15 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             },
         )
-
+        # use the wrong client (mantle instead of runtime) to force
+        # InvalidResponseFromLLMException
+        clients = {
+            'runtime': MockMantleClient(request_id='12345'),
+        }
         with patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda *args, **kwargs: {'something': 'bad'},
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=clients,
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2204,12 +2209,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
 
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
-        def fail_only_on_oss(model):
-            if model.model_id == OSS120.model_id:
-                return {'something': 'bad'}
-            else:
-                return get_mock_claude_response(text='5', request_id='12345')
-
         instance, submission = self._add_submission('adminuser')
         submission = list(
             self.asset.deployment.get_submissions(
@@ -2229,10 +2228,25 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             },
         )
+
+        class MockClientWithDifferentResponses(RuntimeClient):
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def make_request(self, request_data, model):
+                if model.model_id == OSS120.model_id:
+                    return get_mock_oss_response(
+                        text='Not an integer', request_id='12345'
+                    )
+                return get_mock_claude_response(text='5', request_id='6789')
+
+        clients = {
+            'runtime': MockClientWithDifferentResponses(),
+        }
         with patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda _, request_data, model: fail_only_on_oss(model),
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=clients,
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2256,7 +2270,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             )
             llm_info = log_metadata['llm']
             self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
-            self.assertEqual(llm_info['request_id'], '12345')
+            self.assertEqual(llm_info['request_id'], '6789')
 
     @data(
         # verify? , automatic?, expected action
@@ -2294,12 +2308,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             else FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
         )
         # add a response
+        clients = {
+            'runtime': MockRuntimeClient(text='5', request_id='12345'),
+        }
         with patch.object(
-            RuntimeClient,
-            'make_request',
-            lambda _, request_data, model: mock_get_response(
-                model=model, text='5', request_id='12345'
-            ),
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=clients,
         ):
             action_data = {'uuid': question_uuid}
             if not automatic:

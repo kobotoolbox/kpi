@@ -157,4 +157,4 @@ class RuntimeClient(BedrockClient):
             ) from e
 
 
-CLIENTS_BY_ID = {'mantle': MantleClient, 'runtime': RuntimeClient}
+CLIENTS_BY_NAME = {'mantle': MantleClient, 'runtime': RuntimeClient}

@@ -3,8 +3,37 @@ from io import StringIO
 
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120
 from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
+    ClaudeSonnet,
     Gemma4,
+    MantleClient,
+    RuntimeClient,
 )
+
+
+class MockMantleClient(MantleClient):
+    def __init__(self, *args, **kwargs):
+        self.text = kwargs.get('text', 'text')
+        self.request_id = kwargs.get('request_id', '12345')
+        self.error_to_raise = kwargs.get('error', None)
+
+    def make_request(self, request_data, model):
+        if self.error_to_raise:
+            raise self.error_to_raise
+        return get_mock_gemma_response(self.text, self.request_id)
+
+
+class MockRuntimeClient(RuntimeClient):
+    def __init__(self, *args, **kwargs):
+        self.text = kwargs.get('text', 'text')
+        self.request_id = kwargs.get('request_id', '12345')
+        self.error_to_raise = kwargs.get('error', None)
+
+    def make_request(self, request_data, model):
+        if self.error_to_raise:
+            raise self.error_to_raise
+        if model.model_id == ClaudeSonnet.model_id:
+            return get_mock_claude_response(self.text, self.request_id)
+        return get_mock_oss_response(self.text, self.request_id)
 
 
 class MockMantleResponse:

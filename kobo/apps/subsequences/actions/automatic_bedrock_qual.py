@@ -54,7 +54,7 @@ from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
 
 from .automatic_bedrock_qual_utils import (
-    CLIENTS_BY_ID,
+    CLIENTS_BY_NAME,
     OSS120,
     ClaudeSonnet,
     Gemma4,
@@ -307,6 +307,11 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 .replace(hint_placeholder, hint)
             )
 
+    # separated out for easier testing
+    def get_clients_for_models(self, models):
+        client_ids = set([model.client_id for model in models])
+        return {client_id: CLIENTS_BY_NAME[client_id]() for client_id in client_ids}
+
     def get_question_params(self):
         from kobo.apps.subsequences.actions import ManualQualAction
 
@@ -316,8 +321,10 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
         ]
 
-    def get_response_from_llm(self, request_data: dict, model: LLModel) -> str:
-        client = CLIENTS_BY_ID[model.client_id]()
+    def get_response_from_llm(
+        self, clients_by_type, request_data: dict, model: LLModel
+    ) -> str:
+        client = clients_by_type[model.client_id]
         try:
             return client.get_response_from_llm(request_data, model)
         except (JSONDecodeError, IndexError, KeyError) as e:
@@ -427,6 +434,9 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         error = ''
 
         request = self.construct_external_request(action_data, submission)
+
+        # For now, hardcode models for each question type. Eventually this will be
+        # configurable
         if survey_question_type == IMAGE_SOURCE_TYPE:
             models = [Gemma4]
         else:
@@ -439,11 +449,13 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             self.asset.id,
         )
 
-        # for now, hardcode OSS to be primary and Claude to be backup
-        # eventually this will be configurable
+        clients_by_type = self.get_clients_for_models(models)
+
         for index, model in enumerate(models):
             try:
-                full_response_text = self.get_response_from_llm(request, model)
+                full_response_text = self.get_response_from_llm(
+                    clients_by_type, request, model
+                )
                 # edge case: sometimes the LLM returns None
                 if full_response_text is None:
                     raise InvalidResponseFromLLMException('LLM returned empty response')
