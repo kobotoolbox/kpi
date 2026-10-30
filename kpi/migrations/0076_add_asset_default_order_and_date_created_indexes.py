@@ -1,3 +1,5 @@
+# flake8: noqa: E501
+
 import django.contrib.postgres.indexes
 from django.conf import settings
 from django.contrib.postgres.operations import AddIndexConcurrently
