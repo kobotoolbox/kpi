@@ -66,6 +66,7 @@ from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.autoname import HandleDuplicatesOptions
+from kpi.utils.django_orm_helper import OrderCustomCharField
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -89,6 +90,14 @@ class AssetDeploymentStatus(models.TextChoices):
     ARCHIVED = 'archived', 'Archived'
     DEPLOYED = 'deployed', 'Deployed'
     DRAFT = 'draft', 'Draft'
+
+    @classmethod
+    def default_order(cls) -> list[str]:
+        """
+        Order of the statuses in the default sort of project lists
+        """
+
+        return [cls.DEPLOYED.value, cls.DRAFT.value, cls.ARCHIVED.value]
 
 
 class AssetSetting:
@@ -288,6 +297,20 @@ class Asset(
             #  `_deployment_data__backend_response__formid` but not used anymore.
             BTreeIndex(
                 F('_deployment_data__formid'), name='deployment_data__formid_idx'
+            ),
+            # Matches the default sort of `AssetOrderingFilter`, so that project
+            # views can read their first page without sorting every survey.
+            BTreeIndex(
+                OrderCustomCharField(
+                    '_deployment_status', AssetDeploymentStatus.default_order()
+                ),
+                F('date_modified').desc(),
+                F('id'),
+                condition=Q(asset_type=ASSET_TYPE_SURVEY, pending_delete=False),
+                name='asset_survey_default_order_idx',
+            ),
+            BTreeIndex(
+                fields=['-date_created', 'id'], name='asset_date_created_id_idx'
             ),
         ]
 
