@@ -58,6 +58,18 @@ class HeadlessMfaTestCase(BaseTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
 
+    def _reauthenticate(self, password='someuser'):
+        """
+        A login no longer counts as a recent re-authentication: allauth's
+        account-sensitive endpoints need an explicit one, as the frontend does
+        """
+        response = self.client.post(
+            f'{HEADLESS_URL}/auth/reauthenticate',
+            data={'password': password},
+            content_type='application/json',
+        )
+        assert response.status_code == status.HTTP_200_OK
+
     @staticmethod
     def _pending_flows(response):
         return [
@@ -77,6 +89,7 @@ class HeadlessMfaTestCase(BaseTestCase):
 
     def test_mfa_activated_with_headless_is_enforced(self):
         assert self._login().status_code == status.HTTP_200_OK
+        self._reauthenticate()
         response = self.client.get(f'{HEADLESS_URL}/account/authenticators/totp')
         secret = response.json()['meta']['secret']
         with self.captureOnCommitCallbacks(execute=True):
@@ -103,6 +116,7 @@ class HeadlessMfaTestCase(BaseTestCase):
         activate_mfa_for_user(self.client, self.someuser)
         assert UserProfile.objects.get(user=self.someuser).is_mfa_active
         self._login_with_mfa(self.someuser, 'someuser')
+        self._reauthenticate()
 
         with self.captureOnCommitCallbacks(execute=True):
             response = self.client.delete(f'{HEADLESS_URL}/account/authenticators/totp')
@@ -118,6 +132,7 @@ class HeadlessMfaTestCase(BaseTestCase):
     def test_codes_regenerated_with_headless_are_accepted(self):
         activate_mfa_for_user(self.client, self.someuser)
         self._login_with_mfa(self.someuser, 'someuser')
+        self._reauthenticate()
 
         response = self.client.post(
             f'{HEADLESS_URL}/account/authenticators/recovery-codes',
@@ -141,6 +156,7 @@ class HeadlessMfaTestCase(BaseTestCase):
         self._verify_email(superuser)
         activate_mfa_for_user(self.client, superuser)
         self._login_with_mfa(superuser, 'su')
+        self._reauthenticate('su')
 
         response = self.client.delete(f'{HEADLESS_URL}/account/authenticators/totp')
         assert response.status_code == status.HTTP_403_FORBIDDEN

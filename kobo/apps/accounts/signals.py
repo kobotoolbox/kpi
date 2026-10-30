@@ -97,6 +97,7 @@ def record_totp_activation(sender=None, request=None, authenticator=None, **kwar
         MFA_METHOD,
         id=authenticator.pk,
         type=authenticator.type,
+        reauthenticated=True,
     )
 
 
