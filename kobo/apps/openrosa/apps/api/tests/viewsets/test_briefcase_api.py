@@ -51,7 +51,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         response = view(request)
         self.assertEqual(response.status_code, 401)
         auth = DigestAuth(self.login_username, self.login_password)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._submission_list_url,
+            data={'formId': self.xform.id_string},
+            **auth(request.META, response),
+        )
         response = view(request)
         self.assertEqual(response.status_code, 200)
         submission_list_path = os.path.join(
@@ -80,7 +84,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         response = view(request, username=self.user.username)
         self.assertEqual(response.status_code, 401)
         auth = DigestAuth(self.login_username, self.login_password)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._submission_list_url,
+            data={'formId': self.xform.id_string},
+            **auth(request.META, response),
+        )
         response = view(request, username=self.user.username)
         self.assertEqual(response.status_code, 403)
 
@@ -96,7 +104,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         response = view(request)
         self.assertEqual(response.status_code, 401)
         auth = DigestAuth(self.login_username, self.login_password)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._submission_list_url,
+            data={'formId': self.xform.id_string},
+            **auth(request.META, response),
+        )
         response = view(request)
         self.assertEqual(response.status_code, 200)
         submission_list_path = os.path.join(
@@ -125,7 +137,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         response = view(request)
         self.assertEqual(response.status_code, 401)
         auth = DigestAuth(self.login_username, self.login_password)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._download_submission_url,
+            data=params,
+            **auth(request.META, response),
+        )
         response = view(request)
         self.assertTrue(response.status_code, 404)
 
@@ -147,7 +163,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             data={'formId': self.xform.id_string})
         response = view(request)
         self.assertEqual(response.status_code, 401)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._submission_list_url,
+            data={'formId': self.xform.id_string},
+            **auth(request.META, response),
+        )
         response = view(request)
         self.assertEqual(response.status_code, 404)
 
@@ -184,7 +204,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
                 data=params)
             response = view(request)
             self.assertEqual(response.status_code, 401)
-            request.META.update(auth(request.META, response))
+            request = self.factory.get(
+                self._submission_list_url,
+                data=params,
+                **auth(request.META, response),
+            )
             response = view(request)
             self.assertEqual(response.status_code, 200)
             if index > 2:
@@ -223,7 +247,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             self._download_submission_url, data=params)
         response = view(request)
         self.assertEqual(response.status_code, 401)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._download_submission_url,
+            data=params,
+            **auth(request.META, response),
+        )
         response = view(request)
         download_submission_path = os.path.join(
             self.main_directory, 'fixtures', 'transportation',
@@ -254,7 +282,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             self._download_submission_url, data=params)
         response = view(request)
         self.assertEqual(response.status_code, 401)
-        request.META.update(auth(request.META, response))
+        request = self.factory.get(
+            self._download_submission_url,
+            data=params,
+            **auth(request.META, response),
+        )
         response = view(request)
         response.render()
         self.assertContains(response, instance_id, status_code=200)
@@ -270,7 +302,11 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             request = self.factory.get(
                 self._download_submission_url, data=params)
             response = view(request)
-            request.META.update(auth(request.META, response))
+            request = self.factory.get(
+                self._download_submission_url,
+                data=params,
+                **auth(request.META, response),
+            )
             response = view(request)
             response.render()
             self.assertNotIn(

@@ -87,7 +87,20 @@ updates:
       minor-and-patch:
         patterns:
           - "*"
+        # Their minor releases change auth behavior or ship data migrations:
+        # separate PRs, so they can't block the rest of the group.
+        exclude-patterns:
+          - "django-allauth"
+          - "django-oauth-toolkit"
         update-types:
           - "minor"
           - "patch"
     open-pull-requests-limit: 5
+    # Without these, dependabot rewrites our caps in requirements.in.
+    ignore:
+      # 2.10+ drops model fields and the migrations user_reports depends on.
+      - dependency-name: "dj-stripe"
+        versions: [">=2.10"]
+      # mongomock breaks with pymongo>=4.11 (see requirements.in).
+      - dependency-name: "pymongo"
+        versions: [">=4.11"]
