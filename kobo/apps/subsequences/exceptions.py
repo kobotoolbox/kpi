@@ -57,6 +57,13 @@ class DependencyNotFound(Exception):
     pass
 
 
+class ImageTooLarge(Exception):
+    """
+    Raised when an image cannot be resized to below the maximum size
+    """
+    pass
+
+
 class InvalidAction(Exception):
     """
     The referenced action does not exist or was not configured for the given

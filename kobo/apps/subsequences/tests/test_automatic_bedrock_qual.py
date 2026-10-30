@@ -1,7 +1,11 @@
+import base64
 import copy
+import math
+import os
 import time
 import uuid
 from datetime import timedelta
+from io import BytesIO
 from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
@@ -14,6 +18,7 @@ from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from PIL import Image
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -36,6 +41,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
+    ImageTooLarge,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
@@ -604,111 +610,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         with pytest.raises(AnalysisQuestionIncorrectlyConfigured):
             action.generate_llm_text_prompt(action_data, {})
 
-    def test_generate_image_request_data(self):
-        mock_templates_by_type = {
-            QUESTION_TYPE_TEXT: 'prompt',
-        }
-
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-        submission = {
-            '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'IMG_4266-11_38_22.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 1,
-                    'filename': 'IMG_4266-11_38_22.jpg',
-                    'mimetype': 'image/jpeg',
-                    'question_xpath': 'q1',
-                },
-            ],
-            '_submitted_by': 'someuser',
-        }
-        self.asset.deployment.mock_submissions([submission])
-        submission = self.asset.deployment.get_submissions(
-            user=self.asset.owner, query={'_id': submission['_id']}
-        )[0]
-
-        action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
-            '_dependency': {'_question_type': 'image'},
-        }
-        with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
-            with patch(
-                'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',  # noqa
-                return_value=b'123',
-            ):
-                request = self.action.construct_external_request(
-                    action_data, submission
-                )
-
-        request_content = request['messages'][0]['content']
-        assert request_content[0] == {'type': 'text', 'text': 'prompt'}
-        assert request_content[1]['type'] == 'image_url'
-        assert request_content[1]['image_url']['url'] == 'data:image/jpeg;base64,123'
-
-    def test_generate_image_request_data_image_response_missing(self):
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-        submission = {
-            '__version__': self.asset.latest_deployed_version.uid,
-            '_uuid': str(uuid.uuid4()),
-            '_submitted_by': 'someuser',
-        }
-        self.asset.deployment.mock_submissions([submission])
-        action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
-            '_dependency': {'_question_type': 'image'},
-        }
-        with self.assertRaises(AttachmentNotFoundException):
-            self.action.construct_external_request(action_data, submission)
-
-    def test_generate_image_request_data_image_file_missing(self):
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-
-        submission = {
-            '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'IMG_4266-11_38_22.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 1,
-                    'filename': 'IMG_4266-11_38_22.jpg',
-                    'mimetype': 'image/jpeg',
-                    'question_xpath': 'q1',
-                },
-            ],
-            '_submitted_by': 'someuser',
-        }
-        self.asset.deployment.mock_submissions([submission])
-        submission = self.asset.deployment.get_submissions(
-            user=self.asset.owner, query={'_id': submission['_id']}
-        )[0]
-        attachment = self.asset.deployment.get_attachment(
-            submission_id_or_uuid=submission['_id'],
-            user=User.objects.get(username='someuser'),
-            xpath='q1',
-        )
-        attachment.media_file.delete()
-
-        action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
-            '_dependency': {'_question_type': 'image'},
-        }
-        with self.assertRaises(AttachmentNotFoundException):
-            self.action.construct_external_request(action_data, submission)
-
     @data(
         # question uuid, parsing method name
         (BEDROCK_QUAL_TEXT_UUID, 'parse_text_response'),
@@ -795,7 +696,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        args = []
         if error_class == InvalidResponseFromLLMException:
             args = ['Bad']
         else:
@@ -918,6 +818,120 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         #  Verify it exited gracefully
         assert result.get('status') == 'failed'
         assert 'Connect timeout' in result.get('error')
+
+
+class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.asset.content = {
+            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': 'yellow.png',
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'id': 1,
+                    'filename': 'yellow.png',
+                    'mimetype': 'image/png',
+                    'question_xpath': 'q1',
+                },
+            ],
+            '_submitted_by': 'someuser',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        self.submission = self.asset.deployment.get_submissions(
+            user=self.asset.owner, query={'_id': submission['_id']}
+        )[0]
+
+    def test_generate_image_request_data(self):
+        mock_templates_by_type = {
+            QUESTION_TYPE_TEXT: 'prompt',
+        }
+
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': {'_question_type': 'image'},
+        }
+        with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
+            with patch(
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',  # noqa
+                return_value=b'123',
+            ):
+                request = self.action.construct_external_request(
+                    action_data, self.submission
+                )
+
+        request_content = request['messages'][0]['content']
+        assert request_content[0] == {'type': 'text', 'text': 'prompt'}
+        assert request_content[1]['type'] == 'image_url'
+        assert request_content[1]['image_url']['url'] == 'data:image/png;base64,123'
+
+    def test_generate_image_request_data_image_response_missing(self):
+        self.asset.content = {
+            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            '_uuid': str(uuid.uuid4()),
+            '_submitted_by': 'someuser',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': {'_question_type': 'image'},
+        }
+        with self.assertRaises(AttachmentNotFoundException):
+            self.action.construct_external_request(action_data, submission)
+
+    def test_generate_image_request_data_image_file_missing(self):
+        attachment = self.asset.deployment.get_attachment(
+            submission_id_or_uuid=self.submission['_id'],
+            user=User.objects.get(username='someuser'),
+            xpath='q1',
+        )
+        attachment.media_file.delete()
+
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': {'_question_type': 'image'},
+        }
+        with self.assertRaises(AttachmentNotFoundException):
+            self.action.construct_external_request(action_data, self.submission)
+
+    def test_resize_image(self):
+        attachment = self.submission['_attachments'][0]
+        original_file = os.path.join(
+            settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow.png'
+        )
+        original_file_size = os.path.getsize(original_file)
+        with Image.open(original_file) as image:
+            original_height, original_width = image.height, image.width
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_SIZE',
+            math.floor(original_file_size * 0.9),
+        ):
+            image_bytes = self.action.format_image_for_llm(attachment)
+        reencoded = base64.b64decode(image_bytes)
+        with Image.open(BytesIO(reencoded)) as new_image:
+            new_height, new_width = new_image.height, new_image.width
+        assert new_height < original_height
+        assert new_width < original_width
+
+    def test_resize_image_too_large(self):
+        attachment = self.submission['_attachments'][0]
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_SIZE',
+            1,  # set a max size to a value too small for any image file
+        ):
+            with self.assertRaises(ImageTooLarge):
+                self.action.format_image_for_llm(attachment)
 
 
 @override_settings(CACHES={
