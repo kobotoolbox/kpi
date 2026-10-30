@@ -989,6 +989,7 @@ class Asset(
         self.content = av.version_content
         self.save()
 
+    @transaction.atomic
     def save(
         self,
         force_insert=False,
