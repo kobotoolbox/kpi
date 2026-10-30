@@ -1,185 +1,118 @@
 import clonedeep from 'lodash.clonedeep'
 import Reflux from 'reflux'
-import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import assetStore from '#/assetStore'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { userCan } from '#/components/permissions/utils'
 import {
-  DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
 import { getAllDataColumns } from '#/components/submissions/tableUtils'
-import type {
-  AssetResponse,
-  AssetSettings,
-  AssetTableSettings,
-  SubmissionResponse,
-  TableSortBySetting,
-} from '#/dataInterface'
+import type { AssetResponse, AssetTableSettings, SubmissionResponse, TableSortBySetting } from '#/dataInterface'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { recordEntries } from '#/utils'
 
+/** Prefix for the per-user `localStorage` key, see `useSafeUsernameStorageKey`. */
+export const TABLE_SETTINGS_STORAGE_KEY_PREFIX = 'kpiDataTableSettings'
+
 export interface TableStoreData {
-  overrides: AssetTableSettings
+  /** Settings of the asset from the current route. */
+  tableSettings: AssetTableSettings
 }
 
-/**
- * Settings that a user without `change_asset` can change for themselves. These
- * live in `data.overrides` for the session only and are never persisted.
- */
-const OVERRIDABLE_SETTINGS = [
-  DATA_TABLE_SETTINGS.SELECTED_COLUMNS,
-  DATA_TABLE_SETTINGS.FROZEN_COLUMN,
-  DATA_TABLE_SETTINGS.SHOW_GROUP,
-  DATA_TABLE_SETTINGS.TRANSLATION,
-  DATA_TABLE_SETTINGS.SHOW_HXL,
-  DATA_TABLE_SETTINGS.SORT_BY,
-] as const
+/** One key per user holds the settings of every asset they've opened. */
+type TableSettingsByAsset = Record<string, AssetTableSettings>
 
-/**
- * Copies one setting from `source` to `target`, skipping it if `source` has no
- * value for it.
- *
- * `null` counts as a value here: `selected-columns: null` means "all columns
- * visible", `frozen-column: null` means "nothing frozen". Hence the `undefined`
- * check rather than a falsiness one.
- */
-function applySetting<SettingName extends keyof AssetTableSettings>(
-  target: AssetTableSettings,
-  source: AssetTableSettings,
-  settingName: SettingName,
-) {
-  if (typeof source[settingName] !== 'undefined') {
-    // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
-    // prepends the frozen column to the selected columns).
-    target[settingName] = clonedeep(source[settingName])
+function readStoredSettings(storageKey: string): TableSettingsByAsset {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(storageKey) || '{}')
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed
+    }
+  } catch {
+    // Malformed JSON or storage being unavailable, so we start fresh.
   }
+  return {}
 }
 
 /**
- * NOTE: tableStore should be handling all data required by table.js, but as
- * this would mean a huge refactor (and most probably dropping react-table),
- * we will stick to providing a one way interface for changing things in asset
- * plus some utility functions.
+ * Keeps Data Table settings (sorting, hidden and frozen columns, etc.) in
+ * `localStorage`, per user and per asset.
  *
- * NOTE: To simplify code a bit, we assume this will be used only on the table
- * route - i.e. assetUid comes from url, and asset from other stores.
+ * NOTE: we assume this is used only on the table route, i.e. assetUid comes
+ * from url.
  *
- * Use these actions listeners to be up to date:
- * - `actions.table.updateSettings`
+ * NOTE: nothing is persisted until `setStorageKey` is called (see
+ * `DataTableWrapper`), only kept in memory.
  *
- * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ * @deprecated migrate out of Reflux (DEV-3191) whenever you need to adjust things beyond simple rename
  */
 class TableStore extends Reflux.Store {
-  /** We use overrides for users with no permissions */
-  data: TableStoreData = {
-    overrides: {},
+  private storageKey: string | null = null
+  private settingsByAsset: TableSettingsByAsset = {}
+  /** Assets with changes that failed to persist, kept in memory only. */
+  private unsavedAssetUids = new Set<string>()
+
+  /** Loads the settings stored under given key and persists future changes there. */
+  setStorageKey(storageKey: string) {
+    if (storageKey === this.storageKey) {
+      return
+    }
+    this.storageKey = storageKey
+    this.settingsByAsset = readStoredSettings(storageKey)
+    this.unsavedAssetUids.clear()
+    this.trigger(this.getData())
   }
 
-  /** The asset that `data.overrides` were set for, see `syncOverridesWithRoute` */
-  private overridesAssetUid: string | null = null
-
-  /**
-   * Overrides belong to a single asset, as some of them are field identifiers
-   * that mean nothing in another project. Moving to a different asset drops
-   * them, so returns the overrides that are safe to use for the current route.
-   *
-   * Routes without an asset (`null`) leave the overrides alone, so that they
-   * survive a trip outside the project.
-   */
-  private syncOverridesWithRoute() {
-    const routeAssetUid = getRouteAssetUid()
-
-    if (routeAssetUid !== null && routeAssetUid !== this.overridesAssetUid) {
-      this.overridesAssetUid = routeAssetUid
-      this.data.overrides = {}
-    }
-
-    return this.data.overrides
+  private getData(): TableStoreData {
+    return { tableSettings: this.getTableSettings() }
   }
 
   /** Returns settings or empty object if no settings exist */
-  getTableSettings() {
-    const asset = this.getCurrentAsset()
-    const overrides = this.syncOverridesWithRoute()
-
-    // We clone settings, as we will possibly overwrite some of them. If there
-    // are no settings yet, we start with empty object.
-    const tableSettings: AssetTableSettings = clonedeep(asset?.settings?.[DATA_TABLE_SETTING]) || {}
-
-    // overrides take precedense over asset endpoint settings
-    OVERRIDABLE_SETTINGS.forEach((settingName) => {
-      applySetting(tableSettings, overrides, settingName)
-    })
-
-    return tableSettings
+  getTableSettings(): AssetTableSettings {
+    const assetUid = getRouteAssetUid()
+    // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
+    // prepends the frozen column to the selected columns).
+    return clonedeep((assetUid && this.settingsByAsset[assetUid]) || {})
   }
 
   /**
-   * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
+   * @param newTableSettings - will be merged into current settings. Passing
+   * `null` for a setting brings back its default.
    */
   saveTableSettings(newTableSettings: AssetTableSettings) {
-    const asset = this.getCurrentAsset()
-
-    if (asset === undefined) {
+    const assetUid = getRouteAssetUid()
+    if (assetUid === null) {
       console.error('No asset?')
+      return
     }
 
-    // get whole asset settings (as clone to avoid bugs) to not lose existing
-    // settings that are not updated by newTableSettings
-    const newSettings: AssetSettings = clonedeep(asset?.settings) || {}
-
-    // settings object doesn't even have DATA_TABLE_SETTING, we can pass newTableSettings
-    if (newSettings[DATA_TABLE_SETTING]) {
-      newSettings[DATA_TABLE_SETTING] = Object.assign(newSettings[DATA_TABLE_SETTING], newTableSettings)
-    } else {
-      newSettings[DATA_TABLE_SETTING] = newTableSettings
-      // settings exist, so we merge them
+    // Other tabs may have saved other assets since we loaded, so pick these up
+    // to avoid overwriting them. Unsaved changes still win.
+    if (this.storageKey) {
+      const unsavedSettings = Object.fromEntries(
+        [...this.unsavedAssetUids].map((uid) => [uid, this.settingsByAsset[uid]]),
+      )
+      this.settingsByAsset = { ...this.settingsByAsset, ...readStoredSettings(this.storageKey), ...unsavedSettings }
     }
 
-    // Case 1: user can save, so we call the endpoint
-    if (asset && userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
-      // Cleanup all `null` settings, as we don't want to store `null`s and `null`
-      // means "delete setting"
-      const tableSettings = newSettings[DATA_TABLE_SETTING]
-      const cleanedTableSettings = Object.fromEntries(
-        recordEntries(tableSettings).filter(([, value]) => value !== null),
-      ) as AssetTableSettings
-      newSettings[DATA_TABLE_SETTING] = cleanedTableSettings
-      actions.table.updateSettings(asset.uid, newSettings)
-    } else {
-      // Case 2: user can't save, so we store temporary overrides as nested setting
-      this.setOverrides(newSettings[DATA_TABLE_SETTING])
+    const mergedSettings = { ...this.settingsByAsset[assetUid], ...newTableSettings }
+    // `null` means "use default", so there's no point storing it.
+    this.settingsByAsset[assetUid] = Object.fromEntries(
+      recordEntries(mergedSettings).filter(([, value]) => value !== null),
+    ) as AssetTableSettings
+
+    if (this.storageKey) {
+      try {
+        localStorage.setItem(this.storageKey, JSON.stringify(this.settingsByAsset))
+        this.unsavedAssetUids.clear()
+      } catch {
+        // Storage is full or disabled. Settings still work until page reload.
+        this.unsavedAssetUids.add(assetUid)
+      }
     }
-  }
 
-  /**
-   * Stores session-local settings for users who can't persist them to the asset.
-   * Only `OVERRIDABLE_SETTINGS` are picked up, the rest is ignored.
-   */
-  setOverrides(newOverrides: AssetTableSettings) {
-    const overrides = this.syncOverridesWithRoute()
-
-    OVERRIDABLE_SETTINGS.forEach((settingName) => {
-      applySetting(overrides, newOverrides, settingName)
-    })
-
-    this.trigger(this.data)
-  }
-
-  /**
-   * A shortcut method, to be deleted in future.
-   */
-  getCurrentAsset() {
-    const routeAssetUid = getRouteAssetUid()
-    if (routeAssetUid === null) {
-      return undefined
-    }
-    return assetStore.getAsset(routeAssetUid)
+    this.trigger(this.getData())
   }
 
   /** Returns a list of columns that user can hide */

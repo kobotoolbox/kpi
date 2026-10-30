@@ -135,12 +135,6 @@ interface GetExportSettingsCompletedDefinition extends Function {
   ) => Function
 }
 
-interface TableUpdateSettingsDefinition extends Function {
-  (assetUid: string, newSettings: object): void
-  completed: GenericCallbackDefinition
-  failed: GenericFailedDefinition
-}
-
 interface UpdateSubmissionValidationStatusDefinition extends Function {
   (assetUid: string, submissionUid: string, data: { 'validation_status.uid': ValidationStatus }): void
   completed: AnySubmissionValidationStatusCompletedDefinition
@@ -384,9 +378,6 @@ export declare const actions: {
   reports: {
     setStyle: ReportsSetStyleDefinition
     setCustom: ReportsSetCustomDefinition
-  }
-  table: {
-    updateSettings: TableUpdateSettingsDefinition
   }
   map: {
     setMapStyles: MapSetMapStylesDefinition

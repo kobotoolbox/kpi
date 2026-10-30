@@ -10,9 +10,10 @@ DELETED_FIELD = '_deleted'
 # Could allow more types in the future? See
 # formpack.utils.replace_aliases.MEDIA_TYPES
 TEXT_SOURCE_TYPE = 'text'
+IMAGE_SOURCE_TYPE = 'image'
 TRANSCRIBABLE_SOURCE_TYPES = ['audio', 'video', 'background-audio']
 TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + [TEXT_SOURCE_TYPE]
-QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES
+QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES + [IMAGE_SOURCE_TYPE]
 
 # `_actionId` value of the synthetic dependency attached when the source is read
 # straight from a `text` survey question rather than from a transcript.
