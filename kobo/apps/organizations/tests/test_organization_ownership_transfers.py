@@ -386,6 +386,45 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             detail_res.data['pending_transfer']['guid'], str(transfer.guid)
         )
 
+        # Recipient Admin can also see pending_transfer
+        self.client.force_login(self.admin_user)
+        res_recipient = self.client.get(members_list_url)
+        self.assertEqual(res_recipient.status_code, status.HTTP_200_OK)
+        admin_row_rec = next(
+            m
+            for m in res_recipient.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNotNone(admin_row_rec['pending_transfer'])
+
+        # Regular member cannot see pending_transfer (None)
+        self.client.force_login(self.member_user)
+        res_member = self.client.get(members_list_url)
+        self.assertEqual(res_member.status_code, status.HTTP_200_OK)
+        admin_row_mem = next(
+            m
+            for m in res_member.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNone(admin_row_mem['pending_transfer'])
+
+        # Unrelated admin cannot see pending_transfer (None)
+        unrelated_admin = User.objects.create_user(
+            username='unrelated_admin', email='unrelated_admin@example.com'
+        )
+        OrganizationUser.objects.create(
+            organization=self.organization, user=unrelated_admin, is_admin=True
+        )
+        self.client.force_login(unrelated_admin)
+        res_unrelated = self.client.get(members_list_url)
+        self.assertEqual(res_unrelated.status_code, status.HTTP_200_OK)
+        admin_row_unrel = next(
+            m
+            for m in res_unrelated.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNone(admin_row_unrel['pending_transfer'])
+
     def test_organization_exposes_has_pending_ownership_transfer_flag(self):
         """
         GET /organizations/{uid_organization}/ exposes
