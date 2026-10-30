@@ -4,7 +4,8 @@ from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
 from django.conf import settings
-from django.db.models import Count, F
+from django.contrib.postgres.aggregates import BoolOr
+from django.db.models import BooleanField, Count, ExpressionWrapper, F, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
@@ -835,22 +836,34 @@ class AssetViewSet(
                 asset_ids, current_user_permissions_only
             )
 
-            # 2b) Assets shared with at least one non-owner, non-anonymous user.
-            # Used by get_status() and get_access_types() to detect 'shared'.
-            context_['shared_asset_ids'] = set(
+            # 2b) Assets with a permission for anyone but their owner, the
+            # anonymous user included, used by get_status(), and among them the
+            # assets shared with a non-anonymous user, used by get_access_types()
+            context_['permission_asset_ids'] = set()
+            context_['shared_asset_ids'] = set()
+            records = (
                 ObjectPermission.objects.filter(
                     asset_id__in=asset_ids,
                     deny=False,
                 )
                 .exclude(
-                    user_id=settings.ANONYMOUS_USER_ID,
-                )
-                .exclude(
                     user_id=F('asset__owner_id'),
                 )
-                .values_list('asset_id', flat=True)
-                .distinct()
+                .values('asset_id')
+                .annotate(
+                    shared_with_user=BoolOr(
+                        ExpressionWrapper(
+                            ~Q(user_id=settings.ANONYMOUS_USER_ID),
+                            output_field=BooleanField(),
+                        )
+                    )
+                )
+                .order_by()
             )
+            for record in records:
+                context_['permission_asset_ids'].add(record['asset_id'])
+                if record['shared_with_user']:
+                    context_['shared_asset_ids'].add(record['asset_id'])
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
