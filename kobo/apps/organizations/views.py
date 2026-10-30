@@ -79,7 +79,6 @@ from .constants import (
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
     PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
-    RECIPIENT_MUST_BE_ADMIN_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
 from .exceptions import InvalidMembershipRequest
@@ -996,7 +995,16 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     ],
 )
 @extend_schema_view(
+    create=extend_schema(
+        description='Initiate an organization ownership transfer request (outgoing owner only).',
+        responses=open_api_201_created_response(
+            OrganizationOwnershipTransferSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
     retrieve=extend_schema(
+        description='Retrieve an organization ownership transfer by GUID.',
         parameters=[
             OpenApiParameter(
                 name='guid',
@@ -1008,6 +1016,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         ]
     ),
     list=extend_schema(
+        description='List organization ownership transfers for the current user.',
         parameters=[
             OpenApiParameter(
                 name='status',
@@ -1069,8 +1078,18 @@ class OrganizationOwnershipTransferViewSet(
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
+        description='Accept an organization ownership transfer request (invitee only).',
         request=None,
         responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the ownership transfer',
+            ),
+        ],
     )
     @action(detail=True, methods=['patch'])
     def accept(self, request, *args, **kwargs):
@@ -1082,11 +1101,6 @@ class OrganizationOwnershipTransferViewSet(
                 )
             raise serializers.ValidationError({'detail': TRANSFER_NOT_PENDING_ERROR})
 
-        organization = transfer.organization
-        recipient = transfer.recipient
-        if not recipient.is_active or not organization.is_admin_only(recipient):
-            raise serializers.ValidationError({'detail': RECIPIENT_MUST_BE_ADMIN_ERROR})
-
         with transaction.atomic():
             transfer.status = OrganizationInviteStatusChoices.ACCEPTED
             transfer.save(update_fields=['status', 'modified'])
@@ -1096,8 +1110,18 @@ class OrganizationOwnershipTransferViewSet(
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
+        description='Decline an organization ownership transfer request (invitee only).',
         request=None,
         responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the ownership transfer',
+            ),
+        ],
     )
     @action(detail=True, methods=['patch'])
     def decline(self, request, *args, **kwargs):
@@ -1113,8 +1137,18 @@ class OrganizationOwnershipTransferViewSet(
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
+        description='Cancel a pending organization ownership transfer request (outgoing owner only).',
         request=None,
         responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the ownership transfer',
+            ),
+        ],
     )
     @action(detail=True, methods=['patch'])
     def cancel(self, request, *args, **kwargs):
@@ -1130,8 +1164,21 @@ class OrganizationOwnershipTransferViewSet(
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
+        description='Resend the invitation email for a pending organization ownership transfer (outgoing owner only).',
         request=None,
-        responses=open_api_200_ok_response(OrganizationOwnershipTransferSerializer),
+        responses=open_api_200_ok_response(
+            OrganizationOwnershipTransferSerializer,
+            raise_throttled=True,
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='guid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='GUID of the ownership transfer',
+            ),
+        ],
     )
     @action(detail=True, methods=['post'])
     def resend(self, request, *args, **kwargs):
