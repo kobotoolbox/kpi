@@ -9889,13 +9889,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorValidation'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 BadRequest:
                   value:
-                    field_name:
-                    - Error message
-                  summary: Bad request
+                    detail: Transfer is not pending.
+                  summary: Bad Request
           description: ''
   /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/cancel/:
     patch:
@@ -9964,13 +9963,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorValidation'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 BadRequest:
                   value:
-                    field_name:
-                    - Error message
-                  summary: Bad request
+                    detail: Transfer is not pending.
+                  summary: Bad Request
           description: ''
   /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/decline/:
     patch:
@@ -10038,13 +10036,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorValidation'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 BadRequest:
                   value:
-                    field_name:
-                    - Error message
-                  summary: Bad request
+                    detail: Transfer is not pending.
+                  summary: Bad Request
           description: ''
   /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/resend/:
     post:
@@ -10124,13 +10121,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorValidation'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 BadRequest:
                   value:
-                    field_name:
-                    - Error message
-                  summary: Bad request
+                    detail: Invitation cannot be resent.
+                  summary: Bad Request
           description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:
@@ -21630,8 +21626,16 @@ components:
       - results
       properties:
         count:
-          type: integer
-          example: 123
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
         next:
           type:
           - string

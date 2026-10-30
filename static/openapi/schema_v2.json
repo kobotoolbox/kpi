@@ -13555,16 +13555,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorValidation"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "field_name": [
-                                                "Error message"
-                                            ]
+                                            "detail": "Transfer is not pending."
                                         },
-                                        "summary": "Bad request"
+                                        "summary": "Bad Request"
                                     }
                                 }
                             }
@@ -13678,16 +13676,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorValidation"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "field_name": [
-                                                "Error message"
-                                            ]
+                                            "detail": "Transfer is not pending."
                                         },
-                                        "summary": "Bad request"
+                                        "summary": "Bad Request"
                                     }
                                 }
                             }
@@ -13801,16 +13797,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorValidation"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "field_name": [
-                                                "Error message"
-                                            ]
+                                            "detail": "Transfer is not pending."
                                         },
-                                        "summary": "Bad request"
+                                        "summary": "Bad Request"
                                     }
                                 }
                             }
@@ -13942,16 +13936,14 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ErrorValidation"
+                                    "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
                                     "BadRequest": {
                                         "value": {
-                                            "field_name": [
-                                                "Error message"
-                                            ]
+                                            "detail": "Invitation cannot be resent."
                                         },
-                                        "summary": "Bad request"
+                                        "summary": "Bad Request"
                                     }
                                 }
                             }
@@ -30197,8 +30189,20 @@
                 ],
                 "properties": {
                     "count": {
-                        "type": "integer",
-                        "example": 123
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
                     },
                     "next": {
                         "type": [
