@@ -137,7 +137,12 @@ def create_instance_from_xml(username, request):
     xml_file_list = request.FILES.pop('xml_submission_file', [])
     xml_file = xml_file_list[0] if len(xml_file_list) else None
     media_files = request.FILES.values()
-    return safe_create_instance(username, xml_file, media_files, None, request=request)
+    return safe_create_instance(
+        xml_file=xml_file,
+        media_files=media_files,
+        request=request,
+        owner_username=username,
+    )
 
 
 def create_instance_from_json(username, request):
@@ -155,7 +160,12 @@ def create_instance_from_json(username, request):
     xml_string = dict2xform(submission_joined, dict_form.get('id'))
 
     xml_file = io.StringIO(xml_string)
-    return safe_create_instance(username, xml_file, [], None, request=request)
+    return safe_create_instance(
+        xml_file=xml_file,
+        media_files=[],
+        request=request,
+        owner_username=username,
+    )
 
 
 @extend_schema_view(

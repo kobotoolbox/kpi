@@ -33,7 +33,7 @@ from kpi.exceptions import (
 )
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import NoCountPagination
+from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.schema_extensions.v2.invites.schema import (
     INVITE_ROLE_SCHEMA,
     INVITE_STATUS_SCHEMA,
@@ -72,7 +72,6 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethodsWrapper
 from .constants import (
     CANNOT_REMOVE_OWNER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
@@ -82,6 +81,7 @@ from .constants import (
     TRANSFER_NOT_PENDING_ERROR,
 )
 from .exceptions import InvalidMembershipRequest
+from ..accounts.mfa.utils import mfa_is_active_expression
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -329,7 +329,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     search_default_field_lookups = ['name__icontains']
 
     @action(
-        detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdminPermission],
+        pagination_class=AssetPagination,
     )
     def assets(self, request: Request, *args, **kwargs):
 
@@ -600,12 +603,6 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         organization_id = self.kwargs['uid_organization']
 
-        # Subquery to check if the user has an active MFA method
-        mfa_subquery = MfaMethodsWrapper.objects.filter(
-            user=OuterRef('user_id'),
-            is_active=True
-        ).values('pk')
-
         # Subquery to check if the user has an associated SSO account
         sso_subquery = SocialAccount.objects.filter(user=OuterRef('user_id')).values(
             'pk'
@@ -632,7 +629,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             .select_related('user__extra_details')
             .annotate(
                 role=role_annotation,
-                has_mfa_enabled=Exists(mfa_subquery),
+                has_mfa_enabled=mfa_is_active_expression('user_id'),
                 has_sso_enabled=Exists(sso_subquery),
                 invite=Value(None, output_field=CharField()),
                 ordering_date=F('created'),

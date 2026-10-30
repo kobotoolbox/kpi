@@ -20,7 +20,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
+from kobo.apps.accounts.mfa.utils import user_has_active_mfa
 from kobo.apps.accounts.utils import user_is_managed_by_sso
 from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
@@ -44,7 +44,7 @@ def validate_superuser_auth(obj, can_save_as_superuser: bool) -> bool:
         can_save_as_superuser
         and config.SUPERUSER_AUTH_ENFORCEMENT
         and obj.has_usable_password()
-        and not MfaMethodsWrapper.objects.filter(user=obj, is_active=True).exists()
+        and not user_has_active_mfa(obj)
     ):
         return False
     return True
