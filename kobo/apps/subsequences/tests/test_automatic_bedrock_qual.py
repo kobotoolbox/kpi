@@ -1025,10 +1025,10 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
                 self.supplement_details_url, data=self.qa_payload, format='json'
             )
 
-            # Verify UserA is throttled
-            response = self.client.patch(
-                self.supplement_details_url, data=self.qa_payload, format='json'
-            )
+        # Verify UserA is throttled
+        response = self.client.patch(
+            self.supplement_details_url, data=self.qa_payload, format='json'
+        )
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
         # Create and log in as UserB
