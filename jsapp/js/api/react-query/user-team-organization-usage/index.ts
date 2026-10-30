@@ -2430,7 +2430,7 @@ export type organizationsOwnershipTransfersAcceptPartialUpdateResponse200 = {
 }
 
 export type organizationsOwnershipTransfersAcceptPartialUpdateResponse400 = {
-  data: ErrorValidation
+  data: ErrorDetail
   status: 400
 }
 
@@ -2485,7 +2485,7 @@ export const organizationsOwnershipTransfersAcceptPartialUpdate = async (
 }
 
 export const getOrganizationsOwnershipTransfersAcceptPartialUpdateMutationOptions = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2524,10 +2524,10 @@ export type OrganizationsOwnershipTransfersAcceptPartialUpdateMutationResult = N
   Awaited<ReturnType<typeof organizationsOwnershipTransfersAcceptPartialUpdate>>
 >
 
-export type OrganizationsOwnershipTransfersAcceptPartialUpdateMutationError = ErrorValidation | ErrorDetail
+export type OrganizationsOwnershipTransfersAcceptPartialUpdateMutationError = ErrorDetail
 
 export const useOrganizationsOwnershipTransfersAcceptPartialUpdate = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2551,7 +2551,7 @@ export type organizationsOwnershipTransfersCancelPartialUpdateResponse200 = {
 }
 
 export type organizationsOwnershipTransfersCancelPartialUpdateResponse400 = {
-  data: ErrorValidation
+  data: ErrorDetail
   status: 400
 }
 
@@ -2606,7 +2606,7 @@ export const organizationsOwnershipTransfersCancelPartialUpdate = async (
 }
 
 export const getOrganizationsOwnershipTransfersCancelPartialUpdateMutationOptions = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2645,10 +2645,10 @@ export type OrganizationsOwnershipTransfersCancelPartialUpdateMutationResult = N
   Awaited<ReturnType<typeof organizationsOwnershipTransfersCancelPartialUpdate>>
 >
 
-export type OrganizationsOwnershipTransfersCancelPartialUpdateMutationError = ErrorValidation | ErrorDetail
+export type OrganizationsOwnershipTransfersCancelPartialUpdateMutationError = ErrorDetail
 
 export const useOrganizationsOwnershipTransfersCancelPartialUpdate = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2672,7 +2672,7 @@ export type organizationsOwnershipTransfersDeclinePartialUpdateResponse200 = {
 }
 
 export type organizationsOwnershipTransfersDeclinePartialUpdateResponse400 = {
-  data: ErrorValidation
+  data: ErrorDetail
   status: 400
 }
 
@@ -2727,7 +2727,7 @@ export const organizationsOwnershipTransfersDeclinePartialUpdate = async (
 }
 
 export const getOrganizationsOwnershipTransfersDeclinePartialUpdateMutationOptions = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2766,10 +2766,10 @@ export type OrganizationsOwnershipTransfersDeclinePartialUpdateMutationResult = 
   Awaited<ReturnType<typeof organizationsOwnershipTransfersDeclinePartialUpdate>>
 >
 
-export type OrganizationsOwnershipTransfersDeclinePartialUpdateMutationError = ErrorValidation | ErrorDetail
+export type OrganizationsOwnershipTransfersDeclinePartialUpdateMutationError = ErrorDetail
 
 export const useOrganizationsOwnershipTransfersDeclinePartialUpdate = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2793,7 +2793,7 @@ export type organizationsOwnershipTransfersResendCreateResponse200 = {
 }
 
 export type organizationsOwnershipTransfersResendCreateResponse400 = {
-  data: ErrorValidation
+  data: ErrorDetail
   status: 400
 }
 
@@ -2854,7 +2854,7 @@ export const organizationsOwnershipTransfersResendCreate = async (
 }
 
 export const getOrganizationsOwnershipTransfersResendCreateMutationOptions = <
-  TError = ErrorValidation | ErrorDetail,
+  TError = ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2893,12 +2893,9 @@ export type OrganizationsOwnershipTransfersResendCreateMutationResult = NonNulla
   Awaited<ReturnType<typeof organizationsOwnershipTransfersResendCreate>>
 >
 
-export type OrganizationsOwnershipTransfersResendCreateMutationError = ErrorValidation | ErrorDetail
+export type OrganizationsOwnershipTransfersResendCreateMutationError = ErrorDetail
 
-export const useOrganizationsOwnershipTransfersResendCreate = <
-  TError = ErrorValidation | ErrorDetail,
-  TContext = unknown,
->(options?: {
+export const useOrganizationsOwnershipTransfersResendCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsOwnershipTransfersResendCreate>>,
     TError,

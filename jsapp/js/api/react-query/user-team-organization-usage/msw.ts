@@ -962,6 +962,32 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsOwnershipTransfersListResponseMock = (
+  overrideResponse: Partial<PaginatedOrganizationOwnershipTransferList> = {},
+): PaginatedOrganizationOwnershipTransferList => ({
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsOwnershipTransfersCreateResponseMock = (
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
