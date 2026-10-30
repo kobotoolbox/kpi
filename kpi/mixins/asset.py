@@ -33,6 +33,18 @@ class AssetViewSetListMixin:
 
         return organizations_per_asset
 
+    def get_mmo_organization_ids(self, organizations_per_asset: dict) -> set[str]:
+        """
+        Return the ids of the multi-member organizations of the page, so that the
+        serializer does not run one query per organization
+        """
+
+        organizations = {
+            organization.id: organization
+            for organization in organizations_per_asset.values()
+        }
+        return Organization.get_mmo_ids(list(organizations.values()))
+
     def _attach_xforms_to_assets(self, assets: list):
         """
         Attach the related XForm to each deployed Asset with one query, instead

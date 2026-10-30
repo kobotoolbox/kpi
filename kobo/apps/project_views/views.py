@@ -351,6 +351,9 @@ class ProjectViewViewSet(
         context_['organizations_per_asset'] = (
             self.get_organizations_per_asset_ids(asset_ids)
         )
+        context_['mmo_organization_ids'] = self.get_mmo_organization_ids(
+            context_['organizations_per_asset']
+        )
 
         return context_
 

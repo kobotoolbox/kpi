@@ -1044,7 +1044,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if (
             organization
             and organization.is_owner(asset.owner)
-            and organization.is_mmo
+            and self._is_mmo(organization)
         ):
             return organization.name
         return asset.owner.username
@@ -1194,6 +1194,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     return ASSET_STATUS_PUBLIC
 
         return ASSET_STATUS_SHARED
+
+    def _is_mmo(self, organization) -> bool:
+        """
+        Use the multi-member organizations that the view computed for the whole
+        page, when available, instead of one query per organization
+        """
+
+        try:
+            return organization.id in self.context['mmo_organization_ids']
+        except KeyError:
+            return organization.is_mmo
 
     def _set_asset_ids_cache(self, asset):
         """
