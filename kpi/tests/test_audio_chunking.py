@@ -246,13 +246,26 @@ class PlanChunkRangesTestCase(SimpleTestCase):
         assert blind_cuts == 2
         assert_ranges_cover_the_file(ranges, duration, HARD_LIMIT)
 
-    def test_a_hard_limit_of_zero_is_refused(self):
+    def test_a_hard_limit_that_is_not_a_positive_number_is_refused(self):
         """
-        A misconfigured limit would otherwise never move the walk forward
+        A misconfigured limit would otherwise never move the walk forward, or
+        silently leave a long file as a single chunk
         """
 
-        with pytest.raises(ValueError):
-            plan_chunk_ranges(minutes(90), [], 0)
+        for hard_limit in (0, -1, float('nan'), float('inf')):
+            with pytest.raises(ValueError):
+                plan_chunk_ranges(minutes(90), [], hard_limit)
+
+    def test_a_duration_that_is_not_a_positive_number_is_refused(self):
+        """
+        An infinite duration is never within `hard_limit` of the end, so the
+        walk would append chunks until the process ran out of memory. Zero or
+        less yields a chunk that cannot be cut at all
+        """
+
+        for duration in (0.0, -5.0, float('nan'), float('inf')):
+            with pytest.raises(ValueError):
+                plan_chunk_ranges(duration, [], HARD_LIMIT)
 
 
 @override_settings(
@@ -370,6 +383,22 @@ class GetChunkRangesTestCase(SimpleTestCase):
         assert len(tighter) > len(shared)
         for chunk in tighter:
             assert chunk.duration <= minutes(15)
+
+    def test_an_unusable_duration_is_refused_like_a_missing_one(self):
+        """
+        `audio_length` is an unvalidated float column, so a duration can reach
+        us unusable rather than absent
+        """
+
+        for duration in (0.0, -1.0, float('nan'), float('inf')):
+            with patch(
+                'kpi.utils.audio_chunking.get_audio_duration',
+                return_value=duration,
+            ), patch('kpi.utils.audio_chunking.detect_silences') as detect_silences:
+                with pytest.raises(AudioDurationUnknownError):
+                    get_chunk_ranges(self.attachment)
+
+                detect_silences.assert_not_called()
 
     def test_unknown_duration_is_refused(self):
         with patch(

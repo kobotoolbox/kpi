@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import isfinite
 
 from django.conf import settings
 
@@ -69,8 +70,14 @@ def plan_chunk_ranges(
     again at a louder threshold.
     """
 
-    if hard_limit <= 0:
-        raise ValueError('`hard_limit` must be a positive number of seconds')
+    # An infinite or missing duration would never bring the walk within
+    # `hard_limit` of the end, so it would append chunks until the process ran
+    # out of memory. A zero or negative one yields a chunk that cannot be cut
+    if not isfinite(duration) or duration <= 0:
+        raise ValueError('`duration` must be a positive, finite number of seconds')
+
+    if not isfinite(hard_limit) or hard_limit <= 0:
+        raise ValueError('`hard_limit` must be a positive, finite number of seconds')
 
     ranges = []
     blind_cuts = 0
@@ -128,10 +135,14 @@ def get_chunk_ranges(
     Return where `attachment` should be cut for transcription
 
     Only the start and end of each chunk are worked out: no audio is cut and
-    nothing is written anywhere. The web request that asks for this returns
-    long before the chunks are transcribed, and anything it wrote to disk would
-    be gone by the time a Celery worker, running on another machine, came
-    looking for it.
+    no file is written. The web request that asks for this returns long before
+    the chunks are transcribed, and anything it wrote to disk would be gone by
+    the time a Celery worker, running on another machine, came looking for it.
+
+    It can cause one database write. Called without `duration`, it asks
+    `get_audio_duration()`, which saves what it measures to
+    `attachment.audio_length` when that column is still empty so that the next
+    call is instant. Passing `duration` keeps this read-only.
 
     ffmpeg reads the audio through once, front to back, and reports every pause
     it hears along the way. `plan_chunk_ranges` then picks the cuts out of that
@@ -150,9 +161,12 @@ def get_chunk_ranges(
     if duration is None:
         duration = get_audio_duration(attachment)
 
-    if duration is None:
+    # `audio_length` is an unvalidated float column and ffprobe parses whatever
+    # the container claims, so a duration can arrive unusable rather than absent
+    if duration is None or not isfinite(duration) or duration <= 0:
         raise AudioDurationUnknownError(
-            f'Cannot determine the duration of {attachment.media_file_basename}'
+            f'Cannot determine a usable duration for '
+            f'{attachment.media_file_basename}: {duration!r}'
         )
 
     thresholds = settings.TRANSCRIPTION_SILENCE_THRESHOLDS_DB
