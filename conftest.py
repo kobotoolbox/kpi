@@ -209,7 +209,7 @@ def mock_s3_when_needed():
         with mock_aws():
             region = settings.AWS_S3_REGION_NAME
             bucket = settings.AWS_STORAGE_BUCKET_NAME
-            s3 = boto3.runtime_client('s3', region_name=region)
+            s3 = boto3.client('s3', region_name=region)
             if region == 'us-east-1':
                 s3.create_bucket(Bucket=bucket)
             else:
