@@ -1,4 +1,5 @@
 from collections import defaultdict
+
 from django.db.models import Prefetch
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm

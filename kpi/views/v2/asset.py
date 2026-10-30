@@ -928,9 +928,7 @@ class AssetViewSet(
         page = self.paginate_queryset(self._filtered_queryset)
 
         if page is not None:
-            self._serializer_context['asset_ids_cache'] = [
-                asset.pk for asset in page
-            ]
+            self._serializer_context['asset_ids_cache'] = [asset.pk for asset in page]
             self._attach_xforms_to_assets(page)
             serializer = self.get_serializer(page, many=True)
             metadata = None
