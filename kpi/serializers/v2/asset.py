@@ -1411,6 +1411,36 @@ class AssetMetadataListSerializer(AssetListSerializer):
         return request.parser_context['kwargs']['uid_project_view']
 
 
+class AssetMetadataExtraListSerializer(AssetMetadataListSerializer):
+    """
+    Project view list with the fields that superusers request with
+    `?extra_fields=on`. The view computes the permissions and the versions of
+    the whole page and passes them in the context.
+    """
+
+    version_id = serializers.SerializerMethodField()
+
+    class Meta(AssetMetadataListSerializer.Meta):
+        fields = AssetMetadataListSerializer.Meta.fields + (
+            'status',
+            'summary',
+            'version_id',
+            'deployed_version_id',
+            'version_count',
+        )
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_version_count(self, obj: Asset) -> int:
+        return self._get_versions(obj).get('count', 0)
+
+    @extend_schema_field({'type': 'string', 'nullable': True})
+    def get_version_id(self, obj: Asset) -> str | None:
+        return self._get_versions(obj).get('uid')
+
+    def _get_versions(self, obj: Asset) -> dict:
+        return self.context['versions_per_asset'].get(obj.pk, {})
+
+
 class AssetMinimalListSerializer(AssetSerializer):
     """
     Lightweight serializer returning only uid, name and deployment_status.

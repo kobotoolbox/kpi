@@ -2,11 +2,20 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import BoolOr
-from django.db.models import BooleanField, ExpressionWrapper, F, Prefetch, Q
+from django.db.models import (
+    BooleanField,
+    Count,
+    ExpressionWrapper,
+    F,
+    Prefetch,
+    Q,
+    Window,
+)
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.organizations.models import Organization
 from kpi.models.asset import Asset
+from kpi.models.asset_version import AssetVersion
 from kpi.models.object_permission import ObjectPermission
 
 
@@ -92,6 +101,24 @@ class AssetViewSetListMixin:
                 user_shared_asset_ids.add(record['asset_id'])
 
         return permission_asset_ids, user_shared_asset_ids
+
+    def get_versions_per_asset_ids(self, asset_ids: list) -> dict:
+        """
+        Return the uid of the latest version and the number of versions of each
+        asset, e.g. `{1: {'uid': 'vabc', 'count': 3}}`, with one query whatever
+        the number of assets
+        """
+
+        versions = (
+            AssetVersion.objects.filter(asset_id__in=asset_ids)
+            .annotate(count=Window(Count('pk'), partition_by=F('asset_id')))
+            .order_by('asset_id', '-date_modified')
+            .distinct('asset_id')
+            .values_list('asset_id', 'uid', 'count')
+        )
+        return {
+            asset_id: {'uid': uid, 'count': count} for asset_id, uid, count in versions
+        }
 
     def _attach_xforms_to_assets(self, assets: list):
         """

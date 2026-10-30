@@ -10713,7 +10713,17 @@ paths:
       operationId: api_v2_project_views_assets_retrieve
       description: |
         ## Retrieve assets available in project view
+
+        Superusers can add `?extra_fields=on` to get, for each project, its sharing `status`, its `summary`, the uid of its latest version (`version_id`), the uid of its deployed version (`deployed_version_id`) and its number of versions (`version_count`). Comparing `version_id` with a previous crawl tells which forms changed, so that only those need `/api/v2/assets/{uid_asset}/content/`. The parameter is ignored for other users.
       parameters:
+      - in: query
+        name: extra_fields
+        schema:
+          type: string
+          enum:
+          - 'on'
+        description: 'Superusers only: `on` adds `status`, `summary`, `version_id`,
+          `deployed_version_id` and `version_count` to each project'
       - in: query
         name: limit
         schema:
@@ -22530,6 +22540,89 @@ components:
                 example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/
         owner_label:
           type: string
+        status:
+          type: string
+        summary:
+          type: object
+          properties:
+            geo:
+              type: boolean
+            labels:
+              type: array
+              items:
+                type: string
+            columns:
+              type: array
+              items:
+                type: string
+            lock_all:
+              type: boolean
+            lock_any:
+              type: boolean
+            languages:
+              type: array
+              items:
+                type:
+                - string
+                - 'null'
+                nullable: true
+            row_count:
+              type: integer
+            name_quality:
+              type: object
+              properties:
+                ok:
+                  type: integer
+                bad:
+                  type: integer
+                good:
+                  type: integer
+                total:
+                  type: integer
+                firsts:
+                  type: object
+                  properties:
+                    ok:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        index:
+                          type: integer
+                        label:
+                          type: array
+                          items:
+                            type: string
+                    bad:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        index:
+                          type: integer
+                        label:
+                          type: array
+                          items:
+                            type: string
+            default_translation:
+              type:
+              - string
+              - 'null'
+              nullable: true
+            naming_conflicts:
+              type: array
+              items:
+                type: string
+        version_id:
+          type:
+          - string
+          - 'null'
+        deployed_version_id:
+          type:
+          - string
+          - 'null'
+        version_count:
+          type: integer
       required:
       - asset_type
       - date_created
