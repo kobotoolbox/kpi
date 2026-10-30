@@ -1,10 +1,13 @@
 from collections import defaultdict
 
-from django.db.models import Prefetch
+from django.conf import settings
+from django.contrib.postgres.aggregates import BoolOr
+from django.db.models import BooleanField, ExpressionWrapper, F, Prefetch, Q
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.organizations.models import Organization
 from kpi.models.asset import Asset
+from kpi.models.object_permission import ObjectPermission
 
 
 class AssetViewSetListMixin:
@@ -50,6 +53,45 @@ class AssetViewSetListMixin:
             for organization in organizations_per_asset.values()
         }
         return Organization.get_mmo_ids(list(organizations.values()))
+
+    def get_shared_asset_ids(self, asset_ids: list) -> tuple[set[int], set[int]]:
+        """
+        Return, with one query:
+        - the ids of the assets that grant a permission to anyone but their
+          owner, the anonymous user included, which `get_status()` reports as
+          shared unless they are public;
+        - among them, the ids of the assets shared with a user other than the
+          anonymous one, which `get_access_types()` needs.
+        """
+
+        records = (
+            ObjectPermission.objects.filter(
+                asset_id__in=asset_ids,
+                deny=False,
+            )
+            .exclude(
+                user_id=F('asset__owner_id'),
+            )
+            .values('asset_id')
+            .annotate(
+                shared_with_user=BoolOr(
+                    ExpressionWrapper(
+                        ~Q(user_id=settings.ANONYMOUS_USER_ID),
+                        output_field=BooleanField(),
+                    )
+                )
+            )
+            .order_by()
+        )
+
+        permission_asset_ids = set()
+        user_shared_asset_ids = set()
+        for record in records:
+            permission_asset_ids.add(record['asset_id'])
+            if record['shared_with_user']:
+                user_shared_asset_ids.add(record['asset_id'])
+
+        return permission_asset_ids, user_shared_asset_ids
 
     def _attach_xforms_to_assets(self, assets: list):
         """
