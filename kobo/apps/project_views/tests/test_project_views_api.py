@@ -1,3 +1,5 @@
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from rest_framework import status
 
@@ -207,6 +209,72 @@ class ProjectViewsApiTestCase(BaseTestCase):
         )
         self.assertNotIn(PERM_VIEW_ASSET, perms_ext)
 
+    def test_extra_fields_for_superuser(self):
+        """
+        `?extra_fields=on` adds the sharing status, the summary and the versions
+        of each project for superusers
+        """
+
+        url = self._login_superuser_on_org_view()
+        self.asset_org_esp.create_version()
+        self.asset_org_esp.create_version()
+        self.asset_org_fra.assign_perm(self.regular_user, PERM_VIEW_ASSET)
+
+        response = self.client.get(url, {'extra_fields': 'on'})
+        assert response.status_code == status.HTTP_200_OK
+        results = {asset['uid']: asset for asset in response.data['results']}
+
+        org_esp = results[self.asset_org_esp.uid]
+        latest_version = self.asset_org_esp.latest_version
+        assert org_esp['version_id'] == latest_version.uid
+        assert org_esp['version__content_hash'] == latest_version.content_hash
+        version_count = self.asset_org_esp.asset_versions.count()
+        assert version_count > 1
+        assert org_esp['version_count'] == version_count
+        assert org_esp['deployed_version_id'] is None
+        assert org_esp['summary'] == self.asset_org_esp.summary
+        assert org_esp['status'] == 'private'
+        assert results[self.asset_org_fra.uid]['status'] == 'shared'
+
+    def test_extra_fields_ignored_without_superuser_or_param(self):
+        extra_fields = {
+            'status',
+            'summary',
+            'version_id',
+            'version__content_hash',
+            'deployed_version_id',
+            'version_count',
+        }
+        url = self._login_superuser_on_org_view()
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert not extra_fields & set(response.data['results'][0])
+
+        self.client.force_login(self.regular_user)
+        response = self.client.get(url, {'extra_fields': 'on'})
+        assert response.status_code == status.HTTP_200_OK
+        assert not extra_fields & set(response.data['results'][0])
+
+    def test_extra_fields_query_count_does_not_grow_with_the_page(self):
+        url = self._login_superuser_on_org_view()
+        # Warm up the caches that only the first request fills
+        self.client.get(url, {'extra_fields': 'on'})
+        with CaptureQueriesContext(connection) as before:
+            response = self.client.get(url, {'extra_fields': 'on'})
+        results_before = len(response.data['results'])
+
+        for index in range(3):
+            Asset.objects.create(
+                owner=self.admin_user,
+                name=f'Org extra {index}',
+                asset_type=ASSET_TYPE_SURVEY,
+            )
+        with CaptureQueriesContext(connection) as after:
+            response = self.client.get(url, {'extra_fields': 'on'})
+
+        assert len(response.data['results']) == results_before + 3
+        assert len(after.captured_queries) == len(before.captured_queries)
+
     def _deactivate_external_user(self) -> None:
         """
         Leave `external_user` with no organization at all, which is the state
@@ -216,3 +284,19 @@ class ProjectViewsApiTestCase(BaseTestCase):
         self.external_user.organizations_organizationuser.all().delete()
         self.external_user.is_active = False
         self.external_user.save()
+
+    def _login_superuser_on_org_view(self) -> str:
+        """
+        Log in a superuser who belongs to `pv_org` and return the URL of its
+        asset list
+        """
+
+        superuser = User.objects.create_superuser(
+            username='superadmin', password='password', email='superadmin@example.com'
+        )
+        self.pv_org.users.add(superuser)
+        self.client.force_login(superuser)
+        return reverse(
+            self._get_endpoint('projectview-assets'),
+            kwargs={'uid_project_view': self.pv_org.uid},
+        )

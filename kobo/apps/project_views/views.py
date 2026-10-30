@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 from django.conf import settings
 from django.db import transaction
@@ -10,15 +10,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import OrganizationUser
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
-from kpi.paginators import FastPagination, NoCountPagination
+from kpi.paginators import NoCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import (
     AssetListCountSerializer,
+    AssetMetadataExtraListSerializer,
     AssetMetadataListSerializer,
     AssetMinimalListSerializer,
 )
@@ -28,7 +30,6 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.project_views import get_region_for_view, user_has_view_perms
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
-
 from .models.project_view import ProjectView
 from .schema_extensions.v2.serializers import (
     ProjectViewAssetResponse,
@@ -62,6 +63,18 @@ from .serializers import ProjectViewSerializer
                 location=OpenApiParameter.QUERY,
                 required=False,
                 description='Paginate results with limit parameter',
+            ),
+            OpenApiParameter(
+                name='extra_fields',
+                type=str,
+                enum=['on'],
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description=(
+                    'Superusers only: `on` adds `status`, `summary`, `version_id`, '
+                    '`version__content_hash`, `deployed_version_id` and '
+                    '`version_count` to each project'
+                ),
             ),
         ],
     ),
@@ -204,7 +217,7 @@ class ProjectViewViewSet(
         detail=True,
         methods=['GET'],
         filter_backends=[SearchFilter, AssetOrderingFilter],
-        pagination_class=FastPagination,
+        pagination_class=NoCountPagination,
     )
     def assets(self, request, uid_project_view):
         if not user_has_view_perms(request.user, uid_project_view):
@@ -225,9 +238,20 @@ class ProjectViewViewSet(
         ).select_related(
             'owner', 'owner__extra_details'
         )
-        return self._get_regional_response(
-            queryset, serializer_class=AssetMetadataListSerializer
+        page = self.paginate_queryset(queryset)
+        self._cache_asset_ids(page)
+        serializer_class = (
+            AssetMetadataExtraListSerializer
+            if self._with_extra_fields()
+            else AssetMetadataListSerializer
         )
+        serializer = serializer_class(
+            self._attach_xforms_to_assets(page),
+            many=True,
+            read_only=True,
+            context=self.get_serializer_context(),
+        )
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'], url_path='assets/counts')
     def asset_counts(self, request, uid_project_view):
@@ -337,16 +361,30 @@ class ProjectViewViewSet(
             queryset, serializer_class=UserListSerializer
         )
 
-    def get_serializer_context(self, data: Optional[list] = None):
+    def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
-        if not data:
+        if not self._asset_ids:
             return context_
 
-        asset_ids = [asset.pk for asset in data]
-        context_['organizations_per_asset'] = (
-            self.get_organizations_per_asset_ids(asset_ids)
+        context_['organizations_per_asset'] = self.get_organizations_per_asset_ids(
+            self._asset_ids
         )
+        context_['mmo_organization_ids'] = self.get_mmo_organization_ids(
+            context_['organizations_per_asset']
+        )
+
+        if self._with_extra_fields():
+            context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
+                self._asset_ids
+            )
+            (
+                context_['permission_asset_ids'],
+                context_['shared_asset_ids'],
+            ) = self.get_shared_asset_ids(self._asset_ids)
+            context_['versions_per_asset'] = self.get_versions_per_asset_ids(
+                self._asset_ids
+            )
 
         return context_
 
@@ -372,7 +410,7 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_context(queryset)
+        context_ = self.get_serializer_context()
 
         return serializer_class(
             queryset,
@@ -403,13 +441,26 @@ class ProjectViewViewSet(
                 queryset = queryset.filter(settings__country_codes__in_array=region)
 
         if pv.organizations.all():
+            # Filter on members with a subquery: it keeps one row per user or
+            # asset, so the query needs no `DISTINCT`.
+            member_ids = OrganizationUser.objects.filter(
+                organization__in=pv.organizations.all()
+            ).values('user_id')
             if obj_type == 'user':
-                queryset = queryset.filter(
-                    organizations_organization__in=pv.organizations.all()
-                ).distinct()
+                queryset = queryset.filter(pk__in=member_ids)
             else:
-                queryset = queryset.filter(
-                    owner__organizations_organization__in=pv.organizations.all()
-                ).distinct()
+                queryset = queryset.filter(owner_id__in=member_ids)
 
         return queryset
+
+    def _with_extra_fields(self) -> bool:
+        """
+        Whether the asset list adds the fields of `AssetMetadataExtraListSerializer`,
+        which only superusers can request
+        """
+
+        return (
+            self.action == 'assets'
+            and self.request.query_params.get('extra_fields') == 'on'
+            and self.request.user.is_superuser
+        )

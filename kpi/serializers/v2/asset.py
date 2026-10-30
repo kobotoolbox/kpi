@@ -1044,7 +1044,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if (
             organization
             and organization.is_owner(asset.owner)
-            and organization.is_mmo
+            and self._is_mmo(organization)
         ):
             return organization.name
         return asset.owner.username
@@ -1195,6 +1195,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return ASSET_STATUS_SHARED
 
+    def _is_mmo(self, organization) -> bool:
+        """
+        Use the multi-member organizations that the view computed for the whole
+        page, when available, instead of one query per organization
+        """
+
+        try:
+            return organization.id in self.context['mmo_organization_ids']
+        except KeyError:
+            return organization.is_mmo
+
     def _set_asset_ids_cache(self, asset):
         """
         Set an attribute on the `asset` object for performance purposes
@@ -1304,7 +1315,7 @@ class AssetListSerializer(AssetSerializer):
             asset_perm_assignments = self.context['object_permissions_per_asset'].get(
                 asset.pk, []
             )
-            shared_asset_ids = self.context['shared_asset_ids']
+            permission_asset_ids = self.context['permission_asset_ids']
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should be
@@ -1319,8 +1330,9 @@ class AssetListSerializer(AssetSerializer):
                 if perm['permission__codename'] == PERM_VIEW_ASSET:
                     return ASSET_STATUS_PUBLIC
 
-        # Check shared: pre-computed via DISTINCT query in get_serializer_context.
-        if asset.pk in shared_asset_ids:
+        # Any other permission, the anonymous ones included, makes the asset
+        # shared, as in `_get_status()`
+        if asset.pk in permission_asset_ids:
             return ASSET_STATUS_SHARED
 
         return ASSET_STATUS_PRIVATE
@@ -1397,6 +1409,42 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
+
+
+class AssetMetadataExtraListSerializer(AssetMetadataListSerializer):
+    """
+    Project view list with the fields that superusers request with
+    `?extra_fields=on`. The view computes the permissions and the versions of
+    the whole page and passes them in the context.
+    """
+
+    version_id = serializers.SerializerMethodField()
+    version__content_hash = serializers.SerializerMethodField()
+
+    class Meta(AssetMetadataListSerializer.Meta):
+        fields = AssetMetadataListSerializer.Meta.fields + (
+            'status',
+            'summary',
+            'version_id',
+            'version__content_hash',
+            'deployed_version_id',
+            'version_count',
+        )
+
+    @extend_schema_field({'type': 'string', 'nullable': True})
+    def get_version__content_hash(self, obj: Asset) -> str | None:
+        return self._get_versions(obj).get('content_hash')
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_version_count(self, obj: Asset) -> int:
+        return self._get_versions(obj).get('count', 0)
+
+    @extend_schema_field({'type': 'string', 'nullable': True})
+    def get_version_id(self, obj: Asset) -> str | None:
+        return self._get_versions(obj).get('uid')
+
+    def _get_versions(self, obj: Asset) -> dict:
+        return self.context['versions_per_asset'].get(obj.pk, {})
 
 
 class AssetMinimalListSerializer(AssetSerializer):
