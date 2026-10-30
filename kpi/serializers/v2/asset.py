@@ -1315,7 +1315,7 @@ class AssetListSerializer(AssetSerializer):
             asset_perm_assignments = self.context['object_permissions_per_asset'].get(
                 asset.pk, []
             )
-            shared_asset_ids = self.context['shared_asset_ids']
+            permission_asset_ids = self.context['permission_asset_ids']
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should be
@@ -1330,8 +1330,9 @@ class AssetListSerializer(AssetSerializer):
                 if perm['permission__codename'] == PERM_VIEW_ASSET:
                     return ASSET_STATUS_PUBLIC
 
-        # Check shared: pre-computed via DISTINCT query in get_serializer_context.
-        if asset.pk in shared_asset_ids:
+        # Any other permission, the anonymous ones included, makes the asset
+        # shared, as in `_get_status()`
+        if asset.pk in permission_asset_ids:
             return ASSET_STATUS_SHARED
 
         return ASSET_STATUS_PRIVATE
