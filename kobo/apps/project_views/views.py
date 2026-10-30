@@ -225,9 +225,12 @@ class ProjectViewViewSet(
         ).select_related(
             'owner', 'owner__extra_details'
         )
-        return self._get_regional_response(
-            queryset, serializer_class=AssetMetadataListSerializer
+        page = self.paginate_queryset(queryset)
+        self._attach_xforms_to_assets(page)
+        serializer = self._get_regional_serializer(
+            page, serializer_class=AssetMetadataListSerializer
         )
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'], url_path='assets/counts')
     def asset_counts(self, request, uid_project_view):

@@ -1,6 +1,7 @@
 from collections import defaultdict
 from django.db.models import Prefetch
 
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.organizations.models import Organization
 from kpi.models.asset import Asset
 
@@ -31,3 +32,39 @@ class AssetViewSetListMixin:
                 pass
 
         return organizations_per_asset
+
+    def _attach_xforms_to_assets(self, assets: list):
+        """
+        Attach the related XForm to each deployed Asset with one query, instead
+        of one query per Asset when the serializer reads its deployment.
+        """
+
+        asset_uids = [asset.uid for asset in assets if asset.has_deployment]
+        xform_qs = (
+            XForm.all_objects.filter(kpi_asset_uid__in=asset_uids)
+            .only(
+                'id_string',
+                'num_of_submissions',
+                'attachment_storage_bytes',
+                'require_auth',
+                'uuid',
+                'mongo_uuid',
+                'encrypted',
+                'last_submission_time',
+                'kpi_asset_uid',
+            )
+            .order_by()
+        )
+
+        xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
+
+        for asset in assets:
+            if asset.has_deployment:
+                if xf := xforms_by_uid.get(asset.uid):
+                    xf.user = asset.owner
+                    asset.deployment._xform = xf
+                else:
+                    # If XForm does not exist, something went wrong.
+                    # Consider the asset as not deployed.
+                    asset.date_deployed = None
+                    asset._deployment_data = {}
