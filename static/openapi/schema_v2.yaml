@@ -20936,12 +20936,8 @@ components:
     PaginatedProjectViewAssetResponseList:
       type: object
       required:
-      - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type:
           - string

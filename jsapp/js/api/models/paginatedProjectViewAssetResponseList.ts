@@ -14,7 +14,6 @@ import type { PaginatedProjectViewAssetResponseListPrevious } from './paginatedP
 import type { ProjectViewAssetResponse } from './projectViewAssetResponse'
 
 export interface PaginatedProjectViewAssetResponseList {
-  count: number
   /** @nullable */
   next?: PaginatedProjectViewAssetResponseListNext
   /** @nullable */
