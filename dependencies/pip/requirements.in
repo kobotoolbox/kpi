@@ -40,7 +40,7 @@ django-filter
 django-import-export
 django-import-export-celery
 django-extensions
-django-oauth-toolkit
+django-oauth-toolkit>=3.4.1
 django-organizations
 django-redis
 django-storages[azure,boto3]
