@@ -1,17 +1,13 @@
 import base64
-import json
 from copy import deepcopy
-from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import Optional
 from xml.sax.saxutils import escape
 
-import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
-from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
+from openai import OpenAIError
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
@@ -57,50 +53,12 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
-
-
-@dataclass
-class LLModel:
-    model_arn: str
-    model_id: str
-    path_to_response: str
-    supports_reasoning: bool
-
-    def __repr__(self):
-        return self.model_id
-
-    @staticmethod
-    def traverse_path(path_str: str, response_dict: dict) -> str:
-        path = path_str.split('.')
-        current_level = response_dict
-        for path_component in path:
-            if path_component.isdigit():
-                current_level = current_level[int(path_component)]
-            else:
-                current_level = current_level[path_component]
-        return current_level
-
-    def get_response_text(self, response_dict):
-        return self.traverse_path(self.path_to_response, response_dict)
-
-
-ClaudeSonnet = LLModel(
-    model_arn=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
-    model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-    path_to_response='content.0.text',
-    supports_reasoning=False,
-)
-OSS120 = LLModel(
-    model_id='openai.gpt-oss-120b-1:0',
-    model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
-    path_to_response='choices.0.message.content',
-    supports_reasoning=True,
-)
-Gemma = LLModel(
-    model_id='google.gemma-3-27b-it',
-    model_arn=settings.AUTOQA_GEMMA_MODEL_AIP_ARN,
-    path_to_response='choices.0.message.content',
-    supports_reasoning=True,
+from .automatic_bedrock_qual_utils import (
+    CLIENTS_BY_NAME,
+    OSS120,
+    ClaudeSonnet,
+    Gemma4,
+    LLModel,
 )
 
 
@@ -152,16 +110,6 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
 
         super().check_limits(user, action_data)
 
-    def create_bedrock_client(self):
-        return boto3.client(
-            service_name='bedrock-runtime',
-            region_name=settings.AWS_BEDROCK_REGION_NAME,
-            config=Config(
-                read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
-                connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
-            ),
-        )
-
     def construct_external_request(self, action_data, submission):
         survey_question_type = action_data['_dependency'].get('_question_type')
         prompt = self.generate_llm_text_prompt(action_data, submission)
@@ -184,21 +132,12 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
 
     def construct_image_request(self, prompt, image_bytes, mimetype):
         return {
-            'anthropic_version': 'bedrock-2023-05-31',
-            'max_tokens': MAX_TOKENS,
-            'temperature': MODEL_TEMPERATURE,  # keep model from getting too creative
-            'messages': [
+            'role': 'user',
+            'content': [
+                {'type': 'input_text', 'text': prompt},
                 {
-                    'role': 'user',
-                    'content': [
-                        {'type': 'text', 'text': prompt},
-                        {
-                            'type': 'image_url',
-                            'image_url': {
-                                'url': f'data:{mimetype};base64,{image_bytes}'
-                            },
-                        },
-                    ],
+                    'type': 'input_image',
+                    'image_url': f'data:{mimetype};base64,{image_bytes}',
                 },
             ],
         }
@@ -368,6 +307,11 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 .replace(hint_placeholder, hint)
             )
 
+    # separated out for easier testing
+    def get_clients_for_models(self, models):
+        client_ids = set([model.client_id for model in models])
+        return {client_id: CLIENTS_BY_NAME[client_id]() for client_id in client_ids}
+
     def get_question_params(self):
         from kobo.apps.subsequences.actions import ManualQualAction
 
@@ -377,26 +321,12 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
         ]
 
-    def get_response_from_llm(self, request_data: dict, model: LLModel) -> str:
-
-        if model.supports_reasoning:
-            # invoke_model raises an error if you try to disable reasoning
-            # on a model that doesn't support it in the first place
-            # don't mutate the original dict in case we have to go through multiple
-            # models
-            request_data = {**request_data, 'include_reasoning': False}
-        response = self.client.invoke_model(
-            modelId=model.model_arn,
-            body=json.dumps(request_data),
-        )
+    def get_response_from_llm(
+        self, clients_by_type, request_data: dict, model: LLModel
+    ) -> str:
+        client = clients_by_type[model.client_id]
         try:
-            response_body = json.loads(response['body'].read())
-            if request := get_current_request():
-                request.llm_response = {
-                    'request_id': response['ResponseMetadata']['RequestId'],
-                    'model': model.model_id,
-                }
-            return model.get_response_text(response_body)
+            return client.get_response_from_llm(request_data, model)
         except (JSONDecodeError, IndexError, KeyError) as e:
             # the response isn't in the form we expected
             if request := get_current_request():
@@ -503,11 +433,12 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         survey_question_type = action_data['_dependency'].get('_question_type')
         error = ''
 
-        self.client = self.create_bedrock_client()
-
         request = self.construct_external_request(action_data, submission)
+
+        # For now, hardcode models for each question type. Eventually this will be
+        # configurable
         if survey_question_type == IMAGE_SOURCE_TYPE:
-            models = [Gemma]
+            models = [Gemma4]
         else:
             models = [OSS120, ClaudeSonnet]
 
@@ -518,11 +449,18 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             self.asset.id,
         )
 
-        # for now, hardcode OSS to be primary and Claude to be backup
-        # eventually this will be configurable
+        try:
+            clients_by_type = self.get_clients_for_models(models)
+        except (ClientError, OpenAIError, ConnectTimeoutError) as e:
+            if current_request := get_current_request():
+                current_request.llm_response = {'error': f'{e}'}
+            return {'status': 'failed', 'error': f'{e}'}
+
         for index, model in enumerate(models):
             try:
-                full_response_text = self.get_response_from_llm(request, model)
+                full_response_text = self.get_response_from_llm(
+                    clients_by_type, request, model
+                )
                 # edge case: sometimes the LLM returns None
                 if full_response_text is None:
                     raise InvalidResponseFromLLMException('LLM returned empty response')
@@ -562,8 +500,9 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 ClientError,
                 ReadTimeoutError,
                 ConnectTimeoutError,
+                OpenAIError,
             ) as e:
-                if index == 0:
+                if index < len(models) - 1:
                     logging.warning(
                         f'Invalid response or timeout from primary llm {model}: {e}.'
                         ' Defaulting to backup.'

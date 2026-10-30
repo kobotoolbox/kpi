@@ -2,7 +2,7 @@ import copy
 import time
 import uuid
 from datetime import timedelta
-from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
+from unittest.mock import ANY, DEFAULT, call, patch
 
 import jsonschema
 import pytest
@@ -20,9 +20,9 @@ from rest_framework.reverse import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions import ManualQualAction
-from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import AutomaticBedrockQual
+from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
     OSS120,
-    AutomaticBedrockQual,
     ClaudeSonnet,
 )
 from kobo.apps.subsequences.constants import (
@@ -60,8 +60,12 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_QUAL_SELECT_ONE_UUID,
     BEDROCK_QUAL_TEXT_UUID,
     BEDROCK_VALIDATION_MAIN_UUID,
+    FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
 )
-from kobo.apps.subsequences.tests.utils import MockLLMClient
+from kobo.apps.subsequences.tests.utils import (
+    MockMantleClient,
+    MockRuntimeClient,
+)
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
@@ -94,13 +98,25 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             question_xpath='q1',
         )
         self.action = self.feature.to_action()
-        patched_get_client = patch.object(
-            self.action, 'create_bedrock_client', return_value=MockLLMClient('response')
+        self.image_feature = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            action=Action.AUTOMATIC_BEDROCK_QUAL,
+            question_xpath='settings_fixture_image',
         )
-        patched_get_client.start()
-        self.addCleanup(patched_get_client.stop)
+        self.image_action = self.image_feature.to_action()
+        mock_clients = {
+            'mantle': MockMantleClient(text='LLM Text'),
+            'runtime': MockRuntimeClient(text='LLM Text'),
+        }
+        patched_clients = patch.object(
+            AutomaticBedrockQual,
+            'get_clients_for_models',
+            return_value=mock_clients,
+        )
+        patched_clients.start()
+        self.addCleanup(patched_clients.stop)
 
-    def _add_submission(self):
+    def _add_submission(self, include_image=False):
         # add a submission
         u = self.asset.owner
         self.client.force_login(u)
@@ -113,6 +129,16 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             '_uuid': submission_uuid,
             '_submitted_by': 'someuser',
         }
+        if include_image:
+            submission_data['settings_fixture_image'] = 'IMG_4266-11_38_22.jpg'
+            submission_data['_attachments'] = [
+                {
+                    'id': 1,
+                    'filename': 'IMG_4266-11_38_22.jpg',
+                    'mimetype': 'image/jpeg',
+                    'question_xpath': 'settings_fixture_image',
+                },
+            ]
 
         self.asset.deployment.mock_submissions([submission_data])
         return submission_uuid
@@ -279,23 +305,49 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                 },
             },
         }
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            response = self.client.patch(
-                supplement_details_url, data=payload, format='json'
-            )
+
+        response = self.client.patch(
+            supplement_details_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
         transcript_uuid = transcript_dict['_uuid']
         version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
             BEDROCK_QUAL_TEXT_UUID
         ]['_versions'][0]
         version_data = version['_data']
-        assert version_data['value'] == 'LLM text'
+        assert version_data['value'] == 'LLM Text'
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
+        assert 'verified' in version
+        assert not version['verified']
+        assert version.get('_dateVerified') is None
+
+    def test_update_supplement_api_with_image(self):
+        sub_uuid = self._add_submission(include_image=True)
+        supplement_details_url = reverse(
+            'api_v2:submission-supplement',
+            args=[self.asset.uid, sub_uuid],
+        )
+
+        payload = {
+            '_version': '20250820',
+            'settings_fixture_image': {
+                Action.AUTOMATIC_BEDROCK_QUAL: {
+                    'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
+                },
+            },
+        }
+        response = self.client.patch(
+            supplement_details_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        version = response.data['settings_fixture_image'][
+            Action.AUTOMATIC_BEDROCK_QUAL
+        ][FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID]['_versions'][0]
+        version_data = version['_data']
+        assert version_data['value'] == 'LLM Text'
+        assert version_data['status'] == 'complete'
         assert 'verified' in version
         assert not version['verified']
         assert version.get('_dateVerified') is None
@@ -358,7 +410,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
 
         version = result[BEDROCK_QUAL_TEXT_UUID]['_versions'][0]
         assert version['_data']['status'] == 'complete'
-        assert version['_data']['value'] == 'response'
+        assert version['_data']['value'] == 'LLM Text'
         # Dependency points at the submission itself, not a transcript
         assert version['_dependency'] == {
             '_actionId': 'submission',
@@ -609,32 +661,13 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             QUESTION_TYPE_TEXT: 'prompt',
         }
 
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-        submission = {
-            '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'IMG_4266-11_38_22.jpg',
-            '_uuid': str(uuid.uuid4()),
-            '_attachments': [
-                {
-                    'id': 1,
-                    'filename': 'IMG_4266-11_38_22.jpg',
-                    'mimetype': 'image/jpeg',
-                    'question_xpath': 'q1',
-                },
-            ],
-            '_submitted_by': 'someuser',
-        }
-        self.asset.deployment.mock_submissions([submission])
+        submission_uuid = self._add_submission(include_image=True)
         submission = self.asset.deployment.get_submissions(
-            user=self.asset.owner, query={'_id': submission['_id']}
+            user=self.asset.owner, query={'_uuid': submission_uuid}
         )[0]
 
         action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with patch.dict(IMAGE_SOURCE_PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
@@ -642,21 +675,15 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.base64.b64encode',  # noqa
                 return_value=b'123',
             ):
-                request = self.action.construct_external_request(
+                request = self.image_action.construct_external_request(
                     action_data, submission
                 )
-
-        request_content = request['messages'][0]['content']
-        assert request_content[0] == {'type': 'text', 'text': 'prompt'}
-        assert request_content[1]['type'] == 'image_url'
-        assert request_content[1]['image_url']['url'] == 'data:image/jpeg;base64,123'
+        request_content = request['content']
+        assert request_content[0] == {'type': 'input_text', 'text': 'prompt'}
+        assert request_content[1]['type'] == 'input_image'
+        assert request_content[1]['image_url'] == 'data:image/jpeg;base64,123'
 
     def test_generate_image_request_data_image_response_missing(self):
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
             '_uuid': str(uuid.uuid4()),
@@ -664,29 +691,23 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         self.asset.deployment.mock_submissions([submission])
         action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with self.assertRaises(AttachmentNotFoundException):
-            self.action.construct_external_request(action_data, submission)
+            self.image_action.construct_external_request(action_data, submission)
 
     def test_generate_image_request_data_image_file_missing(self):
-        self.asset.content = {
-            'survey': [{'type': 'image', 'name': 'q1', 'label': 'q1'}]
-        }
-        self.asset.save()
-        self.asset.deploy(backend='mock')
-
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'IMG_4266-11_38_22.jpg',
+            'settings_fixture_image': 'IMG_4266-11_38_22.jpg',
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
                     'id': 1,
                     'filename': 'IMG_4266-11_38_22.jpg',
                     'mimetype': 'image/jpeg',
-                    'question_xpath': 'q1',
+                    'question_xpath': 'settings_fixture_image',
                 },
             ],
             '_submitted_by': 'someuser',
@@ -698,16 +719,16 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         attachment = self.asset.deployment.get_attachment(
             submission_id_or_uuid=submission['_id'],
             user=User.objects.get(username='someuser'),
-            xpath='q1',
+            xpath='settings_fixture_image',
         )
         attachment.media_file.delete()
 
         action_data = {
-            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            'uuid': FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
             '_dependency': {'_question_type': 'image'},
         }
         with self.assertRaises(AttachmentNotFoundException):
-            self.action.construct_external_request(action_data, submission)
+            self.image_action.construct_external_request(action_data, submission)
 
     @data(
         # question uuid, parsing method name
@@ -733,19 +754,22 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert return_value.get('error') == 'Cannot parse'
 
     def test_client_error_from_external_process(self):
-        mock_client = MagicMock()
-        mock_client.invoke_model.side_effect = ClientError(
-            {'Error': {'Message': 'Bad'}}, ''
-        )
         action_data = {
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
+
+        mock_clients = {
+            'runtime': MockRuntimeClient(
+                error=ClientError({'Error': {'Message': 'Bad'}}, '')
+            )
+        }
+
         # mock error on invoke
         with patch.object(
             self.action,
-            'create_bedrock_client',
-            return_value=mock_client,
+            'get_clients_for_models',
+            return_value=mock_clients,
         ):
             return_value = self.action.run_external_process(
                 {}, {}, action_data=action_data
@@ -784,10 +808,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             self.action, 'get_response_from_llm', return_value='response'
         ) as patched_get_response_from_llm:
             self.action.run_external_process({}, {}, action_data=action_data)
-        patched_get_response_from_llm.assert_called_once()
-        assert (
-            patched_get_response_from_llm.call_args.args[1].model_id == OSS120.model_id
-        )
+        patched_get_response_from_llm.assert_called_once_with(ANY, ANY, OSS120)
 
     @data(InvalidResponseFromLLMException, ClientError)
     def test_run_external_process_calls_default_if_primary_fails(self, error_class):
@@ -795,7 +816,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        args = []
         if error_class == InvalidResponseFromLLMException:
             args = ['Bad']
         else:
@@ -815,7 +835,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         # make sure get_response_from_llm was called twice with
         # the two different models in the correct order
         patched_get_response_from_llm.assert_has_calls(
-            [call(ANY, OSS120), call(ANY, ClaudeSonnet)], any_order=False
+            [call(ANY, ANY, OSS120), call(ANY, ANY, ClaudeSonnet)], any_order=False
         )
         assert len(patched_get_response_from_llm.call_args) == 2
 
@@ -876,11 +896,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
         # Verify that the backup model was called after the timeout
         patched_get_response_from_llm.assert_has_calls(
-            [
-                call(ANY, OSS120),
-                call(ANY, ClaudeSonnet)
-            ],
-            any_order=False
+            [call(ANY, ANY, OSS120), call(ANY, ANY, ClaudeSonnet)], any_order=False
         )
 
         # Verify it exited gracefully
@@ -908,11 +924,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
         # Verify that the backup model was called after the primary connection failed
         patched_get_response_from_llm.assert_has_calls(
-            [
-                call(ANY, OSS120),
-                call(ANY, ClaudeSonnet)
-            ],
-            any_order=False
+            [call(ANY, ANY, OSS120), call(ANY, ANY, ClaudeSonnet)], any_order=False
         )
 
         #  Verify it exited gracefully
@@ -955,13 +967,11 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
-    def test_automatic_qa_throttles_after_limit(self, mock_boto):
+    def test_automatic_qa_throttles_after_limit(self):
         """
         Test that after a certain number of requests to trigger automatic QA,
         the user is throttled and receives a 429 response
         """
-        mock_boto.return_value = MockLLMClient('LLM text')
 
         # Simulate 5 successful requests
         for i in range(5):
@@ -1003,13 +1013,11 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
-    def test_throttling_is_per_user(self, mock_boto):
+    def test_throttling_is_per_user(self):
         """
         Test that if one user hits the automatic QA throttle, it does not affect
         other users
         """
-        mock_boto.return_value = MockLLMClient('LLM text')
 
         # Exhaust the limit for UserA
         for _ in range(5):
