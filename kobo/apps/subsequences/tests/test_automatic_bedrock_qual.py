@@ -810,7 +810,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             self.action.run_external_process({}, {}, action_data=action_data)
         patched_get_response_from_llm.assert_called_once_with(ANY, ANY, OSS120)
 
-
     @data(InvalidResponseFromLLMException, ClientError)
     def test_run_external_process_calls_default_if_primary_fails(self, error_class):
         action_data = {
