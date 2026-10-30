@@ -13,7 +13,7 @@ import type { ProjectViewsAssetsRetrieveExtraFields } from './projectViewsAssets
 
 export type ProjectViewsAssetsRetrieveParams = {
   /**
-   * Superusers only: `on` adds `status`, `summary`, `version_id`, `deployed_version_id` and `version_count` to each project
+   * Superusers only: `on` adds `status`, `summary`, `version_id`, `version__content_hash`, `deployed_version_id` and `version_count` to each project
    */
   extra_fields?: ProjectViewsAssetsRetrieveExtraFields
   /**

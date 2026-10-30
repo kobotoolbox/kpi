@@ -104,9 +104,13 @@ class AssetViewSetListMixin:
 
     def get_versions_per_asset_ids(self, asset_ids: list) -> dict:
         """
-        Return the uid of the latest version and the number of versions of each
-        asset, e.g. `{1: {'uid': 'vabc', 'count': 3}}`, with one query whatever
-        the number of assets
+        Return the uid and the content hash of the latest version, and the number
+        of versions, of each asset, e.g.
+        `{1: {'uid': 'vabc', 'content_hash': '3f2a…', 'count': 3}}`, with one
+        query whatever the number of assets.
+
+        The hash is the stored one only: computing a missing one would load the
+        content of the version.
         """
 
         versions = (
@@ -114,10 +118,11 @@ class AssetViewSetListMixin:
             .annotate(count=Window(Count('pk'), partition_by=F('asset_id')))
             .order_by('asset_id', '-date_modified')
             .distinct('asset_id')
-            .values_list('asset_id', 'uid', 'count')
+            .values_list('asset_id', 'uid', '_content_hash', 'count')
         )
         return {
-            asset_id: {'uid': uid, 'count': count} for asset_id, uid, count in versions
+            asset_id: {'uid': uid, 'content_hash': content_hash, 'count': count}
+            for asset_id, uid, content_hash, count in versions
         }
 
     def _attach_xforms_to_assets(self, assets: list):

@@ -1419,15 +1419,21 @@ class AssetMetadataExtraListSerializer(AssetMetadataListSerializer):
     """
 
     version_id = serializers.SerializerMethodField()
+    version__content_hash = serializers.SerializerMethodField()
 
     class Meta(AssetMetadataListSerializer.Meta):
         fields = AssetMetadataListSerializer.Meta.fields + (
             'status',
             'summary',
             'version_id',
+            'version__content_hash',
             'deployed_version_id',
             'version_count',
         )
+
+    @extend_schema_field({'type': 'string', 'nullable': True})
+    def get_version__content_hash(self, obj: Asset) -> str | None:
+        return self._get_versions(obj).get('content_hash')
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_version_count(self, obj: Asset) -> int:
