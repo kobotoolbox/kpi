@@ -3,9 +3,7 @@ import json
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
-from django.conf import settings
-from django.contrib.postgres.aggregates import BoolOr
-from django.db.models import BooleanField, Count, ExpressionWrapper, F, Q
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
@@ -42,7 +40,6 @@ from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
-from kpi.models.object_permission import ObjectPermission
 from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.permissions import (
     AssetPermission,
@@ -835,34 +832,13 @@ class AssetViewSet(
                 asset_ids, current_user_permissions_only
             )
 
-            # 2b) Assets with a permission for anyone but their owner, the
-            # anonymous user included, used by get_status(), and among them the
-            # assets shared with a non-anonymous user, used by get_access_types()
-            context_['permission_asset_ids'] = set()
-            context_['shared_asset_ids'] = set()
-            records = (
-                ObjectPermission.objects.filter(
-                    asset_id__in=asset_ids,
-                    deny=False,
-                )
-                .exclude(
-                    user_id=F('asset__owner_id'),
-                )
-                .values('asset_id')
-                .annotate(
-                    shared_with_user=BoolOr(
-                        ExpressionWrapper(
-                            ~Q(user_id=settings.ANONYMOUS_USER_ID),
-                            output_field=BooleanField(),
-                        )
-                    )
-                )
-                .order_by()
-            )
-            for record in records:
-                context_['permission_asset_ids'].add(record['asset_id'])
-                if record['shared_with_user']:
-                    context_['shared_asset_ids'].add(record['asset_id'])
+            # 2b) Assets with a permission for anyone but their owner, used by
+            # get_status(), and those shared with a non-anonymous user, used by
+            # get_access_types()
+            (
+                context_['permission_asset_ids'],
+                context_['shared_asset_ids'],
+            ) = self.get_shared_asset_ids(asset_ids)
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
