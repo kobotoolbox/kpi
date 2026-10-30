@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 from django.utils.dateparse import parse_datetime
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.pandas_mongo_bridge import (
     AbstractDataFrameBuilder,
@@ -451,6 +452,37 @@ class TestPandasMongoBridge(TestBase):
             temp_file.close()
         temp_file.close()
         self.assertTrue(passed)
+
+    def test_repeat_child_name_matches_repeat(self):
+        """
+        A question named like its enclosing repeat stays a value instead of
+        becoming another list
+        """
+
+        self.maxDiff = None
+        fixture = 'repeat_child_name_matches_repeat'
+        # publish form so we have a dd to pass to xform inst. parser
+        self._publish_xls_fixture_set_xform(fixture)
+        submission_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'fixtures',
+            fixture,
+            fixture + '.xml',
+        )
+        # get submission xml str
+        with open(submission_path, 'r') as f:
+            xml_str = f.read()
+        parser = XFormInstanceParser(xml_str, self.xform.data_dictionary())
+        expected_dict = {
+            'test_item_name_matches_repeat': {
+                'formhub': {'uuid': 'c911d71ce1ac48478e5f8bac99addc4e'},
+                'gps': [
+                    {'info': 'Yo', 'gps': '-1.2625149 36.7924478 0.0 30.0'},
+                    {'info': 'What', 'gps': '-1.2625072 36.7924328 0.0 30.0'},
+                ],
+            }
+        }
+        self.assertEqual(parser.to_dict(), expected_dict)
 
     def test_remove_dups_from_list_maintain_order(self):
         values = ['a', 'z', 'b', 'y', 'c', 'b', 'x']
