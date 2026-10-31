@@ -34,6 +34,17 @@ def get_provider_appname(context, provider=None):
         return provider.name
 
 
+def get_public_social_apps():
+    return SocialApp.objects.filter(
+        Q(custom_data__is_public=True) | Q(custom_data__isnull=True)
+    )
+
+
 @register.simple_tag()
 def get_social_apps():
-    return SocialApp.objects.filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))
+    return get_public_social_apps()
+
+
+@register.simple_tag()
+def has_open_signup():
+    return get_public_social_apps().filter(custom_data__open_signup=True).exists()
