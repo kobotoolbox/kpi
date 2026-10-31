@@ -59,3 +59,30 @@ USER_DOES_NOT_EXIST_ERROR = t(
 )
 INVITE_ALREADY_EXISTS_ERROR = t('An active invitation already exists for `##invitee##`')
 INVITEE_ALREADY_MEMBER_ERROR = t('User is already a member of this organization.')
+OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR = t(
+    'An ownership transfer is already pending for this organization.'
+)
+RECIPIENT_AMBIGUOUS_EMAIL_ERROR = t(
+    'Multiple administrators found with email `##email##`. '
+    'Please specify the recipient by username.'
+)
+RECIPIENT_CANNOT_BE_OWNER_ERROR = t(
+    'The recipient is already the owner of this organization.'
+)
+RECIPIENT_MUST_BE_ADMIN_ERROR = t(
+    'The recipient must be an active administrator in this organization.'
+)
+CANNOT_CHANGE_OWNER_ROLE_ERROR = t(
+    'The role of the organization owner cannot be changed.'
+)
+PENDING_TRANSFER_ROLE_LOCKED_ERROR = t(
+    'Role cannot be changed while an ownership transfer is pending for this user.'
+)
+CANNOT_REMOVE_OWNER_ERROR = t('The organization owner cannot be removed.')
+PENDING_TRANSFER_MEMBER_REMOVAL_ERROR = t(
+    'This member cannot be removed while an ownership transfer is pending.'
+)
+PENDING_TRANSFER_ACCOUNT_DELETION_ERROR = t(
+    'You cannot delete your account while an organization ownership transfer is pending.'
+)
+TRANSFER_NOT_PENDING_ERROR = t('Transfer is not pending.')

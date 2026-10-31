@@ -1,3 +1,4 @@
+import uuid
 from functools import partial
 from typing import Literal
 
@@ -5,7 +6,8 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django.utils.translation import override
 from django_request_cache import cache_for_request
@@ -282,6 +284,15 @@ class Organization(AbstractOrganization):
         except ObjectDoesNotExist:
             return
 
+    @property
+    @cache_for_request
+    def has_pending_ownership_transfer(self) -> bool:
+        if not self.pk:
+            return False
+        return self.ownership_transfers.filter(
+            status=OrganizationInviteStatusChoices.PENDING
+        ).exists()
+
 
 class EmptyOrganization(Organization):
     """
@@ -495,3 +506,104 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
 
 
 create_organization = partial(create_organization_base, model=Organization)
+
+
+class OrganizationOwnershipTransfer(models.Model):
+    guid = models.UUIDField(
+        default=uuid.uuid4, editable=False, unique=True, db_index=True
+    )
+    organization = models.ForeignKey(
+        'organizations.Organization',
+        on_delete=models.CASCADE,
+        related_name='ownership_transfers',
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_organization_ownership_transfers',
+    )
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='received_organization_ownership_transfers',
+    )
+    status = models.CharField(
+        max_length=11,
+        choices=OrganizationInviteStatusChoices.choices,
+        default=OrganizationInviteStatusChoices.PENDING,
+        db_index=True,
+    )
+    billing_review_requested = models.BooleanField(default=False)
+    created = models.DateTimeField(default=timezone.now, editable=False)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['organization'],
+                condition=Q(status=OrganizationInviteStatusChoices.PENDING),
+                name='unique_pending_org_ownership_transfer',
+            )
+        ]
+        ordering = ['-created']
+
+    def __str__(self) -> str:
+        return (
+            f'Ownership transfer for {self.organization.name} '
+            f'from {self.sender.username} to {self.recipient.username} '
+            f'({self.status})'
+        )
+
+    def send_invite_email(self):
+        recipient_language = settings.LANGUAGE_CODE
+        if hasattr(self.recipient, 'extra_details') and self.recipient.extra_details:
+            recipient_language = self.recipient.extra_details.data.get(
+                'last_ui_language', settings.LANGUAGE_CODE
+            )
+
+        accept_url = (
+            f'{settings.KOBOFORM_URL}/#/projects/home'
+            f'?organization_ownership_transfer={self.guid}'
+            f'&organization_id={self.organization.id}'
+        )
+
+        template_variables = {
+            'new_owner_username': self.recipient.username,
+            'current_owner_username': self.sender.username,
+            'current_owner_email': self.sender.email,
+            'team_name': self.organization.name,
+            'accept_url': accept_url,
+            'billing_review_requested': self.billing_review_requested,
+        }
+
+        email_message = EmailMessage(
+            to=self.recipient.email,
+            subject=t('Action required: KoboToolbox team ownership transfer request'),
+            plain_text_content_or_template=(
+                'emails/organization_ownership_transfer_request.txt'
+            ),
+            template_variables=template_variables,
+            html_content_or_template=(
+                'emails/organization_ownership_transfer_request.html'
+            ),
+            language=recipient_language,
+        )
+
+        try:
+            Mailer.send(email_message)
+        except MailerError as e:
+            logging.warning(
+                f'Failed to send organization ownership transfer request email: {e}'
+            )
+
+    def send_acceptance_email(self):
+        # Email template will be introduced in follow-up step
+        pass
+
+    def send_refusal_email(self):
+        # Email template will be introduced in follow-up step
+        pass
+
+    def send_cancellation_email(self):
+        # Email template will be introduced in follow-up step
+        pass

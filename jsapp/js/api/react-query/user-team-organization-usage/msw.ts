@@ -40,6 +40,8 @@ import type { MemberListResponse } from '../../models/memberListResponse'
 
 import { MemberRoleEnum } from '../../models/memberRoleEnum'
 
+import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
+
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -59,6 +61,8 @@ import type { PaginatedEmailAddressList } from '../../models/paginatedEmailAddre
 import type { PaginatedInviteResponseList } from '../../models/paginatedInviteResponseList'
 
 import type { PaginatedMemberListResponseList } from '../../models/paginatedMemberListResponseList'
+
+import type { PaginatedOrganizationOwnershipTransferList } from '../../models/paginatedOrganizationOwnershipTransferList'
 
 import type { PaginatedOrganizationResponseList } from '../../models/paginatedOrganizationResponseList'
 
@@ -141,6 +145,7 @@ export const getApiV2OrganizationsListResponseMock = (
     modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
     is_owner: faker.datatype.boolean(),
     is_mmo: faker.datatype.boolean(),
+    has_pending_ownership_transfer: faker.datatype.boolean(),
     request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
     members: faker.internet.url(),
     assets: faker.internet.url(),
@@ -162,6 +167,7 @@ export const getApiV2OrganizationsRetrieveResponseMock = (
   modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   is_owner: faker.datatype.boolean(),
   is_mmo: faker.datatype.boolean(),
+  has_pending_ownership_transfer: faker.datatype.boolean(),
   request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
   members: faker.internet.url(),
   assets: faker.internet.url(),
@@ -182,6 +188,7 @@ export const getApiV2OrganizationsPartialUpdateResponseMock = (
   modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   is_owner: faker.datatype.boolean(),
   is_mmo: faker.datatype.boolean(),
+  has_pending_ownership_transfer: faker.datatype.boolean(),
   request_user_role: faker.helpers.arrayElement(Object.values(MemberRoleEnum)),
   members: faker.internet.url(),
   assets: faker.internet.url(),
@@ -866,6 +873,26 @@ export const getApiV2OrganizationsMembersListResponseInviteResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransferMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  ...{
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsMembersListResponseMock = (
   overrideResponse: Partial<PaginatedMemberListResponseList> = {},
 ): PaginatedMemberListResponseList => ({
@@ -887,6 +914,10 @@ export const getApiV2OrganizationsMembersListResponseMock = (
     date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
     user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
     invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersListResponseInviteResponseMock() }, null]),
+    pending_transfer: faker.helpers.arrayElement([
+      { ...getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransferMock() },
+      null,
+    ]),
   })),
   ...overrideResponse,
 })
@@ -907,6 +938,26 @@ export const getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTransferMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  ...{
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  },
+  ...overrideResponse,
+})
+
 export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   overrideResponse: Partial<MemberListResponse> = {},
 ): MemberListResponse => ({
@@ -921,6 +972,10 @@ export const getApiV2OrganizationsMembersRetrieveResponseMock = (
   date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`,
   user__is_active: faker.helpers.arrayElement([faker.datatype.boolean(), null]),
   invite: faker.helpers.arrayElement([{ ...getApiV2OrganizationsMembersRetrieveResponseInviteResponseMock() }, null]),
+  pending_transfer: faker.helpers.arrayElement([
+    { ...getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTransferMock() },
+    null,
+  ]),
   ...overrideResponse,
 })
 
@@ -936,6 +991,26 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock
     created: `${faker.date.past().toISOString().split('.')[0]}Z`,
     modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
     invitee: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwnershipTransferMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  ...{
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   },
   ...overrideResponse,
 })
@@ -957,6 +1032,144 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseMock = (
     { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
     null,
   ]),
+  pending_transfer: faker.helpers.arrayElement([
+    { ...getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwnershipTransferMock() },
+    null,
+  ]),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersListResponseMock = (
+  overrideResponse: Partial<PaginatedOrganizationOwnershipTransferList> = {},
+): PaginatedOrganizationOwnershipTransferList => ({
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
+  next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    guid: faker.string.uuid(),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersCreateResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersRetrieveResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersAcceptPartialUpdateResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersCancelPartialUpdateResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersDeclinePartialUpdateResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  ...overrideResponse,
+})
+
+export const getApiV2OrganizationsOwnershipTransfersResendCreateResponseMock = (
+  overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
+): OrganizationOwnershipTransfer => ({
+  guid: faker.string.uuid(),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  created: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  modified: `${faker.date.past().toISOString().split('.')[0]}Z`,
   ...overrideResponse,
 })
 
@@ -1974,6 +2187,188 @@ export const getApiV2OrganizationsMembersDestroyMockHandler = (
   )
 }
 
+export const getApiV2OrganizationsOwnershipTransfersListMockHandler = (
+  overrideResponse?:
+    | PaginatedOrganizationOwnershipTransferList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<PaginatedOrganizationOwnershipTransferList> | PaginatedOrganizationOwnershipTransferList),
+  options?: RequestHandlerOptions,
+) => {
+  return http.get(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersListResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2OrganizationsOwnershipTransfersCreateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersCreateResponseMock(),
+        ),
+        { status: 201, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2OrganizationsOwnershipTransfersRetrieveMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.get(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersRetrieveResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2OrganizationsOwnershipTransfersAcceptPartialUpdateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.patch(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/accept{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersAcceptPartialUpdateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2OrganizationsOwnershipTransfersCancelPartialUpdateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.patch(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/cancel{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersCancelPartialUpdateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2OrganizationsOwnershipTransfersDeclinePartialUpdateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.patch(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/decline{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersDeclinePartialUpdateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2OrganizationsOwnershipTransfersResendCreateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/resend{/}?',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2OrganizationsOwnershipTransfersResendCreateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
 export const getApiV2OrganizationsServiceUsageRetrieveMockHandler = (
   overrideResponse?:
     | OrganizationServiceUsageResponse
@@ -2480,6 +2875,13 @@ export const getUserTeamOrganizationUsageMock = () => [
   getApiV2OrganizationsMembersRetrieveMockHandler(),
   getApiV2OrganizationsMembersPartialUpdateMockHandler(),
   getApiV2OrganizationsMembersDestroyMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersListMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersCreateMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersRetrieveMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersAcceptPartialUpdateMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersCancelPartialUpdateMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersDeclinePartialUpdateMockHandler(),
+  getApiV2OrganizationsOwnershipTransfersResendCreateMockHandler(),
   getApiV2OrganizationsServiceUsageRetrieveMockHandler(),
   getApiV2ProjectViewsListMockHandler(),
   getApiV2ProjectViewsRetrieveMockHandler(),

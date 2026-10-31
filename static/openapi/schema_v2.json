@@ -13231,6 +13231,728 @@
                 }
             }
         },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/": {
+            "get": {
+                "operationId": "api_v2_organizations_ownership_transfers_list",
+                "description": "List organization ownership transfers for the current user.",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page. Use with `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter ownership transfers by status (e.g. pending, accepted)."
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedOrganizationOwnershipTransferList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "api_v2_organizations_ownership_transfers_create",
+                "description": "Initiate an organization ownership transfer request (outgoing owner only).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "field_name": [
+                                                "Error message"
+                                            ]
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/": {
+            "get": {
+                "operationId": "api_v2_organizations_ownership_transfers_retrieve",
+                "description": "Retrieve an organization ownership transfer by GUID.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "guid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "GUID of the ownership transfer",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/accept/": {
+            "patch": {
+                "operationId": "api_v2_organizations_ownership_transfers_accept_partial_update",
+                "description": "Accept an organization ownership transfer request (invitee only).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "guid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "GUID of the ownership transfer",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": "Transfer is not pending."
+                                        },
+                                        "summary": "Bad Request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/cancel/": {
+            "patch": {
+                "operationId": "api_v2_organizations_ownership_transfers_cancel_partial_update",
+                "description": "Cancel a pending organization ownership transfer request (outgoing owner only).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "guid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "GUID of the ownership transfer",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": "Transfer is not pending."
+                                        },
+                                        "summary": "Bad Request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/decline/": {
+            "patch": {
+                "operationId": "api_v2_organizations_ownership_transfers_decline_partial_update",
+                "description": "Decline an organization ownership transfer request (invitee only).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "guid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "GUID of the ownership transfer",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": "Transfer is not pending."
+                                        },
+                                        "summary": "Bad Request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/resend/": {
+            "post": {
+                "operationId": "api_v2_organizations_ownership_transfers_resend_create",
+                "description": "Resend the invitation email for a pending organization ownership transfer (outgoing owner only).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "guid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "GUID of the ownership transfer",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "TooManyRequests": {
+                                        "value": {
+                                            "detail": "Request was throttled. Expected available in 60 seconds."
+                                        },
+                                        "summary": "Too many requests"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": "Invitation cannot be resent."
+                                        },
+                                        "summary": "Bad Request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/organizations/{uid_organization}/service_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_service_usage_retrieve",
@@ -27813,11 +28535,22 @@
                                 "type": "null"
                             }
                         ]
+                    },
+                    "pending_transfer": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 },
                 "required": [
                     "date_joined",
                     "invite",
+                    "pending_transfer",
                     "role",
                     "url",
                     "user",
@@ -28036,6 +28769,79 @@
                 "type": "string",
                 "description": "* `accept` - accept"
             },
+            "OrganizationOwnershipTransfer": {
+                "type": "object",
+                "properties": {
+                    "guid": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "organization_id": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "organization_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "sender": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "sender_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "sender_email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true
+                    },
+                    "recipient": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "recipient_username": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/InviteStatusChoicesEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "billing_review_requested": {
+                        "type": "boolean"
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "modified": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "created",
+                    "guid",
+                    "modified",
+                    "organization_id",
+                    "organization_name",
+                    "recipient",
+                    "recipient_username",
+                    "sender",
+                    "sender_email",
+                    "sender_name",
+                    "status"
+                ]
+            },
             "OrganizationResponse": {
                 "type": "object",
                 "properties": {
@@ -28085,6 +28891,10 @@
                         "type": "boolean",
                         "readOnly": true
                     },
+                    "has_pending_ownership_transfer": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
                     "request_user_role": {
                         "allOf": [
                             {
@@ -28122,6 +28932,7 @@
                     "asset_usage",
                     "assets",
                     "created",
+                    "has_pending_ownership_transfer",
                     "id",
                     "is_mmo",
                     "is_owner",
@@ -29366,6 +30177,55 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/OneTimeAddOn"
+                        }
+                    }
+                }
+            },
+            "PaginatedOrganizationOwnershipTransferList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "oneOf": [
+                            {
+                                "type": "integer",
+                                "example": 123
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "many",
+                                    "unknown"
+                                ]
+                            }
+                        ],
+                        "description": "Exact number of results, or 'many' when it exceeds the server's configured row limit (exposed as `limited_count_max_rows` in `/environment`), or 'unknown' when counting timed out"
+                    },
+                    "next": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100"
+                    },
+                    "previous": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
                         }
                     }
                 }
