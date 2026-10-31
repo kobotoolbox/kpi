@@ -26,13 +26,13 @@ celery
 celery[redis]
 dict2xml
 dj-static
-dj-stripe>=2.9,<2.10
+dj-stripe>=2.11.0,<2.12
 stripe
 django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance>=4,<5
+django-constance>=4.4.0,<5
 django-cors-headers
 django-csp
 django-environ
@@ -73,7 +73,7 @@ objgraph
 openpyxl
 pillow-heif
 psycopg
-pymongo<4.11.0  # for compatibility with unmaintained mongomock; see https://github.com/mongomock/mongomock/issues/912
+pymongo<4.20.0  # for compatibility with unmaintained mongomock; see https://github.com/mongomock/mongomock/issues/912
 python-dateutil
 pyxform==3.0.0
 psutil
