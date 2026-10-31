@@ -814,18 +814,26 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         """
         Revoke asset permissions before deleting the user from the organization
         """
-        member = instance
-        if member.organization.is_owner(member.user):
-            raise InvalidMembershipRequest(CANNOT_REMOVE_OWNER_ERROR)
-
-        if OrganizationOwnershipTransfer.objects.filter(
-            organization=member.organization,
-            recipient=member.user,
-            status=OrganizationInviteStatusChoices.PENDING,
-        ).exists():
-            raise InvalidMembershipRequest(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR)
-
         with transaction.atomic():
+            try:
+                member = (
+                    OrganizationUser.objects.select_for_update()
+                    .select_related('organization', 'user')
+                    .get(pk=instance.pk)
+                )
+            except OrganizationUser.DoesNotExist:
+                return
+
+            if member.organization.is_owner(member.user):
+                raise InvalidMembershipRequest(CANNOT_REMOVE_OWNER_ERROR)
+
+            if OrganizationOwnershipTransfer.objects.filter(
+                organization=member.organization,
+                recipient=member.user,
+                status=OrganizationInviteStatusChoices.PENDING,
+            ).exists():
+                raise InvalidMembershipRequest(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR)
+
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
 

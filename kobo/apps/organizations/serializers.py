@@ -218,6 +218,24 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if role := validated_data.get('role', None):
             validated_data['is_admin'] = role == ORG_ADMIN_ROLE
+            with transaction.atomic():
+                org_user = (
+                    OrganizationUser.objects.select_for_update()
+                    .select_related('organization', 'user')
+                    .get(pk=instance.pk)
+                )
+                if org_user.organization.is_owner(org_user.user):
+                    raise InvalidMembershipRequest(CANNOT_CHANGE_OWNER_ROLE_ERROR)
+
+                if OrganizationOwnershipTransfer.objects.filter(
+                    organization=org_user.organization,
+                    recipient=org_user.user,
+                    status=OrganizationInviteStatusChoices.PENDING,
+                ).exists():
+                    raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
+
+                return super().update(org_user, validated_data)
+
         return super().update(instance, validated_data)
 
     def validate_role(self, role):
@@ -850,12 +868,37 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        organization = validated_data['organization']
+        recipient_user = validated_data['recipient_user']
         try:
             with transaction.atomic():
+                try:
+                    org_user = (
+                        OrganizationUser.objects.select_for_update()
+                        .select_related('user')
+                        .get(organization=organization, user=recipient_user)
+                    )
+                except OrganizationUser.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {'recipient': [RECIPIENT_MUST_BE_ADMIN_ERROR]}
+                    )
+
+                if not org_user.is_admin or not org_user.user.is_active:
+                    raise serializers.ValidationError(
+                        {'recipient': [RECIPIENT_MUST_BE_ADMIN_ERROR]}
+                    )
+
+                if organization.ownership_transfers.filter(
+                    status=OrganizationInviteStatusChoices.PENDING
+                ).exists():
+                    raise serializers.ValidationError(
+                        {'detail': [OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR]}
+                    )
+
                 transfer = OrganizationOwnershipTransfer.objects.create(
-                    organization=validated_data['organization'],
+                    organization=organization,
                     sender=validated_data['sender'],
-                    recipient=validated_data['recipient_user'],
+                    recipient=recipient_user,
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
