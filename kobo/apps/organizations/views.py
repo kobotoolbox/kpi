@@ -74,6 +74,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
+from ..accounts.mfa.utils import mfa_is_active_expression
 from .constants import (
     CANNOT_REMOVE_OWNER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
@@ -83,7 +84,6 @@ from .constants import (
     TRANSFER_NOT_PENDING_ERROR,
 )
 from .exceptions import InvalidMembershipRequest
-from ..accounts.mfa.utils import mfa_is_active_expression
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -1065,9 +1065,7 @@ class OrganizationOwnershipTransferViewSet(
         user = get_database_user(self.request.user)
         queryset = OrganizationOwnershipTransfer.objects.filter(
             organization_id=organization_id
-        ).select_related(
-            'sender__extra_details', 'recipient', 'organization'
-        )
+        ).select_related('sender__extra_details', 'recipient', 'organization')
 
         if self.action == 'list':
             queryset = queryset.filter(Q(sender=user) | Q(recipient=user))

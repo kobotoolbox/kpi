@@ -178,9 +178,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     recipient=obj.user,
                     status=OrganizationInviteStatusChoices.PENDING,
                 )
-                .select_related(
-                    'sender__extra_details', 'recipient', 'organization'
-                )
+                .select_related('sender__extra_details', 'recipient', 'organization')
                 .first()
             )
         else:
