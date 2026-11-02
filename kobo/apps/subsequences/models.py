@@ -843,6 +843,7 @@ class TranscriptionChunk(AbstractTimeStampedModel):
     Rows are kept once the transcription completes: `started_at` and `ended_at`
     are how real durations are measured
     """
+
     # `stc` stands for subsequence transcription chunk
     uid = KpiUidField(uid_prefix='stc', primary_key=True)
     asset = models.ForeignKey(
