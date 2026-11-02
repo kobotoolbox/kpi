@@ -16,7 +16,7 @@ interface MemberActionsDropdownProps {
   target: ReactNode
   targetUsername: string
   targetFullName?: string | null
-  orgName?: string
+  orgName: string
   /**
    * The role of the currently logged in user, i.e. the role of the user that
    * wants to do the actions (not the role of the target member).
@@ -82,16 +82,14 @@ export default function MemberActionsDropdown({
         />
       )}
 
-      {isTransferOwnerVisible && (
-        <TransferTeamOwnershipModal
-          username={targetUsername}
-          targetFullName={targetFullName}
-          orgName={orgName}
-          isModalOpen={isTransferOwnerVisible}
-          onCancel={() => setIsTransferOwnerVisible(false)}
-          onConfirm={() => setIsTransferOwnerVisible(false)}
-        />
-      )}
+      <TransferTeamOwnershipModal
+        username={targetUsername}
+        targetFullName={targetFullName}
+        orgName={orgName}
+        isModalOpen={isTransferOwnerVisible}
+        onCancel={() => setIsTransferOwnerVisible(false)}
+        onConfirm={() => setIsTransferOwnerVisible(false)}
+      />
 
       <Menu offset={0} position='bottom-end'>
         <Menu.Target>{target}</Menu.Target>
