@@ -145,7 +145,6 @@ class RateLimitTestCase(TestCase):
                 ip='5.6.7.8',
                 mfa_code=code,
             )
-            print(f'{response.status_code}\n')
             expected_error_code = None if use_mfa else 'too_many_login_attempts'
             self._assert_login_failed(response, headless, expected_error_code)
 
@@ -155,6 +154,7 @@ class RateLimitTestCase(TestCase):
             for user, ip in itertools.product(
                 [self.u1, self.u2], ['1.2.3.4', '5.6.7.8']
             ):
+                self.client.logout()
                 code = get_mfa_code_for_user(user) if use_mfa else None
                 response = self._full_login_process(
                     headless=headless,
