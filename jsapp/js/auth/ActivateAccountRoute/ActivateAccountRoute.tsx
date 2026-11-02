@@ -23,7 +23,7 @@ function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
     <Stack gap='lg'>
       <Image src={emailEnvelopeIllustration} alt='' maw={190} mx='auto' />
 
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Email address confirmed')}
       </Title>
       {isSignedIn ? (
@@ -109,7 +109,7 @@ function LinkCheckErrorPanel({ onRetry, isRetrying }: LinkCheckErrorPanelProps) 
 function CheckingLinkPanel() {
   return (
     <Stack gap='lg'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Confirm E-mail Address')}
       </Title>
       <Text>{t('Checking your activation link…')}</Text>
@@ -137,7 +137,7 @@ function ConfirmPromptPanel({ email, displayName, isConfirming, onConfirm }: Con
 
   return (
     <Stack gap='lg'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Confirm E-mail Address')}
       </Title>
       <Text>
