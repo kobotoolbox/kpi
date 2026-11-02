@@ -123,10 +123,12 @@ export default function ProjectSettings(props: ProjectSettingsProps) {
   /** List of field names that failed validation */
   const [fieldsWithErrors, setFieldsWithErrors] = useState<string[]>([])
   // steps
-  const [steps, setSteps] = useState<Steps>(() => {return {
-    current: getInitialStep(context, initialTemplateUid),
-    previous: null,
-  }})
+  const [steps, setSteps] = useState<Steps>(() => {
+    return {
+      current: getInitialStep(context, initialTemplateUid),
+      previous: null,
+    }
+  })
   // importing url
   const [isImportFromURLPending, setIsImportFromURLPending] = useState(false)
   const [importUrl, setImportUrl] = useState('')
