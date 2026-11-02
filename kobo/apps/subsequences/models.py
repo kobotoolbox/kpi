@@ -827,6 +827,75 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
         )
 
 
+class TranscriptionChunkStatus(models.TextChoices):
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+
+
+class TranscriptionChunk(AbstractTimeStampedModel):
+    """
+    One slice of a long audio file going through transcription, for both single
+    and bulk processing
+
+    Rows are kept once the transcription completes: `started_at` and `ended_at`
+    are how real durations are measured
+    """
+    # `stc` stands for subsequence transcription chunk
+    uid = KpiUidField(uid_prefix='stc', primary_key=True)
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='transcription_chunks',
+        on_delete=models.CASCADE,
+    )
+    submission_uuid = models.CharField(max_length=249)
+    question_xpath = models.CharField(max_length=2000)
+    # `_uuid` of the `in_progress` version this run belongs to, so a re-run after
+    # a delete never picks up the rows of a previous run
+    version_uuid = models.CharField(max_length=36)
+    index = models.PositiveSmallIntegerField()
+    # In seconds, into the original audio
+    start_offset = models.FloatField()
+    end_offset = models.FloatField()
+    # Empty until the chunk file is uploaded
+    file_path = models.CharField(max_length=2048, blank=True, default='')
+    service_id = models.CharField(max_length=2048, null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=TranscriptionChunkStatus.choices,
+        default=TranscriptionChunkStatus.PENDING,
+    )
+    # `None` until the chunk is transcribed: an empty string is a valid result
+    # for a chunk without speech
+    transcript = models.TextField(null=True, blank=True)
+    # All rows of a run share `date_created` and `date_modified` moves on every
+    # status change, so neither can measure how long a chunk actually took
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    failure_error = models.TextField(null=True, blank=True)
+    retry_count = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['index']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['version_uuid', 'index'],
+                name='unique_transcription_chunk_per_version',
+            ),
+        ]
+        indexes = [
+            # `question_xpath` is left out: a submission only has a handful of
+            # rows, so it adds index size without narrowing the search in any
+            # useful way
+            models.Index(
+                fields=['asset', 'submission_uuid'],
+                name='transcription_chunk_sub_idx',
+            ),
+        ]
+
+
 @lru_cache(maxsize=1024)
 def _warn_unconfigured_action(
     asset_id: int, question_xpath: str, action_id: str
