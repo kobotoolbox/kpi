@@ -8,6 +8,7 @@ export enum FeatureFlag {
   exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
   authRedesignEnabled = 'authRedesignEnabled',
   transferTeamOwnership = 'transferTeamOwnership',
+  nlpImageActionsEnabled = 'nlpImageActionsEnabled',
 }
 
 /**
