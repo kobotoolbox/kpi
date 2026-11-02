@@ -685,6 +685,22 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
 
+    def test_list_status_of_asset_open_to_anonymous_submissions(self):
+        """
+        A project whose only permission besides its owner's is anonymous
+        `add_submissions` is shared, in the list as in its detail
+        """
+
+        self.asset.assign_perm(get_anonymous_user(), PERM_ADD_SUBMISSIONS)
+
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+        result = next(r for r in response.data['results'] if r['uid'] == self.asset.uid)
+        assert result['status'] == 'shared'
+
+        detail_response = self.client.get(result['url'])
+        assert detail_response.data['status'] == 'shared'
+
     def test_current_user_permissions_only_owner_without_param(self):
         """
         Owner (someuser, has manage_asset) without the param sees all users'
