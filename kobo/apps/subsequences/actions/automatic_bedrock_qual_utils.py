@@ -90,7 +90,10 @@ class MantleClient(BedrockClient):
         self.client = OpenAI(
             api_key=provide_token(region=region),
             base_url=f'https://bedrock-mantle.{region}.api.aws/openai/v1',
-            timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT,
+            timeout=Timeout(                                                                                                                  
+                settings.AWS_BEDROCK_READ_TIMEOUT,                                                                                            
+                connect=settings.AWS_BEDROCK_CONNECT_TIMEOUT,                                                                                 
+            ),                                                                                                                                
         )
 
     def make_request(self, request_data, model):
