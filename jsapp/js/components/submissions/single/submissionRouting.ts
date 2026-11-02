@@ -1,6 +1,8 @@
-import { matchPath } from 'react-router-dom'
 import type { AssetsDataListParams } from '#/api/models/assetsDataListParams'
+import type { PaginatedDataResponseListCount } from '#/api/models/paginatedDataResponseListCount'
 import type { TableFilterQuery } from '#/components/submissions/tableUtils'
+import { getSubmissionsSortQuery } from '#/dataInterface'
+import type { SubmissionsSort } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { addDefaultUuidPrefix } from '#/utils'
@@ -23,10 +25,23 @@ export interface SubmissionRouteState {
   /** Where "Back" should lead. Absent means the data table, see the route. */
   backTo?: SubmissionBackTo
   /**
-   * Filters of the data table the record was opened from, so stepping between
-   * records stays within the list the user was looking at. Only the table sets it.
+   * Opened from the data table, so shown in a modal over it. The table stays
+   * mounted underneath, and closing goes back to it.
    */
+  asModal?: boolean
+  /** Where the record sits in the list it was opened from. Only the table sets it. */
+  listPosition?: SubmissionListPosition
+}
+
+/**
+ * A record's place in the data table, so Previous and Next step through the
+ * table's rows in the table's order, across pages.
+ */
+export interface SubmissionListPosition {
+  /** Zero-based, counted across all pages. */
+  index: number
   filterQuery?: TableFilterQuery['queryObj']
+  sort: SubmissionsSort
 }
 
 /**
@@ -84,17 +99,6 @@ export function getDataTablePath(assetUid: string) {
   return ROUTES.FORM_TABLE.replace(':uid', assetUid)
 }
 
-/** Whether the app is right now on a record belonging to the given project */
-export function isOnSubmissionRoute(assetUid: string) {
-  const pathname = router?.state.location.pathname
-
-  if (!pathname) {
-    return false
-  }
-
-  return matchPath(ROUTES.FORM_SUBMISSION, pathname)?.params.uid === assetUid
-}
-
 /**
  * Query params that resolve whatever the route was given into one record.
  *
@@ -115,30 +119,72 @@ export function getSubmissionLookupParams(submissionId: string): AssetsDataListP
 }
 
 /**
- * Fetches the single neighbouring submission in either direction.
+ * Fetches the single neighbouring submission in either direction, among every
+ * submission the user can see.
  *
  * Submissions are listed newest first (the API sorts by `{"_id":-1}`), so "next"
  * means an older record, i.e. a lower `_id`. Cursoring on `_id` rather than time
  * is what makes this possible at all: submission times are only accurate to the
  * second, so they cannot break ties. `SelectSubmission` does the same.
- *
- * @param filterQuery - The data table's filters, to stay within the list the user
- * was looking at.
  */
-export function getSubmissionNeighborParams(
-  submissionDbId: number,
-  direction: 'prev' | 'next',
-  filterQuery?: TableFilterQuery['queryObj'],
-): AssetsDataListParams {
+export function getSubmissionNeighborParams(submissionDbId: number, direction: 'prev' | 'next'): AssetsDataListParams {
   const isNext = direction === 'next'
-  const cursorQuery = { _id: { [isNext ? '$lt' : '$gt']: submissionDbId } }
-  const hasFilters = filterQuery !== undefined && Object.keys(filterQuery).length > 0
 
   return {
     limit: 1,
     start: 0,
-    // `$and` rather than one merged object, as the table can filter on `_id` too.
-    query: JSON.stringify(hasFilters ? { $and: [filterQuery, cursorQuery] } : cursorQuery),
+    query: JSON.stringify({ _id: { [isNext ? '$lt' : '$gt']: submissionDbId } }),
     sort: JSON.stringify({ _id: isNext ? -1 : 1 }),
   }
+}
+
+/**
+ * Fetches the row before or after a record in the data table, with the table's
+ * own filters and sort, so the step lands where the table would.
+ *
+ * Goes by offset rather than by cursor: a cursor would compare the record's own
+ * values, and the API rewrites some of them on the way out (`_submission_time`,
+ * `meta/rootUuid`), so they no longer match what is stored.
+ */
+export function getSubmissionListNeighborParams(
+  position: SubmissionListPosition,
+  direction: 'prev' | 'next',
+): AssetsDataListParams {
+  const hasFilters = position.filterQuery !== undefined && Object.keys(position.filterQuery).length > 0
+
+  return {
+    limit: 1,
+    start: position.index + (direction === 'next' ? 1 : -1),
+    query: hasFilters ? JSON.stringify(position.filterQuery) : undefined,
+    sort: JSON.stringify(getSubmissionsSortQuery(position.sort)),
+  }
+}
+
+/**
+ * The "2 of 17" part of a record's heading. A capped total reads "2 of 5000+", or
+ * "2 of unknown" when counting timed out.
+ *
+ * @param index - 1-based. Without it there is nothing to show, as the record
+ * could be anywhere.
+ * @param countLimit - `limited_count_max_rows` from `/environment`, where the API
+ * stops counting. Needed for a capped total, which waits for it.
+ */
+export function getSubmissionCounterLabel(
+  index: number | undefined,
+  total: PaginatedDataResponseListCount | undefined,
+  countLimit: number | undefined,
+): string | undefined {
+  if (index === undefined || total === undefined) {
+    return undefined
+  }
+
+  if (total === 'unknown') {
+    return `${index} ${t('of')} ${t('unknown')}`
+  }
+
+  if (total === 'many') {
+    return countLimit === undefined ? undefined : `${index} ${t('of')} ${countLimit}+`
+  }
+
+  return `${index} ${t('of')} ${total}`
 }

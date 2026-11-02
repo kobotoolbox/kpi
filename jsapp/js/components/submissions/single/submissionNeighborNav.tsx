@@ -6,7 +6,7 @@ import type { SubmissionNeighbors } from './useSubmissionNeighbors'
 interface SubmissionNeighborNavProps {
   neighbors: SubmissionNeighbors
   /** Called with the root UUID of the record to move to. */
-  onGoToSubmission: (submissionRootUuid: string) => void
+  onGoToSubmission: (submissionRootUuid: string, direction: 'prev' | 'next') => void
 }
 
 /** Steps to the submission before or after the one being displayed. */
@@ -21,7 +21,7 @@ export default function SubmissionNeighborNav({ neighbors, onGoToSubmission }: S
         disabled={isLoading || !prevRootUuid}
         onClick={() => {
           if (prevRootUuid) {
-            onGoToSubmission(prevRootUuid)
+            onGoToSubmission(prevRootUuid, 'prev')
           }
         }}
       >
@@ -34,7 +34,7 @@ export default function SubmissionNeighborNav({ neighbors, onGoToSubmission }: S
         disabled={isLoading || !nextRootUuid}
         onClick={() => {
           if (nextRootUuid) {
-            onGoToSubmission(nextRootUuid)
+            onGoToSubmission(nextRootUuid, 'next')
           }
         }}
       >

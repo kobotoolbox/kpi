@@ -19,8 +19,8 @@ const DefaultPagination = ReactTableDefaults.PaginationComponent as unknown as C
 /**
  * The table footer ("Page _ of 3"), fixing the one thing `react-table` gets wrong about it: it keeps the page number
  * in its own state and only takes a new one from props when that state happens to have changed as well. So a page the
- * table sets by itself - restoring the page a user left on, or dropping to the last page after a record was deleted -
- * never reaches the footer, which goes on showing the page before.
+ * table sets by itself - dropping to the last page after a record was deleted - never reaches the footer, which goes
+ * on showing the page before.
  */
 export default class TablePagination extends DefaultPagination {
   componentDidUpdate(prevProps: TablePaginationProps) {

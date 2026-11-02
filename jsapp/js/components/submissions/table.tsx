@@ -31,13 +31,13 @@ import {
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
-import { goToSubmission, isOnSubmissionRoute } from '#/components/submissions/single/submissionRouting'
+import { goToSubmission } from '#/components/submissions/single/submissionRouting'
+import type { SubmissionListPosition } from '#/components/submissions/single/submissionRouting'
 import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
   ReactTableState,
-  ReactTableStateFilteredItem,
   TableColumn,
 } from '#/components/submissions/table.types'
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
@@ -48,7 +48,7 @@ import {
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
   SUBMISSION_ACTIONS_ID,
-  SortValues,
+  type SortValues,
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
@@ -59,13 +59,12 @@ import {
   getAllDataColumnsWithAliases,
   getColumnHXLTags,
   getColumnLabel,
+  getTableSort,
   getVisibleAudioXpaths,
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
 } from '#/components/submissions/tableUtils'
-import type { TableFilterQuery } from '#/components/submissions/tableUtils'
-import { clearTableViewState, getTableViewState, setTableViewState } from '#/components/submissions/tableViewState'
 import type {
   ValidationStatusOption,
   ValidationStatusOptionName,
@@ -160,48 +159,19 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   private unlisteners: Function[] = []
 
   /**
-   * Page size and filters the user last left the table with, taken from
-   * `tableViewState` in the constructor and never read again.
-   *
-   * `react-table` seeds its internal state from the `default*` props, but it
-   * also keeps comparing them between renders: when `defaultFiltered` differs
-   * from what it saw last time, it drops the filters the user has set and
-   * applies the new default instead. We save filters back to `tableViewState`
-   * as the user changes them, so reading them on every render would push them
-   * straight back into the table and reset it mid-interaction.
+   * Filters and sort of the last fetch, handed to a record the user opens so it
+   * can step through the rows the way this table lists them.
    */
-  private readonly initialPageSize: number
-  private readonly initialFiltered: ReactTableStateFilteredItem[]
-
-  /**
-   * Page the user left the table on, applied on the first fetch and then cleared.
-   * Seeding `react-table`'s own page does not work - it counts the initial filters
-   * as a filter change and zeroes the page on mount. See `fetchData`.
-   */
-  private pageToRestore?: number
-
-  /**
-   * Filters the last fetch used, handed to a record the user opens so it can step
-   * between neighbours the way this table lists them. Deliberately not kept in
-   * `tableViewState`, where it would outlive the table and filter records opened
-   * from somewhere else entirely.
-   */
-  private currentFilterQuery?: TableFilterQuery['queryObj']
+  private currentListQuery?: Omit<SubmissionListPosition, 'index'>
 
   constructor(props: DataTableProps) {
     super(props)
-
-    const viewState = getTableViewState(props.asset.uid)
-    this.initialPageSize = viewState?.pageSize ?? DEFAULT_PAGE_SIZE
-    this.initialFiltered = viewState?.filtered ?? []
-    this.pageToRestore = viewState?.page
-
     this.state = {
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
       isFullscreen: false,
-      pageSize: this.initialPageSize,
+      pageSize: DEFAULT_PAGE_SIZE,
       currentPage: 0,
       error: false,
       errorNumber: null,
@@ -229,6 +199,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         this.onSubmissionValidationStatusChange.bind(this),
       ),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
+      actions.resources.duplicateSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
       actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
@@ -244,12 +215,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.unlisteners.forEach((clb) => {
       clb()
     })
-
-    // What we remembered is only meant to survive a trip to one of this table's
-    // records and back. Leaving for anywhere else starts the table fresh.
-    if (!isOnSubmissionRoute(this.props.asset.uid)) {
-      clearTableViewState(this.props.asset.uid)
-    }
   }
 
   componentDidUpdate(prevProps: DataTableProps) {
@@ -373,34 +338,16 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const page = instance.state.page * instance.state.pageSize
     const filter = instance.state.filtered
     let filterQueryString = ''
-    let filterQueryObj: TableFilterQuery['queryObj'] | undefined
     // sort comes from outside react-table
-    const sort = []
+    const sort = getTableSort(tableStore.getSortBy())
+    this.currentListQuery = { sort }
 
     if (filter.length && this.props.asset.content?.survey) {
       const filterQuery = buildFilterQuery(this.props.asset.content?.survey, instance.state.filtered)
       if (filterQuery.queryString) {
         filterQueryString = `&query=${filterQuery.queryString}`
       }
-      filterQueryObj = filterQuery.queryObj
-    }
-
-    this.currentFilterQuery = filterQueryObj
-
-    // Remembered so that leaving for a submission record and coming back keeps
-    // the table as the user left it.
-    setTableViewState(this.props.asset.uid, {
-      pageSize,
-      filtered: filter,
-      page: instance.state.page,
-    })
-
-    const sortBy = tableStore.getSortBy()
-    if (sortBy !== null) {
-      sort.push({
-        id: sortBy.fieldId,
-        desc: sortBy.value === SortValues.DESCENDING,
-      })
+      this.currentListQuery.filterQuery = filterQuery.queryObj
     }
 
     actions.submissions.getSubmissions({
@@ -435,8 +382,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         },
       )
     } else if (lastPage < this.state.currentPage && this.state.fetchInstance) {
-      // We asked for a page past the end - deleting the record the user came back
-      // from is enough to shrink the table. Drop to the last page there is.
+      // We asked for a page past the end - deleting the only row of the last page
+      // is enough to shrink the table. Drop to the last page there is.
       this.state.fetchInstance.onPageChange(lastPage)
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
@@ -1048,16 +995,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /** Function for `react-table` for fetching data. */
   fetchData(tableState: ReactTableState, tableInstance: ReactTableInstance) {
-    const pageToRestore = this.pageToRestore
-    this.pageToRestore = undefined
-
-    // Asking the table to change page fires another fetch, for the page we
-    // actually want, so there is nothing to do with this one.
-    if (pageToRestore !== undefined && pageToRestore !== tableInstance.state.page) {
-      tableInstance.onPageChange(pageToRestore)
-      return
-    }
-
     this.setState({
       loading: true,
       pageSize: tableInstance.state.pageSize,
@@ -1065,13 +1002,19 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       fetchState: tableState,
       fetchInstance: tableInstance,
     })
-
     this.fetchSubmissions(tableInstance)
   }
 
+  /** Opens the record in a modal over the table, which stays as it is underneath. */
   goToSubmission(submission: SubmissionResponse) {
+    const pageStart = this.state.currentPage * this.state.pageSize
+    const listPosition = this.currentListQuery && {
+      ...this.currentListQuery,
+      index: pageStart + this.state.submissions.indexOf(submission),
+    }
+
     goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission), {
-      state: { filterQuery: this.currentFilterQuery },
+      state: { asModal: true, listPosition },
     })
   }
 
@@ -1331,9 +1274,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <ReactTable
             data={this.state.submissions}
             columns={this.state.columns}
-            // Held in fields, not state - see `initialPageSize`.
-            defaultPageSize={this.initialPageSize}
-            defaultFiltered={this.initialFiltered}
+            defaultPageSize={DEFAULT_PAGE_SIZE}
             PaginationComponent={TablePagination}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
             minRows={0}

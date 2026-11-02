@@ -1,38 +1,38 @@
 import './submissionRoute.scss'
 import React, { useEffect } from 'react'
 import DocumentTitle from 'react-document-title'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEnvironmentQuery } from '#/api/useEnvironmentQuery'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
 import { getSubmissionRootUuid } from '#/utils'
 import SubmissionDetails from './submissionDetails'
+import SubmissionModalLayout from './submissionModalLayout'
 import SubmissionNeighborNav from './submissionNeighborNav'
 import SubmissionRecordPlaceholder from './submissionRecordPlaceholder'
 import type { SubmissionRouteState } from './submissionRouting'
-import { getDataTablePath, getSubmissionPath } from './submissionRouting'
+import { getDataTablePath, getSubmissionCounterLabel, getSubmissionPath } from './submissionRouting'
 import { useSubmissionNeighbors } from './useSubmissionNeighbors'
 import { useSubmissionRecord } from './useSubmissionRecord'
-
-interface RouteParams extends Record<string, string | undefined> {
-  uid: string
-  submissionId: string
-}
 
 /**
  * Displays a single submission record at its own address, so that it can be
  * bookmarked and shared. Owns loading the record, moving between records, and
- * leaving for the data table; the record itself is rendered by
- * `SubmissionDetails`.
+ * leaving; the record itself is rendered by `SubmissionDetails`.
+ *
+ * Opened from the data table, it shows in a modal over the table, which stays
+ * mounted underneath. Opened any other way - a link, a new tab, "Open full record" -
+ * it has the page to itself. Same address either way.
  */
-export default function SubmissionRoute({ params }: { params: RouteParams }) {
-  const { uid: assetUid, submissionId } = params
+export default function SubmissionRoute() {
+  const { uid: assetUid = '', submissionId = '' } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
 
-  // NOTE: This route component is being loaded with PermProtectedRoute so we
-  // know that the call to backend to get asset was already made, and thus we can
-  // safely assume asset data is present.
+  // NOTE: The parent route is loaded with PermProtectedRoute, so we know the
+  // call to backend to get asset was already made, and thus we can safely assume
+  // asset data is present.
   const asset = assetUid ? assetStore.getAsset(assetUid) : null
 
   const { isPending, isError, record, refresh } = useSubmissionRecord(assetUid, submissionId)
@@ -40,8 +40,12 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
   const rootUuid = record ? getSubmissionRootUuid(record) : undefined
 
   const routeState = location.state as SubmissionRouteState | null
+  const isModal = Boolean(routeState?.asModal)
 
-  const neighbors = useSubmissionNeighbors(assetUid, record?._id, routeState?.filterQuery)
+  const neighbors = useSubmissionNeighbors(assetUid, record?._id, routeState?.listPosition)
+  const { data: countLimit } = useEnvironmentQuery({
+    select: (response) => (response.status === 200 ? response.data.limited_count_max_rows : undefined),
+  })
 
   // The route also accepts a numeric `_id`, for older links and for callers that
   // only have one (the REST Service logs). Swap it for the root UUID, so the
@@ -57,80 +61,113 @@ export default function SubmissionRoute({ params }: { params: RouteParams }) {
   // always show it.
   const backTo = routeState?.backTo ?? { path: getDataTablePath(assetUid), label: t('Back to Data Table') }
 
-  const goBack = () => {
-    navigate(backTo.path)
+  const leave = () => {
+    if (isModal) {
+      // Opening the modal added one history entry and steps only replace it, so the
+      // entry before is the table. Navigating there instead would add an entry,
+      // and the browser's Back would reopen the modal.
+      navigate(-1)
+    } else {
+      navigate(backTo.path)
+    }
   }
 
-  const pageTitle = `${t('Submission Record')} | KoboToolbox`
+  // In the modal, steps replace the address, so one Back closes it however far
+  // the user has stepped. The page keeps every step in history.
+  const goToRecord = (recordId: string | number, state: SubmissionRouteState) => {
+    navigate(getSubmissionPath(assetUid, recordId), { replace: isModal, state: { ...state, asModal: isModal } })
+  }
+
+  const counterLabel = getSubmissionCounterLabel(neighbors.index, neighbors.total, countLimit)
 
   // Reads as "Submission Record (2 of 17)", as the modal did, and drops back to
   // the plain title until we know where the record sits.
-  const heading =
-    neighbors.index === undefined
-      ? t('Submission Record')
-      : `${t('Submission Record')} (${neighbors.index} ${t('of')} ${neighbors.total})`
+  const heading = counterLabel ? `${t('Submission Record')} (${counterLabel})` : t('Submission Record')
 
-  const renderInLayout = (content: React.ReactNode, header?: React.ReactNode) => (
-    <DocumentTitle title={pageTitle}>
+  const navigation = (
+    <SubmissionNeighborNav
+      neighbors={neighbors}
+      onGoToSubmission={(neighborRootUuid, direction) => {
+        const listPosition = routeState?.listPosition
+
+        // Stepping to another record keeps the way back and the list being walked,
+        // but not the duplicate banner - that only belongs to the record it was
+        // raised for.
+        goToRecord(neighborRootUuid, {
+          backTo: routeState?.backTo,
+          listPosition: listPosition && {
+            ...listPosition,
+            index: listPosition.index + (direction === 'next' ? 1 : -1),
+          },
+        })
+      }}
+    />
+  )
+
+  // The asset is already loaded by the time this route renders, so a missing one
+  // means the store has yet to catch up - something to wait out, not an error.
+  const content =
+    !asset || !record ? (
+      <SubmissionRecordPlaceholder isPending={isPending || !asset} isError={isError} submissionId={submissionId} />
+    ) : (
+      <SubmissionDetails
+        // Remounting on a different record keeps per-record UI state (such as
+        // a pending "Refresh submission" prompt) from leaking into the next one.
+        key={record._id}
+        asset={asset}
+        submission={record}
+        duplicatedFromUuid={routeState?.duplicatedFromUuid}
+        isInModal={isModal}
+        onRefreshRequested={refresh}
+        onDeleted={leave}
+        onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
+          // The list position is deliberately dropped: a brand new record does not
+          // necessarily match the table's filters (filtering by `_id` is the clearest
+          // case), and claiming a place in a list it is not part of would leave the
+          // user with a wrong count and wrong Previous/Next. So the duplicate steps
+          // through the full list instead.
+          goToRecord(newSubmissionDbId, { duplicatedFromUuid, backTo: routeState?.backTo })
+        }}
+      />
+    )
+
+  if (isModal) {
+    return (
+      <DocumentTitle title={`${t('Submission Record')} | KoboToolbox`}>
+        <SubmissionModalLayout
+          title={heading}
+          onClose={leave}
+          navigation={navigation}
+          // Same address, without the table: printing, for one, needs the page.
+          onOpenFullRecord={record ? () => navigate(location.pathname) : undefined}
+        >
+          {content}
+        </SubmissionModalLayout>
+      </DocumentTitle>
+    )
+  }
+
+  return (
+    <DocumentTitle title={`${t('Submission Record')} | KoboToolbox`}>
       <bem.FormView m='submission'>
         <div className='submission-route'>
           <header className='submission-route__header'>
             <div className='submission-route__header-side'>
-              <Button variant='transparent' leftIcon='angle-left' tooltip={backTo.label} onClick={goBack}>
+              <Button variant='transparent' leftIcon='angle-left' tooltip={backTo.label} onClick={leave}>
                 {t('Back')}
               </Button>
             </div>
 
             <h1 className='submission-route__title'>{heading}</h1>
 
-            <div className='submission-route__header-side submission-route__header-side--end'>{header}</div>
+            <div className='submission-route__header-side submission-route__header-side--end'>
+              {asset && record && navigation}
+            </div>
           </header>
 
           <div className='submission-route__body'>{content}</div>
         </div>
       </bem.FormView>
     </DocumentTitle>
-  )
-
-  // The asset is already loaded by the time this route renders, so a missing one
-  // means the store has yet to catch up - something to wait out, not an error.
-  if (!asset || !record) {
-    return renderInLayout(
-      <SubmissionRecordPlaceholder isPending={isPending || !asset} isError={isError} submissionId={submissionId} />,
-    )
-  }
-
-  return renderInLayout(
-    <SubmissionDetails
-      // Remounting on a different record keeps per-record UI state (such as
-      // a pending "Refresh submission" prompt) from leaking into the next one.
-      key={record._id}
-      asset={asset}
-      submission={record}
-      duplicatedFromUuid={routeState?.duplicatedFromUuid}
-      onRefreshRequested={refresh}
-      onDeleted={goBack}
-      onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
-        // The filters the source was found with are deliberately dropped: a brand
-        // new record does not necessarily match them (filtering by `_id` is the
-        // clearest case), and claiming a place in a list it is not part of would
-        // leave the user with a wrong count and dead Previous/Next buttons. So the
-        // duplicate sits in the full list instead.
-        navigate(getSubmissionPath(assetUid, newSubmissionDbId), {
-          state: { duplicatedFromUuid, backTo: routeState?.backTo },
-        })
-      }}
-    />,
-    <SubmissionNeighborNav
-      neighbors={neighbors}
-      onGoToSubmission={(neighborRootUuid) => {
-        // Stepping to another record keeps the way back and the list being walked,
-        // but not the duplicate banner - that only belongs to the record it was
-        // raised for.
-        navigate(getSubmissionPath(assetUid, neighborRootUuid), {
-          state: { backTo: routeState?.backTo, filterQuery: routeState?.filterQuery },
-        })
-      }}
-    />,
   )
 }

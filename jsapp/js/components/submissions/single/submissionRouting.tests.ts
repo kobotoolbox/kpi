@@ -2,11 +2,12 @@ import { injectRouter } from '#/router/legacy'
 import {
   getBackToCurrentScreen,
   getDataTablePath,
+  getSubmissionCounterLabel,
+  getSubmissionListNeighborParams,
   getSubmissionLookupParams,
   getSubmissionNeighborParams,
   getSubmissionPath,
   goToSubmission,
-  isOnSubmissionRoute,
 } from './submissionRouting'
 
 describe('submissionRouting', () => {
@@ -58,26 +59,6 @@ describe('submissionRouting', () => {
         replace: true,
         state: { duplicatedFromUuid: 'abc' },
       })
-    })
-  })
-
-  describe('isOnSubmissionRoute', () => {
-    it('recognises a record of the given project', () => {
-      injectRouterAt('/forms/aBcDeF/data/table/submission/a1b2c3d4-1111-2222-3333-444455556666')
-
-      chai.expect(isOnSubmissionRoute('aBcDeF')).to.equal(true)
-    })
-
-    it('does not mistake a record of another project for one of ours', () => {
-      injectRouterAt('/forms/zZzZzZ/data/table/submission/1234')
-
-      chai.expect(isOnSubmissionRoute('aBcDeF')).to.equal(false)
-    })
-
-    it('says no for any other screen of the same project', () => {
-      injectRouterAt('/forms/aBcDeF/data/table')
-
-      chai.expect(isOnSubmissionRoute('aBcDeF')).to.equal(false)
     })
   })
 
@@ -137,21 +118,57 @@ describe('submissionRouting', () => {
       chai.expect(JSON.parse(String(params.query))).to.deep.equal({ _id: { $gt: 1234 } })
       chai.expect(JSON.parse(String(params.sort))).to.deep.equal({ _id: 1 })
     })
+  })
 
-    it('stays within the data table filters when given them', () => {
-      const params = getSubmissionNeighborParams(1234, 'next', {
-        Your_name: { $regex: 'ann', $options: 'i' },
-      })
+  describe('getSubmissionListNeighborParams', () => {
+    const position = {
+      index: 30,
+      filterQuery: { Your_name: { $regex: 'ann', $options: 'i' } },
+      sort: [
+        { id: 'Your_name', desc: false },
+        { id: '_id', desc: true },
+      ],
+    }
 
-      chai.expect(JSON.parse(String(params.query))).to.deep.equal({
-        $and: [{ Your_name: { $regex: 'ann', $options: 'i' } }, { _id: { $lt: 1234 } }],
-      })
+    it('asks for the row right after, with the table filters and sort', () => {
+      const params = getSubmissionListNeighborParams(position, 'next')
+
+      chai.expect(params.limit).to.equal(1)
+      chai.expect(params.start).to.equal(31)
+      chai.expect(JSON.parse(String(params.query))).to.deep.equal({ Your_name: { $regex: 'ann', $options: 'i' } })
+      chai.expect(JSON.parse(String(params.sort))).to.deep.equal({ Your_name: 1, _id: -1 })
     })
 
-    it('ignores an empty filter, rather than wrapping it', () => {
-      const params = getSubmissionNeighborParams(1234, 'next', {})
+    it('asks for the row right before for "prev"', () => {
+      chai.expect(getSubmissionListNeighborParams(position, 'prev').start).to.equal(29)
+    })
 
-      chai.expect(JSON.parse(String(params.query))).to.deep.equal({ _id: { $lt: 1234 } })
+    it('sends no query for an unfiltered table, rather than an empty one', () => {
+      const params = getSubmissionListNeighborParams({ ...position, filterQuery: {} }, 'next')
+
+      chai.expect(params.query).to.equal(undefined)
+    })
+  })
+
+  describe('getSubmissionCounterLabel', () => {
+    it('shows the position among an exact total', () => {
+      chai.expect(getSubmissionCounterLabel(2, 17, 5000)).to.equal('2 of 17')
+    })
+
+    it('shows a capped total as the count limit and more', () => {
+      chai.expect(getSubmissionCounterLabel(2, 'many', 5000)).to.equal('2 of 5000+')
+    })
+
+    it('waits for the count limit before showing a capped total', () => {
+      chai.expect(getSubmissionCounterLabel(2, 'many', undefined)).to.equal(undefined)
+    })
+
+    it('says so when counting timed out', () => {
+      chai.expect(getSubmissionCounterLabel(2, 'unknown', 5000)).to.equal('2 of unknown')
+    })
+
+    it('shows nothing without a position, as the record could be anywhere', () => {
+      chai.expect(getSubmissionCounterLabel(undefined, 'many', 5000)).to.equal(undefined)
     })
   })
 })

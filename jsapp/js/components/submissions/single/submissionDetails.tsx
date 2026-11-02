@@ -34,7 +34,7 @@ interface SubmissionDetailsProps {
   onDeleted: () => void
   /**
    * Leave it out to hide the Duplicate action: the flow carries on in Enketo and
-   * ends on the new record with a banner, which needs a screen of its own.
+   * ends on the new record with a banner, which needs the record's own route.
    *
    * @param newSubmissionDbId - `_id` of the record the duplication produced.
    */
@@ -121,7 +121,13 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
    * A callback for submission validation status changes. We use the response
    * to update the in-memory submission data (to avoid making another call).
    */
-  refreshSubmissionValidationStatus(result: ValidationStatusResponse) {
+  refreshSubmissionValidationStatus(result: ValidationStatusResponse, sid: string | number) {
+    // The Reflux action is global, and the user may have moved on to another
+    // record (or changed a status in the table) before this one came back.
+    if (String(sid) !== this.sid) {
+      return
+    }
+
     this.setState({ isValidationStatusChangePending: false })
 
     const newSubmissionData = clonedeep(this.state.submission)
@@ -172,9 +178,11 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
     dialog.set(opts).show()
   }
 
-  onDeletedSubmissionCompleted() {
-    // The record we are displaying is gone, so there is nothing to stay for.
-    this.props.onDeleted()
+  onDeletedSubmissionCompleted(sid: string | number) {
+    // Same as above: only a delete of this very record means there is nothing to stay for.
+    if (String(sid) === this.sid) {
+      this.props.onDeleted()
+    }
   }
 
   onDuplicateSubmissionCompleted(_assetUid: string, newSubmissionDbId: string, duplicatedFrom: SubmissionResponse) {

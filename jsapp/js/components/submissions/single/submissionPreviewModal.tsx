@@ -1,9 +1,7 @@
-import { Group } from '@mantine/core'
 import React from 'react'
-import Button from '#/components/common/ButtonNew'
-import ModalNew from '#/components/common/ModalNew'
 import type { AssetResponse } from '#/dataInterface'
 import SubmissionDetails from './submissionDetails'
+import SubmissionModalLayout from './submissionModalLayout'
 import SubmissionRecordPlaceholder from './submissionRecordPlaceholder'
 import { useSubmissionRecord } from './useSubmissionRecord'
 
@@ -34,41 +32,26 @@ export default function SubmissionPreviewModal({
 }: SubmissionPreviewModalProps) {
   const { isPending, isError, record, refresh } = useSubmissionRecord(asset.uid, submissionId)
 
-  const renderInModal = (content: React.ReactNode) => (
-    // A form's worth of answers needs the width, and Mantine keeps it inside the
-    // viewport on smaller screens. Height takes care of itself: it caps at 90% of
-    // the viewport and scrolls the body under a pinned header.
-    <ModalNew opened onClose={onClose} title={t('Submission Record')} size={1240}>
-      {content}
-    </ModalNew>
-  )
-
-  if (!record) {
-    return renderInModal(
-      <SubmissionRecordPlaceholder isPending={isPending} isError={isError} submissionId={submissionId} />,
-    )
-  }
-
-  return renderInModal(
-    <>
-      {/* Above the record, which is as long as the form - anything below it would
-      be well out of sight. */}
-      <Group justify='flex-end' mb='md'>
-        <Button variant='light' size='md' rightIcon='angle-right' onClick={onOpenFullRecord}>
-          {t('Open full record')}
-        </Button>
-      </Group>
-
-      <SubmissionDetails
-        // Remount on a different record, so its UI state starts clean.
-        key={record._id}
-        asset={asset}
-        submission={record}
-        isInModal
-        onRefreshRequested={refresh}
-        onDeleted={onDeleted}
-        // Leaving out `onDuplicated` is what hides the Duplicate action.
-      />
-    </>,
+  return (
+    <SubmissionModalLayout
+      title={t('Submission Record')}
+      onClose={onClose}
+      onOpenFullRecord={record ? onOpenFullRecord : undefined}
+    >
+      {record ? (
+        <SubmissionDetails
+          // Remount on a different record, so its UI state starts clean.
+          key={record._id}
+          asset={asset}
+          submission={record}
+          isInModal
+          onRefreshRequested={refresh}
+          onDeleted={onDeleted}
+          // Leaving out `onDuplicated` is what hides the Duplicate action.
+        />
+      ) : (
+        <SubmissionRecordPlaceholder isPending={isPending} isError={isError} submissionId={submissionId} />
+      )}
+    </SubmissionModalLayout>
   )
 }

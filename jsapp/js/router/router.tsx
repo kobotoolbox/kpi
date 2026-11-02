@@ -160,7 +160,10 @@ export const router = createHashRouter(
                     requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                   />
                 }
-              />
+              >
+                {/* Nested, so the table can stay mounted under a record opened from it */}
+                <Route path={ROUTES.FORM_SUBMISSION} element={<SubmissionRoute />} />
+              </Route>
               <Route
                 path={ROUTES.FORM_DOWNLOADS}
                 element={
@@ -193,15 +196,6 @@ export const router = createHashRouter(
                 element={
                   <PermProtectedRoute
                     protectedComponent={FormSubScreens}
-                    requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
-                  />
-                }
-              />
-              <Route
-                path={ROUTES.FORM_SUBMISSION}
-                element={
-                  <PermProtectedRoute
-                    protectedComponent={SubmissionRoute}
                     requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                   />
                 }
