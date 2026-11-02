@@ -6,7 +6,7 @@ import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { useProfile } from '#/stores/useProfile'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
 
@@ -45,7 +45,7 @@ function buildBulkAction(
   createdByUsername: string,
   overrides: Partial<BulkActionResponse> = {},
 ): BulkActionResponse {
-  return getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  return getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
     uid: `bulk-${status}-${createdByUsername}`,
     status,
     action_id: ActionIdEnum.automatic_google_transcription,
