@@ -56,7 +56,7 @@ export default function ResetPasswordForm({ onRequested }: ResetPasswordFormProp
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {t('Reset your password')}
         </Title>
         <Text>

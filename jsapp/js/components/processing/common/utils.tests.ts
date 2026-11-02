@@ -9,6 +9,7 @@ import {
   getSuggestedLanguages,
   getTranslationSourceLanguages,
   hasAnalysisSource,
+  isNlpSupported,
 } from './utils'
 
 // Mock AdvancedFeatureResponse objects for tests
@@ -284,5 +285,21 @@ describe('hasAnalysisSource', () => {
   it('falls back to the transcript check when the question type is unknown', () => {
     chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
+  })
+})
+
+describe('isNlpSupported', () => {
+  it('is true for audio, background audio, text and image questions', () => {
+    chai.expect(isNlpSupported(QUESTION_TYPES.audio.id)).to.equal(true)
+    chai.expect(isNlpSupported(QUESTION_TYPES['background-audio'].id)).to.equal(true)
+    chai.expect(isNlpSupported(QUESTION_TYPES.text.id)).to.equal(true)
+    chai.expect(isNlpSupported(QUESTION_TYPES.image.id)).to.equal(true)
+  })
+
+  it('is false for other question types and an unknown type', () => {
+    chai.expect(isNlpSupported(QUESTION_TYPES.video.id)).to.equal(false)
+    chai.expect(isNlpSupported(QUESTION_TYPES.file.id)).to.equal(false)
+    chai.expect(isNlpSupported(QUESTION_TYPES.select_one.id)).to.equal(false)
+    chai.expect(isNlpSupported(undefined)).to.equal(false)
   })
 })
