@@ -1,5 +1,3 @@
-from constance import config
-
 from kobo.apps.organizations.constants import UsageType
 from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
@@ -26,7 +24,12 @@ class AutomaticGoogleTranscriptionAction(
 
     @property
     def chunk_hard_limit_seconds(self) -> float:
-        return config.ASR_GOOGLE_STT_CHUNK_HARD_LIMIT_SECONDS
+        # `DEFAULT_SPEECH_MODEL`, the model this engine falls back to, refuses
+        # audio longer than an hour, well under the 479 min of
+        # `ASYNC_MAX_LENGTH` that the batch API itself allows. Five minutes
+        # under the model's limit leaves a margin for a recording that turns
+        # out slightly longer than ffprobe reported
+        return 55 * 60
 
     @property
     def result_schema(self):

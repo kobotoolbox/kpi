@@ -775,8 +775,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         Gemini-Transcribe takes far less, and one number for both would chunk
         every engine at the lowest limit in the fleet.
 
-        Each action returns its own `constance` setting, so the value can be
-        followed in Django admin when an engine changes its limit
+        The value is fixed by the engine's API rather than tuned per
+        deployment, so each action states it outright.
         """
 
         raise NotImplementedError

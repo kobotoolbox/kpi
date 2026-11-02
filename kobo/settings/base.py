@@ -411,16 +411,6 @@ CONSTANCE_CONFIG = {
             ' the operations API. '
         )
     ),
-    'ASR_GOOGLE_STT_CHUNK_HARD_LIMIT_SECONDS': (
-        env.int('CONSTANCE_ASR_GOOGLE_STT_CHUNK_HARD_LIMIT_SECONDS', 55 * 60),
-        (
-            'Longest piece of audio, in seconds, sent to Google Speech-to-Text'
-            ' v2 in one request. A longer recording is cut into chunks at'
-            ' natural pauses first. Google accepts an hour; the default leaves'
-            ' a five minute margin.\nEach engine has its own limit, so'
-            ' changing this one does not affect any other.'
-        ),
-    ),
     'ASR_MT_GOOGLE_PROJECT_ID': (
         env.str('CONSTANCE_ASR_MT_GOOGLE_PROJECT_ID', 'kobo-asr-mt'),
         'ID of the Google Cloud project used to access ASR/MT APIs',
@@ -839,7 +829,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
     ),
     'Natural language processing': (
         'ASR_MT_INVITEE_USERNAMES',
-        'ASR_GOOGLE_STT_CHUNK_HARD_LIMIT_SECONDS',
         'ASR_MT_GOOGLE_PROJECT_ID',
         'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
         'ASR_MT_GOOGLE_REGION',
