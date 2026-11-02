@@ -81,8 +81,6 @@ export function useMfaStatus() {
 /**
  * Whether allauth will want the password before 2FA goes on. Always, for accounts that have one: the backend timeout
  * is configurable, so we can't tell if an earlier reauthentication still counts.
- *
- * TODO: DEV-3184 skip it while a reauthentication still counts, once DEV-3183 exposes the timeout
  */
 export function useIsPasswordNeeded() {
   const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
