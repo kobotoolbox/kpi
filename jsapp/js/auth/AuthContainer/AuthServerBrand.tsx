@@ -23,7 +23,7 @@ export interface AuthServerBrandProps {
 }
 
 /**
- * Top of the login and signup cards: the server tag, else the organization logo, else nothing.
+ * The server tag, else the organization logo, else nothing - for `AuthCard`'s `brand`.
  * The tag wins over the logo, as the backend documents.
  */
 export default function AuthServerBrand({ authConfiguration }: AuthServerBrandProps) {

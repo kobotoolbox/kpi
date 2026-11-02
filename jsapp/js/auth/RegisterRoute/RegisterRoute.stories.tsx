@@ -47,13 +47,12 @@ const LEGAL_AGREEMENT = {
 const environmentMock = makeEnvironmentMock(LEGAL_AGREEMENT)
 
 /** Both supporting fields filled in: a `login_supporting_image` upload and a `welcome_message`, as HTML. */
-const supportingEnvironmentMock = makeAuthConfigurationMock(
-  {
-    supporting_image_url: backgroundImageUrl,
-    supporting_text: '<h2>Welcome to the Example Organization server</h2>\n<p>Accounts here are for staff.</p>',
-  },
-  LEGAL_AGREEMENT,
-)
+const SUPPORTING_CONTENT = {
+  supporting_image_url: backgroundImageUrl,
+  supporting_text: '<h2>Welcome to the Example Organization server</h2>\n<p>Accounts here are for staff.</p>',
+}
+
+const supportingEnvironmentMock = makeAuthConfigurationMock(SUPPORTING_CONTENT, LEGAL_AGREEMENT)
 
 /**
  * An instance that asks for every profile field it can and requires most of them, the newsletter opt in
@@ -188,7 +187,7 @@ export const CustomTheme: Story = {
   },
 }
 
-/** The server tag sits above the form here too. */
+/** No aside, so the server tag sits above the form. */
 export const ServerTag: Story = {
   parameters: {
     msw: {
@@ -199,6 +198,31 @@ export const ServerTag: Story = {
   },
   play: async ({ canvasElement }) => {
     await within(canvasElement).findByText('EU server')
+  },
+}
+
+/** With an aside, the server tag moves to the top of it. */
+export const ServerTagWithSupportingContent: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeAuthConfigurationMock(
+          { ...SUPPORTING_CONTENT, server_tag: AuthServerTagEnum.global },
+          LEGAL_AGREEMENT,
+        ),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const tag = await canvas.findByText('Global server')
+    const asideHeading = canvas.getByRole('heading', { level: 2, name: /Example Organization/ })
+    // After the form, before the aside content.
+    expect(canvas.getByRole('button', { name: 'Continue' }).compareDocumentPosition(tag)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(tag.compareDocumentPosition(asideHeading)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   },
 }
 

@@ -163,8 +163,7 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
     // Not an ending: the password was accepted and there is a second factor still to fill in.
     if (outcome?.kind === 'mfaRequired') {
       return (
-        <AuthCard aside={aside}>
-          {brand}
+        <AuthCard aside={aside} brand={brand}>
           <MfaForm onOutcome={handleOutcome} />
         </AuthCard>
       )
@@ -181,8 +180,7 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
       )
     }
     return (
-      <AuthCard aside={aside}>
-        {brand}
+      <AuthCard aside={aside} brand={brand}>
         <LoginForm
           socialApps={environment?.socialApps}
           // Only a definite "no" hides the signup link - the same setting the signup screen itself goes by, so

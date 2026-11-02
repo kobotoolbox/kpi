@@ -114,8 +114,8 @@ export default function RegisterRoute() {
             />
           )
         }
+        brand={<AuthServerBrand authConfiguration={data?.authConfiguration} />}
       >
-        <AuthServerBrand authConfiguration={data?.authConfiguration} />
         <RegisterForm
           socialApps={data?.socialApps}
           newsletterField={data?.userMetadataFields.find((field) => field.name === 'newsletter_subscription')}
