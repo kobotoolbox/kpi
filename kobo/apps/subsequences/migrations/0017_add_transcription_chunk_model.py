@@ -9,7 +9,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0076_alter_extraprojectmetadatafield_options'),
         ('subsequences', '0016_add_auto_accept_field_to_subsequencebulkaction'),
     ]
 
