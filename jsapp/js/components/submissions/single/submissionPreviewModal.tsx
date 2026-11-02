@@ -46,6 +46,8 @@ export default function SubmissionPreviewModal({
           submission={record}
           isInModal
           onRefreshRequested={refresh}
+          // The record's own page reads the same cached copy, so "Open full record" would show it as it was.
+          onChanged={refresh}
           onDeleted={onDeleted}
           // Leaving out `onDuplicated` is what hides the Duplicate action.
         />

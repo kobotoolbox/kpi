@@ -138,23 +138,27 @@ export function getSubmissionNeighborParams(submissionDbId: number, direction: '
   }
 }
 
+/** How far either side of its expected row we look for a record that has shifted in the list. */
+export const LIST_WINDOW_REACH = 2
+
 /**
- * Fetches the row before or after a record in the data table, with the table's
- * own filters and sort, so the step lands where the table would.
+ * Fetches the rows of the data table around a record's expected row, with the
+ * table's own filters and sort, so steps land where the table would. The window
+ * reaches past the neighbours, so a record that has shifted - another one left or
+ * joined the list before it - can still be found, along with its neighbours.
  *
  * Goes by offset rather than by cursor: a cursor would compare the record's own
  * values, and the API rewrites some of them on the way out (`_submission_time`,
  * `meta/rootUuid`), so they no longer match what is stored.
  */
-export function getSubmissionListNeighborParams(
-  position: SubmissionListPosition,
-  direction: 'prev' | 'next',
-): AssetsDataListParams {
+export function getSubmissionListWindowParams(position: SubmissionListPosition): AssetsDataListParams {
   const hasFilters = position.filterQuery !== undefined && Object.keys(position.filterQuery).length > 0
+  // Rows above the first one don't exist.
+  const start = Math.max(position.index - LIST_WINDOW_REACH, 0)
 
   return {
-    limit: 1,
-    start: position.index + (direction === 'next' ? 1 : -1),
+    limit: position.index - start + LIST_WINDOW_REACH + 1,
+    start,
     query: hasFilters ? JSON.stringify(position.filterQuery) : undefined,
     sort: JSON.stringify(getSubmissionsSortQuery(position.sort)),
   }

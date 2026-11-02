@@ -1,27 +1,26 @@
 import { Group } from '@mantine/core'
 import React from 'react'
 import Button from '#/components/common/ButtonNew'
-import type { SubmissionNeighbors } from './useSubmissionNeighbors'
+import type { SubmissionNeighbor, SubmissionNeighbors } from './useSubmissionNeighbors'
 
 interface SubmissionNeighborNavProps {
   neighbors: SubmissionNeighbors
-  /** Called with the root UUID of the record to move to. */
-  onGoToSubmission: (submissionRootUuid: string, direction: 'prev' | 'next') => void
+  onGoToSubmission: (neighbor: SubmissionNeighbor) => void
 }
 
 /** Steps to the submission before or after the one being displayed. */
 export default function SubmissionNeighborNav({ neighbors, onGoToSubmission }: SubmissionNeighborNavProps) {
-  const { isLoading, prevRootUuid, nextRootUuid } = neighbors
+  const { isLoading, prev, next } = neighbors
 
   return (
     <Group gap='xs' wrap='nowrap'>
       <Button
         variant='transparent'
         leftIcon='angle-left'
-        disabled={isLoading || !prevRootUuid}
+        disabled={isLoading || !prev}
         onClick={() => {
-          if (prevRootUuid) {
-            onGoToSubmission(prevRootUuid, 'prev')
+          if (prev) {
+            onGoToSubmission(prev)
           }
         }}
       >
@@ -31,10 +30,10 @@ export default function SubmissionNeighborNav({ neighbors, onGoToSubmission }: S
       <Button
         variant='transparent'
         rightIcon='angle-right'
-        disabled={isLoading || !nextRootUuid}
+        disabled={isLoading || !next}
         onClick={() => {
-          if (nextRootUuid) {
-            onGoToSubmission(nextRootUuid, 'next')
+          if (next) {
+            onGoToSubmission(next)
           }
         }}
       >

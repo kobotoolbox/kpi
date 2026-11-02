@@ -31,6 +31,11 @@ interface SubmissionDetailsProps {
   isInModal?: boolean
   /** Asks for a fresh copy of `submission`, e.g. after an edit in Enketo. */
   onRefreshRequested: () => void
+  /**
+   * The record was changed here (validation status, a deleted attachment). The
+   * change is already on screen, but every other copy of the record is now stale.
+   */
+  onChanged?: () => void
   onDeleted: () => void
   /**
    * Leave it out to hide the Duplicate action: the flow carries on in Enketo and
@@ -139,6 +144,7 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
     }
 
     this.setState({ submission: newSubmissionData })
+    this.props.onChanged?.()
   }
 
   /**
@@ -265,6 +271,7 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
     this.setState({
       submission: markAttachmentAsDeleted(this.state.submission, attachmentUid) as SubmissionResponse,
     })
+    this.props.onChanged?.()
   }
 
   render() {

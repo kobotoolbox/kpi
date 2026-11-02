@@ -3,7 +3,7 @@ import {
   getBackToCurrentScreen,
   getDataTablePath,
   getSubmissionCounterLabel,
-  getSubmissionListNeighborParams,
+  getSubmissionListWindowParams,
   getSubmissionLookupParams,
   getSubmissionNeighborParams,
   getSubmissionPath,
@@ -120,7 +120,7 @@ describe('submissionRouting', () => {
     })
   })
 
-  describe('getSubmissionListNeighborParams', () => {
+  describe('getSubmissionListWindowParams', () => {
     const position = {
       index: 30,
       filterQuery: { Your_name: { $regex: 'ann', $options: 'i' } },
@@ -130,23 +130,23 @@ describe('submissionRouting', () => {
       ],
     }
 
-    it('asks for the row right after, with the table filters and sort', () => {
-      const params = getSubmissionListNeighborParams(position, 'next')
+    it('asks for the rows around the record, with the table filters and sort', () => {
+      const params = getSubmissionListWindowParams(position)
 
-      chai.expect(params.limit).to.equal(1)
-      chai.expect(params.start).to.equal(31)
+      // Two either side: one for each neighbour, one more for a record that has shifted.
+      chai.expect(params.start).to.equal(28)
+      chai.expect(params.limit).to.equal(5)
       chai.expect(JSON.parse(String(params.query))).to.deep.equal({ Your_name: { $regex: 'ann', $options: 'i' } })
       chai.expect(JSON.parse(String(params.sort))).to.deep.equal({ Your_name: 1, _id: -1 })
     })
 
-    it('asks for the row right before for "prev"', () => {
-      chai.expect(getSubmissionListNeighborParams(position, 'prev').start).to.equal(29)
+    it('starts at the top of the list for the first rows', () => {
+      chai.expect(getSubmissionListWindowParams({ ...position, index: 0 })).to.include({ start: 0, limit: 3 })
+      chai.expect(getSubmissionListWindowParams({ ...position, index: 1 })).to.include({ start: 0, limit: 4 })
     })
 
     it('sends no query for an unfiltered table, rather than an empty one', () => {
-      const params = getSubmissionListNeighborParams({ ...position, filterQuery: {} }, 'next')
-
-      chai.expect(params.query).to.equal(undefined)
+      chai.expect(getSubmissionListWindowParams({ ...position, filterQuery: {} }).query).to.equal(undefined)
     })
   })
 

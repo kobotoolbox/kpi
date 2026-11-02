@@ -2,6 +2,7 @@ import './submissionRoute.scss'
 import React, { useEffect } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { actions } from '#/actions'
 import { useEnvironmentQuery } from '#/api/useEnvironmentQuery'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -43,6 +44,16 @@ export default function SubmissionRoute() {
   const isModal = Boolean(routeState?.asModal)
 
   const neighbors = useSubmissionNeighbors(assetUid, record?._id, routeState?.listPosition)
+
+  // Everything that holds a copy of the record goes stale with it: the cached
+  // record (which the page reads after "Open full record"), its neighbours (the
+  // change may have moved it in the list, or out of it), and the table underneath,
+  // which keeps its page and filters through the refresh.
+  const onRecordChanged = () => {
+    refresh()
+    neighbors.refresh()
+    actions.resources.refreshTableSubmissions()
+  }
   const { data: countLimit } = useEnvironmentQuery({
     select: (response) => (response.status === 200 ? response.data.limited_count_max_rows : undefined),
   })
@@ -87,18 +98,15 @@ export default function SubmissionRoute() {
   const navigation = (
     <SubmissionNeighborNav
       neighbors={neighbors}
-      onGoToSubmission={(neighborRootUuid, direction) => {
+      onGoToSubmission={(neighbor) => {
         const listPosition = routeState?.listPosition
 
         // Stepping to another record keeps the way back and the list being walked,
         // but not the duplicate banner - that only belongs to the record it was
         // raised for.
-        goToRecord(neighborRootUuid, {
+        goToRecord(neighbor.rootUuid, {
           backTo: routeState?.backTo,
-          listPosition: listPosition && {
-            ...listPosition,
-            index: listPosition.index + (direction === 'next' ? 1 : -1),
-          },
+          listPosition: listPosition && { ...listPosition, index: neighbor.listIndex ?? listPosition.index },
         })
       }}
     />
@@ -118,7 +126,8 @@ export default function SubmissionRoute() {
         submission={record}
         duplicatedFromUuid={routeState?.duplicatedFromUuid}
         isInModal={isModal}
-        onRefreshRequested={refresh}
+        onRefreshRequested={onRecordChanged}
+        onChanged={onRecordChanged}
         onDeleted={leave}
         onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
           // The list position is deliberately dropped: a brand new record does not
