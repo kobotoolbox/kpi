@@ -349,6 +349,7 @@ class ProjectViewViewSet(
         if not self._asset_ids:
             return context_
 
+        context_['asset_ids_cache'] = self._asset_ids
         context_['organizations_per_asset'] = self.get_organizations_per_asset_ids(
             self._asset_ids
         )
