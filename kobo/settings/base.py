@@ -1914,15 +1914,15 @@ ACCOUNT_RATE_LIMITS = {
     # MFA codes, per user. 10 matches the "5-10 failures, 15-minute lockout"
     # in the issue; 30 per IP tolerates a few people mistyping behind one
     # address while capping a spray from one IP at 120 guesses an hour.
-    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT','30/15m/ip,10/15m/key'),
+    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'),
     # All login POSTs per IP, successful or not. Set loosely so a
     # training room behind one address is not blocked. '' turns it off.
     'login': env.str('ALLAUTH_LOGIN_RATE_LIMIT', '40/m/ip'),
     # Account creation spam. Default.
-    'signup': env.str('ALLAUTH_SIGNUP_RATE_LIMIT','20/m/ip'),
+    'signup': env.str('ALLAUTH_SIGNUP_RATE_LIMIT', '20/m/ip'),
     # Reset emails per IP, and per address so one inbox cannot be flooded.
     # Defaults.
-    'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT','20/m/ip,5/m/key'),
+    'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT', '20/m/ip,5/m/key'),
     'reset_password_from_key': env.str(
         'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT',
         '20/m/ip'
