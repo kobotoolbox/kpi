@@ -19,11 +19,6 @@ def get_project_view_user_permissions_for_asset(
     """
 
     user = get_database_user(user)
-    asset_org = (
-        asset.owner.organization.id
-        if asset.owner and asset.owner.organization
-        else None
-    )
     asset_countries = asset.settings.get('country_codes', [])
     perms = set()
 
@@ -33,9 +28,10 @@ def get_project_view_user_permissions_for_asset(
         if '*' not in region and not any(c in region for c in asset_countries):
             continue
 
-        if pv.organizations.all() and asset_org not in [
-            org.id for org in pv.organizations.all()
-        ]:
+        organization_ids = [org.id for org in pv.organizations.all()]
+        if organization_ids and (
+            not asset.owner or asset.owner.organization.id not in organization_ids
+        ):
             continue
 
         perms.update(pv.permissions)
