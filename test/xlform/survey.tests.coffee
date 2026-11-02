@@ -513,6 +513,7 @@ do ->
             hint: 'Outside: ${household}',
             required: "${gender} != ''",
             constraint: "${gender} = 'nonbinary'",
+            default: '${last-saved#age}',
             # Too complex for the condition builder, so it stays hand-coded
             relevant: "${gender} = 'nonbinary' or ${household} > 2"
           },
@@ -536,6 +537,7 @@ do ->
       expect(age.label).toBe('Age of ${gender_001}')
       expect(age.required).toBe("${gender_001} != ''")
       expect(age.constraint).toBe("${gender_001} = 'nonbinary'")
+      expect(age.default).toBe('${last-saved#age_001}')
       expect(age.relevant).toBe(
         "${gender_001} = 'nonbinary' or ${household} > 2"
       )

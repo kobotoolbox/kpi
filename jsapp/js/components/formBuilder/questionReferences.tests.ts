@@ -20,6 +20,11 @@ describe('renameQuestionReferences', () => {
     chai.expect(renamed).to.equal('${a_001} ${a_002}')
   })
 
+  it('renames last-saved references too', () => {
+    const renamed = renameQuestionReferences('${last-saved#gender}', { gender: 'gender_001' })
+    chai.expect(renamed).to.equal('${last-saved#gender_001}')
+  })
+
   it('ignores names inherited from Object', () => {
     chai.expect(renameQuestionReferences('${constructor}', {})).to.equal('${constructor}')
   })
