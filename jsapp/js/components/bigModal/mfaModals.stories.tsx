@@ -35,7 +35,7 @@ const meta: Meta<typeof MFAModals> = {
   args: { onModalClose: fn() },
   beforeEach: async () => {
     state.totp = null
-    // Toasts outlive a story, and some stories assert there are none
+    // Toasts outlive a story, and one story checks there are none
     toast.remove()
     return seedSettings()
   },

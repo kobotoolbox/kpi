@@ -226,7 +226,7 @@ $modal-custom-header-height: 60px;
 }
 
 .modal.modal--mfa-setup {
-  // Height follows the current step
+  // Height follows the step; a step taller than the screen scrolls in `.modal__body`
   width: 570px;
   // Overwrite regular modal % based sizes
   min-width: 0;
