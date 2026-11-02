@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Union
 
 from django.conf import settings
 from django.db import transaction
@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.models import OrganizationUser
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.mixins.asset import AssetViewSetListMixin
@@ -203,6 +204,7 @@ class ProjectViewViewSet(
         detail=True,
         methods=['GET'],
         filter_backends=[SearchFilter, AssetOrderingFilter],
+        pagination_class=NoCountPagination,
     )
     def assets(self, request, uid_project_view):
         if not user_has_view_perms(request.user, uid_project_view):
@@ -223,9 +225,15 @@ class ProjectViewViewSet(
         ).select_related(
             'owner', 'owner__extra_details'
         )
-        return self._get_regional_response(
-            queryset, serializer_class=AssetMetadataListSerializer
+        page = self.paginate_queryset(queryset)
+        self._cache_asset_ids(page)
+        serializer = AssetMetadataListSerializer(
+            self._attach_xforms_to_assets(page),
+            many=True,
+            read_only=True,
+            context=self.get_serializer_context(),
         )
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['GET'], url_path='assets/counts')
     def asset_counts(self, request, uid_project_view):
@@ -335,15 +343,18 @@ class ProjectViewViewSet(
             queryset, serializer_class=UserListSerializer
         )
 
-    def get_serializer_context(self, data: Optional[list] = None):
+    def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['request'] = self.request
-        if not data:
+        if not self._asset_ids:
             return context_
 
-        asset_ids = [asset.pk for asset in data]
-        context_['organizations_per_asset'] = (
-            self.get_organizations_per_asset_ids(asset_ids)
+        context_['asset_ids_cache'] = self._asset_ids
+        context_['organizations_per_asset'] = self.get_organizations_per_asset_ids(
+            self._asset_ids
+        )
+        context_['mmo_organization_ids'] = self.get_mmo_organization_ids(
+            context_['organizations_per_asset']
         )
 
         return context_
@@ -370,7 +381,7 @@ class ProjectViewViewSet(
             AssetMetadataListSerializer, UserListSerializer
         ],
     ):
-        context_ = self.get_serializer_context(queryset)
+        context_ = self.get_serializer_context()
 
         return serializer_class(
             queryset,
@@ -401,13 +412,14 @@ class ProjectViewViewSet(
                 queryset = queryset.filter(settings__country_codes__in_array=region)
 
         if pv.organizations.all():
+            # Filter on members with a subquery: it keeps one row per user or
+            # asset, so the query needs no `DISTINCT`.
+            member_ids = OrganizationUser.objects.filter(
+                organization__in=pv.organizations.all()
+            ).values('user_id')
             if obj_type == 'user':
-                queryset = queryset.filter(
-                    organizations_organization__in=pv.organizations.all()
-                ).distinct()
+                queryset = queryset.filter(pk__in=member_ids)
             else:
-                queryset = queryset.filter(
-                    owner__organizations_organization__in=pv.organizations.all()
-                ).distinct()
+                queryset = queryset.filter(owner_id__in=member_ids)
 
         return queryset
