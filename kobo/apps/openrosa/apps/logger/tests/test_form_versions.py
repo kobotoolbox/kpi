@@ -918,8 +918,7 @@ class TestFormVersionsOnSubmission(TestCase):
 
     def _submit(self, xml: str, media_files: list | None = None) -> Instance:
         return create_instance(
-            self.user.username,
-            io.BytesIO(xml.encode()),
+            xml_file=io.BytesIO(xml.encode()),
             media_files=media_files or [],
             request=self.request,
             check_usage_limits=False,
@@ -1196,8 +1195,7 @@ class TestAttachmentsAcrossFormVersions(TestCase):
 
     def _submit(self, xml: str, media_files: list | None = None) -> Instance:
         return create_instance(
-            self.user.username,
-            io.BytesIO(xml.encode()),
+            xml_file=io.BytesIO(xml.encode()),
             media_files=media_files or [],
             request=self.request,
             check_usage_limits=False,

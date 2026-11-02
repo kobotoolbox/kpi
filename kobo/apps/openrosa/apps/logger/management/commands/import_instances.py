@@ -47,23 +47,23 @@ class Command(BaseCommand):
         request.user = user
 
         if os.path.isfile(path):
-            self._import_zip(path, user, request)
+            self._import_zip(path, request)
             return
 
         self.stdout.write('Importing from dir %s..\n' % path)
-        results = import_instances_from_path(path, user, request)
+        results = import_instances_from_path(path, request)
         self._log_import(results)
 
         for dir, subdirs, files in os.walk(path):
             for file in files:
-                self._import_zip(os.path.join(dir, file), user, request)
+                self._import_zip(os.path.join(dir, file), request)
 
-    def _import_zip(self, filepath, user, request):
+    def _import_zip(self, filepath, request):
         if os.path.splitext(filepath)[1].lower() != '.zip':
             return
 
         self.stdout.write('Importing from zip at %s..\n' % filepath)
-        results = import_instances_from_zip(filepath, user, request)
+        results = import_instances_from_zip(filepath, request)
         self._log_import(results)
 
     def _log_import(self, results):

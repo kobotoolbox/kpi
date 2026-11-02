@@ -1,13 +1,14 @@
-import { Anchor, Checkbox, Group, Modal, Stack, Text } from '@mantine/core'
+import { Anchor, Checkbox, Group, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
+import ModalNew from '#/components/common/ModalNew'
 import Alert from '#/components/common/alert'
 import envStore from '#/envStore'
 
-interface MemberTransferModalProps {
+interface TransferTeamOwnershipModalProps {
   username: string
   targetFullName?: string | null
-  orgName?: string
+  orgName: string
   isModalOpen: boolean
   isLoading?: boolean
   onCancel: () => void
@@ -22,12 +23,12 @@ export default function TransferTeamOwnershipModal({
   isLoading,
   onCancel,
   onConfirm,
-}: MemberTransferModalProps) {
+}: TransferTeamOwnershipModalProps) {
   const recipientLabel = targetFullName ? `${targetFullName} (@${username})` : `@${username}`
   const [checked, setChecked] = useState(false)
 
   return (
-    <Modal size='lg' title={t('Transfer ownership')} opened={isModalOpen} onClose={onCancel}>
+    <ModalNew size='lg' title={t('Transfer ownership')} opened={isModalOpen} onClose={onCancel}>
       <Stack>
         <Stack>
           <Text>
@@ -76,6 +77,6 @@ export default function TransferTeamOwnershipModal({
           </ButtonNew>
         </Group>
       </Stack>
-    </Modal>
+    </ModalNew>
   )
 }

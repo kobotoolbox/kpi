@@ -47,7 +47,7 @@ function VerificationIssuesPanel({ helpText, supportEmail, onGoBack }: Verificat
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {t('Verification issues')}
         </Title>
 
@@ -139,7 +139,7 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {t('Please enter your verification token or backup code')}
         </Title>
 
