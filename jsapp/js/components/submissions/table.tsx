@@ -13,6 +13,7 @@ import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
+import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -47,7 +48,6 @@ import {
   CELLS_WIDTH_OVERRIDES,
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
-  MAX_FROZEN_COLUMNS,
   MAX_FROZEN_WIDTH_RATIO,
   SUBMISSION_ACTIONS_ID,
   SortValues,
@@ -138,6 +138,8 @@ interface DataTableState {
   fetchInstance?: ReactTableInstance
   lastChecked: string | null
   shiftSelection: DataTableSelectedRows
+  /** Too wide frozen columns don't stay in place, see `positionFrozenColumns`. */
+  areFrozenColumnsTooWide: boolean
 }
 
 /**
@@ -184,6 +186,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
+      areFrozenColumnsTooWide: false,
     }
   }
 
@@ -487,19 +490,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
-    // Drops frozen ids missing on this page (e.g. old form version fields), or
-    // they would go over the limit when they come back.
-    tableStore.setFrozenColumn(
-      fieldId,
-      isFrozen,
-      this.state.columns.map((col) => col.id),
-    )
-  }
-
-  /** Counts rendered columns only, as stored ids may be stale (e.g. a field removed from the form). */
-  isFreezeLimitReached() {
-    const frozenColumns = tableStore.getFrozenColumns()
-    return this.state.columns.filter((col) => frozenColumns.includes(col.id)).length >= MAX_FROZEN_COLUMNS
+    tableStore.setFrozenColumn(fieldId, isFrozen)
   }
 
   /**
@@ -720,7 +711,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             onSortChange={this.onFieldSortChange.bind(this)}
             onHide={this.onHideField.bind(this)}
             isFieldFrozen={tableStore.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
-            isFreezeLimitReached={this.isFreezeLimitReached()}
             onFrozenChange={this.onFieldFrozenChange.bind(this)}
             additionalTriggerContent={<span className='column-header-title'>{t('Validation')}</span>}
           />
@@ -849,7 +839,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
                 isFieldFrozen={tableStore.isFieldFrozen(key)}
-                isFreezeLimitReached={this.isFreezeLimitReached()}
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
@@ -1273,6 +1262,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     // Save the reference position for the frozen column's left offset.
     this.frozenLeftRef = left
+
+    // Only on change, as this runs on every scroll.
+    if (this.state.areFrozenColumnsTooWide === isPinned) {
+      this.setState({ areFrozenColumnsTooWide: !isPinned })
+    }
   }
 
   render() {
@@ -1329,6 +1323,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             activeBulkActions={this.props.activeBulkActions || []}
             hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
+          {this.state.areFrozenColumnsTooWide && (
+            <Alert type='warning' iconName='warning'>
+              {t(
+                "Frozen fields don't fit in the table, so they scroll with the other fields. Make the window wider or unfreeze some fields.",
+              )}
+            </Alert>
+          )}
         </Stack>
 
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
@@ -1374,6 +1375,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <ReactTable
             data={this.state.submissions}
             columns={this.state.columns}
+            onResizedChange={() => this.positionFrozenColumns()}
             defaultPageSize={DEFAULT_PAGE_SIZE}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
             minRows={0}
