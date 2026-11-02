@@ -34,7 +34,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/XFormList'
-          description: null
+          description: ''
   /{username}/submission:
     post:
       operationId: submission_anonymous
@@ -154,7 +154,7 @@ paths:
                         />
                     </OpenRosaResponse>
                   summary: XML response
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -265,7 +265,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaFormManifestResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/xml:
@@ -302,7 +302,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaFormListResponse'
-          description: null
+          description: ''
         '404':
           description: No response body
   /api/v2/asset_snapshots/{uid_asset_snapshot}/manifest:
@@ -332,7 +332,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaManifestResponse'
-          description: null
+          description: ''
         '404':
           description: No response body
   /api/v2/asset_snapshots/{uid_asset_snapshot}/submission:
@@ -364,7 +364,7 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaSubmissionResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -402,7 +402,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/XFormList'
-          description: null
+          description: ''
   /collector/{token}/submission:
     post:
       operationId: submission_data_collector
@@ -521,7 +521,7 @@ paths:
                         />
                     </OpenRosaResponse>
                   summary: XML response
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -651,7 +651,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaFormManifestResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/xml:
@@ -683,7 +683,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/XFormList'
-          description: null
+          description: ''
   /submission:
     post:
       operationId: submission_authenticated
@@ -799,7 +799,7 @@ paths:
                         />
                     </OpenRosaResponse>
                   summary: XML response
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -923,7 +923,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaFormManifestResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/xml:
@@ -947,8 +947,6 @@ paths:
         this endpoint. The data returned is not user/authentication
         dependent. Hence, it suffices to only fetch this data once at boot
         time of your application.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/Configuration'
@@ -965,8 +963,6 @@ paths:
         this endpoint. The data returned is not user/authentication
         dependent. Hence, it suffices to only fetch this data once at boot
         time of your application.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/Configuration'
@@ -978,8 +974,6 @@ paths:
       summary: Login
       description: |
         Login using a username-password or email-password combination.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/Login'
       responses:
@@ -1023,8 +1017,6 @@ paths:
       summary: Login
       description: |
         Login using a username-password or email-password combination.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/Login'
       responses:
@@ -1071,8 +1063,6 @@ paths:
         required depends on the configuration of django-allauth. Additionally,
         if a custom signup form is used there may be other custom properties
         required.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/Signup'
       responses:
@@ -1123,8 +1113,6 @@ paths:
         required depends on the configuration of django-allauth. Additionally,
         if a custom signup form is used there may be other custom properties
         required.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/Signup'
       responses:
@@ -1175,7 +1163,6 @@ paths:
         the user by email.
       parameters:
       - $ref: '#/components/parameters/EmailVerificationKey'
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/EmailVerificationInfo'
@@ -1213,7 +1200,6 @@ paths:
         in. For example, in case `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is set to
         `False`, a 401 is returned when verifying as part of login/signup.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyEmail'
@@ -1250,7 +1236,6 @@ paths:
         the user by email.
       parameters:
       - $ref: '#/components/parameters/EmailVerificationKey'
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/EmailVerificationInfo'
@@ -1288,7 +1273,6 @@ paths:
         in. For example, in case `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is set to
         `False`, a 401 is returned when verifying as part of login/signup.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyEmail'
@@ -1324,7 +1308,6 @@ paths:
         Requests a new email verification code.
         Requires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -1348,7 +1331,6 @@ paths:
         Requests a new email verification code.
         Requires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -1373,7 +1355,6 @@ paths:
         of 401 does not imply failure. It merely indicates that the phone number
         verification was successful, yet, the user is still not signed in.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyPhone'
@@ -1407,7 +1388,6 @@ paths:
         of 401 does not imply failure. It merely indicates that the phone number
         verification was successful, yet, the user is still not signed in.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyPhone'
@@ -1440,7 +1420,6 @@ paths:
         Requests a new phone number verification code.
         Requires `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -1464,7 +1443,6 @@ paths:
         Requests a new phone number verification code.
         Requires `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -1492,7 +1470,6 @@ paths:
         with ID `reauthenticate`, which allows for the user to input the
         password. This is the endpoint related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Reauthenticate'
@@ -1522,7 +1499,6 @@ paths:
         with ID `reauthenticate`, which allows for the user to input the
         password. This is the endpoint related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Reauthenticate'
@@ -1556,8 +1532,6 @@ paths:
         receive a 200 on a successful password reset request.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/RequestPassword'
       responses:
@@ -1593,8 +1567,6 @@ paths:
         receive a 200 on a successful password reset request.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/RequestPassword'
       responses:
@@ -1626,7 +1598,6 @@ paths:
       tags:
       - Authentication (Allauth Headless)
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/PasswordResetKey'
       responses:
         '200':
@@ -1660,8 +1631,6 @@ paths:
         401.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/ResetPassword'
       responses:
@@ -1699,7 +1668,6 @@ paths:
       tags:
       - Authentication (Allauth Headless)
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/PasswordResetKey'
       responses:
         '200':
@@ -1733,8 +1701,6 @@ paths:
         401.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/ResetPassword'
       responses:
@@ -1794,7 +1760,6 @@ paths:
         app receives an access and/or ID token, it can hand over these tokens
         via this endpoint to authenticate on the server.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderToken'
@@ -1842,7 +1807,6 @@ paths:
         app receives an access and/or ID token, it can hand over these tokens
         via this endpoint to authenticate on the server.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderToken'
@@ -1889,8 +1853,6 @@ paths:
         the missing data before the user is fully signed up and authenticated.
         The information available so far, such as the pending provider account,
         can be retrieved via this endpoint.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/ProviderSignup'
@@ -1911,8 +1873,6 @@ paths:
         insufficient information received from the provider to automatically
         complete the signup process, an additional step is needed to complete
         the missing data before the user is fully signed up and authenticated.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/ProviderSignup'
       responses:
@@ -1963,8 +1923,6 @@ paths:
         the missing data before the user is fully signed up and authenticated.
         The information available so far, such as the pending provider account,
         can be retrieved via this endpoint.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/ProviderSignup'
@@ -1985,8 +1943,6 @@ paths:
         insufficient information received from the provider to automatically
         complete the signup process, an additional step is needed to complete
         the missing data before the user is fully signed up and authenticated.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/ProviderSignup'
       responses:
@@ -2035,7 +1991,6 @@ paths:
         flows has ID `mfa_authenticate`, that indicates that the Two-Factor Authentication stage needs to
         be completed.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -2064,7 +2019,6 @@ paths:
         flows has ID `mfa_authenticate`, that indicates that the Two-Factor Authentication stage needs to
         be completed.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -2097,7 +2051,6 @@ paths:
         authenticator code (e.g. TOTP or recovery code). This is the endpoint
         related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -2128,7 +2081,6 @@ paths:
         authenticator code (e.g. TOTP or recovery code). This is the endpoint
         related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -2152,8 +2104,6 @@ paths:
       summary: Confirm login code
       description: |
         Use this endpoint to pass along the received "special" login code.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/ConfirmLoginCode'
       responses:
@@ -2193,8 +2143,6 @@ paths:
       summary: Confirm login code
       description: |
         Use this endpoint to pass along the received "special" login code.
-      parameters:
-      - $ref: '#/components/parameters/Client'
       requestBody:
         $ref: '#/components/requestBodies/ConfirmLoginCode'
       responses:
@@ -2233,7 +2181,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List the connected third-party provider accounts
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2250,7 +2197,6 @@ paths:
         would leave the account unusable. For example, if no password was
         set up yet.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderAccount'
@@ -2275,7 +2221,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List the connected third-party provider accounts
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2292,7 +2237,6 @@ paths:
         would leave the account unusable. For example, if no password was
         set up yet.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderAccount'
@@ -2319,7 +2263,6 @@ paths:
       description: |
         Retrieves the list of email addresses of the account.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2341,7 +2284,6 @@ paths:
 
         In all cases, an email verification mail will be sent containing a link or code that needs to be verified.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Email'
@@ -2376,7 +2318,6 @@ paths:
         sending emails is rate limited, so when you send too many requests the
         email will not be sent.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Email'
@@ -2408,7 +2349,6 @@ paths:
         Used to change primary email address to a different one. Note that only verified email addresses
         can be marked as primary.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MarkPrimaryEmail'
@@ -2432,7 +2372,6 @@ paths:
       description: |
         Used to remove an email address.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Email'
@@ -2457,7 +2396,6 @@ paths:
       description: |
         Retrieves the list of email addresses of the account.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2479,7 +2417,6 @@ paths:
 
         In all cases, an email verification mail will be sent containing a link or code that needs to be verified.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Email'
@@ -2514,7 +2451,6 @@ paths:
         sending emails is rate limited, so when you send too many requests the
         email will not be sent.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Email'
@@ -2546,7 +2482,6 @@ paths:
         Used to change primary email address to a different one. Note that only verified email addresses
         can be marked as primary.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MarkPrimaryEmail'
@@ -2570,7 +2505,6 @@ paths:
       description: |
         Used to remove an email address.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Email'
@@ -2596,7 +2530,6 @@ paths:
         Retrieves the phone number of the account, if any. Note that while the
         endpoint returns a list of phone numbers, at most one entry is returned.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2621,7 +2554,6 @@ paths:
         verification endpoint to confirm the change of the phone number by
         posting the verification code.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Phone'
@@ -2657,7 +2589,6 @@ paths:
         Retrieves the phone number of the account, if any. Note that while the
         endpoint returns a list of phone numbers, at most one entry is returned.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2682,7 +2613,6 @@ paths:
         verification endpoint to confirm the change of the phone number by
         posting the verification code.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Phone'
@@ -2715,7 +2645,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List authenticators
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2731,7 +2660,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List authenticators
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2749,7 +2677,6 @@ paths:
       description: |
         Retrieve the information about the current TOTP authenticator, if any.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '404':
@@ -2768,7 +2695,6 @@ paths:
         application which was generated using the TOTP authenticator secret
         retrieved from the TOTP authenticator status endpoint.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/SetupTOTP'
@@ -2797,7 +2723,6 @@ paths:
         Deactivates TOTP authentication. If the user authentication is not
         sufficiently recent, a reauthentication flow (`401`) will is presented.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2813,7 +2738,6 @@ paths:
       description: |
         Retrieve the information about the current TOTP authenticator, if any.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '404':
@@ -2832,7 +2756,6 @@ paths:
         application which was generated using the TOTP authenticator secret
         retrieved from the TOTP authenticator status endpoint.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/SetupTOTP'
@@ -2861,7 +2784,6 @@ paths:
         Deactivates TOTP authentication. If the user authentication is not
         sufficiently recent, a reauthentication flow (`401`) will is presented.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2877,7 +2799,6 @@ paths:
       description: |
         List recovery codes.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2892,7 +2813,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: Regenerate recovery codes
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '400':
@@ -2915,7 +2835,6 @@ paths:
       description: |
         List recovery codes.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2930,7 +2849,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: Regenerate recovery codes
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '400':
@@ -2955,7 +2873,6 @@ paths:
         Retrieve information about the authentication status for the current
         session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -2972,7 +2889,6 @@ paths:
       description: |
         Logs out the user from the current session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '401':
@@ -2988,7 +2904,6 @@ paths:
         Retrieve information about the authentication status for the current
         session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -3005,7 +2920,6 @@ paths:
       description: |
         Logs out the user from the current session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '401':
@@ -3043,7 +2957,6 @@ paths:
         signing up using a third-party provider do not have a password set. In
         that case, the current password is not required.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ChangePassword'
@@ -3064,7 +2977,6 @@ paths:
         signing up using a third-party provider do not have a password set. In
         that case, the current password is not required.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ChangePassword'
@@ -3080,7 +2992,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -3091,7 +3002,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: End one or more sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/EndSessions'
@@ -3107,7 +3017,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -3118,7 +3027,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: End one or more sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/EndSessions'
