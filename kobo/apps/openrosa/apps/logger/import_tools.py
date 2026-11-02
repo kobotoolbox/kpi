@@ -11,7 +11,6 @@ from typing import BinaryIO, Union
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import HttpRequest
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.xform_fs import XFormInstanceFS
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance
 
@@ -83,7 +82,6 @@ def iterate_through_instances(dirpath, callback):
 
 def import_instances_from_zip(
     zipfile_path: Union[str, BinaryIO],
-    user: User,
     request: HttpRequest,
     status: str = 'zip',
 ) -> tuple[int, int, list[str]]:
@@ -97,14 +95,13 @@ def import_instances_from_zip(
         errors = ['%s' % e]
         return 0, 0, errors
     else:
-        return import_instances_from_path(temp_directory, user, request, status)
+        return import_instances_from_path(temp_directory, request, status)
     finally:
         shutil.rmtree(temp_directory)
 
 
 def import_instances_from_path(
     path: str,
-    user: User,
     request: HttpRequest,
     status: str = 'zip',
 ) -> tuple[int, int, list[str]]:
@@ -133,11 +130,11 @@ def import_instances_from_path(
             #  import.
 
             instance = create_instance(
-                user.username,
-                xml_file,
-                (a for a in attachments),
-                status,
+                xml_file=xml_file,
+                media_files=(a for a in attachments),
                 request=request,
+                status=status,
+                owner_username=request.user.username,
             )
 
             for a in attachments:
