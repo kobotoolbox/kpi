@@ -1216,7 +1216,7 @@ SPECTACULAR_SETTINGS = {
             'name': 'Manage projects and library content',
             'description': (
                 'Create, organize, and manage projects, assets '
-                '(projects/library content), and tags',
+                '(projects/library content), and tags'
             ),
         },
         {
