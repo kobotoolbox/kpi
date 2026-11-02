@@ -21,7 +21,7 @@ interface InlineMessageProps {
  * An inline message component. It's a rounded corners box with a background and
  * an optional icon displayed on the left side.
  *
- * @deprecated use Mantine's Alert instead
+ * @deprecated use `import Alert from '#/components/common/alert'` instead
  */
 export default function InlineMessage(props: InlineMessageProps) {
   return (
