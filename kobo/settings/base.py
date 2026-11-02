@@ -1924,8 +1924,7 @@ ACCOUNT_RATE_LIMITS = {
     # Defaults.
     'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT', '20/m/ip,5/m/key'),
     'reset_password_from_key': env.str(
-        'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT',
-        '20/m/ip'
+        'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT', '20/m/ip'
     ),
     # Per logged-in user, so shared IPs are unaffected. Defaults.
     'reauthenticate': env.str('ALLAUTH_REAUTHENTICATE_RATE_LIMIT', '10/m/user'),
