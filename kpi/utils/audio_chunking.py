@@ -129,6 +129,7 @@ def plan_chunk_ranges(
 
 def get_chunk_ranges(
     attachment: Attachment,
+    hard_limit: float,
     duration: float | None = None,
 ) -> list[ChunkRange]:
     """
@@ -151,12 +152,12 @@ def get_chunk_ranges(
     land in: detection then starts over at a louder threshold, at most once per
     entry in the ladder, and usually not at all.
 
-    The limit comes from `TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS`: one setting
-    for every engine, set to the lowest limit among the engines we use, so it
-    is safe whichever one transcribes the file.
+    `hard_limit` is the longest chunk the engine about to transcribe this file
+    accepts, which the caller reads off its action
+    (`BaseAutomaticNLPAction.chunk_hard_limit_seconds`). It is an argument
+    rather than a setting read here because engines disagree about it, and only
+    the caller knows which one is about to be used.
     """
-
-    hard_limit = settings.TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS
 
     if duration is None:
         duration = get_audio_duration(attachment)

@@ -1,3 +1,5 @@
+from constance import config
+
 from kobo.apps.organizations.constants import UsageType
 from ..constants import TRANSCRIBABLE_SOURCE_TYPES
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
@@ -21,6 +23,10 @@ class AutomaticGoogleTranscriptionAction(
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
         return GoogleTranscriptionService
+
+    @property
+    def chunk_hard_limit_seconds(self) -> float:
+        return config.ASR_GOOGLE_STT_CHUNK_HARD_LIMIT_SECONDS
 
     @property
     def result_schema(self):

@@ -269,7 +269,6 @@ class PlanChunkRangesTestCase(SimpleTestCase):
 
 
 @override_settings(
-    TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS=HARD_LIMIT,
     TRANSCRIPTION_SILENCE_MIN_DURATION=0.5,
     TRANSCRIPTION_SILENCE_THRESHOLDS_DB=(-30, -25, -20),
 )
@@ -287,7 +286,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
             'kpi.utils.audio_chunking.detect_silences',
             return_value=[pause_at(minutes(50))],
         ) as detect_silences:
-            ranges = get_chunk_ranges(self.attachment, duration=minutes(90))
+            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
 
         assert ranges[0].end == minutes(50)
         detect_silences.assert_called_once_with(
@@ -299,7 +298,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
             'kpi.utils.audio_chunking.detect_silences',
             return_value=[pause_at(minutes(50))],
         ), patch('kpi.utils.audio_chunking.logging') as logger:
-            get_chunk_ranges(self.attachment, duration=minutes(90))
+            get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
 
         logger.warning.assert_not_called()
 
@@ -313,7 +312,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
             'kpi.utils.audio_chunking.detect_silences',
             side_effect=[[], [], [pause_at(minutes(50))]],
         ) as detect_silences:
-            ranges = get_chunk_ranges(self.attachment, duration=minutes(90))
+            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
 
         assert [call.args[2] for call in detect_silences.call_args_list] == [
             -30,
@@ -331,7 +330,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
         with patch(
             'kpi.utils.audio_chunking.detect_silences', return_value=[]
         ) as detect_silences:
-            ranges = get_chunk_ranges(self.attachment, duration=minutes(90))
+            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
 
         assert detect_silences.call_count == 3
         assert ranges[0].end == HARD_LIMIT
@@ -345,7 +344,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
         with patch('kpi.utils.audio_chunking.detect_silences', return_value=[]), patch(
             'kpi.utils.audio_chunking.logging'
         ) as logger:
-            get_chunk_ranges(self.attachment, duration=minutes(90))
+            get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
 
         assert logger.warning.call_count == 1
         message, *args = logger.warning.call_args.args
@@ -359,28 +358,28 @@ class GetChunkRangesTestCase(SimpleTestCase):
             'kpi.utils.audio_chunking.detect_silences',
             return_value=[pause_at(minutes(50))],
         ):
-            ranges = get_chunk_ranges(self.attachment)
+            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT)
 
         get_audio_duration.assert_called_once_with(self.attachment)
         assert ranges[-1].end == minutes(90)
 
-    def test_the_hard_limit_setting_is_respected(self):
+    def test_the_hard_limit_comes_from_the_caller(self):
         """
-        One setting decides the limit for every engine, so lowering it is what
-        makes a file chunk more finely
+        Each engine has its own limit, so the same recording planned for a
+        tighter engine is cut more finely. Nothing here is read from settings:
+        the caller passes the limit of whichever engine is about to transcribe
         """
 
         with patch(
             'kpi.utils.audio_chunking.detect_silences',
             return_value=[pause_at(minutes(14)), pause_at(minutes(50))],
         ):
-            shared = get_chunk_ranges(self.attachment, duration=minutes(90))
-            with override_settings(TRANSCRIPTION_CHUNK_HARD_LIMIT_SECONDS=minutes(15)):
-                tighter = get_chunk_ranges(self.attachment, duration=minutes(90))
+            roomy = get_chunk_ranges(self.attachment, HARD_LIMIT, minutes(90))
+            tighter = get_chunk_ranges(self.attachment, minutes(15), minutes(90))
 
-        assert [chunk.duration for chunk in shared] == [minutes(50), minutes(40)]
+        assert [chunk.duration for chunk in roomy] == [minutes(50), minutes(40)]
         assert tighter[0].end == minutes(14)
-        assert len(tighter) > len(shared)
+        assert len(tighter) > len(roomy)
         for chunk in tighter:
             assert chunk.duration <= minutes(15)
 
@@ -396,7 +395,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
                 return_value=duration,
             ), patch('kpi.utils.audio_chunking.detect_silences') as detect_silences:
                 with pytest.raises(AudioDurationUnknownError):
-                    get_chunk_ranges(self.attachment)
+                    get_chunk_ranges(self.attachment, HARD_LIMIT)
 
                 detect_silences.assert_not_called()
 
@@ -405,7 +404,7 @@ class GetChunkRangesTestCase(SimpleTestCase):
             'kpi.utils.audio_chunking.get_audio_duration', return_value=None
         ), patch('kpi.utils.audio_chunking.detect_silences') as detect_silences:
             with pytest.raises(AudioDurationUnknownError):
-                get_chunk_ranges(self.attachment)
+                get_chunk_ranges(self.attachment, HARD_LIMIT)
 
         detect_silences.assert_not_called()
 
@@ -416,4 +415,4 @@ class GetChunkRangesTestCase(SimpleTestCase):
         """
 
         with pytest.raises(ValueError):
-            get_chunk_ranges(self.attachment, duration=minutes(90))
+            get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))

@@ -51,11 +51,14 @@ def run_ffmpeg(
     `timeout` is in seconds, and `None` waits forever. Pass one whenever the
     input may be a presigned URL, so that storage going slow cannot hold the
     caller open indefinitely.
+
+    `-hide_banner` drops the version and build configuration ffmpeg otherwise
+    prints before anything useful.
     """
 
     try:
         pipe = subprocess.run(
-            [FFMPEG_BINARY, *args],
+            [FFMPEG_BINARY, '-hide_banner', *args],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=timeout,
@@ -66,7 +69,14 @@ def run_ffmpeg(
         raise FFMpegException
 
     if pipe.returncode:
-        logging.error(f'ffmpeg error: {pipe.stderr}')
+        # Decoded rather than logged as bytes, so that the lines ffmpeg wrote
+        # read as lines instead of one `b'...\n...'` blob. `replace` keeps a
+        # stray non-UTF-8 byte in a filename from raising in the error path
+        stderr = pipe.stderr.decode(errors='replace')
+        # Query strings carry the presigned URL signature, which ffmpeg quotes
+        # back in its error lines. This log line reaches Sentry as an event
+        # too, where the URL would still be valid
+        logging.error('ffmpeg error: %s', re.sub(r'\?\S+', '?[redacted]', stderr))
         raise FFMpegException
 
     return pipe

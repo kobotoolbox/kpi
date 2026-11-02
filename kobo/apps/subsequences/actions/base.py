@@ -765,6 +765,23 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         super().check_limits(user, action_data)
 
     @property
+    def chunk_hard_limit_seconds(self) -> float:
+        """
+        Longest piece of audio, in seconds, this action's engine will accept
+
+        A recording longer than this is cut into chunks before it is sent (see
+        `kpi.utils.audio_chunking`). Engines disagree about the limit, so there
+        is no shared default to inherit: Google STT v2 takes an hour while
+        Gemini-Transcribe takes far less, and one number for both would chunk
+        every engine at the lowest limit in the fleet.
+
+        Each action returns its own `constance` setting, so the value can be
+        followed in Django admin when an engine changes its limit
+        """
+
+        raise NotImplementedError
+
+    @property
     def external_data_schema(self) -> dict:
         """
         Schema rules:

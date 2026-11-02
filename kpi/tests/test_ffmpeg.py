@@ -1,6 +1,7 @@
 import os
 import tempfile
 from unittest import skipUnless
+from unittest.mock import patch
 
 import pytest
 from django.test import SimpleTestCase
@@ -130,6 +131,47 @@ class RunFFMpegTestCase(SimpleTestCase):
     def test_failure_raises(self):
         with pytest.raises(FFMpegException):
             run_ffmpeg(['-i', '/nonexistent/recording.mp3', '-f', 'null', '-'])
+
+    def test_the_presigned_url_is_kept_out_of_the_log(self):
+        """
+        ffmpeg quotes the input it was given back in its error lines, and in
+        production that input is a presigned URL. The log line goes to Sentry
+        as an event too, where the URL would still be valid
+        """
+
+        url = (
+            'http://127.0.0.1:1/kobo/recording.m4a'
+            '?X-Amz-Credential=AKIAEXAMPLE&X-Amz-Signature=deadbeefcafe'
+        )
+
+        with patch('kpi.utils.ffmpeg.logging') as logger:
+            with pytest.raises(FFMpegException):
+                run_ffmpeg(['-i', url, '-f', 'null', '-'])
+
+        logged = logger.error.call_args.args[-1]
+        assert 'deadbeefcafe' not in logged
+        assert 'X-Amz' not in logged
+        assert '?[redacted]' in logged
+        # Which file failed, and why, still has to reach the log
+        assert 'recording.m4a' in logged
+        assert 'Connection refused' in logged
+
+    def test_the_ffmpeg_build_configuration_is_kept_out_of_the_log(self):
+        """
+        `-hide_banner` drops a screenful of build flags that says nothing
+        about the file that failed
+        """
+
+        with patch('kpi.utils.ffmpeg.logging') as logger:
+            with pytest.raises(FFMpegException):
+                run_ffmpeg(['-i', '/nonexistent/recording.mp3', '-f', 'null', '-'])
+
+        logged = logger.error.call_args.args[-1]
+        assert 'configuration:' not in logged
+        assert '--enable-' not in logged
+        # Decoded, so the lines read as lines rather than one `b'...'` blob
+        assert not logged.startswith("b'")
+        assert '/nonexistent/recording.mp3' in logged
 
     def test_detect_silences_finds_the_quiet_run(self):
         """
