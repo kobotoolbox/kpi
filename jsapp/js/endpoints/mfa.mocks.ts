@@ -123,10 +123,12 @@ export const mfaRecoveryCodesMocks = () => [
 export const mfaRecoveryCodesServerErrorMock = ({ once }: { once?: boolean } = {}) =>
   http.get(RECOVERY_CODES_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })
 
-/** Counts activations without answering, so the regular mock still does */
-export const mfaActivateCounterMock = (onActivate: () => void) =>
-  http.post(TOTP_ENDPOINT_URL, () => {
-    onActivate()
+const COUNTED_URLS = { activate: TOTP_ENDPOINT_URL, mfaReauthenticate: MFA_REAUTHENTICATE_URL }
+
+/** Counts POSTs without answering, so the regular mock still does */
+export const mfaPostCounterMock = (endpoint: keyof typeof COUNTED_URLS, onPost: () => void) =>
+  http.post(COUNTED_URLS[endpoint], () => {
+    onPost()
   })
 
 export const reauthenticateMocks = () => [

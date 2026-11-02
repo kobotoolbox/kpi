@@ -15,6 +15,7 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import { type AllauthResponse, splitAllauthErrors } from '#/auth/allauthErrors'
 import { getAuthStatusQueryKey } from '#/auth/authChangeWatcher'
+import { getAuthStatus } from '#/auth/authStatus'
 import { notify } from '#/utils'
 
 // allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. That 401 makes
@@ -78,60 +79,22 @@ export function useMfaStatus() {
 }
 
 /**
- * Copy of the `ACCOUNT_REAUTHENTICATION_TIMEOUT` default from `kobo/settings/base.py` - change both together.
+ * Whether allauth will want the password before 2FA goes on. Always, for accounts that have one: the backend timeout
+ * is configurable, so we can't tell if an earlier reauthentication still counts.
  *
- * TODO: DEV-3184 read it from the backend once DEV-3183 exposes it
+ * TODO: DEV-3184 skip it while a reauthentication still counts, once DEV-3183 exposes the timeout
  */
-const REAUTHENTICATION_TIMEOUT_SECONDS = 300
-/** Asks a bit early, so the window doesn't close while the user scans and types */
-const REAUTHENTICATION_MARGIN_SECONDS = 60
-
-interface PasswordCheckReading {
-  hasUsablePassword: boolean
-  /** Last reauthentication, in server seconds */
-  reauthenticatedAt: number | null
-  /** Server clock when this reading came in, so a wrong browser clock doesn't matter */
-  serverNow: number | null
-}
-
-/** Only the part of the session body this reads */
-interface SessionBody {
-  data?: { user?: { has_usable_password?: boolean }; methods?: Array<{ at?: number; reauthenticated?: boolean }> }
-}
-
-/** Whether allauth will want the password before 2FA goes on. A function, so submit can ask again. */
-export function usePasswordCheck() {
-  const { data, dataUpdatedAt } = useAllauthBrowserV1AuthSessionGet<PasswordCheckReading>({
+export function useIsPasswordNeeded() {
+  const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
     query: {
       queryKey: getAuthStatusQueryKey(),
-      select: (response) => {
-        const body = response.data as SessionBody | undefined
-        const serverDate = Date.parse(response.headers?.get('date') ?? '')
-        return {
-          // SSO-only accounts have no password, and allauth doesn't ask them for one
-          hasUsablePassword: body?.data?.user?.has_usable_password ?? true,
-          // Since allauth 65.20 a login doesn't count, only an explicit reauthentication
-          reauthenticatedAt: body?.data?.methods?.filter((method) => method.reauthenticated).at(-1)?.at ?? null,
-          serverNow: Number.isNaN(serverDate) ? null : serverDate / 1000,
-        }
-      },
+      // SSO-only accounts have no password, and allauth doesn't ask them for one
+      select: (response) => getAuthStatus(response).user?.has_usable_password ?? true,
       throwOnError: false,
     },
   })
-
-  return () => {
-    // Ask until we know otherwise
-    if (!data || data.reauthenticatedAt === null) {
-      return data?.hasUsablePassword ?? true
-    }
-    if (!data.hasUsablePassword) {
-      return false
-    }
-    // Server time of the reading, plus what the browser has counted since
-    const readingNow = data.serverNow ?? dataUpdatedAt / 1000
-    const elapsed = readingNow - data.reauthenticatedAt + (Date.now() - dataUpdatedAt) / 1000
-    return elapsed > REAUTHENTICATION_TIMEOUT_SECONDS - REAUTHENTICATION_MARGIN_SECONDS
-  }
+  // Ask until we know otherwise
+  return data ?? true
 }
 
 /** Every write changes the status, so they all reread {@link useMfaStatus} */
@@ -172,7 +135,7 @@ export const useMfaActivate = () =>
   })
 
 interface MfaConfirmVariables extends MfaCode {
-  /** Leave out for accounts {@link usePasswordCheck} lets through */
+  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
   password?: string
 }
 
@@ -187,10 +150,14 @@ export const useMfaConfirmCode = () =>
 
 /**
  * Separate from {@link useMfaConfirmCode}, so a failed read can be retried without turning 2FA on twice. Needs no
- * reauthentication right after activation: the backend counts the activation as a fresh 2FA authentication.
+ * reauthentication right after activation: the backend counts the activation as a fresh 2FA authentication. A retry
+ * may come after that has expired, so it passes a new code to reauthenticate with first.
  */
 export const useMfaRecoveryCodes = () =>
-  useMfaMutation<string[]>('recoveryCodes', async () => {
+  useMfaMutation<string[], Partial<MfaCode>>('recoveryCodes', async ({ code }) => {
+    if (code) {
+      await reauthenticateWithCode(code)
+    }
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
     return response.data.data.unused_codes

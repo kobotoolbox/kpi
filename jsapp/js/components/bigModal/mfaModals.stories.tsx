@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { expect, fn, userEvent, within } from 'storybook/test'
 import {
   BACKUP_CODES,
   INCORRECT_CODE_MESSAGE,
@@ -7,9 +7,9 @@ import {
   TOTP_URL,
   VALID_CODE,
   VALID_PASSWORD,
-  mfaActivateCounterMock,
   mfaDeactivateRefusedMock,
   mfaMocks,
+  mfaPostCounterMock,
   mfaRecoveryCodesServerErrorMock,
 } from '#/endpoints/mfa.mocks'
 import { seedEnvStore } from '#/envStore.mocks'
@@ -74,14 +74,16 @@ export const ConfirmNewSetup: Story = {
 }
 
 let activationCount = 0
+let reauthenticationCount = 0
 
-/** 2FA went on but the codes didn't load, so Next only rereads them */
+/** 2FA went on but the codes didn't load. The retry takes a new token and never activates twice */
 export const ConfirmRetriesRecoveryCodes: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
   parameters: {
     msw: {
       handlers: [
-        mfaActivateCounterMock(() => activationCount++),
+        mfaPostCounterMock('activate', () => activationCount++),
+        mfaPostCounterMock('mfaReauthenticate', () => reauthenticationCount++),
         mfaRecoveryCodesServerErrorMock({ once: true }),
         ...mfaMocks(state),
       ],
@@ -89,19 +91,23 @@ export const ConfirmRetriesRecoveryCodes: Story = {
   },
   beforeEach: () => {
     activationCount = 0
+    reauthenticationCount = 0
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
     await typePassword(canvas, VALID_PASSWORD)
     await submitCode(canvas, VALID_CODE)
-    await waitFor(() => expect(state.totp).not.toBeNull())
-    await waitFor(() => expect(canvas.getByRole('button', { name: 'Next' })).toBeEnabled())
+    expect(await canvas.findByText(/Enter a new token to see your recovery codes/)).toBeInTheDocument()
+    expect(state.totp).not.toBeNull()
+    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
+    expect(canvas.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-    await userEvent.click(canvas.getByRole('button', { name: 'Next' }))
+    await submitCode(canvas, VALID_CODE)
 
     await expectBackupCodes(canvas)
     expect(activationCount).toBe(1)
+    expect(reauthenticationCount).toBe(1)
   },
 }
 
@@ -129,38 +135,6 @@ export const ConfirmWithoutPassword: Story = {
 
     await expectBackupCodes(canvas)
     expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
-  },
-}
-
-/** allauth still trusts a reauthentication from a minute ago, so no password is asked */
-export const ConfirmSkipsPasswordAfterRecentReauthentication: Story = {
-  args: { modalType: 'qr', qrCode: TOTP_URL },
-  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceReauthentication: 60 }) } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    await submitCode(canvas, VALID_CODE)
-
-    await expectBackupCodes(canvas)
-    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
-  },
-}
-
-/** A login doesn't count as a reauthentication, however recent */
-export const ConfirmAsksPasswordAfterRecentLogin: Story = {
-  args: { modalType: 'qr', qrCode: TOTP_URL },
-  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceLogin: 10 }) } },
-  play: async ({ canvasElement }) => {
-    expect(await within(canvasElement).findByLabelText('Password')).toBeInTheDocument()
-  },
-}
-
-/** Close to the end of the window, the password is asked already */
-export const ConfirmAsksPasswordNearTimeout: Story = {
-  args: { modalType: 'qr', qrCode: TOTP_URL },
-  parameters: { msw: { handlers: mfaMocks(state, { secondsSinceReauthentication: 270 }) } },
-  play: async ({ canvasElement }) => {
-    expect(await within(canvasElement).findByLabelText('Password')).toBeInTheDocument()
   },
 }
 
