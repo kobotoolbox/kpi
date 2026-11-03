@@ -592,6 +592,13 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             invitee_id__in=members_user_ids,
             organization_id=organization_id,
         ).order_by('invitee_id', 'created')
+        self._pending_transfers_queryset = (
+            OrganizationOwnershipTransfer.objects.filter(
+                status=OrganizationInviteStatusChoices.PENDING,
+                recipient_id__in=members_user_ids,
+                organization_id=organization_id,
+            ).select_related('sender__extra_details', 'recipient', 'organization')
+        )
         return page
 
     def get_queryset(self):
@@ -793,6 +800,12 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             for invite in self._invites_queryset:
                 invites_per_member[invite.invitee_id] = invite
             context['invites_per_member'] = invites_per_member
+
+        if hasattr(self, '_pending_transfers_queryset'):
+            pending_transfers_per_member = {}
+            for transfer in self._pending_transfers_queryset:
+                pending_transfers_per_member[transfer.recipient_id] = transfer
+            context['pending_transfers_per_member'] = pending_transfers_per_member
 
         return context
 

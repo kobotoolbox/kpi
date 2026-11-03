@@ -70,6 +70,7 @@ from .tasks import transfer_member_data_ownership_to_org
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
+    pending_transfer = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
         queryset=get_user_model().objects.all(),
         lookup_field='username',
@@ -107,6 +108,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'user__is_active',
             'invite',
+            'pending_transfer',
         ]
 
     @extend_schema_field(OpenApiTypes.URI)
@@ -142,6 +144,50 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
         if invite:
             return OrgMembershipInviteSerializer(invite, context=self.context).data
+
+        return None
+
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_pending_transfer(self, obj):
+        """
+        Get the active pending ownership transfer for the user if it exists.
+        Only exposed to the sender (owner) or recipient (invitee).
+        """
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        request_user = get_database_user(request.user)
+
+        try:
+            pending_transfers_per_member = self.context['pending_transfers_per_member']
+        except KeyError:
+            # If requester is neither the org owner (sender) nor this member
+            # (recipient), they cannot view any pending transfer for this member.
+            if (
+                not obj.organization.is_owner(request_user)
+                and obj.user_id != request_user.id
+            ):
+                return None
+
+            transfer = (
+                OrganizationOwnershipTransfer.objects.filter(
+                    organization=obj.organization,
+                    recipient=obj.user,
+                    status=OrganizationInviteStatusChoices.PENDING,
+                )
+                .select_related(
+                    'sender__extra_details', 'recipient', 'organization'
+                )
+                .first()
+            )
+        else:
+            transfer = pending_transfers_per_member.get(obj.user_id)
+
+        if transfer and request_user.id in (transfer.sender_id, transfer.recipient_id):
+            return OrganizationOwnershipTransferSerializer(
+                transfer, context=self.context
+            ).data
 
         return None
 
@@ -182,6 +228,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     assets = serializers.SerializerMethodField()
     asset_usage = serializers.SerializerMethodField()
+    has_pending_ownership_transfer = serializers.BooleanField(read_only=True)
     is_mmo = serializers.BooleanField(read_only=True)
     is_owner = serializers.SerializerMethodField()
     members = serializers.SerializerMethodField()
@@ -204,6 +251,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'modified',
             'is_owner',
             'is_mmo',
+            'has_pending_ownership_transfer',
             'request_user_role',
             'members',
             'assets',
