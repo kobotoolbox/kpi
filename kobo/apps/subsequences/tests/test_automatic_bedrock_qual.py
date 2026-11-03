@@ -14,6 +14,7 @@ from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from openai import OpenAIError
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -862,6 +863,29 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             user=self.asset.owner, asset=self.asset, date=today
         )
         assert counter.counters['bedrock_llm_requests'] == 1
+
+    def test_llm_usage_not_updated_if_client_creation_fails(self):
+        """
+        Test that counter gets updated even if STRIPE_ENABLED is False
+        """
+        today = timezone.now().date()
+        current_counters = NLPUsageCounter.objects.filter(
+            user=self.asset.owner, asset=self.asset, date=today
+        )
+        assert current_counters.count() == 0
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(
+            self.action, 'get_clients_for_models', side_effect=OpenAIError
+        ):
+            self.action.run_external_process({}, {}, action_data=action_data)
+        today = timezone.now().date()
+        current_counters = NLPUsageCounter.objects.filter(
+            user=self.asset.owner, asset=self.asset, date=today
+        )
+        assert current_counters.count() == 0
 
     def test_error_when_llm_returns_none(self):
         action_data = {

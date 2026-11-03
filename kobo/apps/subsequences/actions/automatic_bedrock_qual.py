@@ -431,19 +431,19 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         else:
             models = [OSS120, ClaudeSonnet]
 
-        update_nlp_counter(
-            'bedrock_llm_requests',
-            1,
-            self.asset.owner_id,
-            self.asset.id,
-        )
-
         try:
             clients_by_type = self.get_clients_for_models(models)
         except (ClientError, OpenAIError, ConnectTimeoutError) as e:
             if current_request := get_current_request():
                 current_request.llm_response = {'error': f'{e}'}
             return {'status': 'failed', 'error': f'{e}'}
+
+        update_nlp_counter(
+            'bedrock_llm_requests',
+            1,
+            self.asset.owner_id,
+            self.asset.id,
+        )
 
         for index, model in enumerate(models):
             try:
