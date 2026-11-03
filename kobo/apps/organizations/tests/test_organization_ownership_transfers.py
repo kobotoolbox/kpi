@@ -504,9 +504,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             admin_detail_url, data={'user': member_user_url}
         )
         self.assertEqual(reassign_res.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            reassign_res.data['user__username'], self.admin_user.username
-        )
+        self.assertEqual(reassign_res.data['user__username'], self.admin_user.username)
 
         # Once transfer resolves, admin role can be changed
         transfer = OrganizationOwnershipTransfer.objects.first()

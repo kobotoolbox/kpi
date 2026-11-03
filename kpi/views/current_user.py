@@ -9,9 +9,7 @@ from rest_framework.exceptions import MethodNotAllowed, PermissionDenied
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.constants import (
-    PENDING_TRANSFER_ACCOUNT_DELETION_ERROR,
-)
+from kobo.apps.organizations.constants import PENDING_TRANSFER_ACCOUNT_DELETION_ERROR
 from kobo.apps.organizations.models import (
     OrganizationInviteStatusChoices,
     OrganizationOwnershipTransfer,

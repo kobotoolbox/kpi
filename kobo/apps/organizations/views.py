@@ -595,13 +595,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             invitee_id__in=members_user_ids,
             organization_id=organization_id,
         ).order_by('invitee_id', 'created')
-        self._pending_transfers_queryset = (
-            OrganizationOwnershipTransfer.objects.filter(
-                status=OrganizationInviteStatusChoices.PENDING,
-                recipient_id__in=members_user_ids,
-                organization_id=organization_id,
-            ).select_related('sender__extra_details', 'recipient', 'organization')
-        )
+        self._pending_transfers_queryset = OrganizationOwnershipTransfer.objects.filter(
+            status=OrganizationInviteStatusChoices.PENDING,
+            recipient_id__in=members_user_ids,
+            organization_id=organization_id,
+        ).select_related('sender__extra_details', 'recipient', 'organization')
         return page
 
     def get_queryset(self):
@@ -834,9 +832,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 recipient=member.user,
                 status=OrganizationInviteStatusChoices.PENDING,
             ).exists():
-                raise InvalidMembershipRequest(
-                    PENDING_TRANSFER_MEMBER_REMOVAL_ERROR
-                )
+                raise InvalidMembershipRequest(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR)
 
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)

@@ -177,9 +177,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     recipient=obj.user,
                     status=OrganizationInviteStatusChoices.PENDING,
                 )
-                .select_related(
-                    'sender__extra_details', 'recipient', 'organization'
-                )
+                .select_related('sender__extra_details', 'recipient', 'organization')
                 .first()
             )
         else:
@@ -231,9 +229,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     recipient=org_user.user,
                     status=OrganizationInviteStatusChoices.PENDING,
                 ).exists():
-                    raise InvalidMembershipRequest(
-                        PENDING_TRANSFER_ROLE_LOCKED_ERROR
-                    )
+                    raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
 
                 return super().update(org_user, validated_data)
 
