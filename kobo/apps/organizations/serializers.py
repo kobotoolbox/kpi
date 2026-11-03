@@ -715,7 +715,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             eligible_admins = OrganizationUser.objects.filter(
                 organization=organization,
                 is_admin=True,
-                user__email=value,
+                user__email__iexact=value,
                 user__is_active=True,
             ).select_related('user')
             if organization.owner_user_object:
@@ -731,7 +731,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                     replace_placeholders(RECIPIENT_AMBIGUOUS_EMAIL_ERROR, email=value)
                 )
 
-            users = User.objects.filter(email=value, is_active=True)
+            users = User.objects.filter(email__iexact=value, is_active=True)
             if not users.exists():
                 raise serializers.ValidationError(
                     replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=value)
