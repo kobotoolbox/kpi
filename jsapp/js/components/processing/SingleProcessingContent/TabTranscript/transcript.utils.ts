@@ -3,6 +3,7 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import { getMediaAttachment } from '#/components/submissions/submissionUtils'
 import type { SubmissionAttachment } from '#/dataInterface'
 import { convertSecondsToMinutes, getEstimatedTranscriptionDurationSeconds } from '#/utils'
+import { MAX_AUTOMATIC_TRANSCRIPTION_AUDIO_MINUTES } from '../../common/constants'
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
@@ -22,6 +23,15 @@ export function getAttachmentForProcessing(
 
   return getMediaAttachment(submissionData, fileName, questionXPath)
 }
+
+/**
+ * Whether an audio of this length is past what the automatic transcription can handle.
+ *
+ * A `0` - not measured yet, or the backend couldn't tell - is not too long: better to let a job run
+ * and fail than to block a file that would have worked.
+ */
+export const isAudioTooLongForAutomaticTranscription = (durationSeconds: number): boolean =>
+  durationSeconds > MAX_AUTOMATIC_TRANSCRIPTION_AUDIO_MINUTES * 60
 
 /**
  * For given length of an audio file (in seconds) returns a human-friendly

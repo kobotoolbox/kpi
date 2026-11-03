@@ -9,3 +9,11 @@ export const SUBSEQUENCES_SCHEMA_VERSION = '20250820'
  * - such objects usually require special handling *somewhere*, then if-else over it's UUID.
  */
 export const LOCALLY_EDITED_PLACEHOLDER_UUID = 'placeholder'
+
+/**
+ * Longest audio the automatic transcription accepts. Most languages cap out near an hour, so we give ourselves a safety
+ * margin.
+ *
+ * TODO: drop this and the alert once long audio is handled by backend.
+ */
+export const MAX_AUTOMATIC_TRANSCRIPTION_AUDIO_MINUTES = 55
