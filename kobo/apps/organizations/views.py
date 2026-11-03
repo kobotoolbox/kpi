@@ -972,7 +972,10 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
 )
 @extend_schema_view(
     create=extend_schema(
-        description='Initiate an organization ownership transfer request (outgoing owner only).',
+        description=(
+            'Initiate an organization ownership transfer request '
+            '(outgoing owner only).'
+        ),
         responses=open_api_201_created_response(
             OrganizationOwnershipTransferSerializer,
             require_auth=False,
@@ -999,7 +1002,9 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='Filter ownership transfers by status (e.g. pending, accepted).',
+                description=(
+                    'Filter ownership transfers by status (e.g. pending, accepted).'
+                ),
             )
         ],
     ),
@@ -1014,13 +1019,13 @@ class OrganizationOwnershipTransferViewSet(
     ViewSet for managing organization ownership transfers.
 
     Available actions:
-    - create   → POST  /api/v2/organizations/{uid_organization}/ownership-transfers/
-    - list     → GET   /api/v2/organizations/{uid_organization}/ownership-transfers/
-    - retrieve → GET   /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/
-    - accept   → PATCH /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/accept/
-    - decline  → PATCH /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/decline/
-    - cancel   → PATCH /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/cancel/
-    - resend   → POST  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/resend/
+    - create (POST): initiate transfer request
+    - list (GET): list transfers for user/org
+    - retrieve (GET): retrieve transfer by GUID
+    - accept (PATCH): accept transfer
+    - decline (PATCH): decline transfer
+    - cancel (PATCH): cancel transfer
+    - resend (POST): resend transfer invitation email
     """
 
     serializer_class = OrganizationOwnershipTransferSerializer
@@ -1111,7 +1116,9 @@ class OrganizationOwnershipTransferViewSet(
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        description='Decline an organization ownership transfer request (invitee only).',
+        description=(
+            'Decline an organization ownership transfer request (invitee only).'
+        ),
         request=None,
         responses={
             **open_api_200_ok_response(
@@ -1163,7 +1170,10 @@ class OrganizationOwnershipTransferViewSet(
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        description='Cancel a pending organization ownership transfer request (outgoing owner only).',
+        description=(
+            'Cancel a pending organization ownership transfer request '
+            '(outgoing owner only).'
+        ),
         request=None,
         responses={
             **open_api_200_ok_response(
@@ -1215,7 +1225,10 @@ class OrganizationOwnershipTransferViewSet(
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        description='Resend the invitation email for a pending organization ownership transfer (outgoing owner only).',
+        description=(
+            'Resend the invitation email for a pending organization ownership '
+            'transfer (outgoing owner only).'
+        ),
         request=None,
         responses={
             **open_api_200_ok_response(
