@@ -62,6 +62,8 @@ import type { PaginatedInviteResponseList } from '../../models/paginatedInviteRe
 
 import type { PaginatedMemberListResponseList } from '../../models/paginatedMemberListResponseList'
 
+import type { PaginatedOrganizationOwnershipTransferList } from '../../models/paginatedOrganizationOwnershipTransferList'
+
 import type { PaginatedOrganizationResponseList } from '../../models/paginatedOrganizationResponseList'
 
 import type { PaginatedProjectViewAssetResponseList } from '../../models/paginatedProjectViewAssetResponseList'
@@ -995,6 +997,8 @@ export const getApiV2OrganizationsOwnershipTransfersCreateResponseMock = (
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
