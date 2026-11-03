@@ -159,6 +159,7 @@ export default function FormLanding() {
   }
   const isFormRedeploymentNeeded = (loadedAsset: AssetResponse) =>
     !isCurrentVersionDeployed(loadedAsset) && userCan('change_asset', loadedAsset)
+  // We need to manually call loadAsset.completed until assetStore has migrated to React Query.
   const deployAsset = (loadedAsset: AssetResponse) => {
     if (loadedAsset.has_deployment) {
       openKoboConfirmModal({
@@ -175,7 +176,12 @@ export default function FormLanding() {
         onConfirm: () => {
           deploymentUpdateMutation.mutate(
             { uidAsset: loadedAsset.uid, data: { active: true, version_id: loadedAsset.version_id ?? undefined } },
-            { onSuccess: () => notify(t('redeployed form')) },
+            {
+              onSuccess: () => {
+                actions.resources.loadAsset({ id: loadedAsset.uid }, true)
+                notify(t('redeployed form'))
+              },
+            },
           )
         },
       })
@@ -188,6 +194,7 @@ export default function FormLanding() {
       { uidAsset: loadedAsset.uid, data: { active: true } },
       {
         onSuccess: () => {
+          actions.resources.loadAsset({ id: loadedAsset.uid }, true)
           toast.dismiss(deployingToast)
           notify(t('deployed form'))
           navigate(`/forms/${loadedAsset.uid}`)
@@ -235,6 +242,7 @@ export default function FormLanding() {
       { uidAsset: uid, data: { active: true } },
       {
         onSuccess: () => {
+          actions.resources.loadAsset({ id: uid }, true)
           setPrompt(null)
         },
       },
