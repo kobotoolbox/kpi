@@ -3,7 +3,6 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { getGenericAllauthErrorMessage } from '#/auth/allauthErrors'
 import { validatePassword, validateRequiredField } from '#/auth/authValidation'
-import { useLogoutAndReload } from '#/auth/useLogout'
 import ButtonNew from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
 import PasswordInput from '#/components/common/PasswordInput'
@@ -38,7 +37,6 @@ export default function ReauthenticateModal({
   onClose,
 }: ReauthenticateModalProps) {
   const reauthenticate = useReauthenticate()
-  const logout = useLogoutAndReload()
   const [formError, setFormError] = useState<string | null>(null)
 
   const form = useForm<ReauthenticateFormValues>({
@@ -77,69 +75,47 @@ export default function ReauthenticateModal({
       <Stack>
         <Text>{description}</Text>
 
-        {ask.isAnswerable ? (
-          <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
-            <Stack>
-              {formError && (
-                <Alert type='error' iconName='alert'>
-                  {formError}
-                </Alert>
-              )}
-
-              {ask.isPasswordNeeded && (
-                <PasswordInput
-                  label={t('Password')}
-                  autoComplete='current-password'
-                  data-autofocus
-                  key={form.key('password')}
-                  {...form.getInputProps('password')}
-                />
-              )}
-
-              {ask.isCodeNeeded && (
-                <TextInput
-                  label={t('Code')}
-                  placeholder={t('Enter token or backup code')}
-                  autoComplete='one-time-code'
-                  // Not `numeric`: a recovery code has letters too
-                  inputMode='text'
-                  data-autofocus={!ask.isPasswordNeeded || undefined}
-                  key={form.key('code')}
-                  {...form.getInputProps('code')}
-                />
-              )}
-
-              <Group justify='flex-end'>
-                <ButtonNew type='button' size='md' variant='light' onClick={onClose}>
-                  {t('Cancel')}
-                </ButtonNew>
-                <ButtonNew type='submit' size='md' loading={reauthenticate.isPending}>
-                  {t('Confirm')}
-                </ButtonNew>
-              </Group>
-            </Stack>
-          </form>
-        ) : (
-          // A step that can't be typed in, like a security key. Logging in again also satisfies KPI.
-          <>
-            <Text>{t('To continue, please log out and log back in, then try again')}</Text>
-
-            {logout.error && (
+        <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
+          <Stack>
+            {formError && (
               <Alert type='error' iconName='alert'>
-                {logout.error}
+                {formError}
               </Alert>
             )}
 
+            {ask.isPasswordNeeded && (
+              <PasswordInput
+                label={t('Password')}
+                autoComplete='current-password'
+                data-autofocus
+                key={form.key('password')}
+                {...form.getInputProps('password')}
+              />
+            )}
+
+            {ask.isCodeNeeded && (
+              <TextInput
+                label={t('Code')}
+                placeholder={t('Enter token or backup code')}
+                autoComplete='one-time-code'
+                // Not `numeric`: a recovery code has letters too
+                inputMode='text'
+                data-autofocus={!ask.isPasswordNeeded || undefined}
+                key={form.key('code')}
+                {...form.getInputProps('code')}
+              />
+            )}
+
             <Group justify='flex-end'>
-              <ButtonNew size='md' variant='light' onClick={onClose}>
+              <ButtonNew type='button' size='md' variant='light' onClick={onClose}>
                 {t('Cancel')}
               </ButtonNew>
-              <ButtonNew size='md' onClick={logout.logOut} loading={logout.isPending}>
-                {t('Log out')}
+              <ButtonNew type='submit' size='md' loading={reauthenticate.isPending}>
+                {t('Confirm')}
               </ButtonNew>
             </Group>
-          </>
-        )}
+          </Stack>
+        </form>
       </Stack>
     </ModalNew>
   )

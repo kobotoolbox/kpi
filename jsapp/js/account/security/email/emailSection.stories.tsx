@@ -50,7 +50,6 @@ function withEmails(initial: EmailAddress[], ...refusals: HttpHandler[]) {
 
 const PASSWORD_FLOW: Flow = { id: 'reauthenticate' }
 const CODE_FLOW: Flow = { id: 'mfa_reauthenticate', types: ['recovery_codes', 'totp'] }
-const SECURITY_KEY_FLOW: Flow = { id: 'mfa_reauthenticate', types: ['webauthn'] }
 
 /** Like {@link withEmails}, but the `POST` is refused until every one of `flows` is done */
 function withStaleSession(flows: Flow[]) {
@@ -218,18 +217,5 @@ export const Reauthenticate: Story = {
     // The address typed before the interruption goes through
     await canvas.findByText(new RegExp(`Check your email ${PENDING_EMAIL.email}`))
     await waitFor(() => expect(within(document.body).queryByRole('dialog')).not.toBeInTheDocument())
-  },
-}
-
-export const ReauthenticationNeedsNewLogin: Story = {
-  ...withStaleSession([PASSWORD_FLOW, SECURITY_KEY_FLOW]),
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    await typeNewEmail(canvas, PENDING_EMAIL.email)
-    const modal = await submitUntilAsked(canvas)
-
-    await modal.findByText('To continue, please log out and log back in, then try again.')
-    expect(modal.getByRole('button', { name: 'Log out' })).toBeEnabled()
-    expect(modal.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument()
   },
 }

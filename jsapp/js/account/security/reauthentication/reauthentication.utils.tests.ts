@@ -19,7 +19,6 @@ describe('getReauthenticationAsk', () => {
     chai.expect(getReauthenticationAsk(refusal([{ id: 'reauthenticate' }]))).to.deep.equal({
       isPasswordNeeded: true,
       isCodeNeeded: false,
-      isAnswerable: true,
     })
   })
 
@@ -28,7 +27,6 @@ describe('getReauthenticationAsk', () => {
     chai.expect(getReauthenticationAsk(refusal(flows))).to.deep.equal({
       isPasswordNeeded: true,
       isCodeNeeded: true,
-      isAnswerable: true,
     })
   })
 
@@ -36,18 +34,7 @@ describe('getReauthenticationAsk', () => {
     chai.expect(getReauthenticationAsk(refusal([{ id: 'mfa_reauthenticate', types: ['totp'] }]))).to.deep.equal({
       isPasswordNeeded: false,
       isCodeNeeded: true,
-      isAnswerable: true,
     })
-  })
-
-  it('gives up on a step that cannot be typed in', () => {
-    const flows = [{ id: 'reauthenticate' }, { id: 'mfa_reauthenticate', types: ['webauthn'] }]
-    chai.expect(getReauthenticationAsk(refusal(flows))?.isAnswerable).to.equal(false)
-  })
-
-  it('gives up when no step is named', () => {
-    chai.expect(getReauthenticationAsk(refusal([]))?.isAnswerable).to.equal(false)
-    chai.expect(getReauthenticationAsk(refusal(undefined))?.isAnswerable).to.equal(false)
   })
 
   it('ignores other errors', () => {

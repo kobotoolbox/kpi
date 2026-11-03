@@ -16,8 +16,8 @@ import { splitAllauthErrors } from '#/auth/allauthErrors'
 import { getAuthStatusQueryKey } from '#/auth/authChangeWatcher'
 import { notify } from '#/utils'
 
-// allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. That 401 makes
-// `AuthChangeRedirector` leave the page and lose the modal, so each write reauthenticates first.
+// allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. KPI wants the password
+// and the code together, so each write reauthenticates first with whatever the modal collected.
 
 /** A TOTP token or a recovery code - allauth takes either */
 interface MfaCode {

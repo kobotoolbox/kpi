@@ -7,21 +7,16 @@ import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
 /** `code` of the 403 KPI's own sensitive endpoints answer, see `kobo/apps/accounts/reauthentication.py` */
 const REAUTHENTICATION_REQUIRED_CODE = 'reauthentication_required'
 
-/** The 2FA types a code input can answer. A security key can't be typed in. */
-const CODE_TYPES: readonly string[] = ['totp', 'recovery_codes']
-
-/** Which credentials to ask for. KPI wants all of them, while allauth takes any one. */
+/**
+ * Which credentials to ask for. KPI wants all of them, while allauth takes any one.
+ *
+ * Note: no case for an ask that can't be answered here. The backend never refuses an account with nothing to prove,
+ * and its 2FA types are TOTP and recovery codes only (no `webauthn`), both typed into the same code input.
+ */
 export interface ReauthenticationAsk {
   isPasswordNeeded: boolean
   isCodeNeeded: boolean
-  /** False when a step can't be done here, or none was named. Signing in again is the only way then. */
-  isAnswerable: boolean
 }
-
-const isPasswordFlow = (flow: Partial<Flow>) => flow.id === FlowId.reauthenticate
-
-const isCodeFlow = (flow: Partial<Flow>) =>
-  flow.id === FlowId.mfa_reauthenticate && (flow.types ?? []).some((type) => CODE_TYPES.includes(type))
 
 /** Reads the reauthentication ask out of a KPI 403, or `null` when the error is something else */
 export function getReauthenticationAsk(error: OrvalFetchError): ReauthenticationAsk | null {
@@ -36,8 +31,7 @@ export function getReauthenticationAsk(error: OrvalFetchError): Reauthentication
   // The generated type leaves the items untyped, but they are allauth's flows
   const flows = (Array.isArray(body.flows) ? body.flows : []) as Partial<Flow>[]
   return {
-    isPasswordNeeded: flows.some(isPasswordFlow),
-    isCodeNeeded: flows.some(isCodeFlow),
-    isAnswerable: flows.length > 0 && flows.every((flow) => isPasswordFlow(flow) || isCodeFlow(flow)),
+    isPasswordNeeded: flows.some((flow) => flow.id === FlowId.reauthenticate),
+    isCodeNeeded: flows.some((flow) => flow.id === FlowId.mfa_reauthenticate),
   }
 }
