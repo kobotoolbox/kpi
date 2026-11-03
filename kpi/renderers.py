@@ -86,18 +86,6 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
         return s
 
     @staticmethod
-    def _extract_raw_route(resolver) -> str | None:
-        """
-        Try to get the raw route/regex from ResolverMatch across Django versions.
-
-        """
-
-        if not resolver:
-            return None
-
-        return resolver.route
-
-    @staticmethod
     def _materialize_results_preview(
         data: Any, request: Request | None, view: 'APIView | None' = None
     ) -> Any:

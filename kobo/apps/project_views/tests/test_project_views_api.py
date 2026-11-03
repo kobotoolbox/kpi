@@ -218,18 +218,6 @@ class ProjectViewsApiTestCase(BaseTestCase):
         assert len(response.data['results']) > 0
 
     @override_settings(API_LIMITED_COUNT_MAX=0)
-    def test_assets_count_is_capped(self):
-        self.client.force_login(self.regular_user)
-        url = reverse(
-            self._get_endpoint('projectview-assets'),
-            kwargs={'uid_project_view': self.pv_org.uid},
-        )
-        response = self.client.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == LIMITED_COUNT_MANY
-        assert len(response.data['results']) > 0
-
-    @override_settings(API_LIMITED_COUNT_MAX=0)
     def test_users_count_is_capped(self):
         self.client.force_login(self.regular_user)
         url = reverse(

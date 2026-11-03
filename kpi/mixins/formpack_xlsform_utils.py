@@ -154,13 +154,6 @@ class FormpackXLSFormUtilsMixin:
                 dollar_fields = list(filter(startswithdollar, row.keys()))
                 strip_row(row, dollar_fields)
 
-    def _link_list_items(self, content):
-        arr = content['survey']
-        if len(arr) > 0:
-            arr[0]['$prev'] = None
-        for i in range(1, len(arr)):
-            arr[i]['$prev'] = arr[i - 1]['$kuid']
-
     def _unlink_list_items(self, content):
         arr = content['survey']
         for row in arr:
@@ -208,18 +201,6 @@ class FormpackXLSFormUtilsMixin:
     def pop_setting(self, content, *args):
         if 'settings' in content:
             return content['settings'].pop(*args)
-
-    def _rename_null_translation(self, content, new_name):
-        if new_name in content['translations']:
-            raise ValueError('Cannot save translation with duplicate '
-                             'name: {}'.format(new_name))
-
-        try:
-            _null_index = content['translations'].index(None)
-        except ValueError:
-            raise ValueError('Cannot save translation name: {}'.format(
-                new_name))
-        content['translations'][_null_index] = new_name
 
     def _has_translations(self, content, min_count=1):
         return len(content.get('translations', [])) >= min_count

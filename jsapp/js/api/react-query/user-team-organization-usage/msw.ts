@@ -1098,7 +1098,6 @@ export const getProjectViewsExportCreateResponseMock = (
 export const getProjectViewsAssetsRetrieveResponseMock = (
   overrideResponse: Partial<Extract<PaginatedProjectViewAssetResponseList, object>> = {},
 ): PaginatedProjectViewAssetResponseList => ({
-  count: faker.helpers.arrayElement([faker.number.int(), faker.helpers.arrayElement(['many', 'unknown'] as const)]),
   next: faker.helpers.arrayElement([faker.internet.url(), null]),
   previous: faker.helpers.arrayElement([faker.internet.url(), null]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({

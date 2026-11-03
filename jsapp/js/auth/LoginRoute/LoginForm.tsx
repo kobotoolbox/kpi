@@ -112,7 +112,7 @@ export default function LoginForm({ socialApps, isRegistrationClosed = false, on
     <Stack gap='xl'>
       <SsoProviderButtonList socialApps={socialApps} variant='filled' />
 
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Log in or create an account')}
       </Title>
 
