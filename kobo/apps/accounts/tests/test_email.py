@@ -13,7 +13,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from rest_framework.throttling import ScopedRateThrottle
 
-from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from .utils import clear_email_change_throttle, record_authentication
 
 

@@ -59,6 +59,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, AssetSnapshot
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from kpi.tests.utils.mixins import (
     SubmissionDeleteTestCaseMixin,
     SubmissionEditTestCaseMixin,
@@ -74,7 +75,6 @@ from kpi.tests.utils.mock import (
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import (

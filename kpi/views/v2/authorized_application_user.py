@@ -9,7 +9,9 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ACCESS_LOG_AUTHORIZED_APP_TYPE
 from kpi.models import AuthorizedApplication
 from kpi.models.authorized_application import ApplicationTokenAuthentication
-from kpi.serializers import AuthorizedApplicationUserSerializer
+from kpi.serializers.v2.authorized_application_user import (
+    AuthorizedApplicationUserSerializer,
+)
 from kpi.serializers.v2.create_user import CreateUserSerializer
 from kpi.versioning import APIV2Versioning
 
