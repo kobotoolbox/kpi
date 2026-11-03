@@ -633,9 +633,8 @@ class ObjectPermissionMixin:
             org_admin_perms = self.get_org_admin_inherited_perms()
 
             if (
-                self.owner
-                and self.owner.organization.is_admin_only(user_obj)
-                and codename in org_admin_perms
+                codename in org_admin_perms
+                and self.owner_id in self._get_administered_user_ids(user_obj)
             ):
                 return True
 
@@ -740,6 +739,25 @@ class ObjectPermissionMixin:
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
             set_kc_anonymous_permissions_xform_flags(self, codename, remove=True)
+
+    @staticmethod
+    @cache_for_request
+    def _get_administered_user_ids(user: User) -> set[int]:
+        """
+        Return the ids of the users whose assets `user` can administer: every member
+        of the organization where `user` is an admin but not the owner, whatever the
+        role of that member. The set is empty when `user` is not such an admin.
+
+        A user belongs to one organization at most, so an asset owner who is a
+        member of this organization has it as `owner.organization`. If users can
+        join several organizations, this check must compare with
+        `owner.organization` instead.
+        """
+
+        organization = user.organization
+        if not organization.is_admin_only(user):
+            return set()
+        return set(organization.users.values_list('pk', flat=True))
 
     @staticmethod
     @cache_for_request

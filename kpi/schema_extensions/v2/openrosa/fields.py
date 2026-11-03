@@ -15,7 +15,3 @@ class OpenRosaMetaField(serializers.JSONField):
 
 class OpenRosaManifestURLField(serializers.URLField):
     pass
-
-
-class OpenRosaXFormField(serializers.JSONField):
-    pass
