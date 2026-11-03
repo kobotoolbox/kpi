@@ -20437,9 +20437,14 @@ components:
           oneOf:
           - $ref: '#/components/schemas/InviteResponse'
           - type: 'null'
+        pending_transfer:
+          oneOf:
+          - $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          - type: 'null'
       required:
       - date_joined
       - invite
+      - pending_transfer
       - role
       - url
       - user
