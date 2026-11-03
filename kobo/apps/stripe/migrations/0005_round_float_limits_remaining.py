@@ -2,21 +2,28 @@
 
 from django.db import migrations
 
-
-def round_float_limits_remaining(apps, schema_editor):
-    """
-    Round float values in `PlanAddOn.limits_remaining` to integers.
-    """
-    PlanAddOn = apps.get_model('stripe', 'PlanAddOn')
-    for add_on in PlanAddOn.objects.only('limits_remaining').iterator():
-        limits_remaining = add_on.limits_remaining
-        if not any(isinstance(value, float) for value in limits_remaining.values()):
-            continue
-        rounded = {
-            key: int(round(value)) if isinstance(value, float) else value
-            for key, value in limits_remaining.items()
-        }
-        PlanAddOn.objects.filter(pk=add_on.pk).update(limits_remaining=rounded)
+# One UPDATE so each row is rounded from its current value under the row lock:
+# a deduction committed while this runs cannot be overwritten with a stale copy.
+ROUND_FLOAT_LIMITS_REMAINING = """
+    UPDATE stripe_planaddon
+    SET limits_remaining = (
+        SELECT jsonb_object_agg(
+            e.key,
+            CASE
+                WHEN jsonb_typeof(e.value) = 'number'
+                THEN to_jsonb(round(e.value::text::numeric)::int)
+                ELSE e.value
+            END
+        )
+        FROM jsonb_each(limits_remaining) e
+    )
+    WHERE EXISTS (
+        SELECT 1
+        FROM jsonb_each(limits_remaining) e
+        WHERE jsonb_typeof(e.value) = 'number'
+        AND strpos(e.value::text, '.') > 0
+    )
+"""
 
 
 class Migration(migrations.Migration):
@@ -26,5 +33,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(round_float_limits_remaining, migrations.RunPython.noop),
+        migrations.RunSQL(ROUND_FLOAT_LIMITS_REMAINING, migrations.RunSQL.noop),
     ]
