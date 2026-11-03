@@ -362,6 +362,25 @@ class ProjectViewsApiTestCase(BaseTestCase):
         assert org_esp['status'] == 'private'
         assert results[self.asset_org_fra.uid]['status'] == 'shared'
 
+    def test_extra_fields_separate_latest_version_from_deployed_version(self):
+        """
+        A version saved after the deployment changes `version_id`, while
+        `deployed_version_id` still identifies the form that is deployed
+        """
+
+        url = self._login_superuser_on_org_view()
+        asset = self._create_deployed_asset(self.admin_user)
+        deployed_version_uid = asset.latest_version.uid
+        new_version = asset.create_version()
+        assert new_version.uid != deployed_version_uid
+
+        response = self.client.get(url, {'extra_fields': 'on'})
+        assert response.status_code == status.HTTP_200_OK
+        results = {row['uid']: row for row in response.data['results']}
+
+        assert results[asset.uid]['version_id'] == new_version.uid
+        assert results[asset.uid]['deployed_version_id'] == deployed_version_uid
+
     def test_extra_fields_ignored_without_superuser_or_param(self):
         extra_fields = {
             'status',
