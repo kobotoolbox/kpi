@@ -20687,6 +20687,9 @@ components:
         is_mmo:
           type: boolean
           readOnly: true
+        has_pending_ownership_transfer:
+          type: boolean
+          readOnly: true
         request_user_role:
           allOf:
           - $ref: '#/components/schemas/MemberRoleEnum'
@@ -20715,6 +20718,7 @@ components:
       - asset_usage
       - assets
       - created
+      - has_pending_ownership_transfer
       - id
       - is_mmo
       - is_owner

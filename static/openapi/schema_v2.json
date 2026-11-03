@@ -28880,6 +28880,10 @@
                         "type": "boolean",
                         "readOnly": true
                     },
+                    "has_pending_ownership_transfer": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
                     "request_user_role": {
                         "allOf": [
                             {
@@ -28917,6 +28921,7 @@
                     "asset_usage",
                     "assets",
                     "created",
+                    "has_pending_ownership_transfer",
                     "id",
                     "is_mmo",
                     "is_owner",
