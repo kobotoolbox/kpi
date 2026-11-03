@@ -1940,12 +1940,7 @@ ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
-if os.environ.get('ALLAUTH_TRUSTED_PROXY_COUNT') is None:
-    warnings.warn(
-        'No trusted proxy count set; defaulting to 1. '
-        'Set ALLAUTH_TRUSTED_PROXY_COUNT to ensure correct ip determination.'
-    )
-ALLAUTH_TRUSTED_PROXY_COUNT = env.int('ALLAUTH_TRUSTED_PROXY_COUNT', 1)
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
