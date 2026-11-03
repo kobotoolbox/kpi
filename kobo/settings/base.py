@@ -1941,11 +1941,6 @@ ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
 
-# trusted IP client header takes precedence over proxy count.
-# proxy count always reads from X-Forwarded-For
-ALLAUTH_TRUSTED_PROXY_COUNT = env.int('ALLAUTH_TRUSTED_PROXY_COUNT', 2)
-ALLAUTH_TRUSTED_CLIENT_IP_HEADER = env.str('ALLAUTH_TRUSTED_CLIENT_IP_HEADER', None)
-
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
