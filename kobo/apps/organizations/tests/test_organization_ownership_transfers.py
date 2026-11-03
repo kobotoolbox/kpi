@@ -495,6 +495,19 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             str(owner_res.data['detail']), str(CANNOT_CHANGE_OWNER_ROLE_ERROR)
         )
 
+        # Cannot reassign member's user via PATCH without `role`
+        member_user_url = reverse(
+            self._get_endpoint('user-kpi-detail'),
+            kwargs={'username': self.member_user.username},
+        )
+        reassign_res = self.client.patch(
+            admin_detail_url, data={'user': member_user_url}
+        )
+        self.assertEqual(reassign_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            reassign_res.data['user__username'], self.admin_user.username
+        )
+
         # Once transfer resolves, admin role can be changed
         transfer = OrganizationOwnershipTransfer.objects.first()
         transfer.status = OrganizationInviteStatusChoices.DECLINED
