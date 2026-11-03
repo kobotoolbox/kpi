@@ -13,9 +13,7 @@ from django.http import (
     StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
-from django.template import loader
 from django.utils.translation import gettext as t
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -23,7 +21,6 @@ from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.logger.import_tools import import_instances_from_zip
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.logger_tools import (
-    BaseOpenRosaResponse,
     response_with_mimetype_and_name,
 )
 from kobo.apps.openrosa.libs.utils.user_auth import (
@@ -36,17 +33,9 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from ...koboform.pyxform_utils import convert_csv_to_xls
 
-IO_ERROR_STRINGS = ['request data read error', 'error during read(65536) on wsgi.input']
-
-
-def _bad_request(e):
-    strerror = str(e)
-
-    return strerror and strerror in IO_ERROR_STRINGS
-
 
 def _extract_uuid(text):
-    text = text[text.find('@key='): -1].replace('@key=', '')
+    text = text[text.find('@key=') : -1].replace('@key=', '')
     if text.startswith('uuid:'):
         text = text.replace('uuid:', '')
     return text
@@ -59,28 +48,17 @@ def _parse_int(num):
         pass
 
 
-def _submission_response(request, instance):
-    data = {
-        'message': t('Successful submission.'),
-        'formid': instance.xform.id_string,
-        'encrypted': instance.xform.encrypted,
-        'instanceID': f'uuid:{instance.uuid}',
-        'submissionDate': instance.date_created.isoformat(),
-        'markedAsCompleteDate': instance.date_modified.isoformat(),
-    }
-
-    template_ = loader.get_template('submission.xml')
-
-    return BaseOpenRosaResponse(template_.render(data, request=request))
-
-
 @require_POST
-@csrf_exempt
+@login_required
 def bulksubmission(request, username):
     # puts it in a temp directory.
     # runs "import_tools(temp_directory)"
     # deletes
-    posting_user = get_object_or_404(User, username__iexact=username)
+
+    posting_user = request.user
+
+    if posting_user.username.lower() != username.lower():
+        return HttpResponseForbidden()
 
     # request.FILES is a django.utils.datastructures.MultiValueDict
     # for each key we have a list of values
@@ -111,7 +89,9 @@ def bulksubmission(request, username):
         f.write(postfile.read())
 
     with open(our_tfpath, 'rb') as f:
-        total_count, success_count, errors = import_instances_from_zip(f, posting_user)
+        total_count, success_count, errors = import_instances_from_zip(
+            f, request=request
+        )
     # chose the try approach as suggested by the link below
     # http://stackoverflow.com/questions/82831
     try:

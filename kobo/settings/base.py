@@ -1059,7 +1059,6 @@ MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 MARKDOWNX_UPLOAD_CONTENT_TYPES = [
     'image/jpeg',
     'image/png',
-    'image/svg+xml',
     'image/gif',
     'image/webp',
 ]
@@ -1110,7 +1109,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.LimitedCountPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -2291,6 +2290,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 # to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
+# Maximum allowed size (in bytes) of the `choices` sheet in an XLSForm
+MAX_CHOICES_SIZE_BYTES = env.int('MAX_CHOICES_SIZE_BYTES', 2 * 1024 * 1024)
+
 # OpenRosa setting in bytes
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
@@ -2528,6 +2530,9 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+# Same, for the XPaths of a single form version. A version never changes, so
+# its entry can live much longer than the one that merges all versions
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 30 * 86400
 
 # Cache time-to-live (in seconds) for the survey question types and default
 # language used by NLP actions

@@ -2,17 +2,18 @@ import type { Decorator, Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, within } from 'storybook/test'
 import { type Canvas, field } from '#/auth/authStoryHelpers'
 import { environmentResponse } from '#/endpoints/environment.mocks'
-import type { UserMetadataField } from '#/envStore'
-import { seedEnvStore } from '#/envStore.mocks'
 import type { AccountFieldsValues } from './account.constants'
-import { getInitialAccountFieldsValues, isUserFieldName } from './account.utils'
+import { getAccountFieldsConfig, getInitialAccountFieldsValues } from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
 
 /** The default `/environment` fields plus `gender`, which it leaves out. */
-const EVERY_FIELD: UserMetadataField[] = [
-  ...environmentResponse.user_metadata_fields.filter((item): item is UserMetadataField => isUserFieldName(item.name)),
-  { name: 'gender', required: false, label: 'Gender' },
-]
+const EVERY_FIELD_CONFIG = getAccountFieldsConfig({
+  ...environmentResponse,
+  user_metadata_fields: [
+    ...environmentResponse.user_metadata_fields,
+    { name: 'gender', required: false, label: 'Gender' },
+  ],
+})
 
 const values = (overrides: Partial<AccountFieldsValues> = {}): AccountFieldsValues => ({
   ...getInitialAccountFieldsValues(),
@@ -26,10 +27,10 @@ const meta: Meta<typeof AccountFieldsEditor> = {
   title: 'Components/AccountFieldsEditor',
   component: AccountFieldsEditor,
   args: {
+    fieldsConfig: EVERY_FIELD_CONFIG,
     values: values(),
     onFieldChange: fn(),
   },
-  beforeEach: seedEnvStore({ user_metadata_fields: EVERY_FIELD }),
   decorators: [twoColumnDecorator],
 }
 

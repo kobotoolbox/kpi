@@ -3,7 +3,6 @@ import os
 import re
 import traceback
 import zipfile
-from datetime import datetime
 from mimetypes import guess_type
 from tempfile import NamedTemporaryFile
 
@@ -20,21 +19,9 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.utils.storage import is_filesystem_storage
 
-SLASH = '/'
-
-
-class MyError(Exception):
-    pass
-
 
 class EnketoError(Exception):
     pass
-
-
-def format_date_for_mongo(x):
-    return datetime.strptime(x, '%y_%m_%d_%H_%M_%S').strftime(
-        '%Y-%m-%dT%H:%M:%S'
-    )
 
 
 def get_mongo_userform_id(xform: 'logger.XForm', username: str = None) -> str:
@@ -53,22 +40,6 @@ def get_optimized_image_path(path: str, suffix: str) -> str:
     if mimetype in UNSUPPORTED_INLINE_MIMETYPES:
         ext = '.jpg'
     return f'{file_name}-{suffix}{ext}'
-
-
-def image_urls_dict(instance):
-    """
-    Returns a dict of attachments with keys as base filename
-    and values link through `kobocat` redirector.
-    Only exposes `suffix` version of it. It will be created on the fly by the
-    redirector
-
-    :param instance: Instance
-    :return: dict
-    """
-    urls = dict()
-    for a in instance.attachments.all():
-        urls[a.filename] = a.secure_url(suffix='medium')
-    return urls
 
 
 def report_exception(subject, info, exc_info=None):
@@ -269,28 +240,3 @@ def create_attachments_zipfile(attachments, output_file=None):
                     )
 
     return output_file
-
-
-def _get_form_url(username):
-    if settings.TESTING:
-        http_host = 'http://{}'.format(settings.TEST_HTTP_HOST)
-        username = settings.TEST_USERNAME
-    else:
-        # Always use a public url to prevent Enketo SSRF from blocking request
-        http_host = settings.KOBOCAT_URL
-
-    # Internal requests use the public url, KOBOCAT_URL already has the protocol
-    return '{http_host}/{username}'.format(
-        http_host=http_host,
-        username=username
-    )
-
-
-def get_enketo_submission_url(request, instance, return_url, action=None):
-    form_url = _get_form_url(instance.xform.user.username)
-    instance_attachments = image_urls_dict(instance)
-    url = enketo_url(
-        form_url, instance.xform.id_string, instance_xml=instance.xml,
-        instance_id=instance.uuid, return_url=return_url,
-        instance_attachments=instance_attachments, action=action)
-    return url
