@@ -4,10 +4,6 @@ from rest_framework import serializers
 from .schema import ROLE_CHOICES_ENUM
 
 
-class InviteField(serializers.JSONField):
-    pass
-
-
 class MemberUrlField(serializers.JSONField):
     pass
 

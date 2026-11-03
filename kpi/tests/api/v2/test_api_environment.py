@@ -18,8 +18,8 @@ from kobo.apps.accounts.models import SocialAppCustomData, SocialAppManagedDomai
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from kpi.tests.utils.mixins import RequiresStripeAPIKeyMixin
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.markdown import markdownify
 
 

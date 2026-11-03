@@ -179,14 +179,6 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         return role
 
 
-class OrganizationOwnerSerializer(serializers.ModelSerializer):
-    organization_user = OrganizationUserSerializer()
-
-    class Meta:
-        model = OrganizationOwner
-        fields = ['organization_user']
-
-
 class OrganizationSerializer(serializers.ModelSerializer):
 
     assets = serializers.SerializerMethodField()
