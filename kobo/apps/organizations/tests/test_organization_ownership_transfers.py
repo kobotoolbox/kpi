@@ -245,7 +245,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         expected_org_param = f'organization_id={self.organization.id}'
 
         billing_notice = (
-            "The current owner has requested that you review and confirm the "
+            'The current owner has requested that you review and confirm the '
             "team's billing details upon accepting this transfer."
         )
 
