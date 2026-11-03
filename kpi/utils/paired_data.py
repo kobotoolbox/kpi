@@ -2,6 +2,7 @@ import re
 from typing import Optional
 
 from django.core.files.base import ContentFile
+from django.db import IntegrityError, transaction
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models.asset_file import AssetFile
@@ -24,7 +25,8 @@ def build_and_save_paired_data_xml(
     Saves the result to `asset_file` and syncs the hash to the deployment
     backend if there are submissions and the content has changed. Returns the
     generated XML string regardless (including the empty-submissions case,
-    which is returned as-is without saving so it is not cached).
+    which is returned as-is without saving so it is not cached, and the case of
+    a concurrent request that has created the row first).
     """
     submissions = source_asset.deployment.get_submissions(
         asset.owner,
@@ -69,16 +71,40 @@ def build_and_save_paired_data_xml(
 
     filename = paired_data.filename
 
-    # Delete the current file when the filename has changed to avoid leaving
-    # an orphan file on storage.
-    if asset_file.pk and asset_file.content and asset_file.content.name != filename:
-        asset_file.content.delete()
-
-    asset_file.content = ContentFile(xml_.encode(), name=filename)
-    asset_file.set_md5_hash(calculate_hash(xml_, prefix=True))
-    asset_file.save()
+    # Lock the row only while the file is swapped, not while submissions are
+    # fetched. `asset_file` may have been loaded long ago, so read the current
+    # file name from the locked row to delete exactly what gets replaced.
+    # Readers do not take this lock and keep serving the current file.
+    previous_name = None
+    try:
+        with transaction.atomic():
+            if asset_file.pk:
+                previous_name = (
+                    AssetFile.objects.select_for_update()
+                    .filter(pk=asset_file.pk)
+                    .values_list('content', flat=True)
+                    .first()
+                )
+            asset_file.content = ContentFile(xml_.encode(), name=filename)
+            asset_file.set_md5_hash(calculate_hash(xml_, prefix=True))
+            asset_file.save()
+    except IntegrityError:
+        # The only expected case is a duplicate `uid`: a concurrent request has
+        # created the row first, and it takes care of the backend sync. Remove
+        # the upload of this request, unless both requests wrote to the same key.
+        existing_file = AssetFile.objects.filter(uid=asset_file.uid).first()
+        if asset_file.pk or not existing_file:
+            raise
+        if asset_file.content.name != existing_file.content.name:
+            asset_file.content.storage.delete(asset_file.content.name)
+        return xml_
 
     if old_hash != asset_file.md5_hash:
         asset.deployment.sync_media_files(AssetFile.PAIRED_DATA)
+
+    # Delete the replaced file only once the row points to the new one, so that
+    # a concurrent request can still read it until then.
+    if previous_name and previous_name != asset_file.content.name:
+        asset_file.content.storage.delete(previous_name)
 
     return xml_
