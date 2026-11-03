@@ -1035,7 +1035,7 @@ class OrganizationOwnershipTransferViewSet(
         queryset = OrganizationOwnershipTransfer.objects.filter(
             organization_id=organization_id
         ).select_related(
-            'sender__extra_details', 'recipient__extra_details', 'organization'
+            'sender__extra_details', 'recipient', 'organization'
         )
 
         if self.action == 'list':
