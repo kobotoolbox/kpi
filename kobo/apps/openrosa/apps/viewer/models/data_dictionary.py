@@ -16,11 +16,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     get_abbreviated_xpath,
 )
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMISSION_TIME, UUID
-from kobo.apps.openrosa.libs.utils.export_tools import (
-    DictOrganizer,
-    question_types_to_exclude,
-)
-from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kobo.apps.openrosa.libs.utils.export_tools import question_types_to_exclude
+from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
 from kpi.constants import DEFAULT_SURVEY_NAME
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.pyxform_compatibility import NamedBytesIO
@@ -150,14 +147,6 @@ class DataDictionary(XForm):
             '<label></label>', inline_output)
         self.xml = inline_output
 
-    def add_instances(self):
-        if not hasattr(self, '_dict_organizer'):
-            _dict_organizer = DictOrganizer()
-        obs = []
-        for d in self.get_list_of_parsed_instances(flat=False):
-            obs.append(_dict_organizer.get_observation_from_dict(d))
-        return obs
-
     def save(self, *args, **kwargs):
         if self.xls:
             xls_io = NamedBytesIO.fromfieldfile(self.xls)
@@ -191,28 +180,6 @@ class DataDictionary(XForm):
     def get_survey_elements(self):
         return self.survey.iter_descendants()
 
-    def get_survey_element(self, name_or_xpath):
-        element = self.get_element(name_or_xpath)
-        name = (element and element['name']) or name_or_xpath
-
-        for field in self.get_survey_elements():
-            if field.name == name:
-                return field
-
-        return None
-
-    def get_choice_label(self, field, choice_value, lang='English'):
-        for choice in field.children:
-            if choice.name == choice_value:
-                label = choice.label
-
-                if isinstance(label, dict):
-                    label = label.get(lang, list(choice.label.values())[0])
-
-                return label
-
-        return choice_value
-
     def get_mongo_field_names_dict(self):
         """
         Return a dictionary of fieldnames as saved in mongodb with
@@ -235,11 +202,6 @@ class DataDictionary(XForm):
                 geo_xpaths.append(get_abbreviated_xpath(e))
 
         return geo_xpaths
-
-    def xpath_of_first_geopoint(self):
-        geo_xpaths = self.geopoint_xpaths()
-
-        return len(geo_xpaths) > 0 and geo_xpaths[0]
 
     def has_instances_with_geopoints(self):
         return self.geocoded_submission_count() > 0
@@ -324,12 +286,6 @@ class DataDictionary(XForm):
             header_list += self._additional_headers()
         return header_list
 
-    def get_keys(self):
-        def remove_first_index(xpath):
-            return re.sub(r'\[1\]', '', xpath)
-
-        return [remove_first_index(header) for header in self.get_headers()]
-
     def get_element(self, abbreviated_xpath):
         if not hasattr(self, '_survey_elements'):
             self._survey_elements = {}
@@ -347,86 +303,6 @@ class DataDictionary(XForm):
         # TODO: think about multiple language support
         if e:
             return e.label
-
-    def get_xpath_cmp(self):
-        if not hasattr(self, '_xpaths'):
-            self._xpaths = [get_abbreviated_xpath(e) for e in self.survey_elements]
-
-        def xpath_cmp(x, y):
-            # For the moment, we aren't going to worry about repeating
-            # nodes.
-            new_x = re.sub(r'\[\d+\]', '', x)
-            new_y = re.sub(r'\[\d+\]', '', y)
-            if new_x == new_y:
-                return cmp(x, y)
-            if new_x not in self._xpaths and new_y not in self._xpaths:
-                return 0
-            elif new_x not in self._xpaths:
-                return 1
-            elif new_y not in self._xpaths:
-                return -1
-            return cmp(self._xpaths.index(new_x), self._xpaths.index(new_y))
-
-        return xpath_cmp
-
-    def get_variable_name(self, abbreviated_xpath):
-        """
-        If the abbreviated_xpath has been renamed in
-        self.variable_names_json return that new name, otherwise
-        return the original abbreviated_xpath.
-        """
-        if not hasattr(self, '_keys'):
-            self._keys = self.get_keys()
-        if not hasattr(self, '_headers'):
-            self._headers = self.get_headers()
-
-        assert abbreviated_xpath in self._keys, abbreviated_xpath
-        i = self._keys.index(abbreviated_xpath)
-        header = self._headers[i]
-
-        if not hasattr(self, '_variable_names'):
-            self._variable_names = ColumnRename.get_dict()
-            assert type(self._variable_names) == dict
-
-        if header in self._variable_names and self._variable_names[header]:
-            return self._variable_names[header]
-        return header
-
-    def get_list_of_parsed_instances(self, flat=True):
-        for i in queryset_iterator(self.instances_for_export(self)):
-            # TODO: there is information we want to add in parsed xforms.
-            yield i.get_dict(flat=flat)
-
-    def _rename_key(self, d, old_key, new_key):
-        assert new_key not in d, d
-        d[new_key] = d[old_key]
-        del d[old_key]
-
-    def _expand_select_all_that_apply(self, d, key, e):
-        if e and e.bind.get('type') == 'select':
-            options_selected = d[key].split()
-            for i, child in enumerate(e.children):
-                new_key = get_abbreviated_xpath(child)
-                if child.name in options_selected:
-                    d[new_key] = True
-                else:
-                    d[new_key] = False
-            del d[key]
-
-    def _expand_geocodes(self, d, key, e):
-        if e and e.bind.get('type') == 'geopoint':
-            geodata = d[key].split()
-            for i in range(len(geodata)):
-                new_key = '%s_%s' % (key, self.geodata_suffixes[i])
-                d[new_key] = geodata[i]
-
-    def get_data_for_excel(self):
-        for d in self.get_list_of_parsed_instances():
-            for key in d.keys():
-                e = self.get_element(key)
-                self._expand_select_all_that_apply(d, key, e)
-                self._expand_geocodes(d, key, e)
-            yield d
 
     def mark_start_time_boolean(self):
         starttime_substring = 'jr:preloadParams="start"'

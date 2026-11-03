@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 17:49+0000\n"
+"POT-Creation-Date: 2026-11-03 12:57+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Jiří Podhorecký <jirka.p@volny.cz>, 2021-2026\n"
 "Language-Team: Czech (http://app.transifex.com/kobotoolbox/kobotoolbox/language/cs/)\n"
@@ -2248,15 +2248,15 @@ msgstr ""
 msgid "Invalid request"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:445
+#: kobo/apps/organizations/models.py:471
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -3054,140 +3054,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Pro tento účet je povoleno vícefaktorové ověřování. "
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:331
 msgid "Can view asset"
 msgstr "Může zobrazit položku"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:332
 msgid "Can discover asset in public lists"
 msgstr "Může nalézt položku ve veřejných seznamech"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:333
 msgid "Can manage all aspects of asset"
 msgstr "Může spravovat všechny aspekty položky"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:335
 msgid "Can submit data to asset"
 msgstr "Může odeslat data do položky"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:336
 msgid "Can view submitted data for asset"
 msgstr "Může zobrazit odeslaná data pro položku"
 
-#: kpi/models/asset.py:314
+#: kpi/models/asset.py:337
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Může provádět dílčí akce na odeslaných datech pro položku pro konkrétní uživatele"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:340
 msgid "Can modify submitted data for asset"
 msgstr "Může upravit odeslaná data pro položku"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:341
 msgid "Can delete submitted data for asset"
 msgstr "Může vymazat odeslaná data pro položku"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:342
 msgid "Can validate submitted data asset"
 msgstr "Může ověřit platnost odeslaných dat pro položku"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "project"
 msgstr "projekt"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "form"
 msgstr "formulář"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:363
 msgid "template"
 msgstr "šablona"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:364
 msgid "block"
 msgstr "blok"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:365
 msgid "question"
 msgstr "otázka"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:366
 msgid "text"
 msgstr "text"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:367
 msgid "empty"
 msgstr "prázdný"
 
-#: kpi/models/asset.py:345
+#: kpi/models/asset.py:368
 msgid "collection"
 msgstr "sbírka"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:375
 msgid "View ##asset_type_label##"
 msgstr "Zobrazit ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:376
 msgid "Edit ##asset_type_label##"
 msgstr "Upravit ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:377
 msgid "Discover ##asset_type_label##"
 msgstr "Prozkoumat ##asset_type_label##"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:378
 msgid "Manage ##asset_type_label##"
 msgstr "Spravovat ##asset_type_label##"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:379
 msgid "Add submissions"
 msgstr "Přidat odeslaná data z formuláře"
 
-#: kpi/models/asset.py:357
+#: kpi/models/asset.py:380
 msgid "View submissions"
 msgstr "Prohlížet odeslaná data z formuláře"
 
-#: kpi/models/asset.py:360
+#: kpi/models/asset.py:383
 msgid "Act on submissions only from specific users"
 msgstr "Reagovat na odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:386
 msgid "View submissions only from specific users"
 msgstr "Prohlížet odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:389
 msgid "Edit submissions only from specific users"
 msgstr "Upravit odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:392
 msgid "Delete submissions only from specific users"
 msgstr "Vymazat odeslaná data z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:395
 msgid "Validate submissions only from specific users"
 msgstr "Ověřit platnost odeslaných dat z formuláře pouze od konkrétních uživatelů"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:398
 msgid "Edit submissions"
 msgstr "Upravit odeslaná data z formuláře"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:399
 msgid "Delete submissions"
 msgstr "Smazat odeslaná data z formuláře"
 
-#: kpi/models/asset.py:377
+#: kpi/models/asset.py:400
 msgid "Validate submissions"
 msgstr "Ověřit platnost odeslaných dat z formuláře"
 
-#: kpi/models/asset.py:734
+#: kpi/models/asset.py:768
 msgid "Only partial permissions for submissions are supported"
 msgstr "Jsou podporována pouze dílčí oprávnění pro odeslaná data z formuláře"
 
-#: kpi/models/asset.py:1463
+#: kpi/models/asset.py:1497
 msgid "Can not assign '{}' permission to owner"
 msgstr "Nelze přidělit oprávnění '{}' vlastníkovi"
 
-#: kpi/models/asset.py:1467
+#: kpi/models/asset.py:1501
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Nelze přidělit oprávnění '{}'. Dílčí oprávnění chybí."
 

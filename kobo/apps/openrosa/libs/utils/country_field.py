@@ -1,5 +1,4 @@
 # coding: utf-8
-from django.db import models
 from django.utils.translation import gettext_lazy as t
 
 # http://www.unece.org/cefact/locode/service/location.html
@@ -121,13 +120,13 @@ COUNTRIES = (
     ('KZ', t('Kazakhstan')),
     ('KE', t('Kenya')),
     ('KI', t('Kiribati')),
-    ('KP', t('Korea, Democratic People\'s Republic of')),
+    ('KP', t("Korea, Democratic People's Republic of")),
     ('KR', t('Korea, Republic of')),
     # see http://geonames.wordpress.com/2010/03/08/xk-country-code-for-kosovo/
     ('XK', t('Kosovo')),
     ('KW', t('Kuwait')),
     ('KG', t('Kyrgyzstan')),
-    ('LA', t('Lao People\'s Democratic Republic')),
+    ('LA', t("Lao People's Democratic Republic")),
     ('LV', t('Latvia')),
     ('LB', t('Lebanon')),
     ('LS', t('Lesotho')),
@@ -255,15 +254,3 @@ COUNTRIES = (
     ('ZW', t('Zimbabwe')),
     ('ZZ', t('Unknown or unspecified country')),
 )
-
-
-class CountryField(models.CharField):
-
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('maxlength', 2)
-        kwargs.setdefault('choices', COUNTRIES)
-
-        super().__init__(*args, **kwargs)
-
-    def get_internal_type(self):
-        return "CharField"

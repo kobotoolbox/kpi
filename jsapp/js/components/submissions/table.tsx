@@ -1,6 +1,8 @@
 import './table.scss'
 import { Stack } from '@mantine/core'
+import cx from 'classnames'
 import isEqual from 'lodash.isequal'
+import throttle from 'lodash.throttle'
 import React from 'react'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
@@ -11,6 +13,7 @@ import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
+import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -45,6 +48,7 @@ import {
   CELLS_WIDTH_OVERRIDES,
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
+  MAX_FROZEN_WIDTH_RATIO,
   SUBMISSION_ACTIONS_ID,
   SortValues,
   VALIDATION_STATUS_ID_PROP,
@@ -134,6 +138,8 @@ interface DataTableState {
   fetchInstance?: ReactTableInstance
   lastChecked: string | null
   shiftSelection: DataTableSelectedRows
+  /** Too wide frozen columns don't stay in place, see `positionFrozenColumns`. */
+  areFrozenColumnsTooWide: boolean
 }
 
 /**
@@ -180,6 +186,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
+      areFrozenColumnsTooWide: false,
     }
   }
 
@@ -205,6 +212,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted.bind(this)),
       actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted.bind(this)),
     )
+
+    // A narrower table may no longer fit the frozen columns.
+    const onWindowResize = throttle(() => this.positionFrozenColumns(), 100)
+    window.addEventListener('resize', onWindowResize)
+    this.unlisteners.push(() => {
+      onWindowResize.cancel()
+      window.removeEventListener('resize', onWindowResize)
+    })
   }
 
   componentWillUnmount() {
@@ -239,6 +254,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+
+    // Re-renders may change frozen columns or drop the classes added in there.
+    // ReactTable renders new columns in its own update after this one, so we
+    // wait a frame.
+    window.requestAnimationFrame(() => this.positionFrozenColumns())
   }
 
   /** @param submissionRootUuids - From `getSubmissionRootUuid`, matching what bulk actions report. */
@@ -582,10 +602,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       const elClassNames = ['rt-sub-actions', 'is-frozen']
-      const frozenColumn = tableStore.getFrozenColumn()
-      if (!frozenColumn) {
-        elClassNames.push('is-last-frozen')
-      }
 
       return {
         Header: () => (
@@ -887,9 +903,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       return false
     })
 
-    // NOTE: frozen column stays where it is on the list, it is being moved to
-    // the beginning of table using CSS styling.
-    const frozenColumn = tableStore.getFrozenColumn()
+    // NOTE: frozen columns stay where they are on the list, they are being
+    // moved to the beginning of table using CSS styling.
+    const frozenColumns = tableStore.getFrozenColumns()
 
     columnsToRender.forEach((col: TableColumn) => {
       const columnQuestion = col.question
@@ -908,28 +924,24 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.Filter = TableTextFilter
       }
 
-      // Ensure frozen columns stay correctly aligned to the left, even after
-      // scrolling or reloads.
-      if (col.className?.includes('frozen')) {
-        col.style = { ...col.style, left: this.frozenLeftRef }
+      if (frozenColumns.includes(col.id)) {
+        col.className = cx('is-frozen', col.className)
+        col.headerClassName = cx('is-frozen', col.headerClassName)
       }
 
-      if (frozenColumn === col.id) {
-        col.className = col.className ? `is-frozen is-last-frozen ${col.className}` : 'is-frozen is-last-frozen'
-        col.headerClassName = col.headerClassName
-          ? `is-frozen is-last-frozen ${col.headerClassName}`
-          : 'is-frozen is-last-frozen'
+      // Ensure frozen columns stay correctly aligned to the left, even after
+      // scrolling or reloads. Header and filter cells use `headerStyle`.
+      if (col.className?.includes('is-frozen')) {
         col.style = { ...col.style, left: this.frozenLeftRef }
+        col.headerStyle = { ...col.headerStyle, left: this.frozenLeftRef }
       }
     })
 
     // prepare list of selected columns, if configured
     const selectedColumnsIds = tableStore.getSelectedColumns()
     if (selectedColumnsIds) {
-      // always include frozenColumn, if set
-      if (frozenColumn && !selectedColumnsIds.includes(frozenColumn)) {
-        selectedColumnsIds.unshift(frozenColumn)
-      }
+      // always include frozen columns
+      selectedColumnsIds.unshift(...frozenColumns.filter((id) => !selectedColumnsIds.includes(id)))
 
       columnsToRender = columnsToRender.filter((el) => {
         // always include checkbox column
@@ -938,6 +950,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         }
         return Boolean(el.id && selectedColumnsIds.includes(el.id) !== false)
       })
+    }
+
+    // Only the last frozen column (the checkbox one if none) gets the border and
+    // shadow. CSS `order` keeps list order, so last here is last on screen.
+    const lastFrozenColumn = [...columnsToRender].reverse().find((col) => col.className?.includes('is-frozen'))
+    if (lastFrozenColumn) {
+      lastFrozenColumn.className = cx(lastFrozenColumn.className, 'is-last-frozen')
+      lastFrozenColumn.headerClassName = cx(lastFrozenColumn.headerClassName, 'is-last-frozen')
     }
 
     this.setState({
@@ -1214,21 +1234,38 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // We need this check, because when scrolling vertically, the scrollLeft
     // property is always `0` (which seems like a browser bug).
     if (this.tableScrollTop === eventTarget.scrollTop) {
-      const left = eventTarget.scrollLeft > 0 ? eventTarget.scrollLeft : 0
-      const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen')
-
-      if (left >= 1) {
-        $frozenColumnCells.addClass('is-scrolled-horizontally')
-      } else {
-        $frozenColumnCells.removeClass('is-scrolled-horizontally')
-      }
-
-      $frozenColumnCells.css({ left: left })
-
-      // Save the reference position for the frozen column's left offset.
-      this.frozenLeftRef = left
+      this.positionFrozenColumns()
     } else {
       this.tableScrollTop = eventTarget.scrollTop
+    }
+  }
+
+  /** Keeps frozen columns in place while scrolling, unless they are too wide. */
+  positionFrozenColumns() {
+    const tableEl = $('.ReactTable .rt-table')[0]
+    if (!tableEl) {
+      return
+    }
+
+    const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen')
+    const frozenWidth = $('.ReactTable .rt-thead.-header .is-frozen')
+      .toArray()
+      .reduce((sum, el) => sum + el.offsetWidth, 0)
+    // Too wide frozen columns would cover everything, so we let them scroll
+    // like regular ones.
+    const isPinned = frozenWidth <= tableEl.clientWidth * MAX_FROZEN_WIDTH_RATIO
+    const left = isPinned && tableEl.scrollLeft > 0 ? tableEl.scrollLeft : 0
+
+    $frozenColumnCells.toggleClass('is-scrolled-horizontally', left >= 1)
+    $frozenColumnCells.toggleClass('is-unpinned', !isPinned)
+    $frozenColumnCells.css({ left: left })
+
+    // Save the reference position for the frozen column's left offset.
+    this.frozenLeftRef = left
+
+    // Only on change, as this runs on every scroll.
+    if (this.state.areFrozenColumnsTooWide === isPinned) {
+      this.setState({ areFrozenColumnsTooWide: !isPinned })
     }
   }
 
@@ -1286,6 +1323,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             activeBulkActions={this.props.activeBulkActions || []}
             hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
+          {this.state.areFrozenColumnsTooWide && (
+            <Alert type='warning' iconName='warning'>
+              {t(
+                "Frozen fields don't fit in the table, so they scroll with the other fields. Make the window wider or unfreeze some fields.",
+              )}
+            </Alert>
+          )}
         </Stack>
 
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
@@ -1331,6 +1375,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <ReactTable
             data={this.state.submissions}
             columns={this.state.columns}
+            onResizedChange={() => this.positionFrozenColumns()}
             defaultPageSize={DEFAULT_PAGE_SIZE}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
             minRows={0}
