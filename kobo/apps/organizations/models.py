@@ -150,30 +150,6 @@ class Organization(AbstractOrganization):
             .first()
         )
 
-    @cache_for_request
-    def canceled_subscription_billing_cycle_anchor(self):
-        """
-        Returns cancelation date of most recently canceled subscription
-        """
-        # Only check for subscriptions if Stripe is enabled
-        if settings.STRIPE_ENABLED:
-            qs = (
-                Organization.objects.prefetch_related('djstripe_customers')
-                .filter(
-                    djstripe_customers__subscriptions__status='canceled',
-                    djstripe_customers__subscriber=self.id,
-                )
-                .order_by('-djstripe_customers__subscriptions__ended_at')
-                .values(
-                    anchor=F('djstripe_customers__subscriptions__ended_at'),
-                )
-                .first()
-            )
-            if qs:
-                return qs['anchor']
-
-        return None
-
     @property
     def email(self):
         """
@@ -201,6 +177,32 @@ class Organization(AbstractOrganization):
         )
 
         return org
+
+    @staticmethod
+    def get_mmo_ids(organizations: list['Organization']) -> set[str]:
+        """
+        Return the ids of the multi-member organizations among `organizations`.
+
+        Organizations without a Stripe customer cannot have a subscription, so
+        `is_mmo` only runs its query for the others.
+        """
+
+        mmo_ids = {org.id for org in organizations if org.mmo_override}
+        if not settings.STRIPE_ENABLED:
+            return mmo_ids
+
+        candidates = [org for org in organizations if not org.mmo_override]
+        # Skipping the organizations without a Stripe customer costs one query,
+        # which only pays off with several organizations
+        if len(candidates) > 1:
+            with_customer_ids = set(
+                Customer.objects.filter(
+                    subscriber_id__in=[org.id for org in candidates]
+                ).values_list('subscriber_id', flat=True)
+            )
+            candidates = [org for org in candidates if org.id in with_customer_ids]
+
+        return mmo_ids | {org.id for org in candidates if org.is_mmo}
 
     @cache_for_request
     def get_user_role(self, user: 'User') -> OrganizationRole:

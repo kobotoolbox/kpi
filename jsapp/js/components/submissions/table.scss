@@ -9,8 +9,16 @@
 
 $data-table-border: 1px solid colors.$kobo-gray-300;
 $data-table-row-height: 36px;
-$c-header-bg: colors.$kobo-gray-200;
 $s-data-table-font: 13px;
+
+$c-header-bg: colors.$kobo-gray-200;
+$c-row-hover-bg: colors.$kobo-gray-100;
+$c-frozen-light-bg: color.adjust(colors.$kobo-light-blue, $lightness: 6%);
+$c-frozen-dark-bg: color.adjust(colors.$kobo-light-blue, $lightness: 2%);
+$c-frozen-hover-bg: color.adjust(colors.$kobo-light-blue, $lightness: 4%);
+$c-sorted-light-bg: color.adjust(colors.$kobo-light-teal, $lightness: 8%);
+$c-sorted-dark-bg: color.adjust(colors.$kobo-light-teal, $lightness: 4%);
+$c-sorted-hover-bg: color.adjust(colors.$kobo-light-teal, $lightness: 6%);
 
 .form-view__sidetabs + .form-view.form-view--table {
   overflow-x: hidden;
@@ -353,10 +361,18 @@ $s-data-table-font: 13px;
   }
 
   &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-    background: colors.$kobo-gray-100;
+    background: $c-row-hover-bg;
 
     .rt-td.is-frozen {
-      background-color: inherit;
+      background-color: $c-frozen-hover-bg;
+    }
+
+    .rt-td.is-frozen.rt-sub-actions {
+      background-color: $c-row-hover-bg;
+    }
+
+    .rt-td.is-sorted {
+      background-color: $c-sorted-hover-bg;
     }
   }
 
@@ -386,8 +402,10 @@ $s-data-table-font: 13px;
     z-index: z-indexes.$z-data-table-frozen-column + 11;
   }
 
+  // Frozen columns go first (in their usual order), right after the checkbox one.
   .rt-th.is-frozen,
   .rt-td.is-frozen {
+    order: -1;
     z-index: z-indexes.$z-data-table-frozen-column;
     position: relative;
     left: 0;
@@ -423,26 +441,34 @@ $s-data-table-font: 13px;
   }
 
   .rt-th.is-frozen {
-    background-color: $c-header-bg;
+    background-color: $c-frozen-dark-bg;
   }
 
   .rt-td.is-frozen {
+    background-color: $c-frozen-light-bg;
+  }
+
+  .rt-th.is-frozen.rt-sub-actions {
+    background-color: $c-header-bg;
+  }
+
+  .rt-td.is-frozen.rt-sub-actions {
     background-color: colors.$kobo-white;
   }
 
-  .rt-th.is-frozen.is-last-frozen,
-  .rt-td.is-frozen.is-last-frozen {
-    order: -1;
+  // Unpinned (too wide) frozen columns look like regular ones.
+  .rt-th.is-frozen.is-last-frozen:not(.is-unpinned),
+  .rt-td.is-frozen.is-last-frozen:not(.is-unpinned) {
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }
 
   .rt-th.is-sorted {
-    background-color: color.adjust(colors.$kobo-light-teal, $lightness: 4%);
+    background-color: $c-sorted-dark-bg;
   }
 
   .rt-td.is-sorted {
-    background-color: color.adjust(colors.$kobo-light-teal, $lightness: 8%);
+    background-color: $c-sorted-light-bg;
   }
 
   // NOTE: submissions actions column is always frozen as first column
