@@ -76,11 +76,14 @@ from kpi.utils.schema_extensions.response import (
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.utils import mfa_is_active_expression
 from .constants import (
+    CANNOT_REMOVE_OWNER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
+    PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
+from .exceptions import InvalidMembershipRequest
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -813,8 +816,28 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         """
         Revoke asset permissions before deleting the user from the organization
         """
-        member = instance
         with transaction.atomic():
+            try:
+                member = (
+                    OrganizationUser.objects.select_for_update()
+                    .select_related('organization', 'user')
+                    .get(pk=instance.pk)
+                )
+            except OrganizationUser.DoesNotExist:
+                return
+
+            if member.organization.is_owner(member.user):
+                raise InvalidMembershipRequest(CANNOT_REMOVE_OWNER_ERROR)
+
+            if OrganizationOwnershipTransfer.objects.filter(
+                organization=member.organization,
+                recipient=member.user,
+                status=OrganizationInviteStatusChoices.PENDING,
+            ).exists():
+                raise InvalidMembershipRequest(
+                    PENDING_TRANSFER_MEMBER_REMOVAL_ERROR
+                )
+
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
 
