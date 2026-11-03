@@ -1068,8 +1068,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
     def _has_operation_in_progress(self, action_data: dict) -> bool:
         """
-        Return whether the stored data targeted by `action_data` is an
-        external operation that already started and is still running
+        Return whether `action_data` targets an external operation that already
+        started and is still running, i.e. the stored in-progress version has
+        the same language and locale as the request
         """
 
         question_supplemental_data = (
@@ -1085,6 +1086,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         versions = action_supplemental_data.get(self.VERSION_FIELD) or []
         if not versions:
             return False
-        return (
-            versions[0].get(self.VERSION_DATA_FIELD, {}).get('status') == 'in_progress'
+        current_version_data = versions[0].get(self.VERSION_DATA_FIELD, {})
+        if current_version_data.get('status') != 'in_progress':
+            return False
+        # The operation is identified by its language and locale, so a request
+        # for another one starts a new operation and must be limit-checked
+        return all(
+            current_version_data.get(key) == action_data.get(key)
+            for key in ('language', 'locale')
         )

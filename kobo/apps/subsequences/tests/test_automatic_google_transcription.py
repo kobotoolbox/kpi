@@ -608,12 +608,16 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
     @ddt_data(
-        ('in_progress', False),
-        ('complete', True),
-        ('failed', True),
+        ('in_progress', {'language': 'en'}, False),
+        ('complete', {'language': 'en'}, True),
+        ('failed', {'language': 'en'}, True),
+        ('in_progress', {'language': 'fr'}, True),
+        ('in_progress', {'language': 'en', 'locale': 'en-GB'}, True),
     )
     @unpack
-    def test_check_limit_with_stored_status(self, stored_status, should_raise):
+    def test_check_limit_with_stored_status(
+        self, stored_status, action_data, should_raise
+    ):
         u = User.objects.create(username='dummy')
         xpath = 'group_name/question_name'  # irrelevant for this test
         params = [{'language': 'fr'}, {'language': 'en'}]
@@ -629,7 +633,6 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
         action = AutomaticGoogleTranscriptionAction(
             xpath, params, prefetched_dependencies=prefetched_dependencies
         )
-        action_data = {'language': 'en'}
         with patch(
             'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
         ) as patched_calculator:
