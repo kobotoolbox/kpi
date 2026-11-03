@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as t
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -702,7 +703,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             try:
                 return Organization.objects.get(id=organization_id)
             except Organization.DoesNotExist:
-                raise NotFound({'detail': 'Organization not found.'})
+                raise NotFound({'detail': t('Organization not found.')})
 
         user = self.context['request'].user
         return user.organization
