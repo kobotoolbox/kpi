@@ -1940,6 +1940,7 @@ ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
+# Use X-Forwarded-For as the primary source of truth for client IPs
 ALLAUTH_TRUSTED_PROXY_COUNT = 1
 
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
