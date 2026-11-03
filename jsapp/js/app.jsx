@@ -38,6 +38,7 @@ import {
   isTOSAgreementRouteBlockerActive,
 } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
+import CloseModalsOnNavigate from './router/CloseModalsOnNavigate'
 import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { cssVariablesResolverKobo, themeKobo } from './theme'
@@ -177,21 +178,6 @@ class App extends React.Component {
     this.state = {}
   }
 
-  componentDidMount() {
-    this.unsubscribeRouter = router.subscribe(this.onRouteChange.bind(this))
-  }
-
-  componentWillUnmount() {
-    this.unsubscribeRouter?.()
-  }
-
-  onRouteChange() {
-    // hide modal on every page change
-    if (pageState.state.modal) {
-      pageState.hideModal()
-    }
-  }
-
   /** Whether to display the top header navigation and the side menu. */
   shouldDisplayMainLayoutElements() {
     return (
@@ -215,6 +201,7 @@ class App extends React.Component {
             <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
               <Tracking />
+              <CloseModalsOnNavigate />
               <ToasterConfig />
 
               <AppGuard
