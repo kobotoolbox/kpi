@@ -899,8 +899,6 @@ export default function EditableForm(props: EditableFormProps) {
               type='text'
               size='m'
               onClick={toggleAsideLibrarySearch}
-              tooltip={t('Add an item from the library')}
-              tooltipPosition='left'
               startIcon={state.asideLibrarySearchVisible ? 'close' : 'library'}
               label={t('Add from Library')}
             />
@@ -913,8 +911,6 @@ export default function EditableForm(props: EditableFormProps) {
               type='text'
               size='m'
               onClick={toggleAsideLayoutSettings}
-              tooltip={hasMetadataAndDetails() ? t('Change form layout and settings') : t('Change form layout')}
-              tooltipPosition='left'
               startIcon={state.asideLayoutSettingsVisible ? 'close' : 'settings'}
               label={hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
             />
