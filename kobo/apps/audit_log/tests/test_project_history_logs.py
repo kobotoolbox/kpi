@@ -2173,40 +2173,42 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
             },
         )
-        # use the wrong client (mantle instead of runtime) to force
-        # InvalidResponseFromLLMException
-        clients = {
-            'runtime': MockMantleClient(request_id='12345'),
-        }
+
         with patch.object(
-            AutomaticBedrockQual,
-            'get_clients_for_models',
-            return_value=clients,
+            MockRuntimeClient, 'make_request', return_value={'something': 'bad'}
         ):
-            log_metadata = self._base_project_history_log_test(
-                url=reverse(
-                    self._get_endpoint('submission-supplement'),
-                    args=[self.asset.uid, submission['_uuid']],
-                ),
-                method=self.client.patch,
-                request_data={
-                    '_version': '20250820',
-                    'q1': {
-                        Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
-                        }
+            clients = {
+                'runtime': MockRuntimeClient(text='1', request_id='12345'),
+            }
+            with patch.object(
+                AutomaticBedrockQual,
+                'get_clients_for_models',
+                return_value=clients,
+            ):
+                log_metadata = self._base_project_history_log_test(
+                    url=reverse(
+                        self._get_endpoint('submission-supplement'),
+                        args=[self.asset.uid, submission['_uuid']],
+                    ),
+                    method=self.client.patch,
+                    request_data={
+                        '_version': '20250820',
+                        'q1': {
+                            Action.AUTOMATIC_BEDROCK_QUAL: {
+                                'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
+                            }
+                        },
                     },
-                },
-                expected_action=AuditAction.MODIFY_AUTOMATIC_QA_DATA,
-                expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            )
-            self._check_submission_log_metadata(
-                log_metadata, 'adminuser', instance.root_uuid
-            )
-            self.assertEqual(
-                log_metadata['llm']['error'],
-                'Unable to extract answer from LLM response object',
-            )
+                    expected_action=AuditAction.MODIFY_AUTOMATIC_QA_DATA,
+                    expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+                )
+                self._check_submission_log_metadata(
+                    log_metadata, 'adminuser', instance.root_uuid
+                )
+                self.assertEqual(
+                    log_metadata['llm']['error'],
+                    'Unable to extract answer from LLM response object',
+                )
 
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
         instance, submission = self._add_submission('adminuser')

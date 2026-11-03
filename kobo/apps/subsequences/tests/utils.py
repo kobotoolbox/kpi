@@ -37,12 +37,9 @@ class MockRuntimeClient(RuntimeClient):
 
 
 class MockMantleResponse:
-    def __init__(self, response_dict, request_id='12345'):
-        self.response_dict = response_dict
+    def __init__(self, response, request_id='12345'):
+        self.output_text = response
         self._request_id = request_id
-
-    def json(self):
-        return json.dumps(self.response_dict)
 
 
 class MockRuntimeResponse:
@@ -75,9 +72,7 @@ def get_mock_claude_response(text='text', request_id='12345'):
 
 
 def get_mock_gemma_response(text='text', request_id='12345'):
-    return MockMantleResponse(
-        {'output': [{'content': [{'text': text}]}]}, request_id=request_id
-    )
+    return MockMantleResponse(text, request_id=request_id)
 
 
 def mock_get_response(model, text='text', request_id='12345'):

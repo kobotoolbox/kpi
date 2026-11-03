@@ -1,6 +1,5 @@
 import base64
 from copy import deepcopy
-from json import JSONDecodeError
 from typing import Optional
 from xml.sax.saxutils import escape
 
@@ -325,17 +324,7 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         self, clients_by_type, request_data: dict, model: LLModel
     ) -> str:
         client = clients_by_type[model.client_id]
-        try:
-            return client.get_response_from_llm(request_data, model)
-        except (JSONDecodeError, IndexError, KeyError) as e:
-            # the response isn't in the form we expected
-            if request := get_current_request():
-                request.llm_response = {
-                    'error': 'Unable to extract answer from LLM response object',
-                }
-            raise InvalidResponseFromLLMException(
-                'Unable to extract answer from LLM response object'
-            ) from e
+        return client.get_response_from_llm(request_data, model)
 
     @classproperty
     def params_schema(cls):

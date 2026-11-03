@@ -8,6 +8,7 @@ from aws_bedrock_token_generator import provide_token
 from botocore.config import Config
 from django.conf import settings
 from django_userforeignkey.request import get_current_request
+from httpx2 import Timeout
 from openai import OpenAI
 
 from kobo.apps.subsequences.prompts import (
@@ -61,7 +62,9 @@ OSS120 = LLModel(
 Gemma4 = LLModel(
     model_id='google.gemma-4-31b',
     model_arn='google.gemma-4-31b',
-    path_to_response='output.0.content.0.text',
+    # Gemma4 is only available through Mantle, which doesn't need to traverse the
+    # json to get the response
+    path_to_response='',
     supports_reasoning=True,
     client_id='mantle',
 )
@@ -90,10 +93,13 @@ class MantleClient(BedrockClient):
         self.client = OpenAI(
             api_key=provide_token(region=region),
             base_url=f'https://bedrock-mantle.{region}.api.aws/openai/v1',
-            timeout=Timeout(                                                                                                                  
-                settings.AWS_BEDROCK_READ_TIMEOUT,                                                                                            
-                connect=settings.AWS_BEDROCK_CONNECT_TIMEOUT,                                                                                 
-            ),                                                                                                                                
+            timeout=Timeout(
+                settings.AWS_BEDROCK_READ_TIMEOUT,
+                # redundant, but separated out in case we want a different default
+                # at some point
+                read=settings.AWS_BEDROCK_READ_TIMEOUT,
+                connect=settings.AWS_BEDROCK_CONNECT_TIMEOUT,
+            ),
         )
 
     def make_request(self, request_data, model):
@@ -106,14 +112,13 @@ class MantleClient(BedrockClient):
 
     def process_response(self, response, model: LLModel):
         try:
-            response_body = json.loads(response.json())
             if request := get_current_request():
                 request.llm_response = {
                     'request_id': response._request_id,
                     'model': model.model_id,
                 }
-            return model.get_response_text(response_body)
-        except (JSONDecodeError, IndexError, KeyError) as e:
+            return response.output_text
+        except AttributeError as e:
             # the response isn't in the form we expected
             if request := get_current_request():
                 request.llm_response = {
