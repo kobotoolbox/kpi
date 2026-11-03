@@ -64,6 +64,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     return (
       <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {props.additionalTriggerContent}
+        {props.isFieldFrozen && <Icon name='freeze' size='inherit' color={sortIconName ? 'teal' : 'blue'} />}
         {sortIconName && <Icon name={sortIconName} size='inherit' />}
         {isMenuOpen && <Icon name='caret-up' size='inherit' />}
         {!isMenuOpen && <Icon name='caret-down' size='inherit' />}
