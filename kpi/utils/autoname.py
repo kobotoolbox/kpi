@@ -180,15 +180,6 @@ def sluggify_valid_xml__depr(name):
     return out
 
 
-def autovalue_choices(surv_choices, in_place=False, destination_key='name'):
-    if in_place:
-        autovalue_choices_in_place(surv_choices, destination_key)
-    else:
-        _content = deepcopy(surv_choices)
-        autovalue_choices_in_place(_content, destination_key)
-        return _content
-
-
 def autovalue_choices_in_place(surv_content, destination_key):
     """
     choice names must have spaces removed because select-multiple

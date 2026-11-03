@@ -1,19 +1,14 @@
 # coding: utf-8
 import re
-
 from xml.etree import ElementTree as ET
 
 from kpi.utils.hash import calculate_hash
-
-# an approximation of the max size.
-# actual max length will be 40 + len(join_with) + len("_001")
-MAX_NAME_LENGTH = 40
 
 DEFAULT_OPTS = {
     'lrstrip': False,
     'lstrip': False,
     'rstrip': False,
-    'descriptor': "slug",
+    'descriptor': 'slug',
     'lowerCase': True,
     'replaceNonWordCharacters': True,
     'nonWordCharsExceptions': False,
@@ -88,7 +83,7 @@ def sluggify(_str, _opts):
         incremented = 0
         while attempt.lower() in names_lc:
             incremented += 1
-            attempt = "{0}_{1:03d}".format(attempt_base, incremented)
+            attempt = '{0}_{1:03d}'.format(attempt_base, incremented)
         _str = attempt
 
     return _str
