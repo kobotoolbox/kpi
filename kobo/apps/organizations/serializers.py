@@ -216,11 +216,15 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         if role := validated_data.get('role', None):
             validated_data['is_admin'] = role == ORG_ADMIN_ROLE
             with transaction.atomic():
-                org_user = (
-                    OrganizationUser.objects.select_for_update()
-                    .select_related('organization', 'user')
-                    .get(pk=instance.pk)
-                )
+                try:
+                    org_user = (
+                        OrganizationUser.objects.select_for_update()
+                        .select_related('organization', 'user__extra_details')
+                        .get(pk=instance.pk)
+                    )
+                except OrganizationUser.DoesNotExist:
+                    raise NotFound()
+
                 if org_user.organization.is_owner(org_user.user):
                     raise InvalidMembershipRequest(CANNOT_CHANGE_OWNER_ROLE_ERROR)
 
@@ -231,7 +235,14 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                 ).exists():
                     raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
 
-                return super().update(org_user, validated_data)
+                updated_instance = super().update(org_user, validated_data)
+                updated_instance.has_mfa_enabled = getattr(
+                    instance, 'has_mfa_enabled', False
+                )
+                updated_instance.has_sso_enabled = getattr(
+                    instance, 'has_sso_enabled', False
+                )
+                return updated_instance
 
         return super().update(instance, validated_data)
 

@@ -513,6 +513,11 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
         res_after = self.client.patch(admin_detail_url, data={'role': 'member'})
         self.assertEqual(res_after.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_after.data['role'], 'member')
+        self.assertIn('user__has_mfa_enabled', res_after.data)
+        self.assertIn('user__has_sso_enabled', res_after.data)
+        self.assertFalse(res_after.data['user__has_mfa_enabled'])
+        self.assertFalse(res_after.data['user__has_sso_enabled'])
 
     def test_pending_transfer_blocks_member_removal_and_owner_removal(self):
         """
@@ -1127,3 +1132,32 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             str(res.data['detail']),
             str(PENDING_TRANSFER_ACCOUNT_DELETION_ERROR),
         )
+
+    def test_patch_member_concurrent_removal_returns_404(self):
+        """
+        If a member is deleted concurrently while a role change is in flight,
+        the locked lookup converts OrganizationUser.DoesNotExist to 404 NotFound.
+        """
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+
+        original_update = OrganizationUserSerializer.update
+
+        def delete_before_update(serializer_self, instance, validated_data):
+            OrganizationUser.objects.filter(pk=instance.pk).delete()
+            return original_update(serializer_self, instance, validated_data)
+
+        with patch.object(
+            OrganizationUserSerializer,
+            'update',
+            side_effect=delete_before_update,
+            autospec=True,
+        ):
+            res = self.client.patch(admin_detail_url, data={'role': 'member'})
+            self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
