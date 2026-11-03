@@ -1,15 +1,20 @@
 import './MediaCell.scss'
+import { Group } from '@mantine/core'
+import { IconPencilStar } from '@tabler/icons-react'
 import React from 'react'
 import autoBind from 'react-autobind'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
+import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
+import { goToProcessing } from '#/components/processing/routes.utils'
 import { openTableMediaPreviewModal } from '#/components/submissions/DataTableCell/TableMediaPreview'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
+import { getSubmissionRootUuid } from '#/utils'
 
 bem.MediaCell = makeBem(null, 'media-cell')
 bem.MediaCell__duration = makeBem(bem.MediaCell, 'duration', 'label')
@@ -30,11 +35,16 @@ interface MediaCellProps {
   submissionTotal: number
   submission: SubmissionResponse
   asset: AssetResponse
+  /** Path of the question to open in Processing. */
+  xpath?: string
+  /** Shows the "Open" button that jumps into Processing, for question types NLP supports (e.g. image). */
+  showProcessingAction?: boolean
 }
 
 /**
  * Table cell replacement for image and video submissions. For audio type
- * questions, please use `AudioCell` component.
+ * questions, please use `AudioCell` component. With `showProcessingAction`
+ * it also gets an "Open" button that jumps straight into Processing.
  */
 class MediaCell extends React.Component<MediaCellProps, {}> {
   constructor(props: MediaCellProps) {
@@ -74,6 +84,13 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     }
   }
 
+  openProcessing() {
+    if (this.props.xpath === undefined) {
+      return
+    }
+    goToProcessing(this.props.asset.uid, this.props.xpath, getSubmissionRootUuid(this.props.submission))
+  }
+
   render() {
     const hasError = typeof this.props.mediaAttachment === 'string'
 
@@ -94,9 +111,26 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
       <bem.MediaCell m={`question-type-${this.props.questionType}`}>
         <bem.MediaCell__text>{this.props.displayValue}</bem.MediaCell__text>
 
-        <bem.MediaCellIconWrapper>
-          <Button type='text' size='s' startIcon={this.getQuestionIcon()} onClick={this.launchMediaModal.bind(this)} />
-        </bem.MediaCellIconWrapper>
+        <Group gap={0} wrap='nowrap'>
+          <bem.MediaCellIconWrapper>
+            <Button
+              type='text'
+              size='s'
+              startIcon={this.getQuestionIcon()}
+              onClick={this.launchMediaModal.bind(this)}
+            />
+          </bem.MediaCellIconWrapper>
+
+          {this.props.showProcessingAction && this.props.xpath !== undefined && (
+            <ActionIcon
+              variant='transparent'
+              tooltip={t('Open')}
+              icon={IconPencilStar}
+              size='sm'
+              onClick={this.openProcessing}
+            />
+          )}
+        </Group>
 
         {/*
           TODO: backend needs to store metadata to get duration, see kpi#3304

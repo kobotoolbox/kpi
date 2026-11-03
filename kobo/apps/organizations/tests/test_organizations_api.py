@@ -6,6 +6,7 @@ import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.auth.models import Permission
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import parse_http_date
@@ -16,6 +17,7 @@ from kobo.apps.hook.utils.tests.mixins import HookTestCaseMixin
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
+    LIMITED_COUNT_MANY,
     PERM_ADD_SUBMISSIONS,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
@@ -281,6 +283,19 @@ class OrganizationDetailAPITestCase(BaseTestCase):
         assert response.data['count'] == 1
         assert response.data['results'][0]['asset__name'] == 'Project Alpha'
 
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_asset_usage_count_is_capped(self):
+        self.client.force_login(self.someuser)
+        self._create_org_surveys()
+        url = reverse(
+            self._get_endpoint('organizations-asset-usage'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
+
     @data(
         ('name', 'Someuser Company inc.', status.HTTP_200_OK),
         ('name', '', status.HTTP_400_BAD_REQUEST),
@@ -541,6 +556,14 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
         # no assets are shared with them
         response = self.client.get(asset_list_url)
         assert response.data['count'] == 0
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self.client.force_login(self.someuser)
+        response = self.client.get(self.org_assets_list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
 
     @data(
         ('someuser', status.HTTP_200_OK),

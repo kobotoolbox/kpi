@@ -91,9 +91,7 @@ export enum SortValues {
   DESCENDING = 'DESCENDING',
 }
 
-// This is the setting object name from `asset.settings`
-export const DATA_TABLE_SETTING = 'data-table'
-// These are all possible settings of the above
+// These are all possible Data Table settings, see `tableStore`
 export const DATA_TABLE_SETTINGS = Object.freeze({
   SELECTED_COLUMNS: 'selected-columns',
   FROZEN_COLUMN: 'frozen-column',

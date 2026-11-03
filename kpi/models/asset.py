@@ -66,6 +66,7 @@ from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.asset_version import AssetVersion
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.autoname import HandleDuplicatesOptions
+from kpi.utils.django_orm_helper import OrderCustomCharField
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.object_permission import (
     get_cached_code_names,
@@ -89,6 +90,14 @@ class AssetDeploymentStatus(models.TextChoices):
     ARCHIVED = 'archived', 'Archived'
     DEPLOYED = 'deployed', 'Deployed'
     DRAFT = 'draft', 'Draft'
+
+    @classmethod
+    def default_order(cls) -> list[str]:
+        """
+        Order of the statuses in the default sort of project lists
+        """
+
+        return [cls.DEPLOYED.value, cls.DRAFT.value, cls.ARCHIVED.value]
 
 
 class AssetSetting:
@@ -288,6 +297,20 @@ class Asset(
             #  `_deployment_data__backend_response__formid` but not used anymore.
             BTreeIndex(
                 F('_deployment_data__formid'), name='deployment_data__formid_idx'
+            ),
+            # Matches the default sort of `AssetOrderingFilter`, so that project
+            # views can read their first page without sorting every survey.
+            BTreeIndex(
+                OrderCustomCharField(
+                    '_deployment_status', AssetDeploymentStatus.default_order()
+                ),
+                F('date_modified').desc(),
+                F('id'),
+                condition=Q(asset_type=ASSET_TYPE_SURVEY, pending_delete=False),
+                name='asset_survey_default_order_idx',
+            ),
+            BTreeIndex(
+                fields=['-date_created', 'id'], name='asset_date_created_id_idx'
             ),
         ]
 
@@ -608,8 +631,13 @@ class Asset(
         elif only_cached_data:
             return None
 
-        # return deployed versions first
-        versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
+        # See `get_attachment_xpaths_from_version_uids()` for why the contents
+        # are deferred
+        versions = (
+            self.asset_versions.filter(deployed=True)
+            .defer('version_content', 'deployed_content')
+            .iterator()
+        )
         xpaths = set()
         for version in versions:
             if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
@@ -629,7 +657,7 @@ class Asset(
         """
         Get attachment xpaths from a specific version.
 
-        Results are cached in Redis for 24 hours, but only when a version is
+        Results are cached in Redis for 30 days, but only when a version is
         given. A version's content never changes, so its uid alone says what
         the entry holds and that entry can never go stale. `self.content`
         offers no such marker: it changes on every save, and nothing
@@ -686,7 +714,9 @@ class Asset(
         # Store in Redis cache
         if cache_key:
             cache.set(
-                cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL
+                cache_key,
+                xpaths_list,
+                timeout=settings.ATTACHMENT_XPATHS_VERSION_CACHE_TTL,
             )
 
         return xpaths_list
@@ -703,12 +733,16 @@ class Asset(
         an attachment collected under the older name unreachable.
         """
 
-        # A `version_content` weighs several megabytes on a large form.
-        # `iterator()` keeps one version at a time in memory, where iterating
-        # the queryset itself would fill its result cache with all of them
-        versions = self.asset_versions.filter(
-            uid__in=version_uids, deployed=True
-        ).iterator()
+        # A `version_content` weighs several megabytes on a large form, and
+        # `iterator()` alone still fetches rows by chunks of 2000, i.e. every
+        # version at once. Deferring the contents keeps the rows small, and
+        # `get_attachment_xpaths_from_version()` loads a content only when the
+        # version misses the Redis cache, one version at a time
+        versions = (
+            self.asset_versions.filter(uid__in=version_uids, deployed=True)
+            .defer('version_content', 'deployed_content')
+            .iterator()
+        )
 
         xpaths = set()
         for version in versions:

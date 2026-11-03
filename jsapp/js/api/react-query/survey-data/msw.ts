@@ -1637,7 +1637,10 @@ export const getApiV2AssetsDataValidationStatusesPartialUpdateResponseMock = (
 export const getApiV2AssetsExportSettingsListResponseMock = (
   overrideResponse: Partial<PaginatedExportSettingResponseList> = {},
 ): PaginatedExportSettingResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -1754,7 +1757,10 @@ export const getApiV2AssetsExportSettingsPartialUpdateResponseMock = (
 export const getApiV2AssetsExportsListResponseMock = (
   overrideResponse: Partial<PaginatedExportResponseList> = {},
 ): PaginatedExportResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -1861,7 +1867,10 @@ export const getApiV2AssetsExportsRetrieveResponseMock = (
 export const getApiV2AssetsFilesListResponseMock = (
   overrideResponse: Partial<PaginatedFilesResponseList> = {},
 ): PaginatedFilesResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -1926,7 +1935,10 @@ export const getApiV2AssetsFilesRetrieveResponseMock = (
 export const getApiV2AssetsPairedDataListResponseMock = (
   overrideResponse: Partial<PaginatedPairedDataResponseList> = {},
 ): PaginatedPairedDataResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({

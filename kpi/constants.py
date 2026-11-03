@@ -215,6 +215,15 @@ AUTH_THEME_CHOICES = [
     (AUTH_THEME_CUSTOM, 'Customizable'),
 ]
 
+# Server name tag at the top of the sign-in and account creation cards. Only
+# Global and EU carry one; private servers show their uploaded logo instead
+AUTH_SERVER_TAG_GLOBAL = 'global'
+AUTH_SERVER_TAG_EU = 'eu'
+AUTH_SERVER_TAG_CHOICES = [
+    (AUTH_SERVER_TAG_GLOBAL, 'Global'),
+    (AUTH_SERVER_TAG_EU, 'EU'),
+]
+
 ENKETO_URL_FORMATS = {
     'url': '#enketo_id#',
     'single_url': 'single/#enketo_id#',

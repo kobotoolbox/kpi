@@ -31,8 +31,9 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
     dataInterface
       .getSubmissions(props.asset?.uid, 1, 0, [{ id: '_id', desc: true }], ['_id', 'end'])
       .done((response: PaginatedResponse<SubmissionResponse>) => {
-        if (response.count) {
-          setLatestSubmissionDate(response.results[0]['end'])
+        const latest = response.results[0]
+        if (latest) {
+          setLatestSubmissionDate(latest['end'])
         }
       })
       // Only the response, because jQuery's second argument is its own `textStatus` and `handleApiFail` reads that as

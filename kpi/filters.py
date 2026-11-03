@@ -37,14 +37,6 @@ from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
 from .models import Asset, ObjectPermission
 
 
-class DeploymentFilter:
-    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
-        AssetDeploymentStatus.DEPLOYED.value,
-        AssetDeploymentStatus.DRAFT.value,
-        AssetDeploymentStatus.ARCHIVED.value,
-    ]
-
-
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
     For use with nested models of Asset.
@@ -56,7 +48,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
         return queryset.filter(**fields)
 
 
-class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
+class AssetOrganizationUsageFilter(filters.OrderingFilter):
 
     DEFAULT_USAGE_ORDERING_FIELDS = [
         'name',
@@ -74,17 +66,18 @@ class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
             return queryset.order_by(
                 OrderCustomCharField(
                     '_deployment_status',
-                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                    AssetDeploymentStatus.default_order(),
                 )
             )
 
         return queryset
 
 
-class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
+class AssetOrderingFilter(filters.OrderingFilter):
 
     DEFAULT_ORDERING_FIELDS = [
         'asset_type',
+        'date_created',
         'date_modified',
         'date_deployed',
         'date_modified__date',
@@ -134,15 +127,19 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
                     subscribers_count=Count('userassetsubscription__user')
                 )
 
+            # `pk` is a unique final key: without it, rows tied on the sort field
+            # can swap between LIMIT/OFFSET queries and duplicate/skip across pages.
+            ordering = list(ordering) + ['pk']
             return queryset.order_by(*ordering)
         else:
             # Default ordering
             return queryset.order_by(
                 OrderCustomCharField(
                     '_deployment_status',
-                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                    AssetDeploymentStatus.default_order(),
                 ),
                 '-date_modified',
+                'pk',
             )
 
         return queryset

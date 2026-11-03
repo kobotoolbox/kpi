@@ -133,19 +133,14 @@ def _is_valid_mfa_code(user, code) -> bool:
     Validate a TOTP or recovery code, reusing the serializer that already backs
     the MFA endpoints so that legacy migrated recovery codes keep working
     """
-    from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
     from kobo.apps.accounts.mfa.serializers import MfaCodeSerializer
+    from kobo.apps.accounts.mfa.utils import MFA_METHOD_NAME, user_has_active_mfa
 
-    method = (
-        MfaMethodsWrapper.objects.filter(user=user, is_active=True)
-        .values_list('name', flat=True)
-        .first()
-    )
-    if method is None:
+    if not user_has_active_mfa(user):
         return False
 
     serializer = MfaCodeSerializer(
-        data={'code': code}, context={'user': user, 'method': method}
+        data={'code': code}, context={'user': user, 'method': MFA_METHOD_NAME}
     )
     return serializer.is_valid()
 

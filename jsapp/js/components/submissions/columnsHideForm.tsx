@@ -1,11 +1,8 @@
 import { Box, Group, ScrollArea, Stack, Switch } from '@mantine/core'
 import Fuse from 'fuse.js'
 import React from 'react'
-import { actions } from '#/actions'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import ButtonNew from '#/components/common/ButtonNew'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { userCan } from '#/components/permissions/utils'
 import tableStore from '#/components/submissions/tableStore'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { FUSE_OPTIONS } from '#/constants'
@@ -32,19 +29,15 @@ interface ColumnsHideColumn {
 }
 
 interface ColumnsHideFormState {
-  isPending: boolean
   filterPhrase: string
   allColumns: ColumnsHideColumn[]
   selectedColumns: string[]
 }
 
 class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, ColumnsHideFormState> {
-  private unlisteners: Function[] = []
-
   constructor(props: ColumnsHideFormPropsInternal) {
     super(props)
     this.state = {
-      isPending: false, // for saving
       filterPhrase: '',
       allColumns: [], // {object[]}
       selectedColumns: [], // {string[]}
@@ -52,14 +45,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
   }
 
   componentDidMount() {
-    this.unlisteners.push(actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted.bind(this)))
     this.prepareColumns()
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
   }
 
   prepareColumns() {
@@ -81,45 +67,19 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
     })
   }
 
-  onTableUpdateSettingsCompleted() {
+  onReset() {
+    tableStore.showAllFields()
     this.props.onRequestClose()
   }
 
-  /**
-   * With `change_asset` the selection goes through `actions.table.updateSettings`,
-   * so we show progress and let `onTableUpdateSettingsCompleted` close the
-   * dropdown. Otherwise `tableStore` applies it synchronously as a session
-   * override - no request to wait for, so close right away.
-   */
-  private applySelection(applyToStore: () => void) {
-    const isSavedToAsset = userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
-
-    if (isSavedToAsset) {
-      this.setState({ isPending: true })
-    }
-
-    applyToStore()
-
-    if (!isSavedToAsset) {
-      this.props.onRequestClose()
-    }
-  }
-
-  onReset() {
-    this.applySelection(() => {
-      tableStore.showAllFields()
-    })
-  }
-
   onApply() {
-    this.applySelection(() => {
-      tableStore.setFieldsVisibility(
-        this.props.asset,
-        this.props.submissions,
-        this.props.bulkActions,
-        this.state.selectedColumns,
-      )
-    })
+    tableStore.setFieldsVisibility(
+      this.props.asset,
+      this.props.submissions,
+      this.props.bulkActions,
+      this.state.selectedColumns,
+    )
+    this.props.onRequestClose()
   }
 
   onFieldToggleChange(fieldId: string, isSelected: boolean) {
@@ -157,11 +117,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
     const filteredFieldsList = this.getFilteredFieldsList()
     return (
       <Stack w={360} gap='sm' p='sm' mah='calc(100vh - 200px)' mih={200}>
-        <Box fz='sm'>
-          {userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
-            ? t('These settings affect the experience for all project users.')
-            : t('These settings only apply to your current session.')}
-        </Box>
+        <Box fz='sm'>{t('These settings only apply to you, in this browser.')}</Box>
 
         <TextInput
           value={this.state.filterPhrase}
@@ -180,7 +136,6 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
                     onChange={(event) => {
                       this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
                     }}
-                    disabled={this.state.isPending}
                     label={fieldObj.label}
                     size='sm'
                   />
@@ -193,23 +148,11 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
         {filteredFieldsList.length === 0 && <Alert type='default'>{t('No results')}</Alert>}
 
         <Group gap='sm'>
-          <ButtonNew
-            variant='danger-secondary'
-            size='sm'
-            onClick={this.onReset.bind(this)}
-            loading={this.state.isPending}
-            flex={1}
-          >
+          <ButtonNew variant='danger-secondary' size='sm' onClick={this.onReset.bind(this)} flex={1}>
             {t('Reset')}
           </ButtonNew>
 
-          <ButtonNew
-            variant='light'
-            size='sm'
-            onClick={this.onApply.bind(this)}
-            loading={this.state.isPending}
-            flex={1}
-          >
+          <ButtonNew variant='light' size='sm' onClick={this.onApply.bind(this)} flex={1}>
             {t('Apply')}
           </ButtonNew>
         </Group>

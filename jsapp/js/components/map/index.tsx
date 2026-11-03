@@ -19,7 +19,7 @@ import CenteredMessage from '../../../js/components/common/centeredMessage.compo
 import Modal from '../../../js/components/common/modal'
 // Partial components
 import MapSettings from './MapSettings'
-import { type PlottedPoint, getPlottedPoints, getPointsBounds } from './mapUtils'
+import { MAX_QUERY_LIMIT, type PlottedPoint, getMapPageCount, getPlottedPoints, getPointsBounds } from './mapUtils'
 import { WorldCopies } from './worldCopies'
 
 import { actions } from '../../../js/actions'
@@ -45,9 +45,7 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
-
-export const SUBMISSIONS_PER_PAGE = 1000
-const MAX_SUBMISSIONS = 30 * SUBMISSIONS_PER_PAGE // Don't want more than 30 parallel queries
+import type { PaginatedDataResponseListCount } from '#/api/models/paginatedDataResponseListCount'
 
 /** Room left around the plotted points, so that the outermost markers aren't drawn half way off the map. */
 const FIT_BOUNDS_PADDING: L.PointTuple = [32, 32]
@@ -148,7 +146,8 @@ interface FormMapProps extends WithRouterProps {
   isLoading: boolean
   allData: DataResponse[]
   setFields: Function
-  totalCount: number | undefined
+  /** Count from the first page of submissions, `undefined` until it has loaded */
+  totalCount: PaginatedDataResponseListCount | undefined
 }
 
 interface FormMapState {
@@ -334,17 +333,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         }
       }
     })
-  }
-
-  getQueryLimit() {
-    // If totalCount hasn't populated yet, return 1000 (one page of submissions)
-    if (this.props.totalCount === undefined) {
-      return QUERY_LIMIT_DEFAULT
-    }
-    // If the user has more than 30,000 submissions, display 30,000 as the max anyways
-    const userMaxPages = Math.ceil(this.props.totalCount / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
-    const MaxPages = Math.ceil(MAX_SUBMISSIONS / SUBMISSIONS_PER_PAGE) * SUBMISSIONS_PER_PAGE
-    return Math.min(userMaxPages, MaxPages)
   }
 
   /**
@@ -552,26 +540,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     // Persist normalized selected geopoint key used by data API and submission payload.
     this.setState({ foundSelectedQuestion: selectedQuestionPath })
 
-    // If totalCount hasn't populated yet, set pageLimit to 1
-    if (this.props.totalCount === undefined) {
-      this.updateWrapperQuery(selectedQuestionPath, nextViewBy, 1)
-      return
-    }
-
-    let queryLimit = QUERY_LIMIT_DEFAULT
-    if (this.state.overridenStyles?.querylimit) {
-      queryLimit = Number.parseInt(this.state.overridenStyles.querylimit)
-    } else if (this.props.asset.map_styles.querylimit) {
-      queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
-    }
-
-    // If the user has an overriden limit greater than the actual submission count, lower the limit
-    const maxSubmissions = this.getQueryLimit()
-    if (queryLimit > maxSubmissions) {
-      queryLimit = maxSubmissions
-    }
-
-    const pageLimit = queryLimit / SUBMISSIONS_PER_PAGE
+    const pageLimit = getMapPageCount(
+      this.state.overridenStyles?.querylimit || this.props.asset.map_styles.querylimit,
+      this.props.totalCount,
+    )
 
     this.updateWrapperQuery(selectedQuestionPath, nextViewBy, pageLimit)
   }
@@ -925,8 +897,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.props.allData.length > 0
     const viewbyChanged = prevProps.viewby !== this.props.viewby
 
-    // We get the first page of results in order to get the total count, then we call createDataQuery again to update
-    // the maximum queryLimit based on the amount of submissions the project has
+    // We get the first page of results in order to get the total count, then we call createDataQuery again to work out
+    // how many pages to request
     if (totalCountPopulated) {
       this.createDataQuery(this.props.viewby)
     }
@@ -1478,7 +1450,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
               toggleMapSettings={this.toggleMapSettings.bind(this)}
               overrideStyles={this.overrideStyles.bind(this)}
               overridenStyles={this.state.overridenStyles}
-              queryLimit={this.getQueryLimit()}
+              queryLimit={MAX_QUERY_LIMIT}
             />
           </Modal>
         )}

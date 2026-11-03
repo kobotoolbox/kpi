@@ -11,6 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 /**
- * Relative URL of the logo shown inside the container, or `null` when none has been uploaded
+ * Relative URL of the logo shown at the top of the container when `server_tag` is `null`, or `null` when none has been uploaded
  */
 export type AuthConfigurationLogoUrl = string | null

@@ -4,23 +4,32 @@ from django.contrib.auth.hashers import check_password, identify_hasher
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
 
-from .models import MfaMethodsWrapper
+from .utils import MFA_METHOD_NAME
 
 
-class UserMfaMethodSerializer(serializers.ModelSerializer):
+class UserMfaMethodSerializer(serializers.Serializer):
     """
     Exposes user's MFA methods and their created, modified and disabled dates
+
+    Built from the TOTP `Authenticator`, which only exists while MFA is on.
+    The response keeps the shape of the former `MfaMethodsWrapper` model.
     """
 
-    class Meta:
-        model = MfaMethodsWrapper
-        fields = (
-            'name',
-            'is_active',
-            'date_created',
-            'date_modified',
-            'date_disabled',
-        )
+    name = serializers.SerializerMethodField()
+    is_active = serializers.SerializerMethodField()
+    date_created = serializers.DateTimeField(source='created_at')
+    date_modified = serializers.DateTimeField(source='created_at')
+    date_disabled = serializers.SerializerMethodField()
+
+    def get_name(self, obj) -> str:
+        return MFA_METHOD_NAME
+
+    def get_is_active(self, obj) -> bool:
+        return True
+
+    def get_date_disabled(self, obj) -> None:
+        # allauth deletes the authenticator when MFA is turned off
+        return None
 
 
 class MfaCodeSerializer(serializers.Serializer):
@@ -34,16 +43,35 @@ class MfaCodeSerializer(serializers.Serializer):
         super().__init__(*args, **kwargs)
         self.user = self.context['user']
         self.method = self.context['method']
-        try:
-            self.mfamethods = MfaMethodsWrapper.objects.get(
-                user=self.user, is_active=True, name=self.method
-            )
-        except MfaMethodsWrapper.DoesNotExist:
+        if self.method != MFA_METHOD_NAME:
             raise NotFound
+
+        authenticators = {
+            authenticator.type: authenticator
+            for authenticator in Authenticator.objects.filter(
+                user_id=self.user.pk,
+                type__in=[
+                    Authenticator.Type.TOTP,
+                    Authenticator.Type.RECOVERY_CODES,
+                ],
+            )
+        }
+        if Authenticator.Type.TOTP not in authenticators:
+            raise NotFound
+
+        # TOTP first, then recovery codes, which may be missing
+        self.authenticators = [
+            authenticators[auth_type]
+            for auth_type in (
+                Authenticator.Type.TOTP,
+                Authenticator.Type.RECOVERY_CODES,
+            )
+            if auth_type in authenticators
+        ]
 
     def validate_code(self, code):
         clear_rl = check_rate_limit(self.user)
-        for auth in [self.mfamethods.totp, self.mfamethods.recovery_codes]:
+        for auth in self.authenticators:
             if auth.wrap().validate_code(code):
                 self.authenticator = auth
                 clear_rl()

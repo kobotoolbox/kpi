@@ -113,6 +113,7 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name
 Allowed fields are:
 
 - `asset_type`
+- `date_created`
 - `date_modified`
 - `date_deployed`
 - `date_modified__date`

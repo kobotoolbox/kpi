@@ -23,6 +23,8 @@ import type { ChangePlan } from '../../models/changePlan'
 
 import type { CheckoutLink } from '../../models/checkoutLink'
 
+import type { CustomerBillingDetailsResponse } from '../../models/customerBillingDetailsResponse'
+
 import type { CustomerPortal } from '../../models/customerPortal'
 
 import type { CustomerPortalPostResponse } from '../../models/customerPortalPostResponse'
@@ -56,6 +58,8 @@ import type { PermissionResponse } from '../../models/permissionResponse'
 import type { PermissionsListParams } from '../../models/permissionsListParams'
 
 import type { StripeAddonsListParams } from '../../models/stripeAddonsListParams'
+
+import type { StripeCustomerPortalRetrieveParams } from '../../models/stripeCustomerPortalRetrieveParams'
 
 import type { StripeProductsListParams } from '../../models/stripeProductsListParams'
 
@@ -765,6 +769,125 @@ export const useStripeCheckoutLinkCreate = <TError = unknown, TContext = unknown
 
   return useMutation(mutationOptions)
 }
+export type stripeCustomerPortalRetrieveResponse200 = {
+  data: CustomerBillingDetailsResponse
+  status: 200
+}
+
+export type stripeCustomerPortalRetrieveResponse400 = {
+  data: ErrorValidation
+  status: 400
+}
+
+export type stripeCustomerPortalRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type stripeCustomerPortalRetrieveResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
+export type stripeCustomerPortalRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type stripeCustomerPortalRetrieveResponseSuccess = stripeCustomerPortalRetrieveResponse200 & {
+  headers: Headers
+}
+export type stripeCustomerPortalRetrieveResponseError = (
+  | stripeCustomerPortalRetrieveResponse400
+  | stripeCustomerPortalRetrieveResponse401
+  | stripeCustomerPortalRetrieveResponse403
+  | stripeCustomerPortalRetrieveResponse404
+) & {
+  headers: Headers
+}
+
+export type stripeCustomerPortalRetrieveResponse =
+  | stripeCustomerPortalRetrieveResponseSuccess
+  | stripeCustomerPortalRetrieveResponseError
+
+export const getStripeCustomerPortalRetrieveUrl = (params: StripeCustomerPortalRetrieveParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `/api/v2/stripe/customer-portal?${stringifiedParams}`
+    : `/api/v2/stripe/customer-portal`
+}
+
+export const stripeCustomerPortalRetrieve = async (
+  params: StripeCustomerPortalRetrieveParams,
+  options?: RequestInit,
+): Promise<stripeCustomerPortalRetrieveResponse> => {
+  return fetchWithAuth<stripeCustomerPortalRetrieveResponse>(getStripeCustomerPortalRetrieveUrl(params), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getStripeCustomerPortalRetrieveQueryKey = (params?: StripeCustomerPortalRetrieveParams) => {
+  return ['api', 'v2', 'stripe', 'customer-portal', ...(params ? [params] : [])] as const
+}
+
+export const getStripeCustomerPortalRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>,
+  TError = ErrorValidation | ErrorDetail,
+>(
+  params: StripeCustomerPortalRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getStripeCustomerPortalRetrieveQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>> = ({ signal }) =>
+    stripeCustomerPortalRetrieve(params, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type StripeCustomerPortalRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>
+>
+export type StripeCustomerPortalRetrieveQueryError = ErrorValidation | ErrorDetail
+
+export function useStripeCustomerPortalRetrieve<
+  TData = Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>,
+  TError = ErrorValidation | ErrorDetail,
+>(
+  params: StripeCustomerPortalRetrieveParams,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof stripeCustomerPortalRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getStripeCustomerPortalRetrieveQueryOptions(params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 export type stripeCustomerPortalCreateResponse200 = {
   data: CustomerPortalPostResponse
   status: 200

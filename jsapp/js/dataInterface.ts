@@ -599,25 +599,18 @@ export interface TableSortBySetting {
 }
 
 /**
+ * Data Table settings, kept per user in `localStorage` (see `tableStore`).
+ *
  * None of these are actually stored as `null`s, but we use this interface for
  * a new settings draft too and it's simpler that way.
  */
-interface AssetTableSettingsObject {
+export interface AssetTableSettings {
   'selected-columns'?: string[] | null
   'frozen-column'?: string | null
   'show-group-name'?: boolean | null
   'translation-index'?: number | null
   'show-hxl-tags'?: boolean | null
   'sort-by'?: TableSortBySetting | null
-}
-
-/**
- * This interface consists of properties from `AssetTableSettingsObject` and one
- * more property that holds a temporary copy of `AssetTableSettingsObject`
- */
-export interface AssetTableSettings extends AssetTableSettingsObject {
-  /** This is the same object as AssetTableSettings */
-  'data-table'?: AssetTableSettingsObject
 }
 
 export interface AssetSettings {
@@ -627,7 +620,6 @@ export interface AssetSettings {
   // Runtime: LabelValuePair[] | LabelValuePair | null, but typed as array for new code.
   country?: LabelValuePair[] | null
   description?: string
-  'data-table'?: AssetTableSettings
   organization?: string
   collects_pii?: LabelValuePair | null
   operational_purpose?: LabelValuePair | null
