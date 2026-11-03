@@ -1437,6 +1437,27 @@ BULK_ACTION_STUCK_THRESHOLD = env.int(
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
 )
 
+# The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
+# than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
+TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
+    'TRANSCRIPTION_SILENCE_MIN_DURATION',
+    0.5,
+)
+
+# Loudness thresholds, in dBFS, tried in order until every cut has a pause to
+# land in. Recording levels differ enormously between files, so no single
+# threshold finds the pauses in all of them
+TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
+
+# Longest a single silence detection pass may run. It streams the whole
+# recording out of storage, so allow for a slow download, but never let a web
+# request hang on it for ever
+TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
+    'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
+    300,
+)
+
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
@@ -1912,10 +1933,7 @@ ACCOUNT_UNIQUE_EMAIL = False
 ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.
-# changing the email address) demands it again. When changing the default, also
-# change `REAUTHENTICATION_TIMEOUT_SECONDS` in
-# `jsapp/js/account/security/mfa/mfa.api.ts`
-# TODO: DEV-3183 expose it to the frontend, so the copy can go
+# changing the email address) demands it again
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )

@@ -7,13 +7,14 @@ from django.conf import settings
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from rest_framework.throttling import ScopedRateThrottle
 
-from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from .utils import clear_email_change_throttle, record_authentication
 
 
@@ -221,6 +222,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         self.assertEqual(user.emailaddress_set.count(), 1)
 
 
+@freeze_time('2026-01-01 12:00:00')
 @override_settings(ACCOUNT_RATE_LIMITS=False)
 class EmailChangeReauthenticationTestCase(APITestCase):
     """

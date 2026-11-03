@@ -48,8 +48,6 @@ ASSET_TYPES_WITH_CONTENT = [
 
 CLONE_ARG_NAME = 'clone_from'
 CLONE_FROM_VERSION_ID_ARG_NAME = 'clone_from_version_id'
-COLLECTION_CLONE_FIELDS = {'name'}
-
 # Types are declared in `kpi.models.assets.ASSET_TYPES`.
 # These values correspond to index 0 of each tuple of ASSET_TYPES
 CLONE_COMPATIBLE_TYPES = {

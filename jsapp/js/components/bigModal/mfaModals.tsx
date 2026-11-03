@@ -6,12 +6,12 @@ import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
   MfaRejection,
+  useIsPasswordNeeded,
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
   useMfaRecoveryCodes,
   useMfaRegenerateCodes,
-  usePasswordCheck,
 } from '#/account/security/mfa/mfa.api'
 import bem, { makeBem } from '#/bem'
 import TextInput from '#/components/common/TextInput'
@@ -88,8 +88,7 @@ function MFAModals(props: MFAModalsProps) {
   /** 2FA is on, but the codes may still need reading */
   const [isActivated, setIsActivated] = useState(false)
 
-  const checkPasswordNeeded = usePasswordCheck()
-  const isPasswordNeeded = checkPasswordNeeded()
+  const isPasswordNeeded = useIsPasswordNeeded()
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
@@ -144,20 +143,24 @@ function MFAModals(props: MFAModalsProps) {
     clearErrors()
     // A retry after the codes failed to load must not turn 2FA on again
     if (isActivated) {
-      recoveryCodes.mutate(undefined, { onSuccess: showCodes })
-      return
-    }
-    // The window may have closed since the last render
-    if (checkPasswordNeeded() && !password) {
-      setPasswordError(t('Please confirm your password to continue'))
+      recoveryCodes.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCredentialRejected })
       return
     }
     confirmCode.mutate(
-      { code: inputString, password: password || undefined },
+      { code: inputString, password: isPasswordNeeded ? password : undefined },
       {
         onSuccess: () => {
           setIsActivated(true)
-          recoveryCodes.mutate(undefined, { onSuccess: showCodes })
+          // Spent on activation, so a retry needs a new one
+          setInputString('')
+          recoveryCodes.mutate(
+            {},
+            {
+              onSuccess: showCodes,
+              onError: () =>
+                setErrorText(t('Two-factor authentication is on. Enter a new token to see your recovery codes.')),
+            },
+          )
         },
         onError: onCredentialRejected,
       },
@@ -275,7 +278,8 @@ function MFAModals(props: MFAModalsProps) {
    * stops working. Sending both together also means neither expires while the other is typed.
    */
   function renderPasswordInput() {
-    if (!isPasswordNeeded) {
+    // A retry after activation reauthenticates with the token alone
+    if (!isPasswordNeeded || isActivated) {
       return null
     }
     return (
@@ -301,9 +305,9 @@ function MFAModals(props: MFAModalsProps) {
     )
   }
 
-  /** The confirming steps need the password too, when there is one. Once 2FA is on, Next only rereads the codes. */
+  /** The confirming steps need the password too, when there is one. Once 2FA is on, a retry needs only a new token. */
   function isConfirmValid() {
-    return isActivated || (isTokenValid() && (!isPasswordNeeded || password.length >= 1))
+    return isTokenValid() && (isActivated || !isPasswordNeeded || password.length >= 1)
   }
 
   function renderQRCodeStep() {
