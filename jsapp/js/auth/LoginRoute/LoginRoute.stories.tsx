@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { AuthServerTagEnum } from '#/api/models/authServerTagEnum'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { type Canvas, field, findField, findProviderButtons } from '#/auth/authStoryHelpers'
 import { ROOT_URL } from '#/constants'
@@ -12,10 +13,12 @@ import {
   loginErrorsMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
-import { makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
+import { makeAuthConfigurationMock, makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
+// Stand-in for an uploaded organization logo, served offline.
+import logoUrl from '../../../img/kobologo_symbol.svg'
 import LoginRoute from './LoginRoute'
 
 const CREDENTIALS = {
@@ -147,6 +150,47 @@ export const SingleSignOnProviders: Story = {
     const form = gitlabButton.closest('form')
     expect(form).toHaveAttribute('action', `${ROOT_URL}/api/v2/allauth/browser/v1/auth/provider/redirect`)
     expect(form?.querySelector('input[name="provider"]')).toHaveValue('gitlab-dev')
+  },
+}
+
+const LOGO_SELECTOR = `img[src="${logoUrl}"]`
+
+/** Global server: a blue tag, and the logo stays hidden because the tag wins. */
+export const GlobalServerTag: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.global, logo_url: logoUrl }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const tag = await canvas.findByText('Global server')
+    expect(tag.closest('[data-variant]')).toHaveAttribute('data-variant', 'blue-light')
+    expect(canvasElement.querySelector(LOGO_SELECTOR)).not.toBeInTheDocument()
+  },
+}
+
+/** EU server: a teal tag. */
+export const EuServerTag: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.eu }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    const tag = await within(canvasElement).findByText('EU server')
+    expect(tag.closest('[data-variant]')).toHaveAttribute('data-variant', 'teal-light')
+  },
+}
+
+/** Private server: no tag, so the organization logo shows. */
+export const OrganizationLogo: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeAuthConfigurationMock({ logo_url: logoUrl }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelector(LOGO_SELECTOR)).toBeInTheDocument())
   },
 }
 

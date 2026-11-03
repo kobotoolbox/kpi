@@ -35,15 +35,7 @@ from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
 from .models import Asset, ObjectPermission
 
 
-class DeploymentFilter:
-    DEPLOYMENT_STATUS_DEFAULT_ORDER = [
-        AssetDeploymentStatus.DEPLOYED.value,
-        AssetDeploymentStatus.DRAFT.value,
-        AssetDeploymentStatus.ARCHIVED.value,
-    ]
-
-
-class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
+class AssetOrganizationUsageFilter(filters.OrderingFilter):
 
     DEFAULT_USAGE_ORDERING_FIELDS = [
         'name',
@@ -61,14 +53,14 @@ class AssetOrganizationUsageFilter(filters.OrderingFilter, DeploymentFilter):
             return queryset.order_by(
                 OrderCustomCharField(
                     '_deployment_status',
-                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                    AssetDeploymentStatus.default_order(),
                 )
             )
 
         return queryset
 
 
-class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
+class AssetOrderingFilter(filters.OrderingFilter):
 
     DEFAULT_ORDERING_FIELDS = [
         'asset_type',
@@ -131,7 +123,7 @@ class AssetOrderingFilter(filters.OrderingFilter, DeploymentFilter):
             return queryset.order_by(
                 OrderCustomCharField(
                     '_deployment_status',
-                    self.DEPLOYMENT_STATUS_DEFAULT_ORDER,
+                    AssetDeploymentStatus.default_order(),
                 ),
                 '-date_modified',
                 'pk',
