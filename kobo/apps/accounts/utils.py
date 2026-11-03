@@ -34,6 +34,34 @@ DEFAULT_IN_APP_MESSAGE_FIELDS = {
     'published': True,
 }
 
+# The login and registration screens show at most this many SSO buttons
+MAX_DISPLAYED_SSO_PROVIDERS = 3
+
+
+def get_public_social_apps():
+    """
+    SocialApps shown to users, oldest first
+
+    An app with no `SocialAppCustomData` row counts as public. The order decides
+    which apps get the limited buttons on the login and registration screens, so
+    it must stay stable: adding a provider never hides one that is already shown.
+    """
+    return SocialApp.objects.filter(
+        Q(custom_data__is_public=True) | Q(custom_data__isnull=True)
+    ).order_by('id')
+
+
+def get_hidden_public_social_app_names() -> list[str]:
+    """
+    Names of the public SocialApps that get no button on the login and
+    registration screens because the first `MAX_DISPLAYED_SSO_PROVIDERS` took them
+    """
+    return list(
+        get_public_social_apps().values_list('name', flat=True)[
+            MAX_DISPLAYED_SSO_PROVIDERS:
+        ]
+    )
+
 
 class SplitPart(Func):
     function = 'SPLIT_PART'

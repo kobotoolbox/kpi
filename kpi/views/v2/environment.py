@@ -1,5 +1,4 @@
 import constance
-from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import MultipleObjectsReturned
@@ -13,6 +12,7 @@ from rest_framework.views import APIView
 from hub.models.configuration_file import ConfigurationFile, ConfigurationFileSlug
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
+from kobo.apps.accounts.utils import get_public_social_apps
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
 from kpi.constants import AUTH_THEME_CUSTOM, AUTH_THEME_DEFAULT
@@ -174,9 +174,11 @@ class EnvironmentView(APIView):
     def process_other_configs(request):
         data = {}
         social_apps = (
-            SocialApp.objects.select_related('custom_data')
+            # oldest first: the frontend shows buttons for the first
+            # `MAX_DISPLAYED_SSO_PROVIDERS` only, in this order
+            get_public_social_apps()
+            .select_related('custom_data')
             .prefetch_related('custom_data__domains')
-            .filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))
             # managed iff there exists a related SocialAppCustomData object with
             # managed=True
             .annotate(
