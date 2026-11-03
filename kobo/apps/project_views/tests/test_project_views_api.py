@@ -12,6 +12,7 @@ from kpi.models.asset import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.data_exports import CONFIG
+from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.project_views import get_project_view_user_permissions_for_asset
 
 
@@ -207,6 +208,186 @@ class ProjectViewsApiTestCase(BaseTestCase):
         )
         self.assertNotIn(PERM_VIEW_ASSET, perms_ext)
 
+    def test_asset_list_does_not_run_queries_per_owner(self):
+        """
+        Checking the submission count permission of each deployed project must not
+        run queries per owner when no project view is filtered by organization
+        """
+
+        viewer = self._create_viewer()
+        owners = [self.admin_user, self.external_user, *self._create_owners(8)]
+        for owner in owners:
+            self._create_deployed_asset(owner)
+
+        self.client.force_login(viewer)
+        url = reverse(
+            self._get_endpoint('projectview-assets'),
+            kwargs={'uid_project_view': self.pv_country.uid},
+        )
+        with self.assertNumQueries(FuzzyInt(10, 30)):
+            response = self.client.get(url)
+
+        deployed = [a for a in response.data['results'] if a['has_deployment']]
+        assert len(deployed) == len(owners)
+
+    def test_asset_list_with_organization_view_does_not_run_queries_per_owner(self):
+        """
+        A project view filtered by organization must read the organizations of the
+        owners of the page in one query, even when it is not the view displayed
+        """
+
+        viewer = self._create_viewer()
+        self._create_organization_view(viewer, PERM_VIEW_ASSET)
+        owners = self._create_owners(15)
+        for owner in owners:
+            self._create_deployed_asset(owner)
+
+        self.client.force_login(viewer)
+        url = reverse(
+            self._get_endpoint('projectview-assets'),
+            kwargs={'uid_project_view': self.pv_country.uid},
+        )
+        with self.assertNumQueries(FuzzyInt(10, 30)):
+            response = self.client.get(url)
+
+        deployed = [a for a in response.data['results'] if a['has_deployment']]
+        assert len(deployed) == len(owners)
+
+    def test_organization_view_grants_submission_counts_on_its_organizations(self):
+        viewer = self._create_viewer()
+        self._create_organization_view(viewer, PERM_VIEW_SUBMISSIONS)
+        org_asset = self._create_deployed_asset(self.admin_user)
+        external_asset = self._create_deployed_asset(self.external_user)
+
+        counts = self._get_submission_counts(viewer)
+
+        assert counts[org_asset.uid] is not None
+        assert counts[external_asset.uid] is None
+
+    def test_org_admin_sees_submission_counts_of_all_org_members(self):
+        viewer = self._create_viewer()
+        member = User.objects.create_user(
+            username='member', password='password', email='member@example.com'
+        )
+        self._add_to_organization(viewer, is_admin=True)
+        self._add_to_organization(member)
+        owner_asset = self._create_deployed_asset(self.admin_user)
+        member_asset = self._create_deployed_asset(member)
+        external_asset = self._create_deployed_asset(self.external_user)
+
+        counts = self._get_submission_counts(viewer)
+
+        assert counts[owner_asset.uid] is not None
+        assert counts[member_asset.uid] is not None
+        assert counts[external_asset.uid] is None
+
+    def test_org_member_does_not_see_submission_counts_of_org_members(self):
+        viewer = self._create_viewer()
+        member = User.objects.create_user(
+            username='member', password='password', email='member@example.com'
+        )
+        self._add_to_organization(viewer)
+        self._add_to_organization(member)
+        owner_asset = self._create_deployed_asset(self.admin_user)
+        member_asset = self._create_deployed_asset(member)
+
+        counts = self._get_submission_counts(viewer)
+
+        assert counts[owner_asset.uid] is None
+        assert counts[member_asset.uid] is None
+
+    def test_org_member_sees_submission_count_of_asset_shared_with_them(self):
+        viewer = self._create_viewer()
+        self._add_to_organization(viewer)
+        shared_asset = self._create_deployed_asset(self.admin_user)
+        other_asset = self._create_deployed_asset(self.admin_user)
+        shared_asset.assign_perm(viewer, PERM_VIEW_SUBMISSIONS)
+
+        counts = self._get_submission_counts(viewer)
+
+        assert counts[shared_asset.uid] is not None
+        assert counts[other_asset.uid] is None
+
+    def test_project_view_permissions_follow_organization_filter(self):
+        """
+        A project view filtered by organization only grants its permissions on the
+        projects of those organizations
+        """
+
+        viewer = self._create_viewer()
+        self._create_organization_view(viewer, PERM_VIEW_SUBMISSIONS)
+
+        org_perms = get_project_view_user_permissions_for_asset(
+            self.asset_org_esp, viewer
+        )
+        external_perms = get_project_view_user_permissions_for_asset(
+            self.asset_ext_esp, viewer
+        )
+        assert PERM_VIEW_SUBMISSIONS in org_perms
+        assert PERM_VIEW_SUBMISSIONS not in external_perms
+
+        self._deactivate_external_user()
+        assert not self.external_user.organization
+        organization_less_perms = get_project_view_user_permissions_for_asset(
+            self.asset_ext_esp, viewer
+        )
+        assert PERM_VIEW_SUBMISSIONS not in organization_less_perms
+
+    def _add_to_organization(self, user: User, is_admin: bool = False) -> None:
+        self.org.mmo_override = True
+        self.org.save(update_fields=['mmo_override'])
+        self.org.add_user(user, is_admin=is_admin)
+
+    @staticmethod
+    def _create_deployed_asset(owner: User) -> Asset:
+        """
+        Deploy a project in Spain, so that `pv_country` lists it
+        """
+
+        asset = Asset.objects.create(
+            owner=owner,
+            name=f'Deployed by {owner.username}',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'country': [{'value': 'ESP', 'label': 'España'}]},
+        )
+        asset.deploy(backend='mock', active=True)
+        return asset
+
+    def _create_organization_view(self, user: User, permission: str) -> None:
+        """
+        Assign `user` to a project view that covers every country, and that is
+        filtered by the organization of `admin_user`
+        """
+
+        project_view = ProjectView.objects.create(
+            name='Org View', countries='*', permissions=[permission]
+        )
+        project_view.organizations.add(self.org)
+        project_view.users.add(user)
+
+    @staticmethod
+    def _create_owners(count: int) -> list[User]:
+        return [
+            User.objects.create_user(
+                username=f'owner{index}',
+                password='password',
+                email=f'owner{index}@example.com',
+            )
+            for index in range(count)
+        ]
+
+    def _create_viewer(self) -> User:
+        """
+        Create a user whose only project view is `pv_country`, which grants
+        `view_asset` only and is not filtered by organization
+        """
+
+        viewer = User.objects.create_user(
+            username='viewer', password='password', email='viewer@example.com'
+        )
+        self.pv_country.users.add(viewer)
+        return viewer
+
     def _deactivate_external_user(self) -> None:
         """
         Leave `external_user` with no organization at all, which is the state
@@ -216,3 +397,20 @@ class ProjectViewsApiTestCase(BaseTestCase):
         self.external_user.organizations_organizationuser.all().delete()
         self.external_user.is_active = False
         self.external_user.save()
+
+    def _get_submission_counts(self, user: User) -> dict:
+        """
+        Return the submission count that `user` sees for each project of `pv_country`
+        """
+
+        self.client.force_login(user)
+        url = reverse(
+            self._get_endpoint('projectview-assets'),
+            kwargs={'uid_project_view': self.pv_country.uid},
+        )
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        return {
+            asset['uid']: asset['deployment__submission_count']
+            for asset in response.data['results']
+        }
