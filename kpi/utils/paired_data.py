@@ -99,12 +99,13 @@ def build_and_save_paired_data_xml(
             asset_file.content.storage.delete(asset_file.content.name)
         return xml_
 
-    if old_hash != asset_file.md5_hash:
-        asset.deployment.sync_media_files(AssetFile.PAIRED_DATA)
-
-    # Delete the replaced file only once the row points to the new one, so that
-    # a concurrent request can still read it until then.
-    if previous_name and previous_name != asset_file.content.name:
-        asset_file.content.storage.delete(previous_name)
+    try:
+        if old_hash != asset_file.md5_hash:
+            asset.deployment.sync_media_files(AssetFile.PAIRED_DATA)
+    finally:
+        # Delete the replaced file only once the row points to the new one, so
+        # that a concurrent request can still read it until then.
+        if previous_name and previous_name != asset_file.content.name:
+            asset_file.content.storage.delete(previous_name)
 
     return xml_
