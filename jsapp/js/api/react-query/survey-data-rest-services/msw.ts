@@ -33,7 +33,10 @@ import type { PaginatedHookLogList } from '../../models/paginatedHookLogList'
 export const getApiV2AssetsHooksListResponseMock = (
   overrideResponse: Partial<PaginatedHookList> = {},
 ): PaginatedHookList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -211,7 +214,10 @@ export const getApiV2AssetsHooksPartialUpdateResponseMock = (overrideResponse: P
 export const getApiV2AssetsHooksLogsListResponseMock = (
   overrideResponse: Partial<PaginatedHookLogList> = {},
 ): PaginatedHookLogList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({

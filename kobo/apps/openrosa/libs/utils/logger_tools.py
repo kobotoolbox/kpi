@@ -25,7 +25,6 @@ from django.conf import settings
 from django.core.exceptions import (
     MultipleObjectsReturned,
     PermissionDenied,
-    ValidationError,
 )
 from django.core.files.base import File
 from django.core.mail import mail_admins
@@ -40,9 +39,6 @@ from django.http import (
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
-from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.data_collectors.authentication import DataCollectorUser
@@ -70,7 +66,6 @@ from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
 )
-from kobo.apps.openrosa.apps.logger.models.xform import XLSFormError
 from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_daily_counter,
     update_xform_monthly_counter,
@@ -91,7 +86,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
-from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limits
@@ -113,13 +108,13 @@ from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
-HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
 OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
 DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
 
-uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
-                        re.DOTALL)
+form_uuid_regex = re.compile(
+    r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>', re.DOTALL
+)
 
 mongo_instances = settings.MONGO_DB.instances
 
@@ -275,14 +270,13 @@ def check_edit_submission_permissions(
 
 
 def create_instance(
-    username: str,
     xml_file: File,
     media_files: Generator[File],
+    request: 'rest_framework.request.Request',
     status: str = 'submitted_via_web',
-    uuid: str = None,
     date_created_override: datetime = None,
-    request: Optional['rest_framework.request.Request'] = None,
     check_usage_limits: bool = True,
+    owner_username: str = None,
 ) -> Instance:
     """
     Processes form submissions by creating or updating an Instance in an atomic
@@ -304,16 +298,23 @@ def create_instance(
     content.
 
     Parameters:
-        username (str):  The username associated with the submission.
         xml_file (File): A file-like object containing the XML form submission.
         media_files (Generator[File]): Generator yielding media file objects.
+        request (Request): Request whose user is the submitter, used for
+                           permission checks.
         status (str, optional): Submission status (default 'submitted_via_web').
-        uuid (str, optional): Unique identifier for the submission.
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
-        request (Optional[Request]): Request object used for permission checks.
         check_usage_limits (bool, optional): Bypasses enforcement of limits for
                                              submissions/storage.
+        owner_username (str, optional): Username of the form owner, used only to
+                                        locate the form when `formhub/uuid` does
+                                        not identify it. It lets the lookup fall
+                                        back on `id_string` when the XML has no
+                                        `formhub/uuid`, and picks the form owned
+                                        by this user when several forms share
+                                        that `id_string`. Permission checks rely
+                                        on `request.user` only.
 
     Returns:
         Instance: The updated or newly created submission instance
@@ -330,12 +331,12 @@ def create_instance(
                                         processed.
         PermissionDenied: If the submission fails permission checks.
     """
-    if username:
-        username = username.lower()
+    if owner_username:
+        owner_username = owner_username.lower()
 
     xml = smart_str(xml_file.read())
     validate_xml_chars(xml)
-    xform = get_xform_from_submission(xml, username, uuid)
+    xform = get_xform_from_submission(xml, owner_username)
     check_submission_permissions(request, xform)
     # `Instance.get_hash()` excludes `meta/formVersions`, so duplicate detection
     # compares what the client sent and stays unaffected by a redeployment
@@ -566,25 +567,24 @@ def get_instance_or_404(**criteria):
         raise Http404
 
 
-def get_uuid_from_submission(xml):
+def get_form_uuid_from_submission(xml):
     # parse UUID from uploaded XML
-    split_xml = uuid_regex.split(xml)
+    split_xml = form_uuid_regex.split(xml)
 
     # check that xml has UUID
     return len(split_xml) > 1 and split_xml[1] or None
 
 
-def get_xform_from_submission(xml, username, uuid=None):
-    # check alternative form submission ids
-    uuid = uuid or get_uuid_from_submission(xml)
+def get_xform_from_submission(xml, owner_username):
+    form_uuid = get_form_uuid_from_submission(xml)
 
-    if not username and not uuid:
+    if not owner_username and not form_uuid:
         raise InstanceInvalidUserError()
 
-    if uuid:
+    if form_uuid:
         # try to find the form by its uuid which is the ideal condition
         try:
-            xform = XForm.objects.select_related('user').get(uuid=uuid)
+            xform = XForm.objects.select_related('user').get(uuid=form_uuid)
         except XForm.DoesNotExist:
             pass
         else:
@@ -628,7 +628,7 @@ def get_xform_from_submission(xml, username, uuid=None):
             owned = [
                 xform
                 for xform in conforming
-                if username and xform.user.username == username
+                if owner_username and xform.user.username == owner_username
             ]
             if len(owned) == 1:
                 return owned[0]
@@ -729,44 +729,6 @@ def http_open_rosa_error_handler(func, request):
     yield result
 
 
-def inject_instanceid(xml_str, uuid):
-    if get_uuid_from_xml(xml_str) is None:
-        xml = clean_and_parse_xml(xml_str)
-        children = xml.childNodes
-        if children.length == 0:
-            raise ValueError(t('XML string must have a survey element.'))
-
-        # check if we have a meta tag
-        survey_node = children.item(0)
-        meta_tags = [
-            n
-            for n in survey_node.childNodes
-            if n.nodeType == Node.ELEMENT_NODE and n.tagName.lower() == 'meta'
-        ]
-        if len(meta_tags) == 0:
-            meta_tag = xml.createElement('meta')
-            xml.documentElement.appendChild(meta_tag)
-        else:
-            meta_tag = meta_tags[0]
-
-        # check if we have an instanceID tag
-        uuid_tags = [
-            n
-            for n in meta_tag.childNodes
-            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'instanceID'
-        ]
-        if len(uuid_tags) == 0:
-            uuid_tag = xml.createElement('instanceID')
-            meta_tag.appendChild(uuid_tag)
-        else:
-            uuid_tag = uuid_tags[0]
-        # insert meta and instanceID
-        text_node = xml.createTextNode('uuid:%s' % uuid)
-        uuid_tag.appendChild(text_node)
-        return xml.toxml()
-    return xml_str
-
-
 def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     """
     Check the status of records in the PostgreSQL db versus MongoDB.
@@ -843,54 +805,6 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     return report_string
 
 
-def publish_form(callback):
-    try:
-        return callback()
-    except (PyXFormError, XLSFormError) as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-    except IntegrityError as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e),
-        }
-    except ValidationError as e:
-        # on clone invalid URL
-        return {
-            'type': 'alert-error',
-            'text': t('Invalid URL format.'),
-        }
-    except AttributeError as e:
-        # form.publish returned None, not sure why...
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-    except ProcessTimedOut as e:
-        # catch timeout errors
-        return {
-            'type': 'alert-error',
-            'text': t('Form validation timeout, please try again.'),
-        }
-    except Exception as e:
-        # TODO: Something less horrible. This masks storage backend
-        # `ImportError`s and who knows what else
-
-        # ODK validation errors are vanilla errors and it masks a lot of regular
-        # errors if we try to catch it so let's catch it, BUT reraise it
-        # if we don't see typical ODK validation error messages in it.
-        if 'ODK Validate Errors' not in str(e):
-            raise
-
-        # error in the XLS file; show an error to the user
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-
-
 def publish_xls_form(xls_file, user, id_string=None):
     """
     Creates or updates a DataDictionary with supplied xls_file,
@@ -913,18 +827,6 @@ def publish_xls_form(xls_file, user, id_string=None):
         except IntegrityError as e:
             raise e
         return dd
-
-
-def publish_xml_form(xml_file, user):
-    xml = smart_str(xml_file.read())
-    survey = create_survey_element_from_xml(xml)
-    form_json = survey.to_json()
-    dd = DataDictionary(user=user, xml=xml, json=form_json)
-    dd.mark_start_time_boolean()
-    set_uuid(dd)
-    dd.set_uuid_in_xml()
-    dd.save()
-    return dd
 
 
 def report_exception(subject, info, exc_info=None):
@@ -973,26 +875,30 @@ def response_with_mimetype_and_name(
 
 
 def safe_create_instance(
-    username: str,
     xml_file: File,
-    media_files: Union[list, Generator[File]],
-    uuid: Optional[str] = None,
-    date_created_override: Optional[datetime] = None,
-    request: Optional['rest_framework.request.Request'] = None,
+    media_files: Generator[File],
+    request: 'rest_framework.request.Request',
+    status: str = 'submitted_via_web',
+    date_created_override: datetime = None,
+    check_usage_limits: bool = True,
+    owner_username: str = None,
 ):
-    """Create an instance and catch exceptions.
+    """
+    Create an instance and catch exceptions.
 
     :returns: A list [error, instance] where error is None if there was no
         error.
     """
+
     with http_open_rosa_error_handler(
         lambda: create_instance(
-            username,
-            xml_file,
-            media_files,
-            uuid=uuid,
-            date_created_override=date_created_override,
+            xml_file=xml_file,
+            media_files=media_files,
             request=request,
+            status=status,
+            date_created_override=date_created_override,
+            check_usage_limits=check_usage_limits,
+            owner_username=owner_username,
         ),
         request,
     ) as handler:

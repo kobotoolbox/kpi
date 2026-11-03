@@ -4,7 +4,8 @@ from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
 from django.conf import settings
-from django.db.models import Count, F
+from django.contrib.postgres.aggregates import BoolOr
+from django.db.models import BooleanField, Count, ExpressionWrapper, F, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
@@ -21,7 +22,6 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -810,18 +810,8 @@ class AssetViewSet(
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
 
-            # self._filtered_queryset is set in the `list()` method that
-            # DRF automatically calls and is overridden below. This is
-            # to prevent double calls to `filter_queryset()` as described in
-            # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
-            queryset = self._filtered_queryset
-
-            # 1) Retrieve all asset IDs of the current list
-            if 'asset_ids_cache' not in context_:
-                asset_ids = AssetPagination.get_all_asset_ids_from_queryset(queryset)
-                context_['asset_ids_cache'] = asset_ids
-            else:
-                asset_ids = context_['asset_ids_cache']
+            # 1) Asset IDs of what `list()` serializes
+            asset_ids = context_['asset_ids_cache']
 
             # 2) Get object permissions per asset.
             # By default, only loads permissions for the requesting user and
@@ -835,22 +825,34 @@ class AssetViewSet(
                 asset_ids, current_user_permissions_only
             )
 
-            # 2b) Assets shared with at least one non-owner, non-anonymous user.
-            # Used by get_status() and get_access_types() to detect 'shared'.
-            context_['shared_asset_ids'] = set(
+            # 2b) Assets with a permission for anyone but their owner, the
+            # anonymous user included, used by get_status(), and among them the
+            # assets shared with a non-anonymous user, used by get_access_types()
+            context_['permission_asset_ids'] = set()
+            context_['shared_asset_ids'] = set()
+            records = (
                 ObjectPermission.objects.filter(
                     asset_id__in=asset_ids,
                     deny=False,
                 )
                 .exclude(
-                    user_id=settings.ANONYMOUS_USER_ID,
-                )
-                .exclude(
                     user_id=F('asset__owner_id'),
                 )
-                .values_list('asset_id', flat=True)
-                .distinct()
+                .values('asset_id')
+                .annotate(
+                    shared_with_user=BoolOr(
+                        ExpressionWrapper(
+                            ~Q(user_id=settings.ANONYMOUS_USER_ID),
+                            output_field=BooleanField(),
+                        )
+                    )
+                )
+                .order_by()
             )
+            for record in records:
+                context_['permission_asset_ids'].add(record['asset_id'])
+                if record['shared_with_user']:
+                    context_['shared_asset_ids'].add(record['asset_id'])
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
@@ -915,42 +917,39 @@ class AssetViewSet(
                 context_['organizations_per_asset'] = (
                     self.get_organizations_per_asset_ids(asset_ids)
                 )
+                context_['mmo_organization_ids'] = self.get_mmo_organization_ids(
+                    context_['organizations_per_asset']
+                )
 
         return context_
 
     def list(self, request, *args, **kwargs):
-        # assigning global filtered query set to prevent additional,
-        # unnecessary calls to `filter_queryset`
-        self._filtered_queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
 
-        page = self.paginate_queryset(self._filtered_queryset)
+        # `get_serializer_context()` reads these, so fill them from whatever
+        # gets serialized, even without pagination
+        self._cache_asset_ids(page if page is not None else queryset)
+        self._serializer_context['asset_ids_cache'] = self._asset_ids
 
         if page is not None:
-            self._serializer_context['asset_ids_cache'] = []
-            self._serializer_context['asset_uids_cache'] = []
-            for asset in page:
-                self._serializer_context['asset_ids_cache'].append(asset.pk)
-                self._serializer_context['asset_uids_cache'].append(asset.uid)
-
             serializer = self.get_serializer(
                 self._attach_xforms_to_assets(page), many=True
             )
             metadata = None
             if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(self._filtered_queryset)
+                metadata = self.get_metadata(queryset)
 
             response = self.get_paginated_response(serializer.data, metadata)
             return response
 
-        serializer = self.get_serializer(self._filtered_queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
     def counts(self, request):
-        self._filtered_queryset = self.filter_queryset(self.get_queryset())
-        serializer = AssetListCountSerializer(
-            self._filtered_queryset, context={'request': request}
-        )
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = AssetListCountSerializer(queryset, context={'request': request})
         return Response(serializer.data)
 
     @action(
@@ -1090,44 +1089,6 @@ class AssetViewSet(
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(request, *args, **kwargs)
-
-    def _attach_xforms_to_assets(self, assets: list):
-        """
-        Attach the related XForm to each Asset and yield them to
-        stay memory-efficient.
-        """
-
-        asset_uids = self._serializer_context['asset_uids_cache']
-        xform_qs = (
-            XForm.all_objects.filter(kpi_asset_uid__in=asset_uids)
-            .only(
-                'id_string',
-                'num_of_submissions',
-                'attachment_storage_bytes',
-                'require_auth',
-                'uuid',
-                'mongo_uuid',
-                'encrypted',
-                'last_submission_time',
-                'kpi_asset_uid',
-            )
-            .order_by()
-        )
-
-        xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
-
-        # Single pass over assets: attach _xform then yield
-        for asset in assets:
-            if asset.has_deployment:
-                if xf := xforms_by_uid.get(asset.uid):
-                    xf.user = asset.owner
-                    asset.deployment._xform = xf
-                else:
-                    # If XForm does not exist, something went wrong.
-                    # Consider the asset as not deployed.
-                    asset.date_deployed = None
-                    asset._deployment_data = {}
-            yield asset
 
     def _bulk_asset_actions(self, data: dict) -> dict:
         params = {

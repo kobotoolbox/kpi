@@ -1,15 +1,17 @@
+from django.contrib.auth.decorators import user_passes_test
 from django.urls import re_path
 
 from .views import (
-    MarkdownxUploaderImageUploadView,
     MarkdownxUploaderFileContentView,
+    MarkdownxUploaderImageUploadView,
 )
-
 
 urlpatterns = [
     re_path(
         r'^image-upload/',
-        MarkdownxUploaderImageUploadView.as_view(),
+        user_passes_test(lambda u: u.is_superuser)(
+            MarkdownxUploaderImageUploadView.as_view()
+        ),
         name='markdownx-uploader-image-upload'
     ),
     re_path(

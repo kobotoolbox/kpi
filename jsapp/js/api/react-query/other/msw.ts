@@ -14,6 +14,8 @@ import { faker } from '@faker-js/faker'
 import { http, HttpResponse } from 'msw'
 import type { RequestHandlerOptions } from 'msw'
 
+import type { BillingCycleInfo } from '../../models/billingCycleInfo'
+
 import { BlankEnum } from '../../models/blankEnum'
 
 import type { ChangePlan } from '../../models/changePlan'
@@ -21,6 +23,10 @@ import type { ChangePlan } from '../../models/changePlan'
 import type { CheckoutLink } from '../../models/checkoutLink'
 
 import { CollectionMethodEnum } from '../../models/collectionMethodEnum'
+
+import type { CustomerAddress } from '../../models/customerAddress'
+
+import type { CustomerBillingDetailsResponse } from '../../models/customerBillingDetailsResponse'
 
 import type { CustomerPortalPostResponse } from '../../models/customerPortalPostResponse'
 
@@ -71,7 +77,10 @@ import type { TranslationService } from '../../models/translationService'
 export const getApiV2LanguagesListResponseMock = (
   overrideResponse: Partial<PaginatedLanguageListList> = {},
 ): PaginatedLanguageListList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -115,7 +124,10 @@ export const getApiV2LanguagesRetrieveResponseMock = (overrideResponse: Partial<
 export const getApiV2PermissionsListResponseMock = (
   overrideResponse: Partial<PaginatedPermissionResponseList> = {},
 ): PaginatedPermissionResponseList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -150,7 +162,10 @@ export const getApiV2PermissionsRetrieveResponseMock = (
 export const getApiV2StripeAddonsListResponseMock = (
   overrideResponse: Partial<PaginatedOneTimeAddOnList> = {},
 ): PaginatedOneTimeAddOnList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -214,6 +229,96 @@ export const getApiV2StripeCheckoutLinkCreateResponseMock = (
   ...overrideResponse,
 })
 
+export const getApiV2StripeCustomerPortalRetrieveResponseCustomerAddressMock = (
+  overrideResponse: Partial<CustomerAddress> = {},
+): CustomerAddress => ({
+  ...{
+    city: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    country: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    line1: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    line2: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    postal_code: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    state: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2StripeCustomerPortalRetrieveResponseBillingCycleInfoMock = (
+  overrideResponse: Partial<BillingCycleInfo> = {},
+): BillingCycleInfo => ({
+  ...{
+    billing_cycle_anchor: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    current_period_start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    current_period_end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]),
+    interval: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+    status: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+      undefined,
+    ]),
+  },
+  ...overrideResponse,
+})
+
+export const getApiV2StripeCustomerPortalRetrieveResponseMock = (
+  overrideResponse: Partial<CustomerBillingDetailsResponse> = {},
+): CustomerBillingDetailsResponse => ({
+  id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  name: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  email: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  phone: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  address: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([{ ...getApiV2StripeCustomerPortalRetrieveResponseCustomerAddressMock() }, null]),
+    undefined,
+  ]),
+  balance: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.number.int({ min: undefined, max: undefined }), null]),
+    undefined,
+  ]),
+  currency: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  billing_cycle_info: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([{ ...getApiV2StripeCustomerPortalRetrieveResponseBillingCycleInfoMock() }, null]),
+    undefined,
+  ]),
+  url: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+})
+
 export const getApiV2StripeCustomerPortalCreateResponseMock = (
   overrideResponse: Partial<CustomerPortalPostResponse> = {},
 ): CustomerPortalPostResponse => ({ url: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
@@ -236,7 +341,10 @@ export const getApiV2StripeProductsListResponseRecurringMock = (
 export const getApiV2StripeProductsListResponseMock = (
   overrideResponse: Partial<PaginatedProductList> = {},
 ): PaginatedProductList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -288,7 +396,10 @@ export const getApiV2StripeSubscriptionsListResponseRecurringMock = (
 export const getApiV2StripeSubscriptionsListResponseMock = (
   overrideResponse: Partial<PaginatedSubscriptionList> = {},
 ): PaginatedSubscriptionList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -576,7 +687,10 @@ export const getApiV2TermsOfServiceRetrieveResponseMock = (
 export const getApiV2TranscriptionServicesListResponseMock = (
   overrideResponse: Partial<PaginatedTranscriptionServiceList> = {},
 ): PaginatedTranscriptionServiceList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -597,7 +711,10 @@ export const getApiV2TranscriptionServicesRetrieveResponseMock = (
 export const getApiV2TranslationServicesListResponseMock = (
   overrideResponse: Partial<PaginatedTranslationServiceList> = {},
 ): PaginatedTranslationServiceList => ({
-  count: faker.number.int({ min: undefined, max: undefined }),
+  count: faker.helpers.arrayElement([
+    faker.number.int({ min: undefined, max: undefined }),
+    faker.helpers.arrayElement(['many', 'unknown'] as const),
+  ]),
   next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
@@ -803,6 +920,32 @@ export const getApiV2StripeCheckoutLinkCreateMockHandler = (
               ? await overrideResponse(info)
               : overrideResponse
             : getApiV2StripeCheckoutLinkCreateResponseMock(),
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    options,
+  )
+}
+
+export const getApiV2StripeCustomerPortalRetrieveMockHandler = (
+  overrideResponse?:
+    | CustomerBillingDetailsResponse
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0],
+      ) => Promise<CustomerBillingDetailsResponse> | CustomerBillingDetailsResponse),
+  options?: RequestHandlerOptions,
+) => {
+  return http.get(
+    '*/api/v2/stripe/customer-portal',
+    async (info) => {
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getApiV2StripeCustomerPortalRetrieveResponseMock(),
         ),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       )
@@ -1071,6 +1214,7 @@ export const getOtherMock = () => [
   getApiV2StripeAddonsRetrieveMockHandler(),
   getApiV2StripeChangePlanRetrieveMockHandler(),
   getApiV2StripeCheckoutLinkCreateMockHandler(),
+  getApiV2StripeCustomerPortalRetrieveMockHandler(),
   getApiV2StripeCustomerPortalCreateMockHandler(),
   getApiV2StripeProductsListMockHandler(),
   getApiV2StripeSubscriptionsListMockHandler(),

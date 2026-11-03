@@ -18,6 +18,7 @@ import { isNlpSupported } from '#/components/processing/common/utils'
 import { stripRepeatIndices } from '#/components/submissions/submissionUtils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getSubmissionRootUuid, notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
 
@@ -47,6 +48,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useAssetsAttachmentsDestroy()
+  const isNlpImageActionsEnabled = useFeatureFlag(FeatureFlag.nlpImageActionsEnabled)
 
   const attachment = (props.submission._attachments as any as _DataResponseAttachmentsItem[]).find(
     (item) => item.uid === props.attachmentUid,
@@ -88,7 +90,11 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   }
 
   const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submission)
-  const isProcessingActionShown = props.showProcessingAction && isNlpSupported(questionType)
+  // TODO: drop the image check along with `FeatureFlag.nlpImageActionsEnabled` once NLP for images is complete.
+  const isProcessingActionShown =
+    props.showProcessingAction &&
+    isNlpSupported(questionType) &&
+    (questionType !== QuestionTypeName.image || isNlpImageActionsEnabled)
 
   return (
     <span className={styles.attachmentActionsDropdown}>

@@ -1,3 +1,5 @@
+import type { LabelValuePair } from '#/dataInterface'
+
 /**
  * This is a list of user metadata fields known by Front end code. If you happen
  * to add new fields, please updated this interface first :)
@@ -38,3 +40,17 @@ export const MMO_MANAGED_FIELD_NAMES: readonly UserFieldName[] = [
  * takes them out of play - see `areOrganizationFieldsSkipped` in `account.utils`.
  */
 export const ORGANIZATION_DEPENDENT_FIELD_NAMES: readonly UserFieldName[] = ['organization', 'organization_website']
+
+export interface UserMetadataField {
+  name: UserFieldName
+  required: boolean
+  label: string
+}
+
+/** Everything `AccountFieldsEditor` needs from `/environment` */
+export interface AccountFieldsConfig {
+  /** Every field `USER_METADATA_FIELDS` configures, in the order the instance lists them */
+  userMetadataFields: UserMetadataField[]
+  countryChoices: LabelValuePair[]
+  sectorChoices: LabelValuePair[]
+}

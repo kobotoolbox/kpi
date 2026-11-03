@@ -686,9 +686,6 @@ const constants = {
   HELP_MESSAGES_POLL_INTERVAL,
 }
 
-export const HELP_ARTICLE_ANON_SUBMISSIONS_URL =
-  'project_sharing_settings.html#allowing-submissions-without-authentication'
-
 export const XML_VALUES_OPTION_VALUE = 'xml_values'
 
 export default constants

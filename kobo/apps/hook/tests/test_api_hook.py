@@ -7,6 +7,7 @@ import pytest
 import responses
 from constance.test import override_config
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
@@ -16,6 +17,7 @@ from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.hook.models.hook import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    LIMITED_COUNT_MANY,
     PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -568,3 +570,16 @@ class ApiHookTestCase(BaseHookTestCase):
         # Test bad argument
         response = self.client.get(f'{hook_log_url}?end_date=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_log_list_count_is_capped(self):
+        hook = self._create_hook()
+        hook.logs.create(submission_id=1)
+        log_list_url = reverse(
+            self._get_endpoint('hook-log-list'),
+            kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
+        )
+        response = self.client.get(log_list_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert response.data['results']
