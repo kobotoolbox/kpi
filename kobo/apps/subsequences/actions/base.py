@@ -1,6 +1,7 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
@@ -21,6 +22,7 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from ..constants import GOOGLE_CACHE_TIMEOUT
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
     NLPExternalServiceClass,
@@ -1069,8 +1071,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     def _has_operation_in_progress(self, action_data: dict) -> bool:
         """
         Return whether `action_data` targets an external operation that already
-        started and is still running, i.e. the stored in-progress version has
-        the same language and locale as the request
+        started and is still running (started less than GOOGLE_CACHE_TIMEOUT
+        ago) with the same language and locale
         """
 
         question_supplemental_data = (
@@ -1088,6 +1090,15 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             return False
         current_version_data = versions[0].get(self.VERSION_DATA_FIELD, {})
         if current_version_data.get('status') != 'in_progress':
+            return False
+        # Polls give up after GOOGLE_CACHE_TIMEOUT (see `poll_run_external_process`),
+        # so an older in-progress version is stale and a request starts a new
+        # operation
+        date_created = versions[0].get(self.DATE_CREATED_FIELD)
+        if not date_created:
+            return False
+        age = timezone.now() - datetime.fromisoformat(date_created)
+        if age.total_seconds() > GOOGLE_CACHE_TIMEOUT:
             return False
         # The operation is identified by its language and locale, so a request
         # for another one starts a new operation and must be limit-checked

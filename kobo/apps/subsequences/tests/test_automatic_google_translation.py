@@ -9,12 +9,14 @@ from ddt import data as ddt_data
 from ddt import ddt, unpack
 from django.conf import settings
 from django.test import TestCase
+from django.utils import timezone
 
 from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import GoogleQuotaExceededError, TranscriptionNotFound
+from ..utils.time import utc_datetime_to_js_str
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -822,7 +824,10 @@ class AutomaticGoogleTranslationLimitTestCase(TestCase):
                 AutomaticGoogleTranslationAction.ID: {
                     'es': {
                         '_versions': [
-                            {'_data': {'status': 'in_progress', 'language': 'es'}}
+                            {
+                                '_data': {'status': 'in_progress', 'language': 'es'},
+                                '_dateCreated': utc_datetime_to_js_str(timezone.now()),
+                            }
                         ]
                     }
                 }

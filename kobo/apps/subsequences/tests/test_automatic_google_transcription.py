@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import dateutil
@@ -8,11 +9,14 @@ from ddt import data as ddt_data
 from ddt import ddt, unpack
 from django.conf import settings
 from django.test import TestCase
+from django.utils import timezone
 
 from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_transcription import AutomaticGoogleTranscriptionAction
+from ..constants import GOOGLE_CACHE_TIMEOUT
+from ..utils.time import utc_datetime_to_js_str
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT
 
 
@@ -608,26 +612,31 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
     @ddt_data(
-        ('in_progress', {'language': 'en'}, False),
-        ('complete', {'language': 'en'}, True),
-        ('failed', {'language': 'en'}, True),
-        ('in_progress', {'language': 'fr'}, True),
-        ('in_progress', {'language': 'en', 'locale': 'en-GB'}, True),
+        # (stored status, stored version age in seconds, request, should raise)
+        ('in_progress', 0, {'language': 'en'}, False),
+        ('complete', 0, {'language': 'en'}, True),
+        ('failed', 0, {'language': 'en'}, True),
+        ('in_progress', 0, {'language': 'fr'}, True),
+        ('in_progress', 0, {'language': 'en', 'locale': 'en-GB'}, True),
+        ('in_progress', GOOGLE_CACHE_TIMEOUT + 3600, {'language': 'en'}, True),
+        # `None` stores a version without `_dateCreated`
+        ('in_progress', None, {'language': 'en'}, True),
     )
     @unpack
     def test_check_limit_with_stored_status(
-        self, stored_status, action_data, should_raise
+        self, stored_status, age_seconds, action_data, should_raise
     ):
         u = User.objects.create(username='dummy')
         xpath = 'group_name/question_name'  # irrelevant for this test
         params = [{'language': 'fr'}, {'language': 'en'}]
+        stored_version = {'_data': {'status': stored_status, 'language': 'en'}}
+        if age_seconds is not None:
+            stored_version['_dateCreated'] = utc_datetime_to_js_str(
+                timezone.now() - timedelta(seconds=age_seconds)
+            )
         prefetched_dependencies = {
             'question_supplemental_data': {
-                AutomaticGoogleTranscriptionAction.ID: {
-                    '_versions': [
-                        {'_data': {'status': stored_status, 'language': 'en'}}
-                    ]
-                }
+                AutomaticGoogleTranscriptionAction.ID: {'_versions': [stored_version]}
             }
         }
         action = AutomaticGoogleTranscriptionAction(
