@@ -1,14 +1,10 @@
 # coding: utf-8
 import os
-from tempfile import NamedTemporaryFile
 
 from django.db import models
 from django.utils.translation import gettext as t
 
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kpi.deployment_backends.kc_access.storage import (
-    default_kobocat_storage as default_storage,
-)
 
 
 class Export(models.Model):
@@ -126,21 +122,6 @@ class Export(models.Model):
     def filepath(self):
         if self.filedir and self.filename:
             return os.path.join(self.filedir, self.filename)
-        return None
-
-    @property
-    def full_filepath(self):
-        if self.filepath:
-            try:
-                return default_storage.path(self.filepath)
-            except NotImplementedError:
-                # read file from s3
-                name, ext = os.path.splitext(self.filepath)
-                tmp = NamedTemporaryFile(suffix=ext, delete=False)
-                f = default_storage.open(self.filepath)
-                tmp.write(f.read())
-                tmp.close()
-                return tmp.name
         return None
 
     @classmethod
