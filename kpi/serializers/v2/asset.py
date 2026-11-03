@@ -1219,10 +1219,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         setattr(asset, 'asset_ids_cache', asset_ids)
 
-    def _table_url(self, obj):
-        request = self.context.get('request', None)
-        return reverse('asset-table-view', args=(obj.uid,), request=request)
-
 
 class AssetListSerializer(AssetSerializer):
 
@@ -1336,12 +1332,6 @@ class AssetListSerializer(AssetSerializer):
             return ASSET_STATUS_SHARED
 
         return ASSET_STATUS_PRIVATE
-
-
-class AssetUrlListSerializer(AssetSerializer):
-
-    class Meta(AssetSerializer.Meta):
-        fields = ('url',)
 
 
 class AssetMetadataListSerializer(AssetListSerializer):
