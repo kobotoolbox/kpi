@@ -2,7 +2,6 @@ import math
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
@@ -74,9 +73,9 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
     pending_transfer = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
-        queryset=get_user_model().objects.all(),
         lookup_field='username',
         view_name='user-kpi-detail',
+        read_only=True,
     )
     role = serializers.CharField()
     user__has_mfa_enabled = serializers.BooleanField(
@@ -87,7 +86,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
-        source='created', format='%Y-%m-%dT%H:%M:%SZ'
+        source='created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
     )
     user__username = serializers.ReadOnlyField(source='user.username')
     user__extra_details__name = ReadOnlyFieldWithSchemaField(
@@ -243,17 +242,6 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     def validate_role(self, role):
         if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
             raise InvalidMembershipRequest(INVALID_ROLE_ERROR)
-
-        if self.instance:
-            if self.instance.organization.is_owner(self.instance.user):
-                raise InvalidMembershipRequest(CANNOT_CHANGE_OWNER_ROLE_ERROR)
-
-            if OrganizationOwnershipTransfer.objects.filter(
-                organization=self.instance.organization,
-                recipient=self.instance.user,
-                status=OrganizationInviteStatusChoices.PENDING,
-            ).exists():
-                raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
 
         return role
 
@@ -849,9 +837,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
 
         # 2. Enforces the business rule that only one ownership transfer can
         # be pending per team
-        if organization.ownership_transfers.filter(
-            status=OrganizationInviteStatusChoices.PENDING
-        ).exists():
+        if organization.has_pending_ownership_transfer:
             raise serializers.ValidationError(
                 {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
             )
