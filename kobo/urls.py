@@ -1,5 +1,6 @@
 from allauth.headless import app_settings as headless_settings
 from allauth.headless.constants import Client
+from django.apps import apps
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -14,6 +15,7 @@ from rest_framework import status
 from rest_framework.exceptions import server_error
 
 from kobo.apps.accounts.views import HeadlessManageTOTPView
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -123,6 +125,15 @@ urlpatterns = [
 if settings.ENABLE_METRICS:
     urlpatterns.append(
         path('', include('django_prometheus.urls')),
+    )
+
+if apps.is_installed('kobo.apps.kobo_scim'):
+    urlpatterns.append(
+        path(
+            'accounts/social/provisioning/',
+            SocialAccountProvisioningHTMLView.as_view(),
+            name='socialaccount_provisioning',
+        ),
     )
 
 

@@ -6,6 +6,9 @@ from rest_framework.reverse import reverse
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.constants import SCIM_SCHEMA_GROUP, SCIM_SCHEMA_USER
 from kobo.apps.kobo_scim.models import ScimGroup
+from kobo.apps.kobo_scim.provisioning import (
+    SocialAccountProvisioningResponseSerializer,
+)
 
 
 class ScimUserSerializer(serializers.ModelSerializer):
@@ -138,3 +141,10 @@ class ScimGroupSerializer(serializers.ModelSerializer):
             'lastModified': modified,
             'location': location,
         }
+
+
+__all__ = [
+    'ScimGroupSerializer',
+    'ScimUserSerializer',
+    'SocialAccountProvisioningResponseSerializer',
+]
