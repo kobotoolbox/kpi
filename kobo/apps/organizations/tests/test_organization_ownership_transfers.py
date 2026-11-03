@@ -313,6 +313,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 str(response.data['detail'][0]),
                 str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
             )
+
     def test_retrieve_transfer(self):
         """
         GET /ownership-transfers/{guid}/ returns transfer metadata.
