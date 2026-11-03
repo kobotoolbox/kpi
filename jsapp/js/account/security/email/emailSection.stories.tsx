@@ -2,14 +2,18 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { HttpHandler } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
+import type { CredentialField } from '#/account/security/reauthentication/reauthentication.api'
 import type { EmailAddress } from '#/api/models/emailAddress'
-import type { Canvas } from '#/auth/authStoryHelpers'
+import type { Flow } from '#/api/models/flow'
+import { type Canvas, findField } from '#/auth/authStoryHelpers'
+import { INCORRECT_CODE_MESSAGE, VALID_CODE, VALID_PASSWORD, reauthenticateMocks } from '#/endpoints/mfa.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import {
   PENDING_EMAIL,
   VERIFIED_EMAIL,
   userEmailChangedMock,
   userEmailInvalidMock,
+  userEmailReauthenticationRequiredMock,
   userEmailsListMock,
   userEmailsRemovedMock,
 } from '#/endpoints/userEmails.mocks'
@@ -42,6 +46,40 @@ function withEmails(initial: EmailAddress[], ...refusals: HttpHandler[]) {
       emails.splice(0, emails.length, ...initial)
     },
   }
+}
+
+const PASSWORD_FLOW: Flow = { id: 'reauthenticate' }
+const CODE_FLOW: Flow = { id: 'mfa_reauthenticate', types: ['recovery_codes', 'totp'] }
+const SECURITY_KEY_FLOW: Flow = { id: 'mfa_reauthenticate', types: ['webauthn'] }
+
+/** Like {@link withEmails}, but the `POST` is refused until every one of `flows` is done */
+function withStaleSession(flows: Flow[]) {
+  const accepted = new Set<CredentialField>()
+  const needed = flows.map((flow): CredentialField => (flow === PASSWORD_FLOW ? 'password' : 'code'))
+  const story = withEmails(
+    [VERIFIED_EMAIL],
+    userEmailReauthenticationRequiredMock(flows, () => needed.every((field) => accepted.has(field))),
+    ...reauthenticateMocks((field) => accepted.add(field)),
+  )
+
+  return {
+    ...story,
+    beforeEach: () => {
+      accepted.clear()
+      story.beforeEach()
+    },
+  }
+}
+
+/** Submits the typed address and returns the modal it gets refused with */
+async function submitUntilAsked(canvas: Canvas) {
+  await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
+
+  // Mantine renders the modal into a portal, outside the canvas
+  const dialog = await within(document.body).findByRole('dialog', { name: "Confirm it's you" })
+  // The refusal is handled, so the vague toast it used to raise stays away
+  expect(canvas.queryByText('Re-authentication is required for this action.')).not.toBeInTheDocument()
+  return within(dialog)
 }
 
 /** Swaps the current address in the field for `address` */
@@ -141,5 +179,57 @@ export const RejectedAddress: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
 
     await canvas.findByText('Enter a valid email address.')
+  },
+}
+
+/** With 2FA on, KPI wants the password and a code. The same code field serves SSO-only accounts alone. */
+export const Reauthenticate: Story = {
+  ...withStaleSession([PASSWORD_FLOW, CODE_FLOW]),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const confirm = (modal: Canvas) => userEvent.click(modal.getByRole('button', { name: 'Confirm' }))
+
+    // Cancelling changes nothing, and the typed address is still there to try again
+    await typeNewEmail(canvas, PENDING_EMAIL.email)
+    let modal = await submitUntilAsked(canvas)
+    await userEvent.click(modal.getByRole('button', { name: 'Cancel' }))
+    await waitFor(() => expect(within(document.body).queryByRole('dialog')).not.toBeInTheDocument())
+    expect(canvas.getByRole('textbox')).toHaveValue(PENDING_EMAIL.email)
+    expect(canvas.queryByText(/Check your email/)).not.toBeInTheDocument()
+
+    modal = await submitUntilAsked(canvas)
+    const password = await findField(modal, 'Password')
+    const code = await findField(modal, 'Code')
+
+    await userEvent.type(password, 'wrong')
+    await userEvent.type(code, '000000')
+    await confirm(modal)
+    await modal.findByText('Incorrect password.')
+
+    await userEvent.clear(password)
+    await userEvent.type(password, VALID_PASSWORD)
+    await confirm(modal)
+    await modal.findByText(INCORRECT_CODE_MESSAGE)
+
+    await userEvent.clear(code)
+    await userEvent.type(code, VALID_CODE)
+    await confirm(modal)
+
+    // The address typed before the interruption goes through
+    await canvas.findByText(new RegExp(`Check your email ${PENDING_EMAIL.email}`))
+    await waitFor(() => expect(within(document.body).queryByRole('dialog')).not.toBeInTheDocument())
+  },
+}
+
+export const ReauthenticationNeedsNewLogin: Story = {
+  ...withStaleSession([PASSWORD_FLOW, SECURITY_KEY_FLOW]),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await typeNewEmail(canvas, PENDING_EMAIL.email)
+    const modal = await submitUntilAsked(canvas)
+
+    await modal.findByText('To continue, please log out and log back in, then try again.')
+    expect(modal.getByRole('button', { name: 'Log out' })).toBeEnabled()
+    expect(modal.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument()
   },
 }
