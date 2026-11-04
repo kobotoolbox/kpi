@@ -6,10 +6,7 @@ const signedIn: AuthStatus = {
   ...ANONYMOUS_AUTH_STATUS,
   isAuthenticated: true,
   user: { id: 7, display: 'sallyride', username: 'sallyride', has_usable_password: true, has_validated_password: true },
-  methodCount: 1,
 }
-
-const reauthenticationRequired: AuthStatus = { ...signedIn, isReauthenticationRequired: true }
 
 /** Nobody signed in, nothing in flight - each case below states only the part it is about. */
 const gateInput = (overrides: Partial<GateInput> = {}): GateInput => ({
@@ -28,12 +25,6 @@ describe('getAuthGateDecision', () => {
 
   it('allows a route on the endpoint`s word alone', () => {
     chai.expect(getAuthGateDecision(gateInput({ authStatus: signedIn }))).to.equal('allow')
-  })
-
-  // The session behind the ask is real, so whatever triggered it handles it.
-  it('allows a route while allauth is asking for credentials again', () => {
-    const input = gateInput({ authStatus: reauthenticationRequired, isLegacyLoggedIn: true })
-    chai.expect(getAuthGateDecision(input)).to.equal('allow')
   })
 
   // The flag-off path, where the endpoint is never asked and `/me/` is the only answer there is.

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Navigate, Route } from 'react-router-dom'
+import { Route } from 'react-router-dom'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { FeatureFlag } from '#/featureFlags'
 import RequireAnonymous from '#/router/RequireAnonymous'
@@ -63,13 +63,6 @@ export default function authRoutes() {
       <Route path={AUTH_ROUTES.RESET_PASSWORD} element={<ResetPasswordRoute />} />
       <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
 
-      {/*
-        `LoginRoute` swaps `MfaForm` into its own card, so the URL stays on `/auth/login` for the whole sign-in and
-        nothing reaches these two on its own. A code means nothing without a sign-in underway, so a stale link starts
-        over rather than showing SectionNotFound.
-      */}
-      <Route path={AUTH_ROUTES.MFA_AUTHENTICATE} element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
-      <Route path={AUTH_ROUTES.MFA_RECOVERY_CODES} element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
       {/*
         Both halves of the single sign-on flow. `PROVIDER_SIGNUP` is also where allauth returns the browser
         after the provider round trip, whatever the outcome - see `ProviderSignupRoute`.
