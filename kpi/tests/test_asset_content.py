@@ -9,8 +9,10 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
+from formpack.constants import INFERRED_VERSION_ID_KEY
 from model_bakery import baker
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
 from kpi.models.asset_version import AssetVersion
@@ -1202,6 +1204,36 @@ class TestAssetContent(TestCase):
             'm1_car/m1_car_photo',
             'm1_tv/m1_tv_photo',
         ]
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_loads_each_version_content_on_its_own(self, _repair):
+        """
+        A `version_content` weighs megabytes on a form with long choice lists, so
+        the contents of several versions must never come from a single query.
+        """
+
+        self._deploy_content(_content_with_choices())
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        # One query for the rows, and one more per version
+        with self.assertNumQueries(FuzzyInt(2, 3)):
+            pack, _ = build_formpack(asset, submission_stream=[])
+
+        assert len(pack.versions) == 2
+
+    def test_build_formpack_resolves_deprecated_reversion_ids(self):
+        first_version = self.asset.latest_deployed_version
+        self._deploy_content(_content_with_choices())
+        AssetVersion.objects.filter(pk=first_version.pk).update(
+            _reversion_version=12345
+        )
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        _, submission_stream = build_formpack(
+            asset, submission_stream=[{'__version__': '12345'}]
+        )
+
+        assert next(submission_stream)[INFERRED_VERSION_ID_KEY] == first_version.uid
 
     @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
     def test_xpath_method_called_once_for_single_version(
