@@ -119,6 +119,27 @@ describe('useDataTableBulkActions', () => {
     chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
   })
 
+  it('disables the bulk actions query when ASR/MT features are disabled in env', () => {
+    envStore.data.asr_mt_features_enabled = false
+    mockSession('zefir')
+    mockBulkActions(undefined)
+
+    renderHook(() => useDataTableBulkActions('asset-123'))
+
+    const options = useBulkActionsListMock.mock.calls[0][2]
+    chai.expect(options?.query?.enabled).to.equal(false)
+  })
+
+  it('enables the bulk actions query when ASR/MT features are enabled and asset uid is present', () => {
+    mockSession('zefir')
+    mockBulkActions(undefined)
+
+    renderHook(() => useDataTableBulkActions('asset-123'))
+
+    const options = useBulkActionsListMock.mock.calls[0][2]
+    chai.expect(options?.query?.enabled).to.equal(true)
+  })
+
   it('filters to pending/in-progress actions and returns true when current user has an active action', () => {
     mockSession('zefir')
     mockBulkActions([
