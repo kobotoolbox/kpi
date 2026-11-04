@@ -606,7 +606,8 @@ export interface TableSortBySetting {
  */
 export interface AssetTableSettings {
   'selected-columns'?: string[] | null
-  'frozen-column'?: string | null
+  /** Old settings keep a single column id as a string, see `tableStore.getFrozenColumns`. */
+  'frozen-column'?: string[] | string | null
   'show-group-name'?: boolean | null
   'translation-index'?: number | null
   'show-hxl-tags'?: boolean | null

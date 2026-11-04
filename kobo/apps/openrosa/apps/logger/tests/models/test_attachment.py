@@ -9,7 +9,8 @@ from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.libs.utils.image_tools import image_url, resize
+from kobo.apps.openrosa.libs.tests.utils import image_url
+from kobo.apps.openrosa.libs.utils.image_tools import resize
 from kpi.constants import SAFE_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,

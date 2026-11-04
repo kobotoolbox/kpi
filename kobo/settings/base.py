@@ -1437,6 +1437,27 @@ BULK_ACTION_STUCK_THRESHOLD = env.int(
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
 )
 
+# The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
+# than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
+TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
+    'TRANSCRIPTION_SILENCE_MIN_DURATION',
+    0.5,
+)
+
+# Loudness thresholds, in dBFS, tried in order until every cut has a pause to
+# land in. Recording levels differ enormously between files, so no single
+# threshold finds the pauses in all of them
+TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
+
+# Longest a single silence detection pass may run. It streams the whole
+# recording out of storage, so allow for a slow download, but never let a web
+# request hang on it for ever
+TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
+    'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
+    300,
+)
+
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
@@ -1909,13 +1930,40 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 # Accounts can share an email, so login stays username-only: allauth rejects
 # `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
-ACCOUNT_RATE_LIMITS = False
+ACCOUNT_RATE_LIMITS = {
+    # Brute force. Per username ("key") and per IP. Also applies to wrong
+    # MFA codes, per user. 10 matches the "5-10 failures, 15-minute lockout"
+    # in the issue; 30 per IP tolerates a few people mistyping behind one
+    # address while capping a spray from one IP at 120 guesses an hour.
+    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'),
+    # All login POSTs per IP, successful or not. Set loosely so a
+    # training room behind one address is not blocked. '' turns it off.
+    'login': env.str('ALLAUTH_LOGIN_RATE_LIMIT', '40/m/ip'),
+    # Account creation spam. Default.
+    'signup': env.str('ALLAUTH_SIGNUP_RATE_LIMIT', '20/m/ip'),
+    # Reset emails per IP, and per address so one inbox cannot be flooded.
+    # Defaults.
+    'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT', '20/m/ip,5/m/key'),
+    'reset_password_from_key': env.str(
+        'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT', '20/m/ip'
+    ),
+    # Per logged-in user, so shared IPs are unaffected. Defaults.
+    'reauthenticate': env.str('ALLAUTH_REAUTHENTICATE_RATE_LIMIT', '10/m/user'),
+    'change_password': env.str('ALLAUTH_CHANGE_PASSWORD_RATE_LIMIT', '5/m/user'),
+    'manage_email': env.str('ALLAUTH_MANAGE_EMAIL_RATE_LIMIT', '10/m/user'),
+    # Off: /api/v2/email-confirmations/ already has its own per-address
+    # throttle (EMAIL_CONFIRMATION_REQUESTS_PER_HOUR).
+    'confirm_email': '',
+}
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.
 # changing the email address) demands it again
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
+# Use X-Forwarded-For as the primary source of truth for client IPs
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
+
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -2530,6 +2578,9 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+# Same, for the XPaths of a single form version. A version never changes, so
+# its entry can live much longer than the one that merges all versions
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 30 * 86400
 
 # Cache time-to-live (in seconds) for the survey question types and default
 # language used by NLP actions
