@@ -18063,6 +18063,7 @@
                     "Authentication (Allauth Headless)"
                 ],
                 "description": "There are many configuration options that alter the functionality\nand behavior of django-allauth, some of which can also impact the\nfrontend. Therefore, relevant configuration options are exposed via\nthis endpoint. The data returned is not user/authentication\ndependent. Hence, it suffices to only fetch this data once at boot\ntime of your application.\n",
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/Configuration"
@@ -18078,6 +18079,7 @@
                     "Authentication (Allauth Headless)"
                 ],
                 "description": "There are many configuration options that alter the functionality\nand behavior of django-allauth, some of which can also impact the\nfrontend. Therefore, relevant configuration options are exposed via\nthis endpoint. The data returned is not user/authentication\ndependent. Hence, it suffices to only fetch this data once at boot\ntime of your application.\n",
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/Configuration"
@@ -18093,6 +18095,7 @@
                 ],
                 "summary": "Login",
                 "description": "Login using a username-password or email-password combination.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Login"
                 },
@@ -18157,6 +18160,7 @@
                 ],
                 "summary": "Login",
                 "description": "Login using a username-password or email-password combination.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Login"
                 },
@@ -18221,6 +18225,7 @@
                 ],
                 "summary": "Signup",
                 "description": "Whether or not `username`, `email`, `phone` or combination of those are\nrequired depends on the configuration of django-allauth. Additionally,\nif a custom signup form is used there may be other custom properties\nrequired.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Signup"
                 },
@@ -18289,6 +18294,7 @@
                 ],
                 "summary": "Signup",
                 "description": "Whether or not `username`, `email`, `phone` or combination of those are\nrequired depends on the configuration of django-allauth. Additionally,\nif a custom signup form is used there may be other custom properties\nrequired.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Signup"
                 },
@@ -18845,6 +18851,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/RequestPassword"
                 },
@@ -18881,6 +18888,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/RequestPassword"
                 },
@@ -18960,6 +18968,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ResetPassword"
                 },
@@ -19049,6 +19058,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ResetPassword"
                 },
@@ -19253,6 +19263,7 @@
                 ],
                 "summary": "Provider signup information",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\nThe information available so far, such as the pending provider account,\ncan be retrieved via this endpoint.\n",
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/ProviderSignup"
@@ -19276,6 +19287,7 @@
                 ],
                 "summary": "Provider signup",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ProviderSignup"
                 },
@@ -19344,6 +19356,7 @@
                 ],
                 "summary": "Provider signup information",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\nThe information available so far, such as the pending provider account,\ncan be retrieved via this endpoint.\n",
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/ProviderSignup"
@@ -19367,6 +19380,7 @@
                 ],
                 "summary": "Provider signup",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ProviderSignup"
                 },
@@ -19593,6 +19607,7 @@
                 ],
                 "summary": "Confirm login code",
                 "description": "Use this endpoint to pass along the received \"special\" login code.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ConfirmLoginCode"
                 },
@@ -19651,6 +19666,7 @@
                 ],
                 "summary": "Confirm login code",
                 "description": "Use this endpoint to pass along the received \"special\" login code.\n",
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ConfirmLoginCode"
                 },

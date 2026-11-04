@@ -13216,6 +13216,7 @@ paths:
         this endpoint. The data returned is not user/authentication
         dependent. Hence, it suffices to only fetch this data once at boot
         time of your application.
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/Configuration'
@@ -13232,6 +13233,7 @@ paths:
         this endpoint. The data returned is not user/authentication
         dependent. Hence, it suffices to only fetch this data once at boot
         time of your application.
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/Configuration'
@@ -13243,6 +13245,7 @@ paths:
       summary: Login
       description: |
         Login using a username-password or email-password combination.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Login'
       responses:
@@ -13286,6 +13289,7 @@ paths:
       summary: Login
       description: |
         Login using a username-password or email-password combination.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Login'
       responses:
@@ -13332,6 +13336,7 @@ paths:
         required depends on the configuration of django-allauth. Additionally,
         if a custom signup form is used there may be other custom properties
         required.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Signup'
       responses:
@@ -13382,6 +13387,7 @@ paths:
         required depends on the configuration of django-allauth. Additionally,
         if a custom signup form is used there may be other custom properties
         required.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Signup'
       responses:
@@ -13801,6 +13807,7 @@ paths:
         receive a 200 on a successful password reset request.
       tags:
       - Authentication (Allauth Headless)
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/RequestPassword'
       responses:
@@ -13836,6 +13843,7 @@ paths:
         receive a 200 on a successful password reset request.
       tags:
       - Authentication (Allauth Headless)
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/RequestPassword'
       responses:
@@ -13900,6 +13908,7 @@ paths:
         401.
       tags:
       - Authentication (Allauth Headless)
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ResetPassword'
       responses:
@@ -13970,6 +13979,7 @@ paths:
         401.
       tags:
       - Authentication (Allauth Headless)
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ResetPassword'
       responses:
@@ -14122,6 +14132,7 @@ paths:
         the missing data before the user is fully signed up and authenticated.
         The information available so far, such as the pending provider account,
         can be retrieved via this endpoint.
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/ProviderSignup'
@@ -14142,6 +14153,7 @@ paths:
         insufficient information received from the provider to automatically
         complete the signup process, an additional step is needed to complete
         the missing data before the user is fully signed up and authenticated.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ProviderSignup'
       responses:
@@ -14192,6 +14204,7 @@ paths:
         the missing data before the user is fully signed up and authenticated.
         The information available so far, such as the pending provider account,
         can be retrieved via this endpoint.
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/ProviderSignup'
@@ -14212,6 +14225,7 @@ paths:
         insufficient information received from the provider to automatically
         complete the signup process, an additional step is needed to complete
         the missing data before the user is fully signed up and authenticated.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ProviderSignup'
       responses:
@@ -14373,6 +14387,7 @@ paths:
       summary: Confirm login code
       description: |
         Use this endpoint to pass along the received "special" login code.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ConfirmLoginCode'
       responses:
@@ -14412,6 +14427,7 @@ paths:
       summary: Confirm login code
       description: |
         Use this endpoint to pass along the received "special" login code.
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ConfirmLoginCode'
       responses:
