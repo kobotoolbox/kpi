@@ -36,6 +36,7 @@ export default function AttachmentActionButtons(props: AttachmentActionButtonsPr
           size='md'
           icon={IconTrash}
           tooltip={t('Delete')}
+          aria-label={t('Delete')}
           onClick={deleteModal.openDeleteModal}
         />
       )}
@@ -46,6 +47,7 @@ export default function AttachmentActionButtons(props: AttachmentActionButtonsPr
         size='md'
         icon={IconDownload}
         tooltip={t('Download')}
+        aria-label={t('Download')}
       />
 
       <AttachmentDeleteModal
