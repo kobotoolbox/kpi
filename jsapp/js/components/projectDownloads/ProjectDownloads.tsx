@@ -63,7 +63,7 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
           setSelectedExportType={onSetSelectedExportType}
         />
         <ProjectExportsList asset={props.asset} selectedExportType={selectedExportType} />
-        {isSynchronousExportsEnabled && <SynchronousExportsTable exportSettingsQuery={exportSettingsQuery} />}
+        {isSynchronousExportsEnabled && <SynchronousExportsTable assetUid={props.asset.uid} />}
       </React.Fragment>
     )
   }
