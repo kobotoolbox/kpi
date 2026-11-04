@@ -3,6 +3,7 @@ from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.urls import reverse
+from django.test import override_settings
 from freezegun import freeze_time
 from rest_framework import status
 
@@ -14,6 +15,9 @@ METHOD = 'app'
 
 
 @freeze_time('2026-01-01 12:00:00')
+# some of these tests include failed logins on purpose, don't let them affect other
+# logins
+@override_settings(ACCOUNT_RATE_LIMITS=False)
 class LoginTests(KpiTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
