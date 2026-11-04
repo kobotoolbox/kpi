@@ -4,7 +4,7 @@ import cloneDeep from 'lodash.clonedeep'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useBlocker } from 'react-router-dom'
 import type { PaginatedListResponse } from '#/UniversalTable'
-import { assetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
+import { assetsPartialUpdate, getAssetsRetrieveQueryKey } from '#/api/react-query/manage-projects-and-library-content'
 import ButtonNew from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -121,6 +121,7 @@ export default function FormLanguagesManager(props: FormLanguagesManagerProps) {
         // TODO: remove casting when parent component starts operating on
         // `Asset` (orval) rather than `AssetResponse` (legacy)
         setAsset(response.data as unknown as AssetResponse)
+        queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(asset.uid) })
         return true
       }
 

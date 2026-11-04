@@ -93,6 +93,37 @@ export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
     },
   },
   {
+    endpoint: 'POST /api/v2/assets/:uid/permission-assignments/',
+    refluxAction: 'actions.permissions.assignAssetPermission.completed',
+    matches: ({ assetUid }) => Boolean(assetUid),
+    run: ({ assetUid }) => {
+      if (assetUid) {
+        actions.permissions.assignAssetPermission.completed(assetUid)
+      }
+    },
+  },
+  {
+    endpoint: 'DELETE /api/v2/assets/:uid/permission-assignments/:perm/',
+    refluxAction: 'actions.permissions.removeAssetPermission.completed',
+    // `:perm` also matches the literal `bulk` segment.
+    matches: ({ assetUid, pathname }) => Boolean(assetUid && pathname.split('/').filter(Boolean).at(-1) !== 'bulk'),
+    run: ({ assetUid }) => {
+      if (assetUid) {
+        actions.permissions.removeAssetPermission.completed(assetUid, undefined)
+      }
+    },
+  },
+  {
+    endpoint: 'DELETE /api/v2/assets/:uid/permission-assignments/bulk/',
+    refluxAction: 'actions.permissions.removeAssetPermission.completed (bulk)',
+    matches: ({ assetUid }) => Boolean(assetUid),
+    run: ({ assetUid }) => {
+      if (assetUid) {
+        actions.permissions.removeAssetPermission.completed(assetUid, true)
+      }
+    },
+  },
+  {
     endpoint: 'POST /api/v2/imports/',
     refluxAction: 'actions.resources.createImport.completed',
     matches: ({ pathname, responseData }) => pathname === '/api/v2/imports/' && isRecord(responseData),
