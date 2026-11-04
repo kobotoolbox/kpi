@@ -1,4 +1,4 @@
-import { Flex, Text } from '@mantine/core'
+import { Flex, Text, VisuallyHidden } from '@mantine/core'
 import { IconCheck } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
@@ -153,7 +153,14 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     if (isTrue) {
       return <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
     } else {
-      return '–'
+      return (
+        <>
+          <Text span aria-hidden>
+            –
+          </Text>
+          <VisuallyHidden>{t('No')}</VisuallyHidden>
+        </>
+      )
     }
   }
 
