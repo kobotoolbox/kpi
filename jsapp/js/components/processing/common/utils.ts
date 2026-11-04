@@ -364,9 +364,13 @@ export const isAudioQuestionType = (questionType: AnyRowTypeName | undefined): b
 export const isTextQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
   questionType === QUESTION_TYPES.text.id
 
-/** Whether a question type is one NLP processing supports (audio or text). */
+/** Whether a question type is an image question. */
+export const isImageQuestionType = (questionType: AnyRowTypeName | undefined): boolean =>
+  questionType === QUESTION_TYPES.image.id
+
+/** Whether a question type is one NLP processing supports (audio, text or image). */
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
-  isAudioQuestionType(questionType) || isTextQuestionType(questionType)
+  isAudioQuestionType(questionType) || isTextQuestionType(questionType) || isImageQuestionType(questionType)
 
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text

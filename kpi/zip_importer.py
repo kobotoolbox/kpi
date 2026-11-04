@@ -6,8 +6,6 @@ from io import BytesIO
 
 import openpyxl
 
-from kpi.exceptions import ImportAssetException
-
 
 class ImportFile:
     """
@@ -61,18 +59,6 @@ class ImportFile:
     def readable(self):
         return self._readable
 
-    def _ancestors(self, include_self=False):
-        items = []
-        item = self
-        if include_self:
-            items.append(item)
-        while not item.is_root:
-            if item in items:
-                raise ImportAssetException("invalid link to parent causing loop")
-            item = item.parent
-            items.append(item)
-        return list(reversed(items))
-
     def parse(self):
         """
         opens up the file, and parses the subfiles in a zip, creating "children" ImportFile
@@ -108,7 +94,7 @@ class ImportFile:
 
     def get_type(self):
         if not hasattr(self, '_type'):
-            raise RuntimeError("cannot get type of item that has not been parsed")
+            raise RuntimeError('cannot get type of item that has not been parsed')
         return self._type
 
     def get_children(self):
@@ -224,4 +210,3 @@ class HttpContentParse(RootFileImport):
         if 'name' not in kwargs:
             kwargs['name'] = os.path.basename(self.request.url)
         super().__init__(*args, **kwargs)
-

@@ -1044,7 +1044,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if (
             organization
             and organization.is_owner(asset.owner)
-            and organization.is_mmo
+            and self._is_mmo(organization)
         ):
             return organization.name
         return asset.owner.username
@@ -1195,6 +1195,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return ASSET_STATUS_SHARED
 
+    def _is_mmo(self, organization) -> bool:
+        """
+        Use the multi-member organizations that the view computed for the whole
+        page, when available, instead of one query per organization
+        """
+
+        try:
+            return organization.id in self.context['mmo_organization_ids']
+        except KeyError:
+            return organization.is_mmo
+
     def _set_asset_ids_cache(self, asset):
         """
         Set an attribute on the `asset` object for performance purposes
@@ -1207,10 +1218,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             asset_ids = [asset.pk]
 
         setattr(asset, 'asset_ids_cache', asset_ids)
-
-    def _table_url(self, obj):
-        request = self.context.get('request', None)
-        return reverse('asset-table-view', args=(obj.uid,), request=request)
 
 
 class AssetListSerializer(AssetSerializer):
@@ -1304,7 +1311,7 @@ class AssetListSerializer(AssetSerializer):
             asset_perm_assignments = self.context['object_permissions_per_asset'].get(
                 asset.pk, []
             )
-            shared_asset_ids = self.context['shared_asset_ids']
+            permission_asset_ids = self.context['permission_asset_ids']
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should be
@@ -1319,17 +1326,12 @@ class AssetListSerializer(AssetSerializer):
                 if perm['permission__codename'] == PERM_VIEW_ASSET:
                     return ASSET_STATUS_PUBLIC
 
-        # Check shared: pre-computed via DISTINCT query in get_serializer_context.
-        if asset.pk in shared_asset_ids:
+        # Any other permission, the anonymous ones included, makes the asset
+        # shared, as in `_get_status()`
+        if asset.pk in permission_asset_ids:
             return ASSET_STATUS_SHARED
 
         return ASSET_STATUS_PRIVATE
-
-
-class AssetUrlListSerializer(AssetSerializer):
-
-    class Meta(AssetSerializer.Meta):
-        fields = ('url',)
 
 
 class AssetMetadataListSerializer(AssetListSerializer):

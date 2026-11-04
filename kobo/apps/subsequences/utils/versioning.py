@@ -336,11 +336,6 @@ def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
     return supplemental
 
 
-def set_version(schema: dict) -> dict:
-    schema['_version'] = SCHEMA_VERSIONS[0]
-    return schema
-
-
 def _add_translation_sources(
     version_list, all_tagged_transcripts, automatic_translation_source_language=None
 ):

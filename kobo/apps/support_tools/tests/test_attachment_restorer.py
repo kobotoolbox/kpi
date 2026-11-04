@@ -515,8 +515,7 @@ class AttachmentRestorerTestCase(TestCase):
         instance_id: str = 'uuid:55d873b2-3a25-4370-8cd9-c41ed4156d07',
     ) -> tuple[Instance, Attachment]:
         instance = create_instance(
-            self.user.username,
-            io.BytesIO(
+            xml_file=io.BytesIO(
                 submission_xml(
                     version_uid=self.version_1,
                     instance_id=instance_id,

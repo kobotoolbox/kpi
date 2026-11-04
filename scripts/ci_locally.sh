@@ -61,10 +61,20 @@ echo -e '\n\n## Job: npm-test'
 echo -e '\n\n### Step: Install system dependencies for playwright'
 npx playwright install-deps
 
+echo -e '\n\n### Step: Check package-lock.json is in sync with package.json'
+# `npm ci` passes if locked versions still satisfy a bumped range, so we
+# regenerate the lockfile in a temp dir and diff. No git, so works mid-merge.
+lockcheck_dir=$(mktemp -d)
+trap 'rm -rf "$lockcheck_dir"' EXIT
+cp package.json package-lock.json "$lockcheck_dir"
+(cd "$lockcheck_dir" && npm install --package-lock-only --ignore-scripts --no-audit --no-fund --loglevel=error > /dev/null)
+if ! diff -u package-lock.json "$lockcheck_dir/package-lock.json"; then
+    echo '❌ package-lock.json is out of sync, run `npm install` and commit it.'
+    exit 1
+fi
+
 echo -e '\n\n### Step: Install JavaScript dependencies'
 npm ci
-git diff
-git diff-index --exit-code HEAD # Fail on uncommitted package-lock.json changes
 
 echo -e '\n\n### Step: Run all linters, builds and tests'
 npm run ci
@@ -82,10 +92,10 @@ echo 'Disclaimer: CI runs Darker only on the last commit and the remote branch'
 set +e
 if [ -n "$GOSU_USER" ]; then
     CURRENT_BRANCH=$(gosu "$GOSU_USER" git rev-parse --abbrev-ref HEAD)
-    darker_output=$(gosu $GOSU_USER darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH")
+    darker_output=$(gosu $GOSU_USER darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821,E203" kpi kobo hub -r "origin/$CURRENT_BRANCH")
 else
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    darker_output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821" kpi kobo hub -r "origin/$CURRENT_BRANCH")
+    darker_output=$(darker --check --isort -L "flake8 --max-line-length=88 --extend-ignore=F821,E203" kpi kobo hub -r "origin/$CURRENT_BRANCH")
 fi
 darker_status=$?
 set -e

@@ -39,13 +39,17 @@ def get_required_reauthentication_methods(user) -> set[str]:
 
 def did_recently_reauthenticate(request) -> bool:
     """
-    Stricter variant of allauth's `did_recently_authenticate()`
+    Stricter variant of allauth's `did_recently_reauthenticate()`
 
-    allauth only checks the timestamp of the most recent authentication
+    allauth only checks the timestamp of the most recent re-authentication
     record, whichever method it used, so a password-only step satisfies it even
     for an account with MFA active. We require re-authenticating "with password,
     and also with 2FA if it's enabled", so every method the user has available
     must have been completed within `ACCOUNT_REAUTHENTICATION_TIMEOUT`.
+
+    Unlike allauth, a recent login still counts: the frontend cannot walk users
+    through re-authentication yet (DEV-1971), so logging in again is the only
+    way to change the email address from the UI.
     """
     user = request.user
     if not user.is_authenticated:
@@ -58,7 +62,7 @@ def did_recently_reauthenticate(request) -> bool:
     cutoff = time.time() - app_settings.REAUTHENTICATION_TIMEOUT
     fresh_methods = {
         record['method']
-        for record in get_authentication_records(request)
+        for record in get_authentication_records(request, user)
         if record.get('at', 0) > cutoff
     }
     return required.issubset(fresh_methods)
