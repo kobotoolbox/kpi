@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { createFormMediaItem, formMediaHandlers } from '#/endpoints/formMedia.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import FormMedia from './index'
 
-const mockAsset = getApiV2AssetsRetrieveResponseMock({
+const mockAsset = getAssetsRetrieveResponseMock({
   uid: 'form-media-story-uid',
   deployment__active: false,
 })
