@@ -23,8 +23,6 @@ export const PROVIDER_ERROR_CODES = {
   denied: 'denied',
   /** The provider account is attached to somebody else's KoboToolbox account already. */
   connectedOther: 'connected_other',
-  /** The session is too old for a change this sensitive. */
-  reauthenticationRequired: 'reauthentication_required',
   /** allauth itself refused the connection, rather than the provider having done so. */
   permissionDenied: 'permission_denied',
 } as const

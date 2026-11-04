@@ -88,10 +88,6 @@ describe('isAuthChangeResponse', () => {
     chai.expect(isAuthChangeResponse(response(401))).to.equal(true)
   })
 
-  it('takes a 410, which only an `app` client ever sees', () => {
-    chai.expect(isAuthChangeResponse(response(410, { meta: { is_authenticated: false } }))).to.equal(true)
-  })
-
   // `GET /config`, or a list of email addresses or authenticators: a 200 about something other than the session.
   it('leaves a 200 that says nothing about a session alone', () => {
     chai.expect(isAuthChangeResponse(response(200, { data: [{ email: 'sally@example.org' }] }))).to.equal(false)
@@ -124,13 +120,14 @@ describe('recordAllauthResponse', () => {
     chai.expect(getAuthStatus(cached).user).to.deep.equal(user)
   })
 
-  // The point of the whole module: this pair comes back from the sensitive request, never from `GET /auth/session`.
-  it('files a reauthentication ask from whichever endpoint raised it', async () => {
+  // This pair comes back from the sensitive request, and must not read as a sign-out.
+  it('keeps the session signed in through a reauthentication ask', async () => {
     await recordAllauthResponse(fromAccountCall, session)
     await recordAllauthResponse(fromAccountCall, reauthenticationRequired)
 
     const cached = queryClient.getQueryData(queryKey) as AllauthResponse
-    chai.expect(getAuthStatus(cached).isReauthenticationRequired).to.equal(true)
+    chai.expect(cached.status).to.equal(401)
+    chai.expect(getAuthStatus(cached).isAuthenticated).to.equal(true)
   })
 
   it('leaves the last reading in place when the answer is not one', async () => {
@@ -197,7 +194,8 @@ describe('an allauth call from a screen other than the session poll', () => {
     await allauthBrowserV1AccountPasswordChangePost({ current_password: 'hunter2', new_password: 'hunter3' })
 
     const cached = queryClient.getQueryData(queryKey) as AllauthResponse
-    chai.expect(getAuthStatus(cached).isReauthenticationRequired).to.equal(true)
+    chai.expect(cached.status).to.equal(401)
+    chai.expect(getAuthStatus(cached).isAuthenticated).to.equal(true)
   })
 })
 

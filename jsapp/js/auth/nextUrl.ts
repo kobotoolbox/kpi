@@ -1,6 +1,5 @@
 import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { isReauthenticationRoutePath } from './flowRoutes'
 
 // Reading and writing `?next=` - the route to go to once authentication is out of the way.
 //
@@ -55,7 +54,7 @@ export function resolveNextRoute(rawNext: string | null, origin: Origin): string
 
 /** Screens that exist only to send you onward, which is why `next` must never point at one */
 function isAuthenticationScreen(routePath: string): boolean {
-  return routePath.startsWith(ROUTES.AUTH_ROOT) || isReauthenticationRoutePath(routePath)
+  return routePath.startsWith(ROUTES.AUTH_ROOT)
 }
 
 /** An authentication screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */
