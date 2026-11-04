@@ -1,3 +1,4 @@
+from allauth.headless import app_settings as headless_settings
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -11,6 +12,10 @@ from markdownx.views import MarkdownifyView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
+from kobo.apps.accounts.views import (
+    AccountEmailBlockedView,
+    HeadlessManageEmailBlockedView,
+)
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -92,7 +97,19 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
+    # Must be before `allauth.urls`, whose email management page it replaces.
+    # Same path and name, so allauth's own `reverse('account_email')` still works
+    path('accounts/email/', AccountEmailBlockedView.as_view(), name='account_email'),
     path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
+    # Must be before `allauth.headless.urls`, whose email management endpoint
+    # it blocks: `/me/emails/` is the only way to change an email address
+    *[
+        path(
+            f'api/v2/allauth/{client}/v1/account/email',
+            HeadlessManageEmailBlockedView.as_view(),
+        )
+        for client in headless_settings.CLIENTS
+    ],
     path('api/v2/allauth/', include('allauth.headless.urls')),
     re_path(
         r'^accounts/register/?',

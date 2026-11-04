@@ -4,6 +4,10 @@ from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Exists, OuterRef
 from django.http import Http404
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.base import RedirectView
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -433,3 +437,34 @@ class SocialAppView(generics.RetrieveAPIView):
         # object-level checks. Kept so tightening `permission_classes` is enough
         self.check_object_permissions(self.request, social_app)
         return social_app
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class HeadlessManageEmailBlockedView(View):
+    """
+    Replaces allauth's headless `account/email` endpoint, which adds, removes and
+    changes the primary address without any of KPI's rules: re-authentication,
+    the owner/admin-only and SSO restrictions, and rate limiting.
+    `/me/emails/` is the only way to change an email address.
+
+    CSRF-exempt because it does nothing, so every method gets the same 404 rather
+    than a 403 when the token is missing. Class-based so `RestrictedAccessMiddleware`
+    leaves it alone, as it does allauth's views
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        raise Http404
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AccountEmailBlockedView(RedirectView):
+    """
+    Replaces allauth's templated `/accounts/email/` page, for the same reasons as
+    `HeadlessManageEmailBlockedView`. It has to stay routable rather than 404:
+    allauth reverses `account_email` itself, in its email verification views and
+    templates. Every method redirects and nothing is ever saved, hence the
+    CSRF exemption
+    """
+
+    url = '/#/account/settings'
+    permanent = False

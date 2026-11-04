@@ -2,6 +2,10 @@ import copy
 
 from drf_spectacular.generators import EndpointEnumerator, SchemaGenerator
 
+# allauth headless endpoints that `kobo/urls.py` blocks, so they stay out of the
+# schema (and the generated frontend client)
+BLOCKED_ALLAUTH_HEADLESS_PATH_SUFFIXES = ('/{client}/v1/account/email',)
+
 OPEN_ROSA_ENDPOINTS = [
     # OpenRosa endpoints for adding submissions as an authenticated user
     '/formList',
@@ -103,6 +107,9 @@ def merge_allauth_headless_schema(result, generator, request, public):
     merged_paths = dict(result.get('paths', {}))
 
     for path_key, path_spec in allauth_paths.items():
+        if path_key.endswith(BLOCKED_ALLAUTH_HEADLESS_PATH_SUFFIXES):
+            continue
+
         # The schema outputs paths with `{client}` (e.g. `/_allauth/{client}/v1/config`)
         # Since the frontend assumes specific `/browser/` and `/app/` endpoints,
         # we duplicate the generic path for each platform so Orval doesn't
