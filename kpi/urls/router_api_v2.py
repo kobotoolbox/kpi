@@ -15,6 +15,7 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
+from kobo.apps.subsequences.supplement_import import SupplementImportViewSet
 from kobo.apps.subsequences.views import (
     BulkAcceptViewSet,
     BulkActionViewSet,
@@ -285,6 +286,15 @@ supplement_url_patterns = [
             permission_classes=[AdvancedSubmissionPermission],
         ),
         name='submission-supplement',
+    ),
+    path(
+        'assets/<uid_asset>/data/<root_uuid>/supplement/import/',
+        SupplementImportViewSet.as_view(
+            {'post': 'supplement_import'},
+            renderer_classes=[JSONRenderer],
+            permission_classes=[AdvancedSubmissionPermission],
+        ),
+        name='submission-supplement-import',
     ),
 ]
 
