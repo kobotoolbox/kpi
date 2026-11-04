@@ -1,8 +1,10 @@
 import { Flex, Text } from '@mantine/core'
+import { IconCheck } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'
+import KoboIcon from '#/components/common/KoboIcon'
 import SimpleTable from '#/components/common/SimpleTable'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -147,14 +149,11 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     }
   }, [exportsListQuery.isError])
 
-  /**
-   * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
-   */
   function renderBooleanAnswer(isTrue: boolean) {
     if (isTrue) {
-      return t('Yes')
+      return <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
     } else {
-      return t('No')
+      return '–'
     }
   }
 
@@ -183,6 +182,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
 
       return [
         EXPORT_TYPES[exportType]?.label || t('Unknown format'),
+        exportData.data.name || '–',
         formatTime(exportData.date_created),
         renderLanguage(exportData.data.lang),
         <Text key='include-groups' ta='center'>
@@ -251,6 +251,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       <SimpleTable
         head={[
           t('Type'),
+          t('Export name'),
           t('Created'),
           t('Language'),
           <Text key='include-groups' ta='center'>
