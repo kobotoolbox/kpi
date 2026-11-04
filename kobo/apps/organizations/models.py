@@ -596,6 +596,48 @@ class OrganizationOwnershipTransfer(models.Model):
         # Email template will be introduced in follow-up step
         pass
 
+    def send_completion_email(self):
+        email_messages = []
+        recipients = [self.sender, self.recipient]
+
+        for user in recipients:
+            user_language = settings.LANGUAGE_CODE
+            if hasattr(user, 'extra_details') and user.extra_details:
+                user_language = user.extra_details.data.get(
+                    'last_ui_language', settings.LANGUAGE_CODE
+                )
+
+            template_variables = {
+                'username': user.username,
+                'organization_name': self.organization.name,
+                'new_owner_username': self.recipient.username,
+                'current_owner_username': self.sender.username,
+            }
+
+            email_messages.append(
+                EmailMessage(
+                    to=user.email,
+                    subject=t(
+                        'KoboToolbox organization ownership transfer completed'
+                    ),
+                    plain_text_content_or_template=(
+                        'emails/organization_ownership_transfer_completed.txt'
+                    ),
+                    template_variables=template_variables,
+                    html_content_or_template=(
+                        'emails/organization_ownership_transfer_completed.html'
+                    ),
+                    language=user_language,
+                )
+            )
+
+        try:
+            Mailer.send(email_messages)
+        except MailerError as e:
+            logging.warning(
+                f'Failed to send organization ownership transfer completion email: {e}'
+            )
+
     def send_refusal_email(self):
         # Email template will be introduced in follow-up step
         pass
