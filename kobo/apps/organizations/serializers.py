@@ -219,7 +219,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                 try:
                     org_user = (
                         OrganizationUser.objects.select_for_update()
-                        .select_related('organization', 'user__extra_details')
+                        .select_related('organization', 'user')
                         .get(pk=instance.pk)
                     )
                 except OrganizationUser.DoesNotExist:
