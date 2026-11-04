@@ -104,6 +104,7 @@ from .serializers import (
     OrganizationUserSerializer,
     OrgMembershipInviteSerializer,
 )
+from .tasks import transfer_organization_ownership
 from .utils import revoke_org_asset_perms
 
 ROLE_RANKS = {'member': 1, 'admin': 2, 'owner': 3}
@@ -1105,7 +1106,9 @@ class OrganizationOwnershipTransferViewSet(
 
             locked_transfer.status = OrganizationInviteStatusChoices.ACCEPTED
             locked_transfer.save(update_fields=['status', 'modified'])
-            # Placeholder for async ownership and asset reassignment task (DEV-2896)
+            transaction.on_commit(
+                lambda: transfer_organization_ownership.delay(locked_transfer.pk)
+            )
 
         transfer.status = locked_transfer.status
         transfer.modified = locked_transfer.modified
