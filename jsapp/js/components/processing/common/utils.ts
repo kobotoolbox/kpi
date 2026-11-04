@@ -11,6 +11,7 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import { findAttachmentByQuestionXpath } from '#/components/submissions/submissionMediaUtils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type {
@@ -374,10 +375,10 @@ export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolea
 
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
- * and image questions are analyzed straight from the submission answer (mirroring
- * the back end's `RequiresAdditionalSource.attach_action_dependency`), so they
- * need a non-empty answer (for images, the file name); every other type needs a
- * transcript first.
+ * and image questions are analyzed straight from the submission (mirroring the
+ * back end's `RequiresAdditionalSource.attach_action_dependency`): text needs a
+ * non-empty answer, and image a photo that wasn't deleted (the answer keeps its
+ * file name after a deletion). Every other type needs a transcript first.
  */
 export const hasAnalysisSource = (
   questionType: AnyRowTypeName | undefined,
@@ -385,7 +386,11 @@ export const hasAnalysisSource = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): boolean => {
-  if (isTextQuestionType(questionType) || isImageQuestionType(questionType)) {
+  if (isImageQuestionType(questionType)) {
+    const attachment = findAttachmentByQuestionXpath(submission, xpath)
+    return attachment !== undefined && !attachment.is_deleted
+  }
+  if (isTextQuestionType(questionType)) {
     const answer = submission[xpath]
     return typeof answer === 'string' && answer.trim() !== ''
   }

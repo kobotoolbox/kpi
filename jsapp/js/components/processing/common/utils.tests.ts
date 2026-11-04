@@ -277,12 +277,26 @@ describe('hasAnalysisSource', () => {
     chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
   })
 
-  it('is true for an image question with an answer, even without a transcript', () => {
-    chai.expect(hasAnalysisSource(IMAGE, buildSubmission('photo.jpg'), buildSupplement([]), XPATH)).to.equal(true)
+  /** Builds a submission with a photo answered at `XPATH`. */
+  function buildImageSubmission(isDeleted: boolean): DataResponse {
+    return {
+      [XPATH]: 'photo.jpg',
+      _attachments: [{ question_xpath: XPATH, is_deleted: isDeleted }],
+    } as unknown as DataResponse
+  }
+
+  it('is true for an image question with a photo, even without a transcript', () => {
+    chai.expect(hasAnalysisSource(IMAGE, buildImageSubmission(false), buildSupplement([]), XPATH)).to.equal(true)
   })
 
-  it('is false for an image question without an answer', () => {
+  it('is false for an image question whose photo was deleted', () => {
+    chai.expect(hasAnalysisSource(IMAGE, buildImageSubmission(true), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  it('is false for an image question without a photo', () => {
     chai.expect(hasAnalysisSource(IMAGE, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+    // A file name alone isn't enough, the photo itself is what gets analyzed.
+    chai.expect(hasAnalysisSource(IMAGE, buildSubmission('photo.jpg'), buildSupplement([]), XPATH)).to.equal(false)
   })
 
   it('is false for an audio question without a transcript', () => {
