@@ -78,7 +78,8 @@ def transfer_organization_ownership(transfer_id: int):
                 OrganizationInviteStatusChoices.FAILED,
             ):
                 logging.warning(
-                    f'Transfer {transfer_id} is in status {transfer.status}; skipping reassignment.'
+                    f'Transfer {transfer_id} is in status {transfer.status}; '
+                    'skipping reassignment.'
                 )
                 return
 

@@ -703,7 +703,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         When transfer_organization_ownership executes:
         - OrganizationOwner is atomically reassigned to the recipient.
         - Outgoing owner's member record is updated to Admin (is_admin = True).
-        - create_invite is called with OrgMembershipAutoInvite for outgoing owner's assets.
+        - create_invite is called with OrgMembershipAutoInvite for owner assets.
         - Transfer status is updated to COMPLETE.
         - Completion email is sent to both the outgoing and incoming owners.
         """
