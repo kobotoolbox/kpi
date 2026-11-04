@@ -167,7 +167,6 @@ function MFAModals(props: MFAModalsProps) {
     )
   }
 
-  // TODO: DEV-1971 this and the regenerate below stop asking for a code.
   function mfaDeactivate() {
     clearErrors()
     deactivate.mutate(
@@ -270,9 +269,8 @@ function MFAModals(props: MFAModalsProps) {
   }
 
   /**
-   * allauth wants a recent password before turning 2FA on. We ask here instead of relying on the reauthentication
-   * redirect: leaving the page closes this modal, and starting over makes a new secret, so the one already scanned
-   * stops working. Sending both together also means neither expires while the other is typed.
+   * allauth wants a recent password before turning 2FA on, so it is asked for here, next to the code. Sending both
+   * together means neither expires while the other is typed.
    */
   function renderPasswordInput() {
     // A retry after activation reauthenticates with the token alone

@@ -18,8 +18,8 @@ import { getAuthStatusQueryKey } from '#/auth/authChangeWatcher'
 import { getAuthStatus } from '#/auth/authStatus'
 import { notify } from '#/utils'
 
-// allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. That 401 makes
-// `AuthChangeRedirector` leave the page and lose the modal, so each write reauthenticates first.
+// allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. KPI asks for it in the
+// modal rather than on a screen of its own, so each write reauthenticates first with what the modal collected.
 
 /** The modal input a refusal belongs to */
 type MfaField = 'code' | 'password'
@@ -161,7 +161,7 @@ export const useMfaRecoveryCodes = () =>
     return response.data.data.unused_codes
   })
 
-/** TODO: DEV-1971 drop the code once the reauthentication screens exist */
+/** The code is the reauthentication allauth wants first: its delete takes no body of its own */
 export const useMfaDeactivate = () =>
   useMfaMutation<void, MfaCode>('deactivate', async ({ code }) => {
     await reauthenticateWithCode(code)
@@ -170,9 +170,8 @@ export const useMfaDeactivate = () =>
   })
 
 /**
- * Replaces the recovery codes, invalidating the previous set
- *
- * TODO: DEV-1971 drop the code, same as {@link useMfaDeactivate}
+ * Replaces the recovery codes, invalidating the previous set. Reauthenticates with the code first, same as
+ * {@link useMfaDeactivate}
  */
 export const useMfaRegenerateCodes = () =>
   useMfaMutation<string[], MfaCode>('regenerate', async ({ code }) => {
