@@ -169,6 +169,7 @@ def regenerate_paired_data(asset_uid: str, uid_paired_data: str) -> None:
         # Release the distributed lock so the next manifest request can trigger
         # a fresh regeneration cycle as soon as the expiry window passes.
         cache.delete(f'regen_paired_data_{uid_paired_data}')
+        cache.delete(f'regen_paired_data_dispatch_{uid_paired_data}')
 
 
 @celery_app.task(time_limit=LIMIT_HOURS_23, soft_time_limit=LIMIT_HOURS_23)
