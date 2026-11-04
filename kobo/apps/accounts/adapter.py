@@ -14,15 +14,21 @@ from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http import HttpRequest
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
+from ..openrosa.libs.utils.viewer_tools import get_client_ip
 from .models import SocialAppManagedDomain
 from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
+
+    def get_client_ip(self, request: HttpRequest) -> str:
+        return get_client_ip(request)
+
     def is_open_for_signup(self, request):
         return config.REGISTRATION_OPEN
 
