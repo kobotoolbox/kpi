@@ -975,13 +975,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # hit the endpoint that creates and runs the ImportTask
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         with patch(
-            'kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'
+            'kpi.views.v2.import_task.get_human_readable_client_user_agent',
+            return_value='source',
         ):
-            with patch(
-                'kpi.views.v2.import_task.get_human_readable_client_user_agent',
-                return_value='source',
-            ):
-                self.client.post(reverse('api_v2:importtask-list'), task_data)
+            self.client.post(reverse('api_v2:importtask-list'), task_data)
         expected_logs_count = 2 if change_name else 1
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)

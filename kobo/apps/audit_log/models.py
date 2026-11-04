@@ -2,6 +2,7 @@ import copy
 from typing import Optional
 
 import jsonschema
+from allauth.account.adapter import get_adapter
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
@@ -21,7 +22,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
-    get_client_ip,
     get_human_readable_client_user_agent,
 )
 from kobo.apps.subsequences.constants import Action
@@ -69,6 +69,11 @@ class AuditType(models.TextChoices):
     ASSET_MANAGEMENT = 'asset-management'
     SUBMISSION_MANAGEMENT = 'submission-management'
     ATTACHMENT_MANAGEMENT = 'attachment-management'
+
+
+def _get_client_ip(request):
+    adapter = get_adapter()
+    return adapter.get_client_ip(request)
 
 
 class AuditLog(models.Model):
@@ -331,7 +336,7 @@ class AccessLog(AuditLog):
             auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
 
         # gather information about the source of the request
-        ip = get_client_ip(request)
+        ip = _get_client_ip(request)
         source = get_human_readable_client_user_agent(request)
         metadata = {
             'ip_address': ip,
@@ -555,7 +560,7 @@ class ProjectHistoryLog(AuditLog):
             return  # Unsupported action
 
         source = get_human_readable_client_user_agent(request)
-        client_ip = get_client_ip(request)
+        client_ip = _get_client_ip(request)
 
         assets = Asset.optimize_queryset_for_list(
             Asset.all_objects.filter(uid__in=asset_uids)
@@ -591,7 +596,7 @@ class ProjectHistoryLog(AuditLog):
             metadata={
                 'asset_uid': asset_uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                'ip_address': get_client_ip(request),
+                'ip_address': _get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'cloned_from': request._data[CLONE_ARG_NAME],
                 'project_owner': initial_data['asset.owner.username'],
@@ -615,7 +620,7 @@ class ProjectHistoryLog(AuditLog):
             metadata={
                 'asset_uid': asset_uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': get_client_ip(request),
+                'ip_address': _get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'project_owner': asset.owner.username,
             },
@@ -635,7 +640,7 @@ class ProjectHistoryLog(AuditLog):
         metadata = {
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
+            'ip_address': _get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': audit_log_info['latest_version_uid'],
             'project_owner': audit_log_info['owner_username'],
@@ -691,7 +696,7 @@ class ProjectHistoryLog(AuditLog):
         common_metadata = {
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
+            'ip_address': _get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': updated_data['latest_version.uid'],
             'project_owner': updated_data['owner.username'],
@@ -763,7 +768,7 @@ class ProjectHistoryLog(AuditLog):
             metadata = {
                 'asset_uid': request.asset.uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': get_client_ip(request),
+                'ip_address': _get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'project_owner': request.asset.owner.username,
                 'submission': {
@@ -825,7 +830,7 @@ class ProjectHistoryLog(AuditLog):
         metadata = {
             'asset_uid': request.asset.uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
+            'ip_address': _get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'project_owner': request.asset.owner.username,
             'submission': {
@@ -890,7 +895,7 @@ class ProjectHistoryLog(AuditLog):
                     metadata={
                         'asset_uid': transfer['asset__uid'],
                         'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                        'ip_address': get_client_ip(request),
+                        'ip_address': _get_client_ip(request),
                         'source': get_human_readable_client_user_agent(request),
                         'username': updated_data['recipient.username'],
                         'project_owner': transfer['asset__owner__username'],
@@ -926,7 +931,7 @@ class ProjectHistoryLog(AuditLog):
         partial_permissions_added = getattr(request, 'partial_permissions_added', {})
         # basic metadata for all PH logs
         base_metadata = {
-            'ip_address': get_client_ip(request),
+            'ip_address': _get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
@@ -994,7 +999,7 @@ class ProjectHistoryLog(AuditLog):
         metadata = {
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
+            'ip_address': _get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'project_owner': owner,
         }
@@ -1017,7 +1022,7 @@ class ProjectHistoryLog(AuditLog):
             metadata={
                 'asset_uid': updated_data['asset_uid'],
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': get_client_ip(request),
+                'ip_address': _get_client_ip(request),
                 'source': get_human_readable_client_user_agent(request),
                 'project_owner': updated_data['project_owner'],
             },
@@ -1169,7 +1174,7 @@ class ProjectHistoryLog(AuditLog):
         metadata = {
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
+            'ip_address': _get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'project_owner': owner,
         }
