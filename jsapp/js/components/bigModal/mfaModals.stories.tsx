@@ -73,6 +73,16 @@ async function typePassword(canvas: Canvas, password: string) {
   await userEvent.type(await canvas.findByLabelText('Password'), password)
 }
 
+/**
+ * For SSO-only accounts. Until the session answers the modal assumes a password, shows its field and keeps Next
+ * disabled, so this waits for the field to go before anything is pressed. A long timeout, as a slow CI runner can
+ * take over a second to answer.
+ */
+async function waitForNoPasswordField(canvas: Canvas) {
+  await canvas.findByRole('textbox')
+  await waitFor(() => expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument(), { timeout: 5000 })
+}
+
 /** Turning 2FA off takes the password as well as the code */
 async function submitTurnOff(canvas: Canvas, code: string, password = VALID_PASSWORD) {
   await typePassword(canvas, password)
@@ -163,10 +173,10 @@ export const ConfirmWithoutPassword: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
+    await waitForNoPasswordField(canvas)
     await submitCode(canvas, VALID_CODE)
 
     await expectBackupCodes(canvas)
-    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
   },
 }
 
@@ -209,10 +219,10 @@ export const DeactivateWithoutPassword: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
 
+    await waitForNoPasswordField(canvas)
     await submitCode(canvas, VALID_CODE)
 
     await waitFor(() => expect(args.onModalClose).toHaveBeenCalled())
-    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
   },
 }
 
