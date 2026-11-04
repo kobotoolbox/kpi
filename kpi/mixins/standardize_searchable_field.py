@@ -45,22 +45,3 @@ class StandardizeSearchableFieldMixin:
 
         field[property_name] = value
         setattr(self, field_name, field)
-
-    def standardize_field(
-        self, field_name: str, default: str = "", allows_null: bool = True
-    ):
-        """
-        Standardize the default value of a field.
-        It helps the search with the query parser.
-
-        Note: Not used anywhere. It is just a future-proof utility in case
-        some fields allow '' and null, or 0 and null.
-        """
-
-        value = getattr(self, field_name)
-
-        if not value:
-            if allows_null and value is None:
-                return
-
-            setattr(self, field_name, default)

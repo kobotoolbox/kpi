@@ -21,6 +21,7 @@ Django>=5.2,<5.3
 Markdown
 Pygments
 amqp
+aws_bedrock_token_generator
 billiard
 celery
 celery[redis]
@@ -28,7 +29,7 @@ dict2xml
 dj-static
 dj-stripe>=2.9,<2.10
 stripe
-django-allauth>=65.11.2
+django-allauth>=65.21.0
 django-allauth[mfa]
 django-braces
 django-celery-beat
@@ -70,6 +71,7 @@ lxml
 more-itertools
 oauthlib
 objgraph
+openai
 openpyxl
 pillow-heif
 psycopg

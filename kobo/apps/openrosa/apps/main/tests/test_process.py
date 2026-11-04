@@ -177,7 +177,6 @@ class TestProcess(TestBase):
 
     def _check_csv_export(self):
         self._check_data_dictionary()
-        self._check_data_for_csv_export()
         self._check_group_xpaths_do_not_appear_in_dicts_for_export()
         self._check_csv_export_first_pass()
         self._check_csv_export_second_pass()
@@ -198,39 +197,6 @@ class TestProcess(TestBase):
         # test to make sure the headers in the actual csv are as expected
         actual_csv = self._get_csv_()
         self.assertEqual(sorted(next(actual_csv)), sorted(expected_list))
-
-    def _check_data_for_csv_export(self):
-
-        data = [
-            {
-                'available_transportation_types_to_referral_facility/ambulance': True,
-                'available_transportation_types_to_referral_facility/bicycle': True,
-                self.ambulance_key: 'daily',
-                self.bicycle_key: 'weekly',
-            },
-            {},
-            {
-                'available_transportation_types_to_referral_facility/ambulance': True,
-                self.ambulance_key: 'weekly',
-            },
-            {
-                'available_transportation_types_to_referral_facility/taxi': True,
-                'available_transportation_types_to_referral_facility/other': True,
-                'available_transportation_types_to_referral_facility_other': 'camel',
-                self.taxi_key: 'daily',
-                self.other_key: 'other',
-            },
-        ]
-        for d_from_db in self.data_dictionary.get_data_for_excel():
-            d_from_db_iter = dict(d_from_db)
-            for k, v in d_from_db_iter.items():
-                if (k != '_xform_id_string' and k != 'meta/instanceID') and v:
-                    new_key = k[len('transport/'):]
-                    d_from_db[new_key] = d_from_db[k]
-                del d_from_db[k]
-            self.assertTrue(d_from_db in data)
-            data.remove(d_from_db)
-        self.assertEqual(data, [])
 
     def _check_group_xpaths_do_not_appear_in_dicts_for_export(self):
         uuid = 'uuid:f3d8dc65-91a6-4d0f-9e97-802128083390'
@@ -393,7 +359,13 @@ class TestProcess(TestBase):
         )
         uf = UploadedFile(file=open(src, 'rb'), content_type='image/png')
         count = MetaData.objects.count()
-        MetaData.media_upload(self.xform, uf)
+        MetaData.objects.create(
+            data_type='media',
+            xform=self.xform,
+            data_value=uf.name,
+            data_file=uf,
+            data_file_type=uf.content_type,
+        )
         # assert successful insert of new metadata record
         self.assertEqual(MetaData.objects.count(), count + 1)
         md = MetaData.objects.get(xform=self.xform,
