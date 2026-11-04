@@ -89,6 +89,8 @@ OPENAPI_VALIDATION = True
 OPENAPI_VALIDATION_STRICT = True
 OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
 
+ACCOUNT_ADAPTER = 'kpi.tests.adapter.TestAdapter'
+
 # Give each pytest-xdist worker (`gw0`, `gw1`, ...) its own Redis database, so
 # locks and cached values do not leak between tests running in parallel. A key
 # prefix is not enough: `cache.clear()` flushes the whole database.
