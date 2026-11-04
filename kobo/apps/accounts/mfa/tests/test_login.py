@@ -2,8 +2,8 @@ from allauth.account.models import EmailAddress
 from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
-from django.urls import reverse
 from django.test import override_settings
+from django.urls import reverse
 from freezegun import freeze_time
 from rest_framework import status
 
