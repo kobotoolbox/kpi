@@ -73,8 +73,6 @@ export default function SidebarDisplaySettings({
   const availableDisplays = useMemo<Array<LanguageCode | StaticDisplays>>(() => {
     let displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
 
-    // Audio, Text and Image are mutually exclusive: only the one matching the
-    // current question's type makes sense to offer.
     displays = displays.filter((display) => isDisplayAvailable(display, questionType))
 
     // Filter out transcript if we are on the transcript tab or if it was deleted

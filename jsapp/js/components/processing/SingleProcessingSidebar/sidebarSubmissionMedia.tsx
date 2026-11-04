@@ -40,6 +40,11 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
   // otherwise get no player at all.
   const questionType = inferAttachmentQuestionType(attachment)
 
+  // No "Delete" here, as Processing doesn't refresh after a deletion.
+  const actionsMenu = submission && (
+    <AttachmentActionsDropdown asset={asset} submission={submission} attachmentUid={attachment.uid} hideDeleteAction />
+  )
+
   switch (questionType) {
     case QUESTION_TYPES.audio.id:
     case QUESTION_TYPES['background-audio'].id:
@@ -54,16 +59,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
           <AudioPlayer
             mediaURL={attachment.download_url}
             filename={attachment.filename}
-            rightHeaderSection={
-              submission && (
-                <AttachmentActionsDropdown
-                  asset={asset}
-                  submission={submission}
-                  attachmentUid={attachment.uid}
-                  hideDeleteAction
-                />
-              )
-            }
+            rightHeaderSection={actionsMenu}
           />
         </section>
       )
@@ -74,14 +70,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
             <Text fw={600} truncate='end' title={attachment.media_file_basename}>
               {attachment.media_file_basename}
             </Text>
-            {submission && (
-              <AttachmentActionsDropdown
-                asset={asset}
-                submission={submission}
-                attachmentUid={attachment.uid}
-                hideDeleteAction
-              />
-            )}
+            {actionsMenu}
           </Group>
           <UnstyledButton
             className={styles.imagePreviewButton}
@@ -90,7 +79,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
               if (submission) {
                 openTableMediaPreviewModal({
                   questionType: QUESTION_TYPES.image.id,
-                  questionIcon: 'qt-photo',
+                  questionIcon: QUESTION_TYPES.image.icon,
                   mediaAttachment: attachment,
                   displayValue: attachment.media_file_basename,
                   submission,

@@ -402,16 +402,13 @@ export enum StaticDisplays {
   Transcript = 'Transcript',
 }
 
+/** Displays showing the response itself, one per question type (see `isDisplayAvailable`). */
+const ResponseDisplays = [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image]
+
 export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
-  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image, StaticDisplays.Data]],
-  [
-    ProcessingTab.Translations,
-    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image, StaticDisplays.Data, StaticDisplays.Transcript],
-  ],
-  [
-    ProcessingTab.Analysis,
-    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image, StaticDisplays.Data, StaticDisplays.Transcript],
-  ],
+  [ProcessingTab.Transcript, [...ResponseDisplays, StaticDisplays.Data]],
+  [ProcessingTab.Translations, [...ResponseDisplays, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [ProcessingTab.Analysis, [...ResponseDisplays, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
 
 /**
