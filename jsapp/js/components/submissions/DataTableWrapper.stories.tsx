@@ -16,10 +16,10 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import {
-  getApiV2AssetsRetrieveMockHandler,
-  getApiV2AssetsRetrieveResponseMock,
+  getAssetsRetrieveMockHandler,
+  getAssetsRetrieveResponseMock,
 } from '#/api/react-query/manage-projects-and-library-content/msw'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'
@@ -150,7 +150,7 @@ const getRouterParams = (assetUid: string) =>
 // Minimal asset and submissions for simple stories
 
 // Default story asset and submissions
-const minimalAsset = getApiV2AssetsRetrieveResponseMock({
+const minimalAsset = getAssetsRetrieveResponseMock({
   uid: 'audio-asset-uid',
   name: 'Audio form',
   deployment__active: true,
@@ -208,7 +208,7 @@ const minimalSubmissions = [
 ]
 
 // ProcessingColumn story asset and submissions (unique UID)
-const processingAsset = getApiV2AssetsRetrieveResponseMock({
+const processingAsset = getAssetsRetrieveResponseMock({
   uid: 'audio-asset-uid-processing',
   name: 'Audio form with processing',
   deployment__active: true,
@@ -324,7 +324,7 @@ const processingSubmissions = [
     ],
   }),
 ]
-const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+const processingBulkAction = getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.complete,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
@@ -341,7 +341,7 @@ const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveRe
     username: 'zefir',
   },
 })
-const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+const processingBulkAction2 = getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.in_progress,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
@@ -374,7 +374,7 @@ const meta: Meta<typeof DataTableWrapper> = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -401,7 +401,7 @@ export const Default: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -423,7 +423,7 @@ export const ProcessingColumnAndBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(processingAsset),
+        getAssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -446,7 +446,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(processingAsset),
+        getAssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
@@ -471,7 +471,7 @@ export const StorageLimitWarningBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageWarning()),
@@ -493,7 +493,7 @@ export const StorageExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageExceeded()),
@@ -515,7 +515,7 @@ export const SubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
@@ -537,7 +537,7 @@ export const StorageAndSubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.bothExceeded()),

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -221,6 +222,7 @@ class EmailUpdateRestrictionTestCase(APITestCase):
         self.assertEqual(user.emailaddress_set.count(), 1)
 
 
+@freeze_time('2026-01-01 12:00:00')
 @override_settings(ACCOUNT_RATE_LIMITS=False)
 class EmailChangeReauthenticationTestCase(APITestCase):
     """
@@ -262,6 +264,23 @@ class EmailChangeReauthenticationTestCase(APITestCase):
         res = self._post()
         assert res.status_code == status.HTTP_403_FORBIDDEN
         assert self._pending_emails() == 0
+
+    def test_recent_login_is_accepted(self):
+        record_authentication(self.client, reauthenticated=False)
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1
+
+    def test_reauthentication_through_allauth_is_accepted(self):
+        res = self.client.post(
+            '/api/v2/allauth/browser/v1/auth/reauthenticate',
+            data={'password': 'secret'},
+            format='json',
+        )
+        assert res.status_code == status.HTTP_200_OK
+        res = self._post()
+        assert res.status_code == status.HTTP_201_CREATED
+        assert self._pending_emails() == 1
 
     @override_settings(ACCOUNT_REAUTHENTICATION_TIMEOUT=3600)
     def test_timeout_setting_is_honoured(self):
