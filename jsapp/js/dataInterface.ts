@@ -1133,7 +1133,7 @@ export interface ExportDataResponse {
   result: string | null
   data: {
     lang: ExportDataLang
-    name: null
+    name: string | null
     type: ExportTypeName
     /** List of form row names. */
     fields: string[]
