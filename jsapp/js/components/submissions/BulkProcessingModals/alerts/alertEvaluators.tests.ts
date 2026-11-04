@@ -3,7 +3,7 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { asrExceeded, asrNearLimit, mtExceeded, mtNearLimit, withinLimits } from '#/endpoints/serviceUsage.factory'
 import {
@@ -23,7 +23,7 @@ function bulkActionFactory(
   language: string,
   overrides: Partial<BulkActionResponse> = {},
 ): BulkActionResponse {
-  const mock = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  const mock = getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
     uid,
     params: { language },
     ...overrides,

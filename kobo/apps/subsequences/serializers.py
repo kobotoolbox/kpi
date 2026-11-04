@@ -105,10 +105,6 @@ class QATagTrackerSerializer(serializers.ModelSerializer):
         fields = ['value']
 
 
-class BulkActionUserSerializer(serializers.Serializer):
-    username = serializers.CharField()
-
-
 class BulkActionSubmissionStatusSerializer(serializers.Serializer):
     uuid = serializers.CharField(source='submission_root_uuid')
     status = serializers.CharField()

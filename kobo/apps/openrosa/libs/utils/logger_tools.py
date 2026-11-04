@@ -25,7 +25,6 @@ from django.conf import settings
 from django.core.exceptions import (
     MultipleObjectsReturned,
     PermissionDenied,
-    ValidationError,
 )
 from django.core.files.base import File
 from django.core.mail import mail_admins
@@ -40,9 +39,6 @@ from django.http import (
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
-from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.data_collectors.authentication import DataCollectorUser
@@ -70,7 +66,6 @@ from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
 )
-from kobo.apps.openrosa.apps.logger.models.xform import XLSFormError
 from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_daily_counter,
     update_xform_monthly_counter,
@@ -91,7 +86,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
-from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limits
@@ -113,7 +108,6 @@ from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
-HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
 OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
 DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
@@ -735,44 +729,6 @@ def http_open_rosa_error_handler(func, request):
     yield result
 
 
-def inject_instanceid(xml_str, uuid):
-    if get_uuid_from_xml(xml_str) is None:
-        xml = clean_and_parse_xml(xml_str)
-        children = xml.childNodes
-        if children.length == 0:
-            raise ValueError(t('XML string must have a survey element.'))
-
-        # check if we have a meta tag
-        survey_node = children.item(0)
-        meta_tags = [
-            n
-            for n in survey_node.childNodes
-            if n.nodeType == Node.ELEMENT_NODE and n.tagName.lower() == 'meta'
-        ]
-        if len(meta_tags) == 0:
-            meta_tag = xml.createElement('meta')
-            xml.documentElement.appendChild(meta_tag)
-        else:
-            meta_tag = meta_tags[0]
-
-        # check if we have an instanceID tag
-        uuid_tags = [
-            n
-            for n in meta_tag.childNodes
-            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'instanceID'
-        ]
-        if len(uuid_tags) == 0:
-            uuid_tag = xml.createElement('instanceID')
-            meta_tag.appendChild(uuid_tag)
-        else:
-            uuid_tag = uuid_tags[0]
-        # insert meta and instanceID
-        text_node = xml.createTextNode('uuid:%s' % uuid)
-        uuid_tag.appendChild(text_node)
-        return xml.toxml()
-    return xml_str
-
-
 def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     """
     Check the status of records in the PostgreSQL db versus MongoDB.
@@ -849,54 +805,6 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     return report_string
 
 
-def publish_form(callback):
-    try:
-        return callback()
-    except (PyXFormError, XLSFormError) as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-    except IntegrityError as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e),
-        }
-    except ValidationError as e:
-        # on clone invalid URL
-        return {
-            'type': 'alert-error',
-            'text': t('Invalid URL format.'),
-        }
-    except AttributeError as e:
-        # form.publish returned None, not sure why...
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-    except ProcessTimedOut as e:
-        # catch timeout errors
-        return {
-            'type': 'alert-error',
-            'text': t('Form validation timeout, please try again.'),
-        }
-    except Exception as e:
-        # TODO: Something less horrible. This masks storage backend
-        # `ImportError`s and who knows what else
-
-        # ODK validation errors are vanilla errors and it masks a lot of regular
-        # errors if we try to catch it so let's catch it, BUT reraise it
-        # if we don't see typical ODK validation error messages in it.
-        if 'ODK Validate Errors' not in str(e):
-            raise
-
-        # error in the XLS file; show an error to the user
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-
-
 def publish_xls_form(xls_file, user, id_string=None):
     """
     Creates or updates a DataDictionary with supplied xls_file,
@@ -919,18 +827,6 @@ def publish_xls_form(xls_file, user, id_string=None):
         except IntegrityError as e:
             raise e
         return dd
-
-
-def publish_xml_form(xml_file, user):
-    xml = smart_str(xml_file.read())
-    survey = create_survey_element_from_xml(xml)
-    form_json = survey.to_json()
-    dd = DataDictionary(user=user, xml=xml, json=form_json)
-    dd.mark_start_time_boolean()
-    set_uuid(dd)
-    dd.set_uuid_in_xml()
-    dd.save()
-    return dd
 
 
 def report_exception(subject, info, exc_info=None):

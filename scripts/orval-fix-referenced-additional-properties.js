@@ -10,7 +10,11 @@ const path = require('path')
 const ROOT = process.cwd() // /srv/src/kpi
 const MODELS_DIR = path.join(ROOT, 'jsapp/js/api/models')
 
-const FILES = ['dataSupplementResponse.ts', 'patchedDataSupplementPayload.ts']
+// Orval v8 emits `[key: string]: unknown` for these, so we supply the `additionalProperties` type ourselves.
+const FILES = {
+  'dataSupplementResponse.ts': 'SupplementalDataResponseAction',
+  'patchedDataSupplementPayload.ts': 'PatchedDataSupplementPayloadOneOf',
+}
 
 function splitHeader(source) {
   const m = source.match(/^\/\*\*[\s\S]*?\*\/\s*/)
@@ -60,7 +64,7 @@ function ensureTypeImportAfterHeader(source, typeName, importPath) {
   return `${header}\n${importLine}\n${rest}`
 }
 
-for (const file of FILES) {
+for (const [file, additionalPropertiesType] of Object.entries(FILES)) {
   const filePath = path.join(MODELS_DIR, file)
   if (!fs.existsSync(filePath)) continue
 
@@ -72,7 +76,8 @@ for (const file of FILES) {
     continue
   }
 
-  const { name, versionType, valueType, interfaceBlock } = detected
+  const { name, versionType, interfaceBlock } = detected
+  const valueType = detected.valueType === 'unknown' ? additionalPropertiesType : detected.valueType
 
   const importPath = inferImportPath(valueType)
   let patched = ensureTypeImportAfterHeader(source, valueType, importPath)
