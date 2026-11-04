@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
+import { Navigate } from 'react-router-dom'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -10,7 +11,6 @@ import {
   useAssetsDataList,
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
-import { findRowByXpath } from '#/assetUtils'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PROCESSING_BULK_ACTIONS_POLL_INTERVAL } from '#/constants'
@@ -20,9 +20,10 @@ import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
+import { getProcessingQuestionType } from './common/questionType'
 import { getAvailableTabsForQuestionType } from './common/utils'
 import styles from './index.module.scss'
-import { TAB_ROUTES, getActiveTab, goToTabRoute } from './routes.utils'
+import { TAB_ROUTES, getActiveTab, getTabRoutePath } from './routes.utils'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -105,19 +106,17 @@ export default function SingleProcessingRoute({
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
   const pageTitle = 'Data | KoboToolbox'
 
-  // Guards against landing on a tab the question type doesn't support (e.g.
-  // Transcript for text), by moving to its default tab. This must live here
-  // (rather than in `SingleProcessingContent`) because that component isn't
-  // mounted when the question has no answer, so its own guard would never run
-  // for a cold-cache load onto that state.
-  const questionType = asset?.content ? findRowByXpath(asset.content, questionXpath)?.type : undefined
-  useEffect(() => {
-    const availableTabs = getAvailableTabsForQuestionType(questionType)
-    const activeTab = getActiveTab()
-    if (asset && activeTab && !availableTabs.includes(activeTab)) {
-      goToTabRoute(TAB_ROUTES[availableTabs[0]])
-    }
-  }, [asset, questionType])
+  // The one guard against being on a tab the question type doesn't support (e.g. Transcript for text), however we got
+  // there: a stale link, switching questions, editing the URL, or Back. It lives here rather than in
+  // `SingleProcessingContent`, which isn't mounted when the question has no answer, and it replaces the history entry
+  // so Back doesn't land on the unsupported tab again. The submission helps find the type of a question the form no
+  // longer has, so the guard may only kick in once it's loaded.
+  const questionType = asset ? getProcessingQuestionType(asset, questionXpath, submission) : undefined
+  const availableTabs = getAvailableTabsForQuestionType(questionType)
+  const activeTab = getActiveTab()
+  if (asset && activeTab && !availableTabs.includes(activeTab)) {
+    return <Navigate to={getTabRoutePath(TAB_ROUTES[availableTabs[0]])} replace />
+  }
 
   // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
   // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.
@@ -153,6 +152,7 @@ export default function SingleProcessingRoute({
                 <SingleProcessingContent
                   asset={asset}
                   questionXpath={questionXpath}
+                  availableTabs={availableTabs}
                   submission={submission}
                   activeBulkActions={activeBulkActions}
                   hasUnsavedWork={hasUnsavedWork}

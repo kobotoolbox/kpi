@@ -210,7 +210,7 @@ export const getBlockedTargetLanguages = (language: LanguageCode, locale?: Local
  * Language codes a new translation must not target, based on the transcript it would be sourced from. Empty when there
  * is nothing to translate yet.
  *
- * Picks the source the way the back end does (`RequiresTranscriptionMixin.attach_action_dependency`): most recent
+ * Picks the source the way the back end does (`RequiresAdditionalSource.attach_action_dependency`): most recent
  * *acceptance* date, skipping versions that were never accepted. `getLatestTranscriptVersionItem` sorts by creation
  * date instead, and the two disagree when versions were accepted out of order, so don't swap one for the other.
  */
@@ -375,7 +375,7 @@ export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolea
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
  * and image questions are analyzed straight from the submission answer (mirroring
- * the back end's `RequiresTranscriptionMixin.attach_action_dependency`), so they
+ * the back end's `RequiresAdditionalSource.attach_action_dependency`), so they
  * need a non-empty answer (for images, the file name); every other type needs a
  * transcript first.
  */

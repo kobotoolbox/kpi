@@ -1,24 +1,15 @@
 import { Tabs } from '@mantine/core'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import { findRowByXpath } from '#/assetUtils'
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import { isPlainClick } from '#/utils'
-import { getAvailableTabsForQuestionType } from '../common/utils'
-import {
-  ProcessingTab,
-  TAB_ROUTES,
-  getActiveTab,
-  getTabRoutePath,
-  goToTabRoute,
-  isProcessingRouteActive,
-} from '../routes.utils'
+import { ProcessingTab, getTabRoutePath, goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 import TabAnalysis from './TabAnalysis'
 import TabTranscript from './TabTranscript'
 import TabTranslations from './TabTranslations'
@@ -27,6 +18,8 @@ import styles from './index.module.scss'
 interface Props {
   asset: AssetResponse
   questionXpath: string
+  /** Tabs the question type supports, see `getAvailableTabsForQuestionType`. */
+  availableTabs: ProcessingTab[]
   submission: DataResponse
   activeBulkActions: BulkActionResponse[]
   hasUnsavedWork: boolean
@@ -43,6 +36,7 @@ interface Props {
 export default function SingleProcessingContent({
   asset,
   questionXpath,
+  availableTabs,
   submission,
   activeBulkActions,
   hasUnsavedWork,
@@ -50,8 +44,6 @@ export default function SingleProcessingContent({
   supplement,
   advancedFeatures,
 }: Props) {
-  const questionType = findRowByXpath(asset.content ?? {}, questionXpath)?.type
-  const availableTabs = getAvailableTabsForQuestionType(questionType)
   const isTranscriptAvailable = availableTabs.includes(ProcessingTab.Transcript)
   const isTranslationsAvailable = availableTabs.includes(ProcessingTab.Translations)
 
@@ -89,16 +81,6 @@ export default function SingleProcessingContent({
   } else if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
     activeTab = PROCESSING_ROUTES.ANALYSIS
   }
-
-  // Guards against landing on a tab the question type doesn't support, by
-  // moving to its default tab (e.g. a stale link, or switching questions while
-  // on that tab).
-  useEffect(() => {
-    const currentTab = getActiveTab()
-    if (currentTab && !availableTabs.includes(currentTab)) {
-      goToTabRoute(TAB_ROUTES[availableTabs[0]])
-    }
-  }, [questionType, activeTab])
 
   return (
     <section className={styles.root}>
