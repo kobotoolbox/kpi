@@ -15,9 +15,6 @@ METHOD = 'app'
 
 
 @freeze_time('2026-01-01 12:00:00')
-# some of these tests include failed logins on purpose, don't let them affect other
-# logins
-@override_settings(ACCOUNT_RATE_LIMITS=False)
 class LoginTests(KpiTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
