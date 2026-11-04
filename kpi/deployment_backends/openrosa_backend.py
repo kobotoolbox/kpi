@@ -1644,9 +1644,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 # Retrieve the deployed version corresponding to the submission.
                 submission_version = None
                 if '__version__' in submission:
-                    submission_version = self.asset.asset_versions.filter(
-                        uid=submission['__version__'], deployed=True
-                    ).first()
+                    submission_version = (
+                        self.asset.asset_versions.filter(
+                            uid=submission['__version__'], deployed=True
+                        )
+                        .defer('version_content')
+                        .first()
+                    )
 
                 # Compute attachment xpaths from that specific form version.
                 attachment_xpaths = self.asset.get_attachment_xpaths_from_version(

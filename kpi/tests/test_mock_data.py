@@ -2,6 +2,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from unittest.mock import patch
 
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from formpack import FormPack
 
@@ -570,6 +571,33 @@ class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
 
                 # Cache hit: get_attachment_xpaths_from_version should NOT be called
                 mock_get_xpaths_from_version.assert_not_called()
+
+    def test_fetch_one_cache_miss_reads_no_version_choices(self):
+        """
+        Without any cached xpath, reading one submission computes them from the
+        submission's version, and leaves the choices of that version in the
+        database.
+        """
+
+        asset = Asset.objects.get(pk=self.asset.pk)
+        cache.delete(
+            f'all_attachment_xpaths:{asset.uid}:{asset.latest_deployed_version_uid}'
+        )
+        for version_uid in asset.asset_versions.values_list('uid', flat=True):
+            cache.delete(f'attachment_xpaths:{asset.uid}:{version_uid}')
+
+        with patch.object(
+            asset,
+            'get_attachment_xpaths_from_version',
+            wraps=asset.get_attachment_xpaths_from_version,
+        ) as mock_get_xpaths_from_version:
+            asset.deployment.get_submission(
+                submission_id=self.submissions[0]['_id'],
+                user=asset.owner,
+            )
+
+        version = mock_get_xpaths_from_version.call_args.args[0]
+        assert 'version_content' in version.get_deferred_fields()
 
     def test_fetch_one_cache_miss_uses_version_specific_xpaths(self):
         """
