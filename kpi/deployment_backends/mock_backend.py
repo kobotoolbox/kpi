@@ -124,14 +124,14 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
             xml_file = io.StringIO(xml_string)
 
             instance = create_instance(
-                owner_username,
-                xml_file,
-                media_files,
+                xml_file=xml_file,
+                media_files=media_files,
+                request=request,
                 date_created_override=parse_datetime(
                     submission.get('_submission_time', '')  # Returns None if empty
                 ),
-                request=request,
                 check_usage_limits=False,
+                owner_username=owner_username,
             )
 
             # Inject (or update) real PKs in submission…

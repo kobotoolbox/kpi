@@ -8,7 +8,9 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from model_bakery import baker
 
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
@@ -852,6 +854,20 @@ def test_populates_xpath_correctly():
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
+def _version_content_queries(context: CaptureQueriesContext) -> list[str]:
+    """
+    Return the captured queries that read `version_content` or
+    `deployed_content`, either selected with the rows or loaded later from a
+    deferred field
+    """
+
+    return [
+        query['sql']
+        for query in context.captured_queries
+        if 'version_content' in query['sql'] or 'deployed_content' in query['sql']
+    ]
+
+
 class TestAssetContent(TestCase):
 
     def setUp(self):
@@ -991,6 +1007,36 @@ class TestAssetContent(TestCase):
             'Image_renamed',
         ]
 
+    def test_get_all_attachment_xpaths_rebuild_loads_no_version_content(self):
+        """
+        Rebuilding the merged entry from warm per-version entries must not load
+        any version content. Each one weighs megabytes on a form with long
+        choice lists, and an asset can have dozens of deployed versions.
+        """
+
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+
+        # Fill every per-version entry, then drop only the merged one
+        self.asset.get_all_attachment_xpaths()
+        merged_cache_key = (
+            f'all_attachment_xpaths:{self.asset.uid}:'
+            f'{self.asset.latest_deployed_version_uid}'
+        )
+        cache.delete(merged_cache_key)
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        with CaptureQueriesContext(connection) as context:
+            assert sorted(asset.get_all_attachment_xpaths()) == [
+                'Image',
+                'Image_renamed',
+            ]
+
+        assert _version_content_queries(context) == []
+        # The merged entry is back, so the rebuild did run
+        assert cache.get(merged_cache_key) is not None
+
     def test_get_attachment_xpaths_from_version_uids_merges_versions(self):
         """
         A question renamed between two versions lives at both xpaths, and a
@@ -1036,6 +1082,28 @@ class TestAssetContent(TestCase):
 
         assert draft is not None
         assert self.asset.get_attachment_xpaths_from_version_uids([draft.uid]) == []
+
+    def test_get_attachment_xpaths_from_version_uids_loads_no_version_content(self):
+        """
+        Versions whose xpaths are already cached must not load their content,
+        which weighs megabytes on a form with long choice lists.
+        """
+
+        first_version_uid = self.asset.latest_deployed_version_uid
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        version_uids = [first_version_uid, self.asset.latest_deployed_version_uid]
+
+        # Fill the per-version entries
+        self.asset.get_attachment_xpaths_from_version_uids(version_uids)
+
+        with CaptureQueriesContext(connection) as context:
+            assert sorted(
+                self.asset.get_attachment_xpaths_from_version_uids(version_uids)
+            ) == ['Image', 'Image_renamed']
+
+        assert _version_content_queries(context) == []
 
     @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
     def test_xpath_method_called_once_for_single_version(

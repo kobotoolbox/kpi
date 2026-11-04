@@ -5,13 +5,19 @@ from tempfile import NamedTemporaryFile
 
 from django.utils.dateparse import parse_datetime
 
-from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import xform_instance_to_dict
-from kobo.apps.openrosa.apps.viewer.pandas_mongo_bridge import AbstractDataFrameBuilder,\
-    CSVDataFrameBuilder, CSVDataFrameWriter, ExcelWriter,\
-    get_prefix_from_xpath, get_valid_sheet_name, XLSDataFrameBuilder,\
-    XLSDataFrameWriter, remove_dups_from_list_maintain_order
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import XFormInstanceParser
+from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
+from kobo.apps.openrosa.apps.viewer.pandas_mongo_bridge import (
+    AbstractDataFrameBuilder,
+    CSVDataFrameBuilder,
+    CSVDataFrameWriter,
+    ExcelWriter,
+    XLSDataFrameBuilder,
+    XLSDataFrameWriter,
+    get_valid_sheet_name,
+    remove_dups_from_list_maintain_order,
+)
 from kobo.apps.openrosa.libs.utils.common_tags import NA_REP
 
 
@@ -23,15 +29,19 @@ def xls_filepath_from_fixture_name(fixture_name):
     # __file__
     return os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "fixtures", fixture_name, fixture_name + ".xls"
+        'fixtures',
+        fixture_name,
+        fixture_name + '.xls',
     )
 
 
 def xml_inst_filepath_from_fixture_name(fixture_name, instance_name):
     return os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
-        "fixtures", fixture_name, "instances",
-        fixture_name + "_" + instance_name + ".xml"
+        'fixtures',
+        fixture_name,
+        'instances',
+        fixture_name + '_' + instance_name + '.xml',
     )
 
 
@@ -74,16 +84,16 @@ class TestPandasMongoBridge(TestBase):
                 os.remove(xml_submission_file_path)
 
     def _publish_single_level_repeat_form(self):
-        self._publish_xls_fixture_set_xform("new_repeats")
-        self.survey_name = "new_repeats"
+        self._publish_xls_fixture_set_xform('new_repeats')
+        self.survey_name = 'new_repeats'
 
     def _publish_nested_repeats_form(self):
-        self._publish_xls_fixture_set_xform("nested_repeats")
-        self.survey_name = "nested_repeats"
+        self._publish_xls_fixture_set_xform('nested_repeats')
+        self.survey_name = 'nested_repeats'
 
     def _publish_grouped_gps_form(self):
-        self._publish_xls_fixture_set_xform("grouped_gps")
-        self.survey_name = "grouped_gps"
+        self._publish_xls_fixture_set_xform('grouped_gps')
+        self.survey_name = 'grouped_gps'
 
     def _xls_data_for_dataframe(self):
         xls_df_builder = XLSDataFrameBuilder(self.user.username,
@@ -99,10 +109,10 @@ class TestPandasMongoBridge(TestBase):
 
     def test_generated_sections(self):
         self._publish_single_level_repeat_form()
-        self._submit_fixture_instance("new_repeats", "01")
+        self._submit_fixture_instance('new_repeats', '01')
         xls_df_builder = XLSDataFrameBuilder(self.user.username,
                                              self.xform.id_string)
-        expected_section_keys = [self.survey_name, "kids_details"]
+        expected_section_keys = [self.survey_name, 'kids_details']
         section_keys = xls_df_builder.sections.keys()
         self.assertEqual(sorted(expected_section_keys), sorted(section_keys))
 
@@ -114,47 +124,50 @@ class TestPandasMongoBridge(TestBase):
         kids details sheet one for each repeat
         """
         self._publish_single_level_repeat_form()
-        self._submit_fixture_instance("new_repeats", "01")
+        self._submit_fixture_instance('new_repeats', '01')
         data = self._xls_data_for_dataframe()
         self.assertEqual(len(data[self.survey_name]), 1)
-        self.assertEqual(len(data["kids_details"]), 2)
+        self.assertEqual(len(data['kids_details']), 2)
 
     def test_xls_columns(self):
         """
         Test that our expected columns are in the data
         """
         self._publish_single_level_repeat_form()
-        self._submit_fixture_instance("new_repeats", "01")
+        self._submit_fixture_instance('new_repeats', '01')
         data = self._xls_data_for_dataframe()
         # columns in the default sheet
-        expected_default_columns = [
-            "gps",
-            "_gps_latitude",
-            "_gps_longitude",
-            "_gps_altitude",
-            "_gps_precision",
-            "web_browsers/firefox",
-            "web_browsers/safari",
-            "web_browsers/ie",
-            "info/age",
-            "web_browsers/chrome",
-            "kids/has_kids",
-            "info/name",
-            "meta/instanceID"
-        ] + AbstractDataFrameBuilder.ADDITIONAL_COLUMNS +\
-            XLSDataFrameBuilder.EXTRA_COLUMNS
+        expected_default_columns = (
+            [
+                'gps',
+                '_gps_latitude',
+                '_gps_longitude',
+                '_gps_altitude',
+                '_gps_precision',
+                'web_browsers/firefox',
+                'web_browsers/safari',
+                'web_browsers/ie',
+                'info/age',
+                'web_browsers/chrome',
+                'kids/has_kids',
+                'info/name',
+                'meta/instanceID',
+            ]
+            + AbstractDataFrameBuilder.ADDITIONAL_COLUMNS
+            + XLSDataFrameBuilder.EXTRA_COLUMNS
+        )
         # get the header
         default_columns = [k for k in data[self.survey_name][0]]
         self.assertEqual(sorted(expected_default_columns),
                          sorted(default_columns))
 
         # columns in the kids_details sheet
-        expected_kids_details_columns = [
-            "kids/kids_details/kids_name",
-            "kids/kids_details/kids_age"
-        ] + AbstractDataFrameBuilder.ADDITIONAL_COLUMNS +\
-            XLSDataFrameBuilder.EXTRA_COLUMNS
-        kids_details_columns = [k for k in data["kids_details"][0]]
+        expected_kids_details_columns = (
+            ['kids/kids_details/kids_name', 'kids/kids_details/kids_age']
+            + AbstractDataFrameBuilder.ADDITIONAL_COLUMNS
+            + XLSDataFrameBuilder.EXTRA_COLUMNS
+        )
+        kids_details_columns = [k for k in data['kids_details'][0]]
         self.assertEqual(sorted(expected_kids_details_columns),
                          sorted(kids_details_columns))
 
@@ -164,22 +177,25 @@ class TestPandasMongoBridge(TestBase):
         top level
         """
         self._publish_grouped_gps_form()
-        self._submit_fixture_instance("grouped_gps", "01")
+        self._submit_fixture_instance('grouped_gps', '01')
         data = self._xls_data_for_dataframe()
         # columns in the default sheet
-        expected_default_columns = [
-            "gps_group/gps",
-            "gps_group/_gps_latitude",
-            "gps_group/_gps_longitude",
-            "gps_group/_gps_altitude",
-            "gps_group/_gps_precision",
-            "web_browsers/firefox",
-            "web_browsers/safari",
-            "web_browsers/ie",
-            "web_browsers/chrome",
-            "meta/instanceID"
-        ] + AbstractDataFrameBuilder.ADDITIONAL_COLUMNS +\
-            XLSDataFrameBuilder.EXTRA_COLUMNS
+        expected_default_columns = (
+            [
+                'gps_group/gps',
+                'gps_group/_gps_latitude',
+                'gps_group/_gps_longitude',
+                'gps_group/_gps_altitude',
+                'gps_group/_gps_precision',
+                'web_browsers/firefox',
+                'web_browsers/safari',
+                'web_browsers/ie',
+                'web_browsers/chrome',
+                'meta/instanceID',
+            ]
+            + AbstractDataFrameBuilder.ADDITIONAL_COLUMNS
+            + XLSDataFrameBuilder.EXTRA_COLUMNS
+        )
         default_columns = [k for k in data[self.survey_name][0]]
         self.assertEqual(sorted(expected_default_columns),
                          sorted(default_columns))
@@ -187,16 +203,19 @@ class TestPandasMongoBridge(TestBase):
     def test_csv_dataframe_export_to(self):
         self._publish_nested_repeats_form()
         self._submit_fixture_instance(
-            "nested_repeats", "01", submission_time=self._submission_time)
+            'nested_repeats', '01', submission_time=self._submission_time
+        )
         self._submit_fixture_instance(
-            "nested_repeats", "02", submission_time=self._submission_time)
-        csv_df_builder = CSVDataFrameBuilder(self.user.username,
-                                             self.xform.id_string)
-        temp_file = NamedTemporaryFile(suffix=".csv", delete=False)
+            'nested_repeats', '02', submission_time=self._submission_time
+        )
+        csv_df_builder = CSVDataFrameBuilder(self.user.username, self.xform.id_string)
+        temp_file = NamedTemporaryFile(suffix='.csv', delete=False)
         csv_df_builder.export_to(temp_file.name)
         csv_fixture_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "fixtures", "nested_repeats", "nested_repeats.csv"
+            'fixtures',
+            'nested_repeats',
+            'nested_repeats.csv',
         )
         temp_file.close()
         fixture, output = '', ''
@@ -209,7 +228,7 @@ class TestPandasMongoBridge(TestBase):
 
     def test_csv_columns_for_gps_within_groups(self):
         self._publish_grouped_gps_form()
-        self._submit_fixture_instance("grouped_gps", "01")
+        self._submit_fixture_instance('grouped_gps', '01')
         data = self._csv_data_for_dataframe()
         columns = data[0].keys()
         expected_columns = [
@@ -237,7 +256,7 @@ class TestPandasMongoBridge(TestBase):
     def test_format_mongo_data_for_csv(self):
         self.maxDiff = None
         self._publish_single_level_repeat_form()
-        self._submit_fixture_instance("new_repeats", "01")
+        self._submit_fixture_instance('new_repeats', '01')
         self.xform.data_dictionary()
         data_0 = self._csv_data_for_dataframe()[0]
         # remove AbstractDataFrameBuilder.INTERNAL_FIELDS
@@ -272,7 +291,7 @@ class TestPandasMongoBridge(TestBase):
     def test_split_select_multiples(self):
         self._publish_nested_repeats_form()
         dd = self.xform.data_dictionary()
-        self._submit_fixture_instance("nested_repeats", "01")
+        self._submit_fixture_instance('nested_repeats', '01')
         csv_df_builder = CSVDataFrameBuilder(self.user.username,
                                              self.xform.id_string)
         cursor = csv_df_builder._query_mongo()
@@ -436,67 +455,64 @@ class TestPandasMongoBridge(TestBase):
 
     def test_repeat_child_name_matches_repeat(self):
         """
-        ParsedInstance.to_dict creates a list within a repeat if a child has
-        the same name as the repeat. This test makes sure that doesnt happen
+        A question named like its enclosing repeat stays a value instead of
+        becoming another list
         """
+
         self.maxDiff = None
-        fixture = "repeat_child_name_matches_repeat"
+        fixture = 'repeat_child_name_matches_repeat'
         # publish form so we have a dd to pass to xform inst. parser
         self._publish_xls_fixture_set_xform(fixture)
         submission_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
-            "fixtures", fixture, fixture + ".xml"
+            'fixtures',
+            fixture,
+            fixture + '.xml',
         )
         # get submission xml str
-        with open(submission_path, "r") as f:
+        with open(submission_path, 'r') as f:
             xml_str = f.read()
-        dict = xform_instance_to_dict(xml_str, self.xform.data_dictionary())
+        parser = XFormInstanceParser(xml_str, self.xform.data_dictionary())
         expected_dict = {
             'test_item_name_matches_repeat': {
-                'formhub': {
-                    'uuid': 'c911d71ce1ac48478e5f8bac99addc4e'
-                },
+                'formhub': {'uuid': 'c911d71ce1ac48478e5f8bac99addc4e'},
                 'gps': [
-                    {
-                        'info': 'Yo',
-                        'gps': '-1.2625149 36.7924478 0.0 30.0'
-                    },
-                    {
-                        'info': 'What',
-                        'gps': '-1.2625072 36.7924328 0.0 30.0'
-                    }
-                ]
+                    {'info': 'Yo', 'gps': '-1.2625149 36.7924478 0.0 30.0'},
+                    {'info': 'What', 'gps': '-1.2625072 36.7924328 0.0 30.0'},
+                ],
             }
         }
-        self.assertEqual(dict, expected_dict)
+        self.assertEqual(parser.to_dict(), expected_dict)
 
     def test_remove_dups_from_list_maintain_order(self):
-        l = ["a", "z", "b", "y", "c", "b", "x"]
-        result = remove_dups_from_list_maintain_order(l)
-        expected_result = ["a", "z", "b", "y", "c", "x"]
+        values = ['a', 'z', 'b', 'y', 'c', 'b', 'x']
+        result = remove_dups_from_list_maintain_order(values)
+        expected_result = ['a', 'z', 'b', 'y', 'c', 'x']
         self.assertEqual(result, expected_result)
 
     def test_valid_sheet_name(self):
-        sheet_names = ["sheet_1", "sheet_2"]
-        desired_sheet_name = "sheet_3"
-        expected_sheet_name = "sheet_3"
+        sheet_names = ['sheet_1', 'sheet_2']
+        desired_sheet_name = 'sheet_3'
+        expected_sheet_name = 'sheet_3'
         generated_sheet_name = get_valid_sheet_name(desired_sheet_name,
                                                     sheet_names)
         self.assertEqual(generated_sheet_name, expected_sheet_name)
 
     def test_invalid_sheet_name(self):
-        sheet_names = ["sheet_1", "sheet_2"]
-        desired_sheet_name = "sheet_3_with_more_than_max_expected_length"
-        expected_sheet_name = "sheet_3_with_more_than_max_exp"
+        sheet_names = ['sheet_1', 'sheet_2']
+        desired_sheet_name = 'sheet_3_with_more_than_max_expected_length'
+        expected_sheet_name = 'sheet_3_with_more_than_max_exp'
         generated_sheet_name = get_valid_sheet_name(desired_sheet_name,
                                                     sheet_names)
         self.assertEqual(generated_sheet_name, expected_sheet_name)
 
     def test_duplicate_sheet_name(self):
-        sheet_names = ["sheet_2_with_duplicate_sheet_n",
-                       "sheet_2_with_duplicate_sheet_1"]
-        duplicate_sheet_name = "sheet_2_with_duplicate_sheet_n"
-        expected_sheet_name = "sheet_2_with_duplicate_sheet_2"
+        sheet_names = [
+            'sheet_2_with_duplicate_sheet_n',
+            'sheet_2_with_duplicate_sheet_1',
+        ]
+        duplicate_sheet_name = 'sheet_2_with_duplicate_sheet_n'
+        expected_sheet_name = 'sheet_2_with_duplicate_sheet_2'
         generated_sheet_name = get_valid_sheet_name(duplicate_sheet_name,
                                                     sheet_names)
         self.assertEqual(generated_sheet_name, expected_sheet_name)
@@ -522,17 +538,6 @@ class TestPandasMongoBridge(TestBase):
         records = [record for record in cursor]
         self.assertTrue(len(records), 1)
 
-    def test_prefix_from_xpath(self):
-        xpath = "parent/child/grandhild"
-        prefix = get_prefix_from_xpath(xpath)
-        self.assertEqual(prefix, 'parent/child/')
-        xpath = "parent/child"
-        prefix = get_prefix_from_xpath(xpath)
-        self.assertEqual(prefix, 'parent/')
-        xpath = "parent"
-        prefix = get_prefix_from_xpath(xpath)
-        self.assertTrue(prefix is None)
-
     def test_csv_export_with_df_size_limit(self):
         """
         To fix pandas limitation of 30k rows on csv export, we specify a max
@@ -542,14 +547,14 @@ class TestPandasMongoBridge(TestBase):
         # submit 7 instances
         for i in range(4):
             self._submit_fixture_instance('new_repeats', '03', None, True)
-        self._submit_fixture_instance("new_repeats", "02")
+        self._submit_fixture_instance('new_repeats', '02')
         for i in range(2):
             self._submit_fixture_instance('new_repeats', '03', None, True)
         csv_df_builder = CSVDataFrameBuilder(self.user.username,
                                              self.xform.id_string)
         record_count = csv_df_builder._query_mongo(count=True)
         self.assertEqual(record_count, 7)
-        temp_file = NamedTemporaryFile(suffix=".csv", delete=False)
+        temp_file = NamedTemporaryFile(suffix='.csv', delete=False)
         csv_df_builder.export_to(temp_file.name, data_frame_max_size=3)
         csv_file = open(temp_file.name)
         csv_reader = csv.reader(csv_file)
@@ -567,10 +572,8 @@ class TestPandasMongoBridge(TestBase):
 
     def test_csv_column_indices_in_groups_within_repeats(self):
         # See `_submitted_data` in `expected_data_0` below
-        self._publish_xls_fixture_set_xform("groups_in_repeats")
-        self._submit_fixture_instance("groups_in_repeats", "01")
-        dd = self.xform.data_dictionary()
-        dd.get_keys()
+        self._publish_xls_fixture_set_xform('groups_in_repeats')
+        self._submit_fixture_instance('groups_in_repeats', '01')
         data_0 = self._csv_data_for_dataframe()[0]
         # remove dynamic fields
         ignore_list = [
@@ -581,7 +584,7 @@ class TestPandasMongoBridge(TestBase):
         expected_data_0 = {
             '_xform_id_string': 'groups_in_repeats',
             '_status': 'submitted_via_web',
-            "_submitted_by": 'bob',
+            '_submitted_by': 'bob',
             'name': 'Abe',
             'age': '88',
             'has_children': '1',
@@ -611,10 +614,8 @@ class TestPandasMongoBridge(TestBase):
 
     # todo: test nested repeats as well on xls
     def test_xls_groups_within_repeats(self):
-        self._publish_xls_fixture_set_xform("groups_in_repeats")
-        self._submit_fixture_instance("groups_in_repeats", "01")
-        dd = self.xform.data_dictionary()
-        dd.get_keys()
+        self._publish_xls_fixture_set_xform('groups_in_repeats')
+        self._submit_fixture_instance('groups_in_repeats', '01')
         data = self._xls_data_for_dataframe()
         # remove dynamic fields
         ignore_list = [
@@ -623,17 +624,16 @@ class TestPandasMongoBridge(TestBase):
         ]
         for item in ignore_list:
             # pop unwanted keys from main section
-            for d in data["groups_in_repeats"]:
+            for d in data['groups_in_repeats']:
                 if item in d:
                     d.pop(item)
             # pop unwanted keys from children's section
-            for d in data["children"]:
+            for d in data['children']:
                 if item in d:
                     d.pop(item)
         # todo: add _id to xls export
         expected_data = {
-            "groups_in_repeats":
-            [
+            'groups_in_repeats': [
                 {
                     'picture': None,
                     'has_children': '1',
@@ -654,7 +654,7 @@ class TestPandasMongoBridge(TestBase):
                     '_validation_status': {}
                 }
             ],
-            "children": [
+            'children': [
                 {
                     'children/childs_info/name': 'Cain',
                     'children/childs_info/age': '56',
@@ -681,22 +681,26 @@ class TestPandasMongoBridge(TestBase):
         }
         self.maxDiff = None
         self.assertEqual(
-            data["groups_in_repeats"][0],
-            expected_data["groups_in_repeats"][0])
+            data['groups_in_repeats'][0], expected_data['groups_in_repeats'][0]
+        )
         # each of the children should have children/... keys, we can guratnee
         # the order so we cant check the values, just make sure they are not
         # none
-        self.assertEqual(len(data["children"]), 2)
-        for child in data["children"]:
-            self.assertTrue("children/childs_info/name" in child)
-            self.assertIsNotNone(child["children/childs_info/name"])
-            self.assertTrue("children/childs_info/age" in child)
-            self.assertIsNotNone(child["children/childs_info/name"])
+        self.assertEqual(len(data['children']), 2)
+        for child in data['children']:
+            self.assertTrue('children/childs_info/name' in child)
+            self.assertIsNotNone(child['children/childs_info/name'])
+            self.assertTrue('children/childs_info/age' in child)
+            self.assertIsNotNone(child['children/childs_info/name'])
             self.assertTrue(
-                "children/immunization/immunization_received/polio_1" in child)
-            self.assertEqual(type(child[
-                "children/immunization/immunization_received/polio_1"]), bool)
+                'children/immunization/immunization_received/polio_1' in child
+            )
+            self.assertEqual(
+                type(child['children/immunization/immunization_received/polio_1']), bool
+            )
             self.assertTrue(
-                "children/immunization/immunization_received/polio_2" in child)
-            self.assertEqual(type(child[
-                "children/immunization/immunization_received/polio_2"]), bool)
+                'children/immunization/immunization_received/polio_2' in child
+            )
+            self.assertEqual(
+                type(child['children/immunization/immunization_received/polio_2']), bool
+            )

@@ -8,7 +8,6 @@ from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework.negotiation import DefaultContentNegotiation
 from rest_framework.renderers import (
     BaseRenderer,
-    StaticHTMLRenderer,
     TemplateHTMLRenderer,
 )
 from rest_framework_xml.renderers import XMLRenderer
@@ -147,26 +146,3 @@ class TemplateXMLRenderer(TemplateHTMLRenderer):
 
         return super().render(
             data, accepted_media_type, renderer_context)
-
-
-class StaticXMLRenderer(StaticHTMLRenderer):
-    format = 'xml'
-    media_type = 'text/xml'
-
-
-class InstanceContentNegotiation(DefaultContentNegotiation):
-
-    def filter_renderers(self, renderers, format):
-        """
-        Removes `rest_framework_xml.renderers.XMLRenderer` from the renderers list to
-        prioritize `RawXMLRenderer`.
-        Useful to display xml of Instance without any parsing.
-
-        :param renderers: list
-        :param format: str
-        :return: list
-        """
-        renderers = [renderer for renderer in renderers
-                     if renderer.format == format and
-                     isinstance(renderer, XMLRenderer) is False]
-        return renderers

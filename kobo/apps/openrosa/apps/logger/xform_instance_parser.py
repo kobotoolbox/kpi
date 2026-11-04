@@ -328,39 +328,6 @@ def _xml_node_to_dict(node: Node, repeats: list = []) -> dict:
             return {node.nodeName: value}
 
 
-def _flatten_dict(d, prefix):
-    """
-    Return a list of XPath, value pairs.
-    """
-    assert type(d) == dict
-    assert type(prefix) == list
-
-    for key, value in d.items():
-        new_prefix = prefix + [key]
-        if type(value) == dict:
-            for pair in _flatten_dict(value, new_prefix):
-                yield pair
-        elif type(value) == list:
-            for i, item in enumerate(value):
-                item_prefix = list(new_prefix)  # make a copy
-                # note on indexing xpaths: IE5 and later has
-                # implemented that [0] should be the first node, but
-                # according to the W3C standard it should have been
-                # [1]. I'm adding 1 to i to start at 1.
-                if i > 0:
-                    # hack: removing [1] index to be consistent across
-                    # surveys that have a single repitition of the
-                    # loop versus mutliple.
-                    item_prefix[-1] += '[%s]' % str(i + 1)
-                if type(item) == dict:
-                    for pair in _flatten_dict(item, item_prefix):
-                        yield pair
-                else:
-                    yield item_prefix, item
-        else:
-            yield new_prefix, value
-
-
 def _flatten_dict_nest_repeats(d, prefix):
     """
     Return a list of XPath, value pairs.
@@ -468,9 +435,6 @@ class XFormInstanceParser:
     def to_flat_dict(self):
         return self._flat_dict
 
-    def get_attributes(self):
-        return self._attributes
-
     def _set_attributes(self):
         all_attributes = list(_get_all_attributes(self._root_node))
         for key, value in all_attributes:
@@ -495,21 +459,6 @@ class XFormInstanceParser:
         result = self.to_flat_dict().copy()
         result[XFORM_ID_STRING] = self.get_xform_id_string()
         return result
-
-
-def xform_instance_to_dict(xml_str, data_dictionary):
-    parser = XFormInstanceParser(xml_str, data_dictionary)
-    return parser.to_dict()
-
-
-def xform_instance_to_flat_dict(xml_str, data_dictionary):
-    parser = XFormInstanceParser(xml_str, data_dictionary)
-    return parser.to_flat_dict()
-
-
-def parse_xform_instance(xml_str, data_dictionary):
-    parser = XFormInstanceParser(xml_str, data_dictionary)
-    return parser.get_flat_dict_with_attributes()
 
 
 def get_xform_media_question_xpaths(xform: 'logger.XForm') -> list:

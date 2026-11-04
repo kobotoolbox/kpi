@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, within } from 'storybook/test'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
-import { getApiV2AssetsPairedDataListMockHandler } from '#/api/react-query/survey-data/msw'
-import { getApiV2OrganizationsAssetsMinimalListRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsPairedDataListMockHandler } from '#/api/react-query/survey-data/msw'
+import { getOrganizationsAssetsMinimalListRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 import type { AssetResponse } from '#/dataInterface'
 import assetsMock from '#/endpoints/assets.mocks'
 import meMock from '#/endpoints/me.mocks'
@@ -10,14 +10,14 @@ import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import ConnectProjects from './connectProjects'
 
-const asset = getApiV2AssetsRetrieveResponseMock({
+const asset = getAssetsRetrieveResponseMock({
   uid: 'aChildForm',
   name: 'Child form',
   data_sharing: { enabled: false, fields: [] },
   content: { survey: [] },
 }) as unknown as AssetResponse
 
-const userSharedAsset = getApiV2AssetsRetrieveResponseMock({
+const userSharedAsset = getAssetsRetrieveResponseMock({
   uid: 'aUserShared',
   name: 'Shared with me',
   url: 'http://kf.kobo.local/api/v2/assets/aUserShared/',
@@ -26,8 +26,8 @@ const userSharedAsset = getApiV2AssetsRetrieveResponseMock({
 const handlers = [
   meMock,
   assetsMock({ count: 1, results: [userSharedAsset] }),
-  getApiV2AssetsPairedDataListMockHandler({ count: 0, next: null, previous: null, results: [] }),
-  getApiV2OrganizationsAssetsMinimalListRetrieveMockHandler({
+  getAssetsPairedDataListMockHandler({ count: 0, next: null, previous: null, results: [] }),
+  getOrganizationsAssetsMinimalListRetrieveMockHandler({
     next: null,
     previous: null,
     results: [
