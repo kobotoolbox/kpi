@@ -5,13 +5,12 @@ import React, { useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
-  useHasUsablePassword,
+  useIsPasswordNeeded,
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
   useMfaRecoveryCodes,
   useMfaRegenerateCodes,
-  usePasswordCheck,
 } from '#/account/security/mfa/mfa.api'
 import { CredentialRejection } from '#/account/security/reauthentication/reauthentication.api'
 import bem, { makeBem } from '#/bem'
@@ -89,10 +88,11 @@ function MFAModals(props: MFAModalsProps) {
   /** 2FA is on, but the codes may still need reading */
   const [isActivated, setIsActivated] = useState(false)
 
-  const checkPasswordNeeded = usePasswordCheck()
-  const isPasswordNeeded = checkPasswordNeeded()
+  const isPasswordNeeded = useIsPasswordNeeded()
+  // A retry after activation reauthenticates with the token alone
+  const isPasswordNeededToTurnOn = isPasswordNeeded && !isActivated
   // Turning off needs the password too, reconfiguring included. Regenerating and SSO-only accounts use the code alone.
-  const isPasswordNeededToTurnOff = useHasUsablePassword() && props.modalType !== 'regenerate'
+  const isPasswordNeededToTurnOff = isPasswordNeeded && props.modalType !== 'regenerate'
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
@@ -147,20 +147,24 @@ function MFAModals(props: MFAModalsProps) {
     clearErrors()
     // A retry after the codes failed to load must not turn 2FA on again
     if (isActivated) {
-      recoveryCodes.mutate(undefined, { onSuccess: showCodes })
-      return
-    }
-    // The window may have closed since the last render
-    if (checkPasswordNeeded() && !password) {
-      setPasswordError(t('Please confirm your password to continue'))
+      recoveryCodes.mutate({ code: inputString }, { onSuccess: showCodes, onError: onCredentialRejected })
       return
     }
     confirmCode.mutate(
-      { code: inputString, password: password || undefined },
+      { code: inputString, password: isPasswordNeeded ? password : undefined },
       {
         onSuccess: () => {
           setIsActivated(true)
-          recoveryCodes.mutate(undefined, { onSuccess: showCodes })
+          // Spent on activation, so a retry needs a new one
+          setInputString('')
+          recoveryCodes.mutate(
+            {},
+            {
+              onSuccess: showCodes,
+              onError: () =>
+                setErrorText(t('Two-factor authentication is on. Enter a new token to see your recovery codes.')),
+            },
+          )
         },
         onError: onCredentialRejected,
       },
@@ -274,10 +278,8 @@ function MFAModals(props: MFAModalsProps) {
   }
 
   /**
-   * allauth wants a recent password before turning 2FA on, and KPI wants it before turning 2FA off. We ask here instead
-   * of relying on the reauthentication redirect: leaving the page closes this modal, and starting over makes a new
-   * secret, so the one already scanned stops working. Sending both together also means neither expires while the
-   * other is typed.
+   * allauth wants a recent password before turning 2FA on, and KPI wants it before turning 2FA off, so it is asked for
+   * here, next to the code. Sending both together means neither expires while the other is typed.
    */
   function renderPasswordInput(isShown: boolean, description: string) {
     if (!isShown) {
@@ -306,9 +308,9 @@ function MFAModals(props: MFAModalsProps) {
     )
   }
 
-  /** The confirming steps need the password too, when there is one. Once 2FA is on, Next only rereads the codes. */
+  /** The confirming steps need the password too, when there is one. Once 2FA is on, a retry needs only a new token. */
   function isConfirmValid() {
-    return isActivated || (isTokenValid() && (!isPasswordNeeded || password.length >= 1))
+    return isTokenValid() && (isActivated || !isPasswordNeeded || password.length >= 1)
   }
 
   function renderQRCodeStep() {
@@ -350,7 +352,10 @@ function MFAModals(props: MFAModalsProps) {
           </bem.MFAModal__p>
 
           {renderCodeInput()}
-          {renderPasswordInput(isPasswordNeeded, t('Confirm your password to turn on two-factor authentication'))}
+          {renderPasswordInput(
+            isPasswordNeededToTurnOn,
+            t('Confirm your password to turn on two-factor authentication'),
+          )}
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -446,7 +451,10 @@ function MFAModals(props: MFAModalsProps) {
           </bem.MFAModal__p>
 
           {renderCodeInput()}
-          {renderPasswordInput(isPasswordNeeded, t('Confirm your password to turn on two-factor authentication'))}
+          {renderPasswordInput(
+            isPasswordNeededToTurnOn,
+            t('Confirm your password to turn on two-factor authentication'),
+          )}
 
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink

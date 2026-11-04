@@ -220,14 +220,9 @@ export const sessionAnonymousMock = () =>
 
 /**
  * Somebody is signed in, which is how a sign-on *login* that worked looks from the callback screen. Pass
- * `hasUsablePassword: false` for an SSO-only account. `secondsSinceLogin` and `secondsSinceReauthentication` add those
- * authentication records to the session.
+ * `hasUsablePassword: false` for an SSO-only account.
  */
-export const sessionAuthenticatedMock = ({
-  hasUsablePassword = true,
-  secondsSinceLogin,
-  secondsSinceReauthentication,
-}: { hasUsablePassword?: boolean; secondsSinceLogin?: number; secondsSinceReauthentication?: number } = {}) =>
+export const sessionAuthenticatedMock = ({ hasUsablePassword = true }: { hasUsablePassword?: boolean } = {}) =>
   http.get(SESSION_URL, () =>
     HttpResponse.json({
       status: 200,
@@ -239,14 +234,7 @@ export const sessionAuthenticatedMock = ({
           email: 'sallyride@nasa.com',
           has_usable_password: hasUsablePassword,
         },
-        methods: [
-          ...(secondsSinceLogin === undefined
-            ? []
-            : [{ method: 'password', at: Date.now() / 1000 - secondsSinceLogin, username: 'sallyride' }]),
-          ...(secondsSinceReauthentication === undefined
-            ? []
-            : [{ method: 'password', at: Date.now() / 1000 - secondsSinceReauthentication, reauthenticated: true }]),
-        ],
+        methods: [],
       },
       meta: { is_authenticated: true },
     }),
@@ -298,7 +286,7 @@ export const emailVerifyConfirmMock = () =>
     }),
   )
 
-/** With `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` off: verified, nobody signed in, reported as a 401. */
+/** Confirmed in a browser other than the one that signed up: verified, nobody signed in, reported as a 401. */
 export const emailVerifyConfirmWithoutSessionMock = () =>
   http.post(EMAIL_VERIFY_URL, () =>
     HttpResponse.json(
@@ -337,26 +325,6 @@ export const passwordResetKeyInvalidMock = () =>
       { status: 400, errors: [{ code: 'invalid', param: 'key', message: 'Invalid or expired key.' }] },
       { status: 400 },
     ),
-  )
-
-/** A good key looked up while signed in: allauth will not reset a password from a link behind a session. */
-export const passwordResetKeyConflictMock = () =>
-  http.get(PASSWORD_RESET_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
-
-/**
- * A reset that changed the password and signed the account in: `ACCOUNT_LOGIN_ON_PASSWORD_RESET` on. With it
- * off - the KPI default - allauth answers 401, and the story covering that builds its own response.
- */
-export const passwordResetDoneAndSignedInMock = () =>
-  http.post(PASSWORD_RESET_URL, () =>
-    HttpResponse.json({
-      status: 200,
-      data: {
-        user: { id: 1, display: 'sallyride', username: 'sallyride', has_usable_password: true },
-        methods: [{ method: 'password', at: 1700000000, username: 'sallyride' }],
-      },
-      meta: { is_authenticated: true },
-    }),
   )
 
 /** A rejected reset. `param: 'password'` lands under the input; `param: 'key'` ends the whole attempt. */

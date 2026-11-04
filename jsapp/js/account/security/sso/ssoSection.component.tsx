@@ -112,7 +112,7 @@ export default function SsoSection() {
         onSuccess: (response) => {
           // `fetchAllauth` hands 4xx back as data, so a refusal lands here, not in `onError`. allauth refuses
           // when disconnecting would leave no way into the account.
-          // TODO: a 401 would be a reauthentication ask, not a refusal. allauth only sends one once
+          // Note: no reauthentication case. allauth would ask with a 401 only once
           // `SOCIALACCOUNT_REAUTHENTICATION_REQUIRED` is on, and KPI leaves it off.
           if (response.status !== 200) {
             setDisconnectErrorMessage(getSsoDisconnectErrorMessage(getFirstAllauthErrorCode(response)))

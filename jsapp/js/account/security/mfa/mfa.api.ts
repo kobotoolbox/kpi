@@ -14,10 +14,12 @@ import {
 } from '#/api/react-query/authentication-allauth-headless'
 import { splitAllauthErrors } from '#/auth/allauthErrors'
 import { getAuthStatusQueryKey } from '#/auth/authChangeWatcher'
+import { getAuthStatus } from '#/auth/authStatus'
 import { notify } from '#/utils'
 
-// allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. KPI wants the password
-// and the code together, so each write reauthenticates first with whatever the modal collected.
+// allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. KPI asks for it in the
+// modal rather than on a screen of its own, and wants the password and the code together, so each write
+// reauthenticates first with what the modal collected.
 
 /** A TOTP token or a recovery code - allauth takes either */
 interface MfaCode {
@@ -51,72 +53,20 @@ export function useMfaStatus() {
 }
 
 /**
- * Copy of the `ACCOUNT_REAUTHENTICATION_TIMEOUT` default from `kobo/settings/base.py` - change both together.
- *
- * TODO: DEV-3184 read it from the backend once DEV-3183 exposes it
+ * Whether to ask for the password along with the code. Always, for accounts that have one: the backend timeout is
+ * configurable, so we can't tell if an earlier reauthentication still counts.
  */
-const REAUTHENTICATION_TIMEOUT_SECONDS = 300
-/** Asks a bit early, so the window doesn't close while the user scans and types */
-const REAUTHENTICATION_MARGIN_SECONDS = 60
-
-interface PasswordCheckReading {
-  hasUsablePassword: boolean
-  /** Last reauthentication, in server seconds */
-  reauthenticatedAt: number | null
-  /** Server clock when this reading came in, so a wrong browser clock doesn't matter */
-  serverNow: number | null
-}
-
-/** Only the part of the session body this reads */
-interface SessionBody {
-  data?: { user?: { has_usable_password?: boolean }; methods?: Array<{ at?: number; reauthenticated?: boolean }> }
-}
-
-/** SSO-only accounts have no password to confirm with. Assumed to have one until the session says otherwise. */
-export function useHasUsablePassword() {
+export function useIsPasswordNeeded() {
   const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
     query: {
       queryKey: getAuthStatusQueryKey(),
-      select: (response) => (response.data as SessionBody | undefined)?.data?.user?.has_usable_password ?? true,
+      // SSO-only accounts have no password, and allauth doesn't ask them for one
+      select: (response) => getAuthStatus(response).user?.has_usable_password ?? true,
       throwOnError: false,
     },
   })
+  // Ask until we know otherwise
   return data ?? true
-}
-
-/** Whether allauth will want the password before 2FA goes on. A function, so submit can ask again. */
-export function usePasswordCheck() {
-  const { data, dataUpdatedAt } = useAllauthBrowserV1AuthSessionGet<PasswordCheckReading>({
-    query: {
-      queryKey: getAuthStatusQueryKey(),
-      select: (response) => {
-        const body = response.data as SessionBody | undefined
-        const serverDate = Date.parse(response.headers?.get('date') ?? '')
-        return {
-          // SSO-only accounts have no password, and allauth doesn't ask them for one
-          hasUsablePassword: body?.data?.user?.has_usable_password ?? true,
-          // Since allauth 65.20 a login doesn't count, only an explicit reauthentication
-          reauthenticatedAt: body?.data?.methods?.filter((method) => method.reauthenticated).at(-1)?.at ?? null,
-          serverNow: Number.isNaN(serverDate) ? null : serverDate / 1000,
-        }
-      },
-      throwOnError: false,
-    },
-  })
-
-  return () => {
-    // Ask until we know otherwise
-    if (!data || data.reauthenticatedAt === null) {
-      return data?.hasUsablePassword ?? true
-    }
-    if (!data.hasUsablePassword) {
-      return false
-    }
-    // Server time of the reading, plus what the browser has counted since
-    const readingNow = data.serverNow ?? dataUpdatedAt / 1000
-    const elapsed = readingNow - data.reauthenticatedAt + (Date.now() - dataUpdatedAt) / 1000
-    return elapsed > REAUTHENTICATION_TIMEOUT_SECONDS - REAUTHENTICATION_MARGIN_SECONDS
-  }
 }
 
 /** Every write changes the status, so they all reread {@link useMfaStatus} */
@@ -153,7 +103,7 @@ export const useMfaActivate = () =>
   })
 
 interface MfaConfirmVariables extends MfaCode {
-  /** Leave out for accounts {@link usePasswordCheck} lets through */
+  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
   password?: string
 }
 
@@ -166,17 +116,21 @@ export const useMfaConfirmCode = () =>
 
 /**
  * Separate from {@link useMfaConfirmCode}, so a failed read can be retried without turning 2FA on twice. Needs no
- * reauthentication right after activation: the backend counts the activation as a fresh 2FA authentication.
+ * reauthentication right after activation: the backend counts the activation as a fresh 2FA authentication. A retry
+ * may come after that has expired, so it passes a new code to reauthenticate with first.
  */
 export const useMfaRecoveryCodes = () =>
-  useMfaMutation<string[]>('recoveryCodes', async () => {
+  useMfaMutation<string[], Partial<MfaCode>>('recoveryCodes', async ({ code }) => {
+    if (code) {
+      await reauthenticate({ code })
+    }
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
     return response.data.data.unused_codes
   })
 
 interface MfaDeactivateVariables extends MfaCode {
-  /** Leave out for SSO-only accounts, see {@link useHasUsablePassword} */
+  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
   password?: string
 }
 

@@ -32,8 +32,6 @@ export type LoginOutcome =
   | { kind: 'emailVerificationRequired' }
   /** Credentials accepted, and allauth wants a one-time code before it hands out the session. */
   | { kind: 'mfaRequired' }
-  /** Credentials accepted, but allauth wants a step this screen cannot show yet. */
-  | { kind: 'unsupportedStep' }
 
 export interface LoginFormProps {
   /** From `/api/v2/environment/`. The single sign-on providers this server advertises, if any. */
@@ -84,12 +82,10 @@ export default function LoginForm({ socialApps, isRegistrationClosed = false, on
           onOutcome({ kind: 'emailVerificationRequired' })
           return
         }
+        // Note: no other pending step is handled. Login by code, phone verification and trusted devices are all off in
+        // KPI, so after the password allauth only ever waits on one of these two.
         if (pendingFlowIds.includes(FlowId.mfa_authenticate)) {
           onOutcome({ kind: 'mfaRequired' })
-          return
-        }
-        if (pendingFlowIds.length > 0) {
-          onOutcome({ kind: 'unsupportedStep' })
           return
         }
         const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, ['username', 'password'])
