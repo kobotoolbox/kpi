@@ -1,0 +1,10 @@
+{% load i18n %}
+<p>{% trans "Dear" %} {{ new_owner_username }},</p>
+
+<p>{% blocktrans trimmed %}You have declined the request to transfer ownership of {{ team_name }} to your account. The process was cancelled and no transfer of projects or data occurred.{% endblocktrans %}</p>
+
+<p>{% blocktrans trimmed %}If this was a mistake, please contact the owner {{ old_owner_username }} again to request a new transfer.{% endblocktrans %}</p>
+
+<p>
+&nbsp;-&nbsp;KoboToolbox
+</p>

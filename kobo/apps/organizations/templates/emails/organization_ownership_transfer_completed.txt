@@ -1,8 +1,0 @@
-{% load i18n %}
-{% autoescape off %}
-{% trans "Dear" %} {{ username }},
-
-{% blocktrans trimmed %}The ownership transfer for {{ organization_name }} has completed successfully. {{ new_owner_username }} is now the owner of the organization.{% endblocktrans %}
-
-- KoboToolbox
-{% endautoescape %}

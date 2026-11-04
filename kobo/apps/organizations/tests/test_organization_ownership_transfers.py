@@ -528,6 +528,16 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         transfer.refresh_from_db()
         self.assertEqual(transfer.status, OrganizationInviteStatusChoices.DECLINED)
 
+        sent_emails = {m.to[0]: m.subject for m in mail.outbox}
+        self.assertEqual(
+            sent_emails.get(self.owner_user.email),
+            'KoboToolbox team ownership transfer incomplete',
+        )
+        self.assertEqual(
+            sent_emails.get(self.admin_user.email),
+            f'You have declined ownership of {self.organization.name}.',
+        )
+
         # 3. Cannot decline if not pending
         res_again = self.client.patch(decline_url)
         self.assertEqual(res_again.status_code, status.HTTP_400_BAD_REQUEST)
@@ -747,9 +757,15 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(transfer.status, OrganizationInviteStatusChoices.COMPLETE)
 
         # 5. Completion email sent to both owners
-        sent_recipients = {m.to[0] for m in mail.outbox}
-        self.assertIn(self.owner_user.email, sent_recipients)
-        self.assertIn(self.admin_user.email, sent_recipients)
+        sent_emails = {m.to[0]: m.subject for m in mail.outbox}
+        self.assertEqual(
+            sent_emails.get(self.owner_user.email),
+            'KoboToolbox team ownership transfer complete',
+        )
+        self.assertEqual(
+            sent_emails.get(self.admin_user.email),
+            f'You are now the owner of the {self.organization.name} team',
+        )
 
     def test_transfer_organization_ownership_task_with_zero_assets(self):
         """

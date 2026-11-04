@@ -592,55 +592,104 @@ class OrganizationOwnershipTransfer(models.Model):
                 f'Failed to send organization ownership transfer request email: {e}'
             )
 
+    def _get_user_language(self, user):
+        if hasattr(user, 'extra_details') and user.extra_details:
+            return user.extra_details.data.get(
+                'last_ui_language', settings.LANGUAGE_CODE
+            )
+        return settings.LANGUAGE_CODE
+
     def send_acceptance_email(self):
         # Email template will be introduced in follow-up step
         pass
 
     def send_completion_email(self):
-        email_messages = []
-        recipients = [self.sender, self.recipient]
-
-        for user in recipients:
-            user_language = settings.LANGUAGE_CODE
-            if hasattr(user, 'extra_details') and user.extra_details:
-                user_language = user.extra_details.data.get(
-                    'last_ui_language', settings.LANGUAGE_CODE
-                )
-
-            template_variables = {
-                'username': user.username,
-                'organization_name': self.organization.name,
+        previous_owner_email = EmailMessage(
+            to=self.sender.email,
+            subject=t('KoboToolbox team ownership transfer complete'),
+            plain_text_content_or_template=(
+                'emails/organization_ownership_transfer_completed_previous_owner.txt'
+            ),
+            template_variables={
+                'previous_owner_username': self.sender.username,
                 'new_owner_username': self.recipient.username,
-                'current_owner_username': self.sender.username,
-            }
+                'team_name': self.organization.name,
+            },
+            html_content_or_template=(
+                'emails/organization_ownership_transfer_completed_previous_owner.html'
+            ),
+            language=self._get_user_language(self.sender),
+        )
 
-            email_messages.append(
-                EmailMessage(
-                    to=user.email,
-                    subject=t(
-                        'KoboToolbox organization ownership transfer completed'
-                    ),
-                    plain_text_content_or_template=(
-                        'emails/organization_ownership_transfer_completed.txt'
-                    ),
-                    template_variables=template_variables,
-                    html_content_or_template=(
-                        'emails/organization_ownership_transfer_completed.html'
-                    ),
-                    language=user_language,
-                )
-            )
+        new_owner_email = EmailMessage(
+            to=self.recipient.email,
+            subject=t(
+                'You are now the owner of the %(team_name)s team'
+            ) % {'team_name': self.organization.name},
+            plain_text_content_or_template=(
+                'emails/organization_ownership_transfer_completed_new_owner.txt'
+            ),
+            template_variables={
+                'new_owner_username': self.recipient.username,
+                'old_owner_username': self.sender.username,
+                'team_name': self.organization.name,
+            },
+            html_content_or_template=(
+                'emails/organization_ownership_transfer_completed_new_owner.html'
+            ),
+            language=self._get_user_language(self.recipient),
+        )
 
         try:
-            Mailer.send(email_messages)
+            Mailer.send([previous_owner_email, new_owner_email])
         except MailerError as e:
             logging.warning(
                 f'Failed to send organization ownership transfer completion email: {e}'
             )
 
     def send_refusal_email(self):
-        # Email template will be introduced in follow-up step
-        pass
+        previous_owner_email = EmailMessage(
+            to=self.sender.email,
+            subject=t('KoboToolbox team ownership transfer incomplete'),
+            plain_text_content_or_template=(
+                'emails/organization_ownership_transfer_declined_previous_owner.txt'
+            ),
+            template_variables={
+                'current_owner_username': self.sender.username,
+                'desired_new_owner_username': self.recipient.username,
+                'team_name': self.organization.name,
+            },
+            html_content_or_template=(
+                'emails/organization_ownership_transfer_declined_previous_owner.html'
+            ),
+            language=self._get_user_language(self.sender),
+        )
+
+        new_owner_email = EmailMessage(
+            to=self.recipient.email,
+            subject=t(
+                'You have declined ownership of %(team_name)s.'
+            ) % {'team_name': self.organization.name},
+            plain_text_content_or_template=(
+                'emails/organization_ownership_transfer_declined_new_owner.txt'
+            ),
+            template_variables={
+                'new_owner_username': self.recipient.username,
+                'old_owner_username': self.sender.username,
+                'team_name': self.organization.name,
+            },
+            html_content_or_template=(
+                'emails/organization_ownership_transfer_declined_new_owner.html'
+            ),
+            language=self._get_user_language(self.recipient),
+        )
+
+        try:
+            Mailer.send([previous_owner_email, new_owner_email])
+        except MailerError as e:
+            logging.warning(
+                f'Failed to send organization ownership transfer declined email: {e}'
+            )
 
     def send_cancellation_email(self):
         # Email template will be introduced in follow-up step

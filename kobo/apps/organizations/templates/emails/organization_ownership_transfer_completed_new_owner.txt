@@ -1,0 +1,13 @@
+{% load i18n %}
+{% autoescape off %}
+{% trans "Dear" %} {{ new_owner_username }},
+
+{% blocktrans trimmed %}You are now the owner of the KoboToolbox team {{ team_name }}.{% endblocktrans %}
+{% trans "The transfer of projects and data associated to this team has begun. Note that this process may take some time, up to days for large teams with many projects." %}
+
+{% trans "From this point forward, all submissions, data storage, and transcription and translation usage for the team will count towards your plan limits." %}
+
+{% blocktrans trimmed %}The previous owner {{ old_owner_username }} is now an admin for this team. You can change user permissions in the project sharing settings.{% endblocktrans %}
+
+- KoboToolbox
+{% endautoescape %}
