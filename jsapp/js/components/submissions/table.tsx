@@ -107,6 +107,12 @@ import { openTableSettingsModal } from './openTableSettingsModal'
 const DEFAULT_PAGE_SIZE = 30
 const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
 
+/** A page of rows, and the list it was taken from. */
+interface DisplayedList extends Omit<SubmissionListPosition, 'index'> {
+  /** Where the page starts in the list. */
+  start: number
+}
+
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
@@ -164,11 +170,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   private unlisteners: Function[] = []
 
+  /** What each request asked for, so its rows can be matched to it when they arrive. */
+  private readonly requestedLists = new WeakMap<GetSubmissionsOptions, DisplayedList>()
+
   /**
-   * Filters and sort of the last fetch, handed to a record the user opens so it
-   * can step through the rows the way this table lists them.
+   * Where the rows on display came from, saved with the rows rather than when asked for: a newer request (a sort
+   * change, say) may be under way. Handed to a record the user opens, to step through the rows the way they're listed.
    */
-  private currentListQuery?: Omit<SubmissionListPosition, 'index'>
+  private displayedList?: DisplayedList
 
   constructor(props: DataTableProps) {
     super(props)
@@ -360,24 +369,26 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     let filterQueryString = ''
     // sort comes from outside react-table
     const sort = getTableSort(tableStore.getSortBy())
-    this.currentListQuery = { sort }
+    const list: DisplayedList = { start: page, sort }
 
     if (filter.length && this.props.asset.content?.survey) {
       const filterQuery = buildFilterQuery(this.props.asset.content?.survey, instance.state.filtered)
       if (filterQuery.queryString) {
         filterQueryString = `&query=${filterQuery.queryString}`
       }
-      this.currentListQuery.filterQuery = filterQuery.queryObj
+      list.filterQuery = filterQuery.queryObj
     }
 
-    actions.submissions.getSubmissions({
+    const options: GetSubmissionsOptions = {
       uid: this.props.asset.uid,
       pageSize: pageSize,
       page: page,
       sort: sort,
       fields: [],
       filter: filterQueryString,
-    })
+    }
+    this.requestedLists.set(options, list)
+    actions.submissions.getSubmissions(options)
   }
 
   onGetSubmissionsCompleted(
@@ -389,6 +400,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const lastPage = Math.max(Math.ceil(response.count / this.state.pageSize) - 1, 0)
 
     if (results && results.length > 0) {
+      // The action passes back the very `options` object it was called with.
+      this.displayedList = this.requestedLists.get(options)
       this.setState(
         {
           loading: false,
@@ -1027,10 +1040,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   /** Opens the record in a modal over the table, which stays as it is underneath. */
   goToSubmission(submission: SubmissionResponse) {
-    const pageStart = this.state.currentPage * this.state.pageSize
-    const listPosition = this.currentListQuery && {
-      ...this.currentListQuery,
-      index: pageStart + this.state.submissions.indexOf(submission),
+    const list = this.displayedList
+    const listPosition = list && {
+      filterQuery: list.filterQuery,
+      sort: list.sort,
+      index: list.start + this.state.submissions.indexOf(submission),
     }
 
     goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission), {
