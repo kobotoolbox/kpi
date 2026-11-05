@@ -439,7 +439,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         description=read_md('organizations', 'members/delete.md'),
         responses=open_api_204_empty_response(
             require_auth=False,
-            validate_payload=False,
         ),
         parameters=[
             OpenApiParameter(

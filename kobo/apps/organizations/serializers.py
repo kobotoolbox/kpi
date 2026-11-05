@@ -2,7 +2,6 @@ import math
 from datetime import timedelta
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
@@ -67,7 +66,7 @@ from .tasks import transfer_member_data_ownership_to_org
 class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
-        queryset=get_user_model().objects.all(),
+        read_only=True,
         lookup_field='username',
         view_name='user-kpi-detail',
     )
@@ -80,7 +79,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     )
     url = serializers.SerializerMethodField()
     date_joined = serializers.DateTimeField(
-        source='created', format='%Y-%m-%dT%H:%M:%SZ'
+        source='created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
     )
     user__username = serializers.ReadOnlyField(source='user.username')
     user__extra_details__name = ReadOnlyFieldWithSchemaField(

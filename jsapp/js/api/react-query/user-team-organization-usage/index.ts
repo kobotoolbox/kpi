@@ -2020,6 +2020,11 @@ export type organizationsMembersDestroyResponse204 = {
   status: 204
 }
 
+export type organizationsMembersDestroyResponse400 = {
+  data: ErrorValidation
+  status: 400
+}
+
 export type organizationsMembersDestroyResponse403 = {
   data: ErrorDetail
   status: 403
@@ -2034,6 +2039,7 @@ export type organizationsMembersDestroyResponseSuccess = organizationsMembersDes
   headers: Headers
 }
 export type organizationsMembersDestroyResponseError = (
+  | organizationsMembersDestroyResponse400
   | organizationsMembersDestroyResponse403
   | organizationsMembersDestroyResponse404
 ) & {
@@ -2062,7 +2068,10 @@ export const organizationsMembersDestroy = async (
   )
 }
 
-export const getOrganizationsMembersDestroyMutationOptions = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const getOrganizationsMembersDestroyMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,
@@ -2099,9 +2108,9 @@ export type OrganizationsMembersDestroyMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsMembersDestroy>>
 >
 
-export type OrganizationsMembersDestroyMutationError = ErrorDetail
+export type OrganizationsMembersDestroyMutationError = ErrorValidation | ErrorDetail
 
-export const useOrganizationsMembersDestroy = <TError = ErrorDetail, TContext = unknown>(options?: {
+export const useOrganizationsMembersDestroy = <TError = ErrorValidation | ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsMembersDestroy>>,
     TError,

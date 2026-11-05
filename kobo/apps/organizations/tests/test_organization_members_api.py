@@ -289,6 +289,30 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert not self.organization.is_admin(self.admin_user)
 
+    def test_member_update_only_changes_role(self):
+        """
+        A member update can only change the role of the membership
+        """
+
+        membership = self.organization.organization_users.get(user=self.member_user)
+        date_joined = membership.created
+
+        self.client.force_login(self.admin_user)
+        response = self.client.patch(
+            self.detail_url(self.member_user),
+            {
+                'user': self.obj_to_url(self.external_user),
+                'date_joined': '2030-01-01T00:00:00Z',
+                'role': 'admin',
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        membership.refresh_from_db()
+        assert membership.user == self.member_user
+        assert membership.created == date_joined
+        assert membership.is_admin
+
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
         ('admin', status.HTTP_405_METHOD_NOT_ALLOWED),

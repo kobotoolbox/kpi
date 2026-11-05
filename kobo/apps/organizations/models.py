@@ -253,7 +253,7 @@ class Organization(AbstractOrganization):
         is checked explicitly.
         """
 
-        return self.is_owner(user) or super().is_admin(user)
+        return super().is_admin(user) or self.is_owner(user)
 
     @property
     @cache_for_request

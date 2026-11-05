@@ -9672,6 +9672,18 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorValidation'
+              examples:
+                BadRequest:
+                  value:
+                    field_name:
+                    - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:
       operationId: api_v2_organizations_service_usage_retrieve
