@@ -2020,6 +2020,11 @@ export type organizationsMembersDestroyResponse204 = {
   status: 204
 }
 
+export type organizationsMembersDestroyResponse400 = {
+  data: ErrorDetail
+  status: 400
+}
+
 export type organizationsMembersDestroyResponse403 = {
   data: ErrorDetail
   status: 403
@@ -2034,6 +2039,7 @@ export type organizationsMembersDestroyResponseSuccess = organizationsMembersDes
   headers: Headers
 }
 export type organizationsMembersDestroyResponseError = (
+  | organizationsMembersDestroyResponse400
   | organizationsMembersDestroyResponse403
   | organizationsMembersDestroyResponse404
 ) & {
