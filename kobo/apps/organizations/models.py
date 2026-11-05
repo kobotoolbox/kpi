@@ -223,12 +223,15 @@ class Organization(AbstractOrganization):
     @cache_for_request
     def is_admin(self, user: 'User') -> bool:
         """
-        Only extends super() to add decorator @cache_for_request and avoid
-        multiple calls to DB in the same request.
+        Return whether `user` is an admin of the organization
+
+        Owners are always admins. `super().is_admin()` only reads the
+        `is_admin` flag of the membership, which can be `False` for the owner
+        (e.g. after an ownership transfer to a regular member), so the owner
+        is checked explicitly.
         """
 
-        # Be aware: Owners are also Admins
-        return super().is_admin(user)
+        return super().is_admin(user) or self.is_owner(user)
 
     @property
     @cache_for_request

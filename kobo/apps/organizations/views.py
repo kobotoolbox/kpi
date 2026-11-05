@@ -79,8 +79,10 @@ from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
+    OWNER_REMOVAL_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
+from .exceptions import InvalidMembershipRequest
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -455,10 +457,23 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('organizations', 'members/delete.md'),
-        responses=open_api_204_empty_response(
-            require_auth=False,
-            validate_payload=False,
-        ),
+        responses={
+            **open_api_204_empty_response(
+                require_auth=False,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Bad request',
+                        value={'detail': 'Invalid request'},
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='username',
@@ -801,6 +816,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         member = instance
+        if member.organization.is_owner(member.user):
+            raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
+
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
