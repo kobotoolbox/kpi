@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
+    OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
@@ -61,6 +62,7 @@ from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
     open_api_204_empty_response,
@@ -437,9 +439,23 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('organizations', 'members/delete.md'),
-        responses=open_api_204_empty_response(
-            require_auth=False,
-        ),
+        responses={
+            **open_api_204_empty_response(
+                require_auth=False,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Bad request',
+                        value={'detail': 'Invalid request'},
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='username',

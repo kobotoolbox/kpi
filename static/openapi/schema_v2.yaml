@@ -9676,12 +9676,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorValidation'
+                $ref: '#/components/schemas/ErrorDetail'
               examples:
                 BadRequest:
                   value:
-                    field_name:
-                    - Error message
+                    detail: Invalid request
                   summary: Bad request
           description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
