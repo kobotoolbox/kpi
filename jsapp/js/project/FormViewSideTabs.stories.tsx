@@ -1,37 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { withRouter } from 'storybook-addon-remix-react-router'
 import { expect, waitFor, within } from 'storybook/test'
-import type { Asset } from '#/api/models/asset'
-import {
-  getAssetsRetrieveMockHandler,
-  getAssetsRetrieveResponseMock,
-} from '#/api/react-query/manage-projects-and-library-content/msw'
-import { meMockResponse } from '#/endpoints/me.mocks'
+import { getAssetsRetrieveMockHandler } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import FormViewSideTabs from './FormViewSideTabs'
-
-const ASSET_UID = 'aFormViewSideTabsStory'
-
-function buildAsset(overrides: Partial<Asset> = {}): Asset {
-  return getAssetsRetrieveResponseMock({
-    uid: ASSET_UID,
-    owner__username: meMockResponse.username,
-    has_deployment: true,
-    deployment__active: true,
-    deployed_versions: { count: 1, next: null, previous: null, results: [] },
-    permissions: [],
-    effective_permissions: [],
-    ...overrides,
-  })
-}
-
-function atRoute(route: string) {
-  return reactRouterParameters({
-    location: { path: route.replace(':uid', ASSET_UID) },
-    routing: { path: `${ROUTES.FORM}/*` },
-  })
-}
+import { buildSideTabsAsset, sideTabsRouteParameters } from './FormViewSideTabs.mocks'
 
 async function expectTabs(canvasElement: HTMLElement, labels: string[]) {
   const canvas = within(canvasElement)
@@ -56,8 +30,8 @@ const meta: Meta<typeof FormViewSideTabs> = {
     ),
   ],
   parameters: {
-    reactRouter: atRoute(ROUTES.FORM_TABLE),
-    msw: { handlers: [getAssetsRetrieveMockHandler(buildAsset())] },
+    reactRouter: sideTabsRouteParameters(ROUTES.FORM_TABLE),
+    msw: { handlers: [getAssetsRetrieveMockHandler(buildSideTabsAsset())] },
   },
 }
 
@@ -68,6 +42,7 @@ export const DataTabs: Story = {
   play: async ({ canvasElement }) => {
     await expectTabs(canvasElement, ['Table', 'Reports', 'Gallery', 'Downloads', 'Map'])
     const canvas = within(canvasElement)
+    await expect(canvas.getByRole('navigation', { name: 'Data' })).toBeInTheDocument()
     await expect(canvas.getByRole('link', { name: 'Table' })).toHaveAttribute('aria-current', 'page')
     await expect(canvas.getByRole('link', { name: 'Reports' })).not.toHaveAttribute('aria-current')
   },
@@ -75,21 +50,23 @@ export const DataTabs: Story = {
 
 export const SettingsTabs: Story = {
   parameters: {
-    reactRouter: atRoute(ROUTES.FORM_SETTINGS),
+    reactRouter: sideTabsRouteParameters(ROUTES.FORM_SETTINGS),
   },
   play: async ({ canvasElement }) => {
     await expectTabs(canvasElement, SETTINGS_TABS_ALL)
-    await expect(within(canvasElement).getByRole('link', { name: 'General' })).toHaveAttribute('aria-current', 'page')
+    const canvas = within(canvasElement)
+    await expect(canvas.getByRole('navigation', { name: 'Settings' })).toBeInTheDocument()
+    await expect(canvas.getByRole('link', { name: 'General' })).toHaveAttribute('aria-current', 'page')
   },
 }
 
 export const SettingsTabsDraft: Story = {
   parameters: {
-    reactRouter: atRoute(ROUTES.FORM_SETTINGS),
+    reactRouter: sideTabsRouteParameters(ROUTES.FORM_SETTINGS),
     msw: {
       handlers: [
         getAssetsRetrieveMockHandler(
-          buildAsset({
+          buildSideTabsAsset({
             has_deployment: false,
             deployment__active: false,
             deployed_versions: { count: 0, next: null, previous: null, results: [] },
@@ -108,11 +85,11 @@ export const SettingsTabsDraft: Story = {
 
 export const SettingsTabsForEditor: Story = {
   parameters: {
-    reactRouter: atRoute(ROUTES.FORM_MEDIA),
+    reactRouter: sideTabsRouteParameters(ROUTES.FORM_MEDIA),
     msw: {
       handlers: [
         getAssetsRetrieveMockHandler(
-          buildAsset({
+          buildSideTabsAsset({
             owner__username: 'someone_else',
             effective_permissions: [{ codename: 'view_asset' }, { codename: 'change_asset' }],
           }),

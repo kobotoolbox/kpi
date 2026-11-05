@@ -5,115 +5,10 @@ import { Link, matchPath, useLocation, useMatch, useNavigate } from 'react-route
 import { actions } from '#/actions'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { ROUTES } from '#/router/routerConstants'
 import styles from './FormViewSideTabs.module.scss'
-
-export interface FormViewSideTab {
-  label: string
-  icon: string
-  path: string
-  isDisabled?: boolean
-}
-
-/** Tabs for the project data routes. Also listed on the project summary page. */
-export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
-  return [
-    {
-      label: t('Table'),
-      icon: 'k-icon k-icon-table',
-      path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
-    },
-    {
-      label: t('Reports'),
-      icon: 'k-icon k-icon-reports',
-      path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
-    },
-    {
-      label: t('Gallery'),
-      icon: 'k-icon k-icon-gallery',
-      path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
-    },
-    {
-      label: t('Downloads'),
-      icon: 'k-icon k-icon-download',
-      path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
-    },
-    {
-      label: t('Map'),
-      icon: 'k-icon k-icon-map-view',
-      path: ROUTES.FORM_MAP.replace(':uid', assetUid),
-    },
-  ]
-}
-
-function getFormSettingsTabs(asset: AssetResponse): FormViewSideTab[] {
-  const canChange = userCan(PERMISSIONS_CODENAMES.change_asset, asset)
-  const canManage = userCan(PERMISSIONS_CODENAMES.manage_asset, asset)
-  // REST services should be visible for archived forms but not drafts
-  const hasEverBeenDeployed = asset.deployment__active || asset.deployed_versions.count > 0
-
-  const tabs: FormViewSideTab[] = [
-    {
-      label: t('General'),
-      icon: 'k-icon k-icon-settings',
-      path: ROUTES.FORM_SETTINGS.replace(':uid', asset.uid),
-    },
-  ]
-
-  if (canChange) {
-    tabs.push({
-      label: t('Media'),
-      icon: 'k-icon k-icon-gallery',
-      path: ROUTES.FORM_MEDIA.replace(':uid', asset.uid),
-    })
-  }
-
-  if (canManage) {
-    tabs.push(
-      {
-        label: t('Sharing'),
-        icon: 'k-icon k-icon-user-share',
-        path: ROUTES.FORM_SHARING.replace(':uid', asset.uid),
-      },
-      {
-        label: t('Connect Projects'),
-        icon: 'k-icon k-icon-attach',
-        path: ROUTES.FORM_RECORDS.replace(':uid', asset.uid),
-      },
-    )
-  }
-
-  if (hasEverBeenDeployed && canChange && userCan(PERMISSIONS_CODENAMES.view_submissions, asset)) {
-    tabs.push({
-      label: t('REST Services'),
-      icon: 'k-icon k-icon-data-sync',
-      path: ROUTES.FORM_REST.replace(':uid', asset.uid),
-    })
-  }
-
-  if (canManage) {
-    tabs.push({
-      label: t('Activity'),
-      icon: 'k-icon k-icon-document',
-      path: ROUTES.FORM_ACTIVITY.replace(':uid', asset.uid),
-    })
-  }
-
-  return tabs
-}
-
-function getSideTabs(asset: AssetResponse, pathname: string): FormViewSideTab[] {
-  if (matchPath({ path: ROUTES.FORM_SETTINGS, end: false }, pathname)) {
-    return getFormSettingsTabs(asset)
-  }
-  if (asset.has_deployment && matchPath({ path: ROUTES.FORM_DATA, end: false }, pathname)) {
-    return getFormDataTabs(asset.uid)
-  }
-  return []
-}
+import { getSideMenu } from './FormViewSideTabs.utils'
 
 /** Side menu for the project data and settings routes. Renders nothing elsewhere. */
 export default function FormViewSideTabs() {
@@ -159,9 +54,9 @@ export default function FormViewSideTabs() {
 
   // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
   const asset = assetQuery.data.data as unknown as AssetResponse
-  const tabs = getSideTabs(asset, location.pathname)
+  const menu = getSideMenu(asset, location.pathname)
 
-  if (tabs.length === 0) {
+  if (!menu) {
     return null
   }
 
@@ -172,9 +67,8 @@ export default function FormViewSideTabs() {
   }
 
   return (
-    // Global styles use this class to size the page next to the tabs (`.form-view__sidetabs + .form-view` etc.)
-    <Box component='nav' className='form-view__sidetabs'>
-      {tabs.map((tab) => {
+    <Box component='nav' aria-label={menu.label} className={styles.root}>
+      {menu.tabs.map((tab) => {
         const isActive = matchPath({ path: tab.path, end: true }, location.pathname) !== null
         return (
           <NavLink

@@ -2,7 +2,19 @@
 @use 'scss/colors';
 @use 'scss/variables';
 
-// The `form-view__sidetabs` container (and the page next to it) is still laid out in `_kobo.form-view.scss`.
+// Sits next to the page, see `ProjectLayout`
+.root {
+  flex-shrink: 0;
+  width: 180px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: colors.$kobo-white;
+  border-right: 1px solid colors.$kobo-gray-300;
+
+  @media print {
+    display: none;
+  }
+}
 
 .tab {
   // No background in any state, so Mantine's active styles only drive the colors below
@@ -61,6 +73,10 @@
 
 // Narrow container, so the label goes under the icon
 @media screen and (width < #{breakpoints.$b768}) {
+  .root {
+    width: 70px;
+  }
+
   .tab {
     flex-direction: column;
     padding: 0 3px 0 1px;
