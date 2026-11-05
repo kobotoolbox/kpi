@@ -11,7 +11,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
-from kobo.apps.openrosa.libs.utils.image_tools import image_url
+from kobo.apps.openrosa.libs.tests.utils import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_ownership.models.choices import (
     TransferStatusErrorLevelChoices,

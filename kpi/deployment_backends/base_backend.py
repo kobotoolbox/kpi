@@ -457,10 +457,6 @@ class BaseDeploymentBackend(abc.ABC):
     def redeploy(self, active: bool = None):
         pass
 
-    def remove_enketo_survey_links_for_data_collectors(self, tokens):
-        for token in tokens:
-            self.remove_enketo_links_for_single_data_collector(token)
-
     @abc.abstractmethod
     def remove_enketo_links_for_single_data_collector(self, token):
         pass
@@ -520,9 +516,6 @@ class BaseDeploymentBackend(abc.ABC):
         redis_client: Redis | Pipeline | None = None,
     ):
         pass
-
-    def set_status(self, status):
-        self.save_to_db({'status': status})
 
     @abc.abstractmethod
     def set_validation_status(

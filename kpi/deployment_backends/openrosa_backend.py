@@ -519,14 +519,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             enketo_id = self.get_data('enketo_id')
         return enketo_id
 
-    @staticmethod
-    def normalize_internal_url(url: str) -> str:
-        """
-        Normalize url to ensure KOBOCAT_INTERNAL_URL is used
-        """
-        parsed_url = urlparse(url)
-        return f'{settings.KOBOCAT_INTERNAL_URL}{parsed_url.path}'
-
     def get_attachment(
         self,
         submission_id_or_uuid: Union[int, str],
@@ -1635,9 +1627,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 # Retrieve the deployed version corresponding to the submission.
                 submission_version = None
                 if '__version__' in submission:
-                    submission_version = self.asset.asset_versions.filter(
-                        uid=submission['__version__'], deployed=True
-                    ).first()
+                    submission_version = (
+                        self.asset.asset_versions.filter(
+                            uid=submission['__version__'], deployed=True
+                        )
+                        .defer('version_content')
+                        .first()
+                    )
 
                 # Compute attachment xpaths from that specific form version.
                 attachment_xpaths = self.asset.get_attachment_xpaths_from_version(

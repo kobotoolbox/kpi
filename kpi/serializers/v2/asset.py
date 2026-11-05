@@ -1219,10 +1219,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         setattr(asset, 'asset_ids_cache', asset_ids)
 
-    def _table_url(self, obj):
-        request = self.context.get('request', None)
-        return reverse('asset-table-view', args=(obj.uid,), request=request)
-
 
 class AssetListSerializer(AssetSerializer):
 
@@ -1338,12 +1334,6 @@ class AssetListSerializer(AssetSerializer):
         return ASSET_STATUS_PRIVATE
 
 
-class AssetUrlListSerializer(AssetSerializer):
-
-    class Meta(AssetSerializer.Meta):
-        fields = ('url',)
-
-
 class AssetMetadataListSerializer(AssetListSerializer):
 
     languages = serializers.SerializerMethodField()
@@ -1409,6 +1399,42 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
+
+
+class AssetMetadataExtraListSerializer(AssetMetadataListSerializer):
+    """
+    Project view list with the fields that superusers request with
+    `?extra_fields=on`. The view computes the permissions and the versions of
+    the whole page and passes them in the context.
+    """
+
+    version_id = serializers.SerializerMethodField()
+    version__content_hash = serializers.SerializerMethodField()
+
+    class Meta(AssetMetadataListSerializer.Meta):
+        fields = AssetMetadataListSerializer.Meta.fields + (
+            'status',
+            'summary',
+            'version_id',
+            'version__content_hash',
+            'deployed_version_id',
+            'version_count',
+        )
+
+    @extend_schema_field({'type': 'string', 'nullable': True})
+    def get_version__content_hash(self, obj: Asset) -> str | None:
+        return self._get_versions(obj).get('content_hash')
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_version_count(self, obj: Asset) -> int:
+        return self._get_versions(obj).get('count', 0)
+
+    @extend_schema_field({'type': 'string', 'nullable': True})
+    def get_version_id(self, obj: Asset) -> str | None:
+        return self._get_versions(obj).get('uid')
+
+    def _get_versions(self, obj: Asset) -> dict:
+        return self.context['versions_per_asset'].get(obj.pk, {})
 
 
 class AssetMinimalListSerializer(AssetSerializer):

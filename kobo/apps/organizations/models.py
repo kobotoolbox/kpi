@@ -152,30 +152,6 @@ class Organization(AbstractOrganization):
             .first()
         )
 
-    @cache_for_request
-    def canceled_subscription_billing_cycle_anchor(self):
-        """
-        Returns cancelation date of most recently canceled subscription
-        """
-        # Only check for subscriptions if Stripe is enabled
-        if settings.STRIPE_ENABLED:
-            qs = (
-                Organization.objects.prefetch_related('djstripe_customers')
-                .filter(
-                    djstripe_customers__subscriptions__status='canceled',
-                    djstripe_customers__subscriber=self.id,
-                )
-                .order_by('-djstripe_customers__subscriptions__ended_at')
-                .values(
-                    anchor=F('djstripe_customers__subscriptions__ended_at'),
-                )
-                .first()
-            )
-            if qs:
-                return qs['anchor']
-
-        return None
-
     @property
     def email(self):
         """
@@ -247,12 +223,15 @@ class Organization(AbstractOrganization):
     @cache_for_request
     def is_admin(self, user: 'User') -> bool:
         """
-        Only extends super() to add decorator @cache_for_request and avoid
-        multiple calls to DB in the same request.
+        Return whether `user` is an admin of the organization
+
+        Owners are always admins. `super().is_admin()` only reads the
+        `is_admin` flag of the membership, which can be `False` for the owner
+        (e.g. after an ownership transfer to a regular member), so the owner
+        is checked explicitly.
         """
 
-        # Be aware: Owners are also Admins
-        return super().is_admin(user)
+        return super().is_admin(user) or self.is_owner(user)
 
     @property
     @cache_for_request

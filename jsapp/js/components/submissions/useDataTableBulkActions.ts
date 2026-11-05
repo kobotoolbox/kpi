@@ -85,13 +85,11 @@ export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActio
   const profile = useProfile()
   // While session is loading we avoid making user-specific decisions.
   const currentUsername = profile.isPending ? undefined : profile.currentLoggedAccount?.username
-  const effectiveAssetUid = isBulkProcessingEnabled ? assetUid : ''
-
-  // Empty uid disables the query in Orval/react-query options.
-  const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(effectiveAssetUid, undefined, {
+  const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(assetUid, undefined, {
     query: {
       // The generated query options in this codebase require explicit queryKey.
-      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(effectiveAssetUid, undefined),
+      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetUid, undefined),
+      enabled: isBulkProcessingEnabled && !!assetUid,
       refetchInterval: (query) => {
         if (!isBulkProcessingEnabled) {
           return false

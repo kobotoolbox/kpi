@@ -73,7 +73,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedSuperUserAccessLogResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -105,7 +105,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ExportListResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -134,7 +134,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportCreateResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -218,7 +218,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAccessLogResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -248,7 +248,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ExportListResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -275,7 +275,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportCreateResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -323,7 +323,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetSnapshotResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -391,7 +391,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetSnapshotResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -452,7 +452,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/AssetSnapshotResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -574,7 +574,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaXFormResponse'
-          description: null
+          description: ''
         '404':
           description: No response body
   /api/v2/asset_snapshots/{uid_asset_snapshot}/xml_with_disclaimer/:
@@ -604,7 +604,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaXFormResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -653,7 +653,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetSubscriptionResponseList'
-          description: null
+          description: ''
     post:
       operationId: api_v2_asset_subscriptions_create
       description: |
@@ -678,7 +678,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetSubscriptionResponse'
-          description: null
+          description: ''
         '400':
           content:
             application/json:
@@ -714,7 +714,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetSubscriptionResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -794,7 +794,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetUsageResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -896,7 +896,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetList'
-          description: null
+          description: ''
     post:
       operationId: api_v2_assets_create
       description: |
@@ -952,7 +952,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Asset'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -1013,7 +1013,7 @@ paths:
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
                 $ref: '#/components/schemas/Asset'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -1073,7 +1073,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Asset'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -1303,7 +1303,7 @@ paths:
                     - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Automatic Qualitative Analysis - Any question
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -1471,7 +1471,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdvancedFeatureCreateResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -1654,7 +1654,7 @@ paths:
                     - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Automatic Qualitative Analysis - Any question
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -1914,7 +1914,7 @@ paths:
                     - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Automatic Qualitative Analysis - Any question
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -2096,7 +2096,7 @@ paths:
                       date_modified: '2026-05-05T09:02:00Z'
                       cancelled_by: null
                   summary: Bulk translation job list response
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -2291,7 +2291,7 @@ paths:
                     currently being processed, they are excluded from the new bulk
                     action and listed in `skipped_uuids`. The job proceeds for the
                     remaining eligible submissions.
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -2413,7 +2413,7 @@ paths:
                     date_modified: '2026-05-05T09:02:00Z'
                     cancelled_by: null
                   summary: Bulk translation job response
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -2549,7 +2549,7 @@ paths:
                   summary: Cancelled bulk translation job response
                   description: The cancelled response includes the user who cancelled
                     the job in `cancelled_by`.
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -2777,7 +2777,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContentResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -2842,7 +2842,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetCountResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -2939,12 +2939,6 @@ paths:
           - geojson
           - json
           - xml
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
       - name: limit
         required: false
         in: query
@@ -2994,7 +2988,7 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/PaginatedDataResponseXMLList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -3079,7 +3073,7 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/DataResponseXML'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -3173,7 +3167,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -3231,7 +3225,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EnketoEditResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -3300,7 +3294,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EnketoEditResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -3369,7 +3363,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EnketoEditResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -3436,7 +3430,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EnketoViewResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -3503,7 +3497,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EnketoViewResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -3556,7 +3550,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataValidationStatusUpdateResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -3607,7 +3601,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataValidationStatusUpdateResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -3971,7 +3965,7 @@ paths:
                             _uuid: 23232323-4545-6767-8989-010101010101
                             verified: false
                   summary: Automatic Qualitative Analysis – Failed response
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -4463,7 +4457,7 @@ paths:
                             _uuid: 23232323-4545-6767-8989-010101010101
                             verified: false
                   summary: Automatic Qualitative Analysis – Failed response
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -4758,12 +4752,6 @@ paths:
         *"group_1/sub_group_1/.../sub_group_n/question_1": "new value"*
       parameters:
       - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -4785,7 +4773,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataBulkUpdateResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -4830,12 +4818,6 @@ paths:
 
         _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
       parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
       - in: path
         name: uid_asset
         schema:
@@ -4960,7 +4942,7 @@ paths:
                   value:
                     accepted_count: 472
                   summary: Bulk accept response
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5005,12 +4987,6 @@ paths:
         >        }
       parameters:
       - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -5032,7 +5008,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataStatusesUpdate'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5083,12 +5059,6 @@ paths:
         _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
       parameters:
       - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
         name: uid_asset
         schema:
           type: string
@@ -5135,7 +5105,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeploymentResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5176,7 +5146,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeploymentResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -5241,7 +5211,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeploymentResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -5320,7 +5290,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedExportSettingResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5399,7 +5369,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportSettingResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5454,7 +5424,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportSettingResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5501,7 +5471,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportSettingResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -5688,7 +5658,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedExportResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -5770,7 +5740,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -5834,7 +5804,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -5957,7 +5927,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedFilesResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6042,7 +6012,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FilesResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6094,7 +6064,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FilesResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6367,7 +6337,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedHistoryListResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -6413,7 +6383,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HistoryActionResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -6461,7 +6431,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/historyExportResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -6528,7 +6498,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedHookList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6604,7 +6574,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Hook'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6657,7 +6627,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Hook'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6708,7 +6678,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Hook'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -6860,7 +6830,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedHookLogList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -6917,7 +6887,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HookLog'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -6985,7 +6955,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LogsRetryResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -7041,7 +7011,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HookRetryResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7099,7 +7069,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedPairedDataResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7151,7 +7121,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PairedDataResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7204,7 +7174,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PairedDataResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7251,7 +7221,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PairedDataResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7344,7 +7314,7 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/ExternalResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/xml:
@@ -7381,7 +7351,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PermissionAssignmentResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -7453,7 +7423,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PermissionAssignmentResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -7517,7 +7487,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PermissionAssignmentResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -7622,7 +7592,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PermissionAssignmentResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -7755,7 +7725,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PermissionAssignmentResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -7850,7 +7820,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReportResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7923,7 +7893,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetValidContentResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -7977,7 +7947,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedVersionListResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -8019,7 +7989,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VersionRetrieveResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -8183,7 +8153,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetBulkResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -8211,7 +8181,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetListCount'
-          description: null
+          description: ''
   /api/v2/assets/hash/:
     get:
       operationId: api_v2_assets_hash_retrieve
@@ -8230,7 +8200,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HashResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -8258,7 +8228,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetMetadataResponse'
-          description: null
+          description: ''
   /api/v2/assets/minimal-list/:
     get:
       operationId: api_v2_assets_minimal_list_retrieve
@@ -8297,7 +8267,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetMinimalListList'
-          description: null
+          description: ''
   /api/v2/audit-logs/:
     get:
       operationId: api_v2_audit_logs_list
@@ -8391,7 +8361,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAuditLogResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -8496,7 +8466,7 @@ paths:
                     detail: If that email address needs confirming, a new confirmation
                       email has been sent to it.
                   summary: Request accepted
-          description: null
+          description: ''
         '429':
           content:
             application/json:
@@ -8547,7 +8517,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EnvironmentResponse'
-          description: null
+          description: ''
   /api/v2/imports/:
     get:
       operationId: api_v2_imports_list
@@ -8585,7 +8555,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedImportResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -8620,7 +8590,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ImportCreateResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -8678,7 +8648,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ImportResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -8758,7 +8728,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedLanguageListList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -8794,7 +8764,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Language'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -8853,7 +8823,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedOrganizationResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -8888,7 +8858,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -8927,7 +8897,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -8998,7 +8968,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedCustomAssetUsageList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9042,7 +9012,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9077,7 +9047,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetListCount'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9133,7 +9103,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetMinimalListList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9187,7 +9157,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedInviteResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9231,7 +9201,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteCreateResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9284,7 +9254,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9342,7 +9312,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -9511,7 +9481,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedMemberListResponseList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9554,7 +9524,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemberListResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9605,7 +9575,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemberListResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -9689,6 +9659,17 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                BadRequest:
+                  value:
+                    detail: Invalid request
+                  summary: Bad request
+          description: ''
   /api/v2/organizations/{uid_organization}/ownership-transfers/:
     post:
       operationId: api_v2_organizations_ownership_transfers_create
@@ -9759,7 +9740,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationServiceUsageResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -9815,7 +9796,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedPermissionResponseList'
-          description: null
+          description: ''
   /api/v2/permissions/{codename}/:
     get:
       operationId: api_v2_permissions_retrieve
@@ -9839,7 +9820,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PermissionResponse'
-          description: null
+          description: ''
   /api/v2/project-history-logs/:
     get:
       operationId: api_v2_project_history_logs_list
@@ -10065,7 +10046,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedProjectHistoryLogResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10106,7 +10087,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportHistoryResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10148,7 +10129,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExportHistoryResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10220,7 +10201,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedProjectInviteResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10257,7 +10238,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectInviteResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10305,7 +10286,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectInviteResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10366,7 +10347,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectInviteResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10469,7 +10450,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TransferListResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -10539,7 +10520,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedProjectViewListResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10573,7 +10554,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectViewListResponse'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -10627,7 +10608,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectViewExportResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -10702,7 +10683,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectViewExportCreateResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -10753,7 +10734,18 @@ paths:
       operationId: api_v2_project_views_assets_retrieve
       description: |
         ## Retrieve assets available in project view
+
+        Superusers can add `?extra_fields=on` to get, for each project, its sharing `status`, its `summary`, the uid and the content hash of its latest version (`version_id`, `version__content_hash`), the uid of its deployed version (`deployed_version_id`) and its number of versions (`version_count`). Comparing `version_id` with a previous crawl tells which forms changed, so that only those need `/api/v2/assets/{uid_asset}/content/`. The parameter is ignored for other users.
       parameters:
+      - in: query
+        name: extra_fields
+        schema:
+          type: string
+          enum:
+          - 'on'
+        description: 'Superusers only: `on` adds `status`, `summary`, `version_id`,
+          `version__content_hash`, `deployed_version_id` and `version_count` to each
+          project'
       - in: query
         name: limit
         schema:
@@ -10780,7 +10772,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedProjectViewAssetResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -10837,7 +10829,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetListCount'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -10892,7 +10884,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetMinimalListList'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -10936,7 +10928,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedProjectViewUserResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -11682,7 +11674,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ServiceUsageResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -11744,7 +11736,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SocialAppDetail'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -11905,7 +11897,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomerBillingDetailsResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -11970,7 +11962,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CustomerPortalPostResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12119,7 +12111,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedSubscriptionList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12189,7 +12181,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedTagListResponseList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12219,7 +12211,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TermsOfServiceResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12253,7 +12245,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TermsOfServiceResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12320,7 +12312,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedTranscriptionServiceList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12356,7 +12348,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TranscriptionService'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12424,7 +12416,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedTranslationServiceList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12472,7 +12464,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TranslationService'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12636,7 +12628,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedUserReportsListResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -12709,7 +12701,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedUserListResponseList'
-          description: null
+          description: ''
         '403':
           content:
             application/json:
@@ -12747,7 +12739,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserRetrieveResponse'
-          description: null
+          description: ''
         '404':
           content:
             application/json:
@@ -12775,7 +12767,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeListResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12813,7 +12805,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MeListResponse'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -12928,7 +12920,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedEmailAddressList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -13063,7 +13055,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EmailAddress'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -13153,7 +13145,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedSocialAccountList'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -13193,7 +13185,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SocialAccount'
-          description: null
+          description: ''
         '401':
           content:
             application/json:
@@ -13285,8 +13277,7 @@ paths:
         this endpoint. The data returned is not user/authentication
         dependent. Hence, it suffices to only fetch this data once at boot
         time of your application.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/Configuration'
@@ -13303,8 +13294,7 @@ paths:
         this endpoint. The data returned is not user/authentication
         dependent. Hence, it suffices to only fetch this data once at boot
         time of your application.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/Configuration'
@@ -13316,8 +13306,7 @@ paths:
       summary: Login
       description: |
         Login using a username-password or email-password combination.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Login'
       responses:
@@ -13361,8 +13350,7 @@ paths:
       summary: Login
       description: |
         Login using a username-password or email-password combination.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Login'
       responses:
@@ -13409,8 +13397,7 @@ paths:
         required depends on the configuration of django-allauth. Additionally,
         if a custom signup form is used there may be other custom properties
         required.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Signup'
       responses:
@@ -13461,8 +13448,7 @@ paths:
         required depends on the configuration of django-allauth. Additionally,
         if a custom signup form is used there may be other custom properties
         required.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/Signup'
       responses:
@@ -13513,7 +13499,6 @@ paths:
         the user by email.
       parameters:
       - $ref: '#/components/parameters/EmailVerificationKey'
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/EmailVerificationInfo'
@@ -13551,7 +13536,6 @@ paths:
         in. For example, in case `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is set to
         `False`, a 401 is returned when verifying as part of login/signup.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyEmail'
@@ -13588,7 +13572,6 @@ paths:
         the user by email.
       parameters:
       - $ref: '#/components/parameters/EmailVerificationKey'
-      - $ref: '#/components/parameters/Client'
       responses:
         '200':
           $ref: '#/components/responses/EmailVerificationInfo'
@@ -13626,7 +13609,6 @@ paths:
         in. For example, in case `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is set to
         `False`, a 401 is returned when verifying as part of login/signup.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyEmail'
@@ -13662,7 +13644,6 @@ paths:
         Requests a new email verification code.
         Requires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -13686,7 +13667,6 @@ paths:
         Requests a new email verification code.
         Requires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -13711,7 +13691,6 @@ paths:
         of 401 does not imply failure. It merely indicates that the phone number
         verification was successful, yet, the user is still not signed in.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyPhone'
@@ -13745,7 +13724,6 @@ paths:
         of 401 does not imply failure. It merely indicates that the phone number
         verification was successful, yet, the user is still not signed in.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/VerifyPhone'
@@ -13778,7 +13756,6 @@ paths:
         Requests a new phone number verification code.
         Requires `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -13802,7 +13779,6 @@ paths:
         Requests a new phone number verification code.
         Requires `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_RESEND = True`.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -13830,7 +13806,6 @@ paths:
         with ID `reauthenticate`, which allows for the user to input the
         password. This is the endpoint related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Reauthenticate'
@@ -13860,7 +13835,6 @@ paths:
         with ID `reauthenticate`, which allows for the user to input the
         password. This is the endpoint related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Reauthenticate'
@@ -13894,8 +13868,7 @@ paths:
         receive a 200 on a successful password reset request.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/RequestPassword'
       responses:
@@ -13931,8 +13904,7 @@ paths:
         receive a 200 on a successful password reset request.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/RequestPassword'
       responses:
@@ -13964,7 +13936,6 @@ paths:
       tags:
       - Authentication (Allauth Headless)
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/PasswordResetKey'
       responses:
         '200':
@@ -13998,8 +13969,7 @@ paths:
         401.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ResetPassword'
       responses:
@@ -14037,7 +14007,6 @@ paths:
       tags:
       - Authentication (Allauth Headless)
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/PasswordResetKey'
       responses:
         '200':
@@ -14071,8 +14040,7 @@ paths:
         401.
       tags:
       - Authentication (Allauth Headless)
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ResetPassword'
       responses:
@@ -14132,7 +14100,6 @@ paths:
         app receives an access and/or ID token, it can hand over these tokens
         via this endpoint to authenticate on the server.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderToken'
@@ -14180,7 +14147,6 @@ paths:
         app receives an access and/or ID token, it can hand over these tokens
         via this endpoint to authenticate on the server.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderToken'
@@ -14227,8 +14193,7 @@ paths:
         the missing data before the user is fully signed up and authenticated.
         The information available so far, such as the pending provider account,
         can be retrieved via this endpoint.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/ProviderSignup'
@@ -14249,8 +14214,7 @@ paths:
         insufficient information received from the provider to automatically
         complete the signup process, an additional step is needed to complete
         the missing data before the user is fully signed up and authenticated.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ProviderSignup'
       responses:
@@ -14301,8 +14265,7 @@ paths:
         the missing data before the user is fully signed up and authenticated.
         The information available so far, such as the pending provider account,
         can be retrieved via this endpoint.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       responses:
         '200':
           $ref: '#/components/responses/ProviderSignup'
@@ -14323,8 +14286,7 @@ paths:
         insufficient information received from the provider to automatically
         complete the signup process, an additional step is needed to complete
         the missing data before the user is fully signed up and authenticated.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ProviderSignup'
       responses:
@@ -14373,7 +14335,6 @@ paths:
         flows has ID `mfa_authenticate`, that indicates that the Two-Factor Authentication stage needs to
         be completed.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -14402,7 +14363,6 @@ paths:
         flows has ID `mfa_authenticate`, that indicates that the Two-Factor Authentication stage needs to
         be completed.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -14435,7 +14395,6 @@ paths:
         authenticator code (e.g. TOTP or recovery code). This is the endpoint
         related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -14466,7 +14425,6 @@ paths:
         authenticator code (e.g. TOTP or recovery code). This is the endpoint
         related towards that flow.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/MFAAuthenticate'
@@ -14490,8 +14448,7 @@ paths:
       summary: Confirm login code
       description: |
         Use this endpoint to pass along the received "special" login code.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ConfirmLoginCode'
       responses:
@@ -14531,8 +14488,7 @@ paths:
       summary: Confirm login code
       description: |
         Use this endpoint to pass along the received "special" login code.
-      parameters:
-      - $ref: '#/components/parameters/Client'
+      parameters: []
       requestBody:
         $ref: '#/components/requestBodies/ConfirmLoginCode'
       responses:
@@ -14571,7 +14527,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List the connected third-party provider accounts
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -14588,7 +14543,6 @@ paths:
         would leave the account unusable. For example, if no password was
         set up yet.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderAccount'
@@ -14613,7 +14567,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List the connected third-party provider accounts
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -14630,7 +14583,6 @@ paths:
         would leave the account unusable. For example, if no password was
         set up yet.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ProviderAccount'
@@ -14649,282 +14601,6 @@ paths:
                 no_email:
                   $ref: '#/components/examples/DisconnectNotAllowedNoVerifiedEmail'
       operationId: api_v2_allauth_app_v1_account_providers_delete
-  /api/v2/allauth/browser/v1/account/email:
-    get:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: List email addresses
-      description: |
-        Retrieves the list of email addresses of the account.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_browser_v1_account_email_get
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: |
-        Add/Change email address
-      description: |
-        The following functionality is available:
-
-          - Adding a new email address for an already signed in user (`ACCOUNT_CHANGE_EMAIL = False`).
-          - Change to a new email address for an already signed in user   (`ACCOUNT_CHANGE_EMAIL = True`).
-          - Change to a new email address during the email verification process at signup (`ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_CHANGE = True`).
-
-        In all cases, an email verification mail will be sent containing a link or code that needs to be verified.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '401':
-          $ref: '#/components/responses/AuthenticationOrReauthentication'
-        '409':
-          description: |
-            Conflict. For example, when no user is authenticated and no email verification flow is pending.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConflictResponse'
-      operationId: api_v2_allauth_browser_v1_account_email_post
-    put:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Request email verification
-      description: |
-        Requests for (another) email verification email to be sent. Note that
-        sending emails is rate limited, so when you send too many requests the
-        email will not be sent.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/StatusOK'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '403':
-          description: |
-            Too many email verification mails were already sent.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ForbiddenResponse'
-      operationId: api_v2_allauth_browser_v1_account_email_put
-    patch:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change primary email address
-      description: |
-        Used to change primary email address to a different one. Note that only verified email addresses
-        can be marked as primary.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/MarkPrimaryEmail'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_browser_v1_account_email_patch
-    delete:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Remove an email address
-      description: |
-        Used to remove an email address.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_browser_v1_account_email_delete
-  /api/v2/allauth/app/v1/account/email:
-    get:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: List email addresses
-      description: |
-        Retrieves the list of email addresses of the account.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_app_v1_account_email_get
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: |
-        Add/Change email address
-      description: |
-        The following functionality is available:
-
-          - Adding a new email address for an already signed in user (`ACCOUNT_CHANGE_EMAIL = False`).
-          - Change to a new email address for an already signed in user   (`ACCOUNT_CHANGE_EMAIL = True`).
-          - Change to a new email address during the email verification process at signup (`ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_CHANGE = True`).
-
-        In all cases, an email verification mail will be sent containing a link or code that needs to be verified.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '401':
-          $ref: '#/components/responses/AuthenticationOrReauthentication'
-        '409':
-          description: |
-            Conflict. For example, when no user is authenticated and no email verification flow is pending.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConflictResponse'
-      operationId: api_v2_allauth_app_v1_account_email_post
-    put:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Request email verification
-      description: |
-        Requests for (another) email verification email to be sent. Note that
-        sending emails is rate limited, so when you send too many requests the
-        email will not be sent.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/StatusOK'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '403':
-          description: |
-            Too many email verification mails were already sent.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ForbiddenResponse'
-      operationId: api_v2_allauth_app_v1_account_email_put
-    patch:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change primary email address
-      description: |
-        Used to change primary email address to a different one. Note that only verified email addresses
-        can be marked as primary.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/MarkPrimaryEmail'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_app_v1_account_email_patch
-    delete:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Remove an email address
-      description: |
-        Used to remove an email address.
-      parameters:
-      - $ref: '#/components/parameters/Client'
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_app_v1_account_email_delete
   /api/v2/allauth/browser/v1/account/phone:
     get:
       tags:
@@ -14934,7 +14610,6 @@ paths:
         Retrieves the phone number of the account, if any. Note that while the
         endpoint returns a list of phone numbers, at most one entry is returned.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -14959,7 +14634,6 @@ paths:
         verification endpoint to confirm the change of the phone number by
         posting the verification code.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Phone'
@@ -14995,7 +14669,6 @@ paths:
         Retrieves the phone number of the account, if any. Note that while the
         endpoint returns a list of phone numbers, at most one entry is returned.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15020,7 +14693,6 @@ paths:
         verification endpoint to confirm the change of the phone number by
         posting the verification code.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/Phone'
@@ -15053,7 +14725,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List authenticators
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15069,7 +14740,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List authenticators
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15087,7 +14757,6 @@ paths:
       description: |
         Retrieve the information about the current TOTP authenticator, if any.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '404':
@@ -15106,7 +14775,6 @@ paths:
         application which was generated using the TOTP authenticator secret
         retrieved from the TOTP authenticator status endpoint.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/SetupTOTP'
@@ -15135,7 +14803,6 @@ paths:
         Deactivates TOTP authentication. If the user authentication is not
         sufficiently recent, a reauthentication flow (`401`) will is presented.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15151,7 +14818,6 @@ paths:
       description: |
         Retrieve the information about the current TOTP authenticator, if any.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '404':
@@ -15170,7 +14836,6 @@ paths:
         application which was generated using the TOTP authenticator secret
         retrieved from the TOTP authenticator status endpoint.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/SetupTOTP'
@@ -15199,7 +14864,6 @@ paths:
         Deactivates TOTP authentication. If the user authentication is not
         sufficiently recent, a reauthentication flow (`401`) will is presented.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15215,7 +14879,6 @@ paths:
       description: |
         List recovery codes.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15230,7 +14893,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: Regenerate recovery codes
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '400':
@@ -15253,7 +14915,6 @@ paths:
       description: |
         List recovery codes.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15268,7 +14929,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: Regenerate recovery codes
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '400':
@@ -15293,7 +14953,6 @@ paths:
         Retrieve information about the authentication status for the current
         session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15310,7 +14969,6 @@ paths:
       description: |
         Logs out the user from the current session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '401':
@@ -15326,7 +14984,6 @@ paths:
         Retrieve information about the authentication status for the current
         session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15343,7 +15000,6 @@ paths:
       description: |
         Logs out the user from the current session.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '401':
@@ -15381,7 +15037,6 @@ paths:
         signing up using a third-party provider do not have a password set. In
         that case, the current password is not required.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ChangePassword'
@@ -15402,7 +15057,6 @@ paths:
         signing up using a third-party provider do not have a password set. In
         that case, the current password is not required.
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/ChangePassword'
@@ -15418,7 +15072,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15429,7 +15082,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: End one or more sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/EndSessions'
@@ -15445,7 +15097,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: List sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       responses:
         '200':
@@ -15456,7 +15107,6 @@ paths:
       - Authentication (Allauth Headless)
       summary: End one or more sessions
       parameters:
-      - $ref: '#/components/parameters/Client'
       - $ref: '#/components/parameters/SessionToken'
       requestBody:
         $ref: '#/components/requestBodies/EndSessions'
@@ -23068,6 +22718,93 @@ components:
                 example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/
         owner_label:
           type: string
+        status:
+          type: string
+        summary:
+          type: object
+          properties:
+            geo:
+              type: boolean
+            labels:
+              type: array
+              items:
+                type: string
+            columns:
+              type: array
+              items:
+                type: string
+            lock_all:
+              type: boolean
+            lock_any:
+              type: boolean
+            languages:
+              type: array
+              items:
+                type:
+                - string
+                - 'null'
+                nullable: true
+            row_count:
+              type: integer
+            name_quality:
+              type: object
+              properties:
+                ok:
+                  type: integer
+                bad:
+                  type: integer
+                good:
+                  type: integer
+                total:
+                  type: integer
+                firsts:
+                  type: object
+                  properties:
+                    ok:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        index:
+                          type: integer
+                        label:
+                          type: array
+                          items:
+                            type: string
+                    bad:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        index:
+                          type: integer
+                        label:
+                          type: array
+                          items:
+                            type: string
+            default_translation:
+              type:
+              - string
+              - 'null'
+              nullable: true
+            naming_conflicts:
+              type: array
+              items:
+                type: string
+        version_id:
+          type:
+          - string
+          - 'null'
+        version__content_hash:
+          type:
+          - string
+          - 'null'
+        deployed_version_id:
+          type:
+          - string
+          - 'null'
+        version_count:
+          type: integer
       required:
       - asset_type
       - date_created
@@ -27532,9 +27269,8 @@ components:
             - meta
 tags:
 - name: Manage projects and library content
-  description:
-  - Create, organize, and manage projects, assets (projects/library content), and
-    tags
+  description: Create, organize, and manage projects, assets (projects/library content),
+    and tags
 - name: Form content
   description: Export and preview assets (projects/library content) in different formats
 - name: Survey data
