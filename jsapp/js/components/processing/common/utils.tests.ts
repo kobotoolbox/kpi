@@ -4,7 +4,9 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import { QUESTION_TYPES } from '#/constants'
+import { ProcessingTab } from '../routes.utils'
 import {
+  getAvailableTabsForQuestionType,
   getBlockedTargetLanguages,
   getSuggestedLanguages,
   getTranslationSourceLanguages,
@@ -258,6 +260,7 @@ describe('hasAnalysisSource', () => {
   })
   const TEXT = QUESTION_TYPES.text.id
   const AUDIO = QUESTION_TYPES.audio.id
+  const IMAGE = QUESTION_TYPES.image.id
 
   /** Builds a submission whose answer at `XPATH` is the given value (omitted when `undefined`). */
   function buildSubmission(answer?: string): DataResponse {
@@ -272,6 +275,28 @@ describe('hasAnalysisSource', () => {
     chai.expect(hasAnalysisSource(TEXT, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(TEXT, buildSubmission(''), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  /** Builds a submission with a photo answered at `XPATH`. */
+  function buildImageSubmission(isDeleted: boolean): DataResponse {
+    return {
+      [XPATH]: 'photo.jpg',
+      _attachments: [{ question_xpath: XPATH, is_deleted: isDeleted }],
+    } as unknown as DataResponse
+  }
+
+  it('is true for an image question with a photo, even without a transcript', () => {
+    chai.expect(hasAnalysisSource(IMAGE, buildImageSubmission(false), buildSupplement([]), XPATH)).to.equal(true)
+  })
+
+  it('is false for an image question whose photo was deleted', () => {
+    chai.expect(hasAnalysisSource(IMAGE, buildImageSubmission(true), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
+  it('is false for an image question without a photo', () => {
+    chai.expect(hasAnalysisSource(IMAGE, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+    // A file name alone isn't enough, the photo itself is what gets analyzed.
+    chai.expect(hasAnalysisSource(IMAGE, buildSubmission('photo.jpg'), buildSupplement([]), XPATH)).to.equal(false)
   })
 
   it('is false for an audio question without a transcript', () => {
@@ -301,5 +326,23 @@ describe('isNlpSupported', () => {
     chai.expect(isNlpSupported(QUESTION_TYPES.file.id)).to.equal(false)
     chai.expect(isNlpSupported(QUESTION_TYPES.select_one.id)).to.equal(false)
     chai.expect(isNlpSupported(undefined)).to.equal(false)
+  })
+})
+
+describe('getAvailableTabsForQuestionType', () => {
+  it('has all three tabs for audio questions', () => {
+    chai
+      .expect(getAvailableTabsForQuestionType(QUESTION_TYPES.audio.id))
+      .to.deep.equal([ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis])
+  })
+
+  it('has no Transcript for text questions', () => {
+    chai
+      .expect(getAvailableTabsForQuestionType(QUESTION_TYPES.text.id))
+      .to.deep.equal([ProcessingTab.Translations, ProcessingTab.Analysis])
+  })
+
+  it('only has Analysis for image questions', () => {
+    chai.expect(getAvailableTabsForQuestionType(QUESTION_TYPES.image.id)).to.deep.equal([ProcessingTab.Analysis])
   })
 })
