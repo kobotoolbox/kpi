@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash.clonedeep'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { getRowName } from '#/assetUtils'
 import {
   AssetTypeName,
@@ -77,7 +77,7 @@ export const simpleSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const simpleSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const simpleSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: simpleSurvey,
     choices: simpleSurveyChoices,
@@ -262,7 +262,7 @@ export const repeatSurvey = [
   },
 ] as const satisfies SurveyRow[]
 
-export const repeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const repeatSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: repeatSurvey,
   },
@@ -419,7 +419,7 @@ export const nestedRepeatSurvey = [
   },
 ] as const satisfies SurveyRow[]
 
-export const nestedRepeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const nestedRepeatSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: nestedRepeatSurvey,
   },
@@ -671,7 +671,7 @@ export const matrixSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const matrixSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const matrixSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: matrixSurvey,
     choices: matrixSurveyChoices,
@@ -931,7 +931,7 @@ export const groupsSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const groupsSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const groupsSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: groupsSurvey,
     choices: groupsSurveyChoices,
@@ -1470,7 +1470,7 @@ export const everythingSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const everythingSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const everythingSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: everythingSurvey,
     choices: everythingSurveyChoices,
@@ -1881,7 +1881,7 @@ export const matrixRepeatSurveyChoices = [
   },
 ] as const satisfies SurveyChoice[]
 
-export const matrixRepeatSurveyAsset = getApiV2AssetsRetrieveResponseMock({
+export const matrixRepeatSurveyAsset = getAssetsRetrieveResponseMock({
   content: {
     survey: matrixRepeatSurvey,
     choices: matrixRepeatSurveyChoices,
@@ -2088,7 +2088,7 @@ export const submissionWithAttachmentsWithUnicode = {
   _validation_status: {},
 } as const satisfies SubmissionResponse
 
-export const assetWithSupplementalDetails = getApiV2AssetsRetrieveResponseMock({
+export const assetWithSupplementalDetails = getAssetsRetrieveResponseMock({
   uid: 'aDDywpeYGnvuDLTeiveyxZ',
   name: 'text and media projekt',
   asset_type: AssetTypeName.survey,
