@@ -1,5 +1,7 @@
 # coding: utf-8
+from azure.core.exceptions import ResourceNotFoundError
 from django.conf import settings
+from django.core.cache import cache
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
@@ -17,6 +19,7 @@ from kpi.schema_extensions.v2.paired_data.serializers import (
     PairedDataResponse,
 )
 from kpi.serializers.v2.paired_data import PairedDataSerializer
+from kpi.utils.log import logging
 from kpi.utils.paired_data import build_and_save_paired_data_xml
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -203,7 +206,6 @@ class PairedDataViewset(
         # Retrieve data from related asset file.
         # If data has already been fetched once, an `AssetFile` should exist.
         # Otherwise, we create one to store the generated XML.
-        refresh_async = False
         try:
             asset_file = self.asset.asset_files.get(uid=uid_paired_data)
         except AssetFile.DoesNotExist:
@@ -213,44 +215,37 @@ class PairedDataViewset(
                 file_type=AssetFile.PAIRED_DATA,
                 user=self.asset.owner,
             )
-            # When the asset file is new, we consider its content as expired to
-            # force its creation below
-            has_expired = True
-        else:
-            if not asset_file.content:
-                # if `asset_file` exists but does not have any content, it means
-                # `paired_data` has changed since last time this endpoint has been
-                # called. E.g.: Project owner has changed the questions they want
-                # to include in the `xml-external` file
-                has_expired = True
-            else:
-                old_hash = asset_file.md5_hash
+
+        if asset_file.content:
+            old_hash = asset_file.md5_hash
+            content = self._read_stored_content(asset_file)
+            if content is not None:
                 timedelta = timezone.now() - asset_file.date_modified
-                has_expired = (
-                    timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
-                )
                 # File exists and is stale only due to time: regenerate in the
                 # background so the manifest request is not blocked by fetching
                 # and parsing a potentially large number of submissions.
-                refresh_async = has_expired
+                if timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION:
+                    from kpi.tasks import regenerate_paired_data
 
-        if not has_expired:
-            return self._xml_response(
-                request,
-                asset_file.content.file.read().decode(),
-                asset_file.md5_hash,
-            )
+                    # The manifest already holds `regen_paired_data_<uid>` when
+                    # it calls this view, so duplicates are tracked with a
+                    # separate key. The task releases both keys when it ends.
+                    dispatch_key = f'regen_paired_data_dispatch_{uid_paired_data}'
+                    if cache.add(
+                        dispatch_key,
+                        True,
+                        timeout=settings.PAIRED_DATA_REGEN_LOCK_TIMEOUT,
+                    ):
+                        regenerate_paired_data.delay(self.asset.uid, uid_paired_data)
+                # Return the current (possibly stale) content immediately.
+                # The manifest will reflect the new hash once the task completes.
+                return self._xml_response(request, content, asset_file.md5_hash)
 
-        if refresh_async:
-            from kpi.tasks import regenerate_paired_data
-
-            content = asset_file.content.file.read().decode()
-            regenerate_paired_data.delay(self.asset.uid, uid_paired_data)
-            # Return the current (possibly stale) content immediately.
-            # The manifest will reflect the new hash once the task completes.
-            return self._xml_response(request, content, asset_file.md5_hash)
-
-        # If the content of `asset_file' has expired, let's regenerate the XML
+        # Regenerate the XML when `asset_file` is new, has no content or its file
+        # is missing from storage. An existing `asset_file` has no content when
+        # `paired_data` has changed since last time this endpoint has been called.
+        # E.g.: Project owner has changed the questions they want to include in
+        # the `xml-external` file
         xml_ = build_and_save_paired_data_xml(
             self.asset, asset_file, paired_data, source_asset, old_hash=old_hash
         )
@@ -288,6 +283,24 @@ class PairedDataViewset(
             source__names[record['uid']] = record['name']
         context_['source__names'] = source__names
         return context_
+
+    @staticmethod
+    def _read_stored_content(asset_file: AssetFile) -> str | None:
+        """
+        Return the stored XML of `asset_file`, or `None` if its file is missing
+        from storage.
+
+        A form preview or a concurrent regeneration can remove the file after
+        the row has been loaded.
+        """
+
+        try:
+            return asset_file.content.file.read().decode()
+        except (FileNotFoundError, ResourceNotFoundError):
+            logging.warning(
+                f'Paired data file {asset_file.content.name} is missing from storage'
+            )
+            return None
 
     @staticmethod
     def _xml_response(request, xml_content: str, md5_hash: str = None) -> HttpResponse:

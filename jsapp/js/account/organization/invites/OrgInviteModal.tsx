@@ -38,11 +38,11 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
   const orgInvitesPatch = useOrganizationsInvitesPartialUpdate({
     mutation: {
       onMutate: (variables) => {
-        if (!('status' in variables.data)) return // just a typeguard, should never happen.
+        if (!variables.data || !('status' in variables.data)) return // just a typeguard, should never happen.
         setUserResponseType(variables.data.status)
       },
       onSuccess: async (_data, variables, _context) => {
-        if (!('status' in variables.data)) return // just a typeguard, should never happen.
+        if (!variables.data || !('status' in variables.data)) return // just a typeguard, should never happen.
 
         if (variables.data.status === InviteStatusChoicesEnum.accepted) {
           setAwaitingDataRefresh(true)

@@ -123,6 +123,7 @@ function ProviderLoginPanels({ providerId }: { providerId: string }) {
     query: {
       // The same key the hook would have defaulted to; the generated options type asks for it outright.
       queryKey: getSocialAppsRetrieveQueryKey(providerId),
+      enabled: !!providerId,
       // A 404 is an answer about the provider, not a transport failure - retrying it only delays the panel.
       retry: false,
     },
