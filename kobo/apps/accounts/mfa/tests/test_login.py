@@ -66,11 +66,7 @@ class LoginTests(KpiTestCase):
             'login': 'someuser',
             'password': 'someuser',
         }
-        response = self.client.post(
-            reverse('kobo_login'),
-            data=data,
-            follow=True,
-        )
+        response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         # The 2FA challenge must be reached and rendered, not skipped
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.request['PATH_INFO'], reverse('mfa_authenticate'))

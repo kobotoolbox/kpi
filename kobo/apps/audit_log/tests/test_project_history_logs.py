@@ -95,8 +95,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # log in as admin
         user = User.objects.get(username='adminuser')
         self.user = user
-        with skip_login_access_log():
-            self.client.force_login(user=user)
+        self.client.force_login(user=user)
         # use the same asset
         asset = Asset.objects.get(pk=3)
         # save to create a version
@@ -1001,11 +1000,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'kpi.views.v2.import_task.get_human_readable_client_user_agent',
             return_value='source',
         ):
-            self.client.post(
-                reverse('api_v2:importtask-list'),
-                task_data,
-                HTTP_X_FORWARDED_FOR='127.0.0.1',
-            )
+            self.client.post(reverse('api_v2:importtask-list'), task_data)
         expected_logs_count = 2 if change_name else 1
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)
@@ -1606,8 +1601,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # of the new submission, even if the original was submitted by someone else
         user = User.objects.get(username=duplicating_user)
         self.asset.assign_perm(user_obj=user, perm=PERM_MANAGE_ASSET)
-        with skip_login_access_log():
-            self.client.force_login(user)
+        self.client.force_login(user)
         metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=submission_url,

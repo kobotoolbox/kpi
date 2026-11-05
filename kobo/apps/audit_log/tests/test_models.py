@@ -55,7 +55,7 @@ class AccessLogModelTestCase(BaseAuditLogTestCase):
 
     def _create_request(self, url: str, cached_user, new_user):
         factory = RequestFactory()
-        request = factory.post(url, HTTP_X_FORWARDED_FOR='127.0.0.1')
+        request = factory.post(url)
         request.user = new_user
         request._cached_user = cached_user
         request.resolver_match = resolve(url)
