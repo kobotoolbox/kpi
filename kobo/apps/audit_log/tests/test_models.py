@@ -400,6 +400,10 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
 
     fixtures = ['test_data']
 
+    def setUp(self):
+        super().setUp()
+        self.common_metadata = {'source': 'Other', 'ip_address': '1.2.3.4'}
+
     def _check_common_fields(self, log: ProjectHistoryLog, user, asset):
         self.assertEqual(log.user.id, user.id)
         self.assertEqual(log.app_label, 'kpi')
@@ -528,6 +532,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
             modify_action=AuditAction.UPDATE,
+            common_metadata=self.common_metadata,
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.CREATE)
@@ -554,6 +559,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
             modify_action=AuditAction.UPDATE,
+            common_metadata=self.common_metadata,
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.DELETE)
@@ -585,6 +591,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
             modify_action=AuditAction.UPDATE,
+            common_metadata=self.common_metadata,
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.UPDATE)
@@ -604,6 +611,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             add_action=AuditAction.CREATE,
             delete_action=AuditAction.DELETE,
             modify_action=AuditAction.UPDATE,
+            common_metadata=self.common_metadata,
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
@@ -710,7 +718,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'AnonymousUser': {'discover_asset', 'validate_submissions'}
         }
         ProjectHistoryLog._create_from_permissions_request(
-            request,
+            request, self.common_metadata
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
         log = ProjectHistoryLog.objects.first()
@@ -757,7 +765,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'latest_deployed_version_uid': 'v12345',
             'owner_username': 'someuser',
         }
-        ProjectHistoryLog._create_from_deployment_request(request)
+        ProjectHistoryLog._create_from_deployment_request(request, self.common_metadata)
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, expected_log_action)
 
@@ -783,7 +791,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
                 'asset_uids': [asset.uid for asset in assets],
             }
         }
-        ProjectHistoryLog._create_from_bulk_request(request)
+        ProjectHistoryLog._create_from_bulk_request(request, self.common_metadata)
         logs = ProjectHistoryLog.objects.all()
         self.assertEqual(logs.count(), expected_log_count)
         for log in logs:
@@ -792,7 +800,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
     def test_create_from_bulk_requests_exits_on_malformed_request(self):
         request = self._create_request()
         request._data = {}
-        ProjectHistoryLog._create_from_bulk_request(request)
+        ProjectHistoryLog._create_from_bulk_request(request, self.common_metadata)
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     @data(
@@ -820,7 +828,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             f'kobo.apps.audit_log.models.ProjectHistoryLog.{expected_method}',
             return_value=(AuditAction.UPDATE, {}),
         ) as patched:
-            ProjectHistoryLog._create_from_detail_request(request)
+            ProjectHistoryLog._create_from_detail_request(request, self.common_metadata)
         patched.assert_called_once()
 
     def test_unexpected_fields_ignored_in_detail_request(self):
@@ -838,7 +846,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         }
         request.updated_data = {**request.initial_data, 'something_new': 'i am new'}
         # no log should be created even though 'something_new' changed
-        ProjectHistoryLog._create_from_detail_request(request)
+        ProjectHistoryLog._create_from_detail_request(request, self.common_metadata)
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     def test_submissions_with_unknown_action(self):
@@ -852,6 +860,6 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             status='',
         )
         request.instances = {1: update1}
-        ProjectHistoryLog._create_from_submission_request(request)
+        ProjectHistoryLog._create_from_submission_request(request, self.common_metadata)
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)

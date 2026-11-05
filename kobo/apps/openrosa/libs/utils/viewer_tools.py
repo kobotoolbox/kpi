@@ -7,6 +7,7 @@ from mimetypes import guess_type
 from tempfile import NamedTemporaryFile
 
 import requests
+from allauth.account.adapter import get_adapter
 from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import mail_admins
@@ -81,6 +82,10 @@ def export_def_from_filename(filename):
     # try get the def from extension
     mime_type = Export.EXPORT_MIMES[ext]
     return ext, mime_type
+
+
+def get_client_ip(request):
+    return get_adapter().get_client_ip(request)
 
 
 def get_human_readable_client_user_agent(request):

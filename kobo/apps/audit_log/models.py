@@ -2,7 +2,6 @@ import copy
 from typing import Optional
 
 import jsonschema
-from allauth.account.adapter import get_adapter
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
@@ -22,6 +21,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
+    get_client_ip,
     get_human_readable_client_user_agent,
 )
 from kobo.apps.subsequences.constants import Action
@@ -69,11 +69,6 @@ class AuditType(models.TextChoices):
     ASSET_MANAGEMENT = 'asset-management'
     SUBMISSION_MANAGEMENT = 'submission-management'
     ATTACHMENT_MANAGEMENT = 'attachment-management'
-
-
-def _get_client_ip(request):
-    adapter = get_adapter()
-    return adapter.get_client_ip(request)
 
 
 class AuditLog(models.Model):
@@ -336,7 +331,7 @@ class AccessLog(AuditLog):
             auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
 
         # gather information about the source of the request
-        ip = _get_client_ip(request)
+        ip = get_client_ip(request)
         source = get_human_readable_client_user_agent(request)
         metadata = {
             'ip_address': ip,
@@ -519,9 +514,13 @@ class ProjectHistoryLog(AuditLog):
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
+        common_metadata = {
+            'source': get_human_readable_client_user_agent(request=request),
+            'ip_address': get_client_ip(request),
+        }
         if not method:
             return
-        method(request)
+        method(request, common_metadata)
 
     def save(
         self,
@@ -540,7 +539,7 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @staticmethod
-    def _create_from_bulk_request(request):
+    def _create_from_bulk_request(request, common_metadata: dict):
         try:
             payload = request._data['payload']
             action = payload['action']
@@ -559,19 +558,15 @@ class ProjectHistoryLog(AuditLog):
         if audit_action is None:
             return  # Unsupported action
 
-        source = get_human_readable_client_user_agent(request)
-        client_ip = _get_client_ip(request)
-
         assets = Asset.optimize_queryset_for_list(
             Asset.all_objects.filter(uid__in=asset_uids)
         )
         for asset in assets:
             object_id = asset.id
             metadata = {
+                **common_metadata,
                 'asset_uid': asset.uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': client_ip,
-                'source': source,
                 'latest_version_uid': asset.prefetched_latest_versions[0].uid,
                 'project_owner': asset.owner.username,
             }
@@ -583,7 +578,7 @@ class ProjectHistoryLog(AuditLog):
             )
 
     @classmethod
-    def _create_from_clone_permission_request(cls, request):
+    def _create_from_clone_permission_request(cls, request, common_metadata: dict):
         initial_data = getattr(request, 'initial_data', None)
         if initial_data is None:
             return
@@ -594,17 +589,16 @@ class ProjectHistoryLog(AuditLog):
             action=AuditAction.CLONE_PERMISSIONS,
             user=request.user,
             metadata={
+                **common_metadata,
                 'asset_uid': asset_uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                'ip_address': _get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
                 'cloned_from': request._data[CLONE_ARG_NAME],
                 'project_owner': initial_data['asset.owner.username'],
             },
         )
 
     @staticmethod
-    def _create_from_data_request(request):
+    def _create_from_data_request(request, common_metadata: dict):
         asset = getattr(request, 'asset', None)
         if request.method != 'GET':
             return
@@ -618,16 +612,15 @@ class ProjectHistoryLog(AuditLog):
             action=AuditAction.VIEW_DATA,
             user=user,
             metadata={
+                **common_metadata,
                 'asset_uid': asset_uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': _get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
                 'project_owner': asset.owner.username,
             },
         )
 
     @staticmethod
-    def _create_from_deployment_request(request):
+    def _create_from_deployment_request(request, common_metadata: dict):
         audit_log_info = getattr(request, 'additional_audit_log_info', None)
         if audit_log_info is None:
             # if we didn't set this information, the request failed
@@ -638,10 +631,9 @@ class ProjectHistoryLog(AuditLog):
         asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = request.initial_data['id']
         metadata = {
+            **common_metadata,
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': _get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': audit_log_info['latest_version_uid'],
             'project_owner': audit_log_info['owner_username'],
         }
@@ -682,7 +674,7 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
-    def _create_from_detail_request(cls, request):
+    def _create_from_detail_request(cls, request, common_metadata: dict):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
 
@@ -693,11 +685,10 @@ class ProjectHistoryLog(AuditLog):
         asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = initial_data['id']
 
-        common_metadata = {
+        common_detail_metadata = {
+            **common_metadata,
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': _get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
             'latest_version_uid': updated_data['latest_version.uid'],
             'project_owner': updated_data['owner.username'],
         }
@@ -719,7 +710,7 @@ class ProjectHistoryLog(AuditLog):
             new_field = updated_data[field]
             if old_field != new_field:
                 action, additional_metadata = method(old_field, new_field)
-                full_metadata = {**common_metadata, **additional_metadata}
+                full_metadata = {**common_detail_metadata, **additional_metadata}
                 ProjectHistoryLog.objects.create(
                     user=request.user,
                     object_id=object_id,
@@ -728,28 +719,36 @@ class ProjectHistoryLog(AuditLog):
                 )
 
     @classmethod
-    def _create_from_export_request(cls, request):
-        cls._related_request_base(request, None, AuditAction.EXPORT, None, None)
-
-    @classmethod
-    def _create_from_file_request(cls, request):
-        # we don't have a concept of 'modifying' a media file
+    def _create_from_export_request(cls, request, common_metadata: dict):
         cls._related_request_base(
-            request, 'asset-file', AuditAction.ADD_MEDIA, AuditAction.DELETE_MEDIA, None
+            request, None, AuditAction.EXPORT, None, None, common_metadata
         )
 
     @classmethod
-    def _create_from_hook_request(cls, request):
+    def _create_from_file_request(cls, request, common_metadata: dict):
+        # we don't have a concept of 'modifying' a media file
+        cls._related_request_base(
+            request,
+            'asset-file',
+            AuditAction.ADD_MEDIA,
+            AuditAction.DELETE_MEDIA,
+            None,
+            common_metadata,
+        )
+
+    @classmethod
+    def _create_from_hook_request(cls, request, common_metadata: dict):
         cls._related_request_base(
             request,
             'hook',
             AuditAction.REGISTER_SERVICE,
             AuditAction.DELETE_SERVICE,
             AuditAction.MODIFY_SERVICE,
+            common_metadata,
         )
 
     @classmethod
-    def _create_from_submission_request(cls, request):
+    def _create_from_submission_request(cls, request, common_metadata: dict):
         if request.method in ['GET', 'HEAD']:
             return
         instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
@@ -766,10 +765,9 @@ class ProjectHistoryLog(AuditLog):
             else:
                 action = AuditAction.MODIFY_SUBMISSION
             metadata = {
+                **common_metadata,
                 'asset_uid': request.asset.uid,
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': _get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
                 'project_owner': request.asset.owner.username,
                 'submission': {
                     'submitted_by': instance.username,
@@ -810,7 +808,7 @@ class ProjectHistoryLog(AuditLog):
             ExtraUserDetail.update_last_project_activity(user_ids)
 
     @classmethod
-    def _create_from_submission_extra_request(cls, request):
+    def _create_from_submission_extra_request(cls, request, common_metadata: dict):
         try:
             s_uuid = request.resolver_match.kwargs['pk']
         except KeyError:
@@ -828,10 +826,9 @@ class ProjectHistoryLog(AuditLog):
             instance.user.username if instance.user is not None else 'AnonymousUser'
         )
         metadata = {
+            **common_metadata,
             'asset_uid': request.asset.uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': _get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
             'project_owner': request.asset.owner.username,
             'submission': {
                 'submitted_by': username,
@@ -877,7 +874,7 @@ class ProjectHistoryLog(AuditLog):
                 )
 
     @classmethod
-    def _create_from_ownership_transfer(cls, request):
+    def _create_from_ownership_transfer(cls, request, common_metadata: dict):
         updated_data = getattr(request, 'updated_data')
         transfers = updated_data['transfers'].values(
             'asset__uid', 'asset__asset_type', 'asset__id', 'asset__owner__username'
@@ -893,10 +890,9 @@ class ProjectHistoryLog(AuditLog):
                     user=request.user,
                     user_uid=request.user.extra_details.uid,
                     metadata={
+                        **common_metadata,
                         'asset_uid': transfer['asset__uid'],
                         'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
-                        'ip_address': _get_client_ip(request),
-                        'source': get_human_readable_client_user_agent(request),
                         'username': updated_data['recipient.username'],
                         'project_owner': transfer['asset__owner__username'],
                     },
@@ -905,17 +901,18 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
-    def _create_from_paired_data_request(cls, request):
+    def _create_from_paired_data_request(cls, request, common_metadata: dict):
         cls._related_request_base(
             request,
             'paired-data',
             AuditAction.CONNECT_PROJECT,
             AuditAction.DISCONNECT_PROJECT,
             AuditAction.MODIFY_IMPORTED_FIELDS,
+            common_metadata,
         )
 
     @classmethod
-    def _create_from_permissions_request(cls, request):
+    def _create_from_permissions_request(cls, request, common_metadata: dict):
         logs = []
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
@@ -931,8 +928,7 @@ class ProjectHistoryLog(AuditLog):
         partial_permissions_added = getattr(request, 'partial_permissions_added', {})
         # basic metadata for all PH logs
         base_metadata = {
-            'ip_address': _get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
+            **common_metadata,
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
             'project_owner': source_data['asset.owner.username'],
@@ -982,7 +978,9 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
-    def _create_from_question_advanced_feature_request(cls, request):
+    def _create_from_question_advanced_feature_request(
+        cls, request, common_metadata: dict
+    ):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         source_data = updated_data if updated_data else initial_data
@@ -997,10 +995,9 @@ class ProjectHistoryLog(AuditLog):
         owner = source_data.pop('asset.owner.username')
         object_id = source_data.pop('object_id')
         metadata = {
+            **common_metadata,
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': _get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
             'project_owner': owner,
         }
         action = AuditAction.UPDATE_QA
@@ -1011,7 +1008,7 @@ class ProjectHistoryLog(AuditLog):
         )
 
     @classmethod
-    def _create_from_v1_export(cls, request):
+    def _create_from_v1_export(cls, request, common_metadata: dict):
         updated_data = getattr(request, 'updated_data', None)
         if not updated_data:
             return
@@ -1020,10 +1017,9 @@ class ProjectHistoryLog(AuditLog):
             object_id=updated_data['asset_id'],
             action=AuditAction.EXPORT,
             metadata={
+                **common_metadata,
                 'asset_uid': updated_data['asset_uid'],
                 'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-                'ip_address': _get_client_ip(request),
-                'source': get_human_readable_client_user_agent(request),
                 'project_owner': updated_data['project_owner'],
             },
         )
@@ -1160,7 +1156,9 @@ class ProjectHistoryLog(AuditLog):
         }
 
     @staticmethod
-    def _related_request_base(request, label, add_action, delete_action, modify_action):
+    def _related_request_base(
+        request, label, add_action, delete_action, modify_action, common_metadata
+    ):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         asset_uid = request.resolver_match.kwargs['uid_asset']
@@ -1172,10 +1170,9 @@ class ProjectHistoryLog(AuditLog):
         owner = source_data.pop('asset.owner.username')
 
         metadata = {
+            **common_metadata,
             'asset_uid': asset_uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': _get_client_ip(request),
-            'source': get_human_readable_client_user_agent(request),
             'project_owner': owner,
         }
         if label:

@@ -5,6 +5,7 @@ from django.test.client import RequestFactory
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     export_def_from_filename,
+    get_client_ip,
     get_human_readable_client_user_agent,
 )
 
@@ -75,3 +76,17 @@ class TestViewerTools(TestBase):
         request = factory.get('/', **header)
         result = get_human_readable_client_user_agent(request)
         self.assertEqual(result, expected_result)
+
+    # tests added in case allauth changes how it determines client ips
+    def test_client_ip_favors_xff_header(self):
+        factory = RequestFactory()
+        request = factory.get(
+            '/', **{'HTTP_X_FORWARDED_FOR': '1.2.3.4', 'REMOTE_ADDR': '5.6.7.8'}
+        )
+        assert get_client_ip(request) == '1.2.3.4'
+
+    def test_client_ip_defaults_to_remote_addr(self):
+        factory = RequestFactory()
+        request = factory.get('/', **{'REMOTE_ADDR': '1.2.3.4'})
+        request.META.pop('HTTP_X_FORWARDED_FOR', None)
+        assert get_client_ip(request) == '1.2.3.4'
