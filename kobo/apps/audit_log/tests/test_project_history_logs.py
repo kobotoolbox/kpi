@@ -19,7 +19,6 @@ from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.audit_log.tests.constants import PROJECT_HISTORY_QUAL_TEXT_UUID
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
-from kobo.apps.audit_log.tests.utils import skip_login_access_log
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
