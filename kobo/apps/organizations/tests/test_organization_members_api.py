@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.constants import ORG_OWNER_ROLE
 from kobo.apps.organizations.models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
@@ -243,6 +244,74 @@ class OrganizationMemberAPITestCase(BaseOrganizationAssetApiTestCase):
 
             # Confirm asset permissions are revoked
             assert not self.asset.get_perms(self.member_user)
+
+    @data(
+        ('owner', 'admin'),
+        ('owner', 'member'),
+        ('admin', 'admin'),
+        ('admin', 'member'),
+    )
+    @unpack
+    def test_cannot_update_owner_role(self, user_role, role):
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
+        response = self.client.patch(self.detail_url(self.owner_user), {'role': role})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        owner_membership = self.organization.organization_users.get(
+            user=self.owner_user
+        )
+        assert owner_membership.is_admin
+        assert self.organization.get_user_role(self.owner_user) == ORG_OWNER_ROLE
+
+    @data('owner', 'admin')
+    def test_cannot_delete_owner(self, user_role):
+        user = getattr(self, f'{user_role}_user')
+        self.client.force_login(user)
+        response = self.client.delete(self.detail_url(self.owner_user))
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert self.organization.organization_users.filter(
+            user=self.owner_user
+        ).exists()
+
+    def test_owner_without_admin_flag_can_manage_members(self):
+        """
+        The owner keeps their admin rights even if the `is_admin` flag of their
+        membership is `False`
+        """
+        self.organization.organization_users.filter(user=self.owner_user).update(
+            is_admin=False
+        )
+        self.client.force_login(self.owner_user)
+        response = self.client.patch(
+            self.detail_url(self.admin_user), {'role': 'member'}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert not self.organization.is_admin(self.admin_user)
+
+    def test_member_update_only_changes_role(self):
+        """
+        A member update can only change the role of the membership
+        """
+
+        membership = self.organization.organization_users.get(user=self.member_user)
+        date_joined = membership.created
+
+        self.client.force_login(self.admin_user)
+        response = self.client.patch(
+            self.detail_url(self.member_user),
+            {
+                'user': self.obj_to_url(self.external_user),
+                'date_joined': '2030-01-01T00:00:00Z',
+                'role': 'admin',
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        membership.refresh_from_db()
+        assert membership.user == self.member_user
+        assert membership.created == date_joined
+        assert membership.is_admin
 
     @data(
         ('owner', status.HTTP_405_METHOD_NOT_ALLOWED),
