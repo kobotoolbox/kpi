@@ -1,4 +1,5 @@
 import { EXPORT_FORMATS } from '#/components/projectDownloads/exportsConstants'
+import { ADDITIONAL_SUBMISSION_PROPS } from '#/constants'
 import type { AssetResponse, ExportDataLang, ExportSettingSettings } from '#/dataInterface'
 import { recordEntries } from '#/utils'
 
@@ -29,6 +30,13 @@ const FORM_MANAGED_EXPORT_SETTINGS: ReadonlyArray<keyof ExportSettingSettings> =
   'type',
   'xls_types_as_text',
 ]
+
+/**
+ * Default exports use an explicit field allowlist so `_status` is opt-in.
+ */
+export function getDefaultExportFields(allFields: string[]): string[] {
+  return allFields.filter((field) => field !== ADDITIONAL_SUBMISSION_PROPS._status)
+}
 
 /**
  * Returns the settings the form built, plus any setting from an existing saved

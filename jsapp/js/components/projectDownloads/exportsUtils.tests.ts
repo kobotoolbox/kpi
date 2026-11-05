@@ -1,6 +1,6 @@
 import type { ExportSettingSettings } from '#/dataInterface'
 import { ExportTypeName } from './exportsConstants'
-import { preserveApiOnlySettings } from './exportsUtils'
+import { getDefaultExportFields, preserveApiOnlySettings } from './exportsUtils'
 
 function buildSettings(overrides: Partial<ExportSettingSettings> = {}): ExportSettingSettings {
   return {
@@ -15,6 +15,12 @@ function buildSettings(overrides: Partial<ExportSettingSettings> = {}): ExportSe
     ...overrides,
   }
 }
+
+describe('getDefaultExportFields', () => {
+  it('excludes `_status` while retaining other fields', () => {
+    chai.expect(getDefaultExportFields(['question', '_status', '_uuid'])).to.deep.equal(['question', '_uuid'])
+  })
+})
 
 describe('preserveApiOnlySettings', () => {
   it('keeps settings the form knows nothing about', () => {

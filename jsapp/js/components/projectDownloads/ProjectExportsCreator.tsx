@@ -31,6 +31,7 @@ import {
 import {
   type ExportFormatOption,
   getContextualDefaultExportFormat,
+  getDefaultExportFields,
   getExportFormatOptions,
   preserveApiOnlySettings,
 } from '#/components/projectDownloads/exportsUtils'
@@ -119,6 +120,11 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     return new Set(orderColumns(props.asset, Array.from(allRows)))
   }
 
+  // Keep the default UI selection aligned with the explicit export field list.
+  function getDefaultExportRows() {
+    return new Set(getDefaultExportFields(Array.from(getAllSelectableRows())))
+  }
+
   function getInitialState(): ProjectExportsCreatorState {
     const newState: ProjectExportsCreatorState = {
       isComponentReady: false,
@@ -148,8 +154,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
     const allSelectableRows = getAllSelectableRows()
     if (allSelectableRows) {
-      newState.selectedRows = new Set(allSelectableRows)
-      newState.selectableRowsCount = newState.selectedRows.size
+      newState.selectedRows = getDefaultExportRows()
+      newState.selectableRowsCount = allSelectableRows.size
     }
 
     return newState
@@ -191,7 +197,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
       isIncludeMediaUrlEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_MEDIA_URL,
-      selectedRows: new Set(getAllSelectableRows()),
+      selectedRows: getDefaultExportRows(),
     })
   }
 
@@ -214,12 +220,15 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       selectedExportFormat = getContextualDefaultExportFormat(props.asset)
     }
 
+    const defaultExportFields = Array.from(getDefaultExportRows())
+    const savedFieldSet = new Set(data.export_settings.fields)
     const customSelectionEnabled = Boolean(
       data.export_settings.fields?.length &&
-        stateRef.current.selectableRowsCount !== data.export_settings.fields.length,
+        (savedFieldSet.size !== defaultExportFields.length ||
+          defaultExportFields.some((field) => !savedFieldSet.has(field))),
     )
 
-    const newSelectedRows = new Set(data.export_settings.fields)
+    const newSelectedRows = new Set(data.export_settings.fields ?? defaultExportFields)
 
     const newStateObj: Partial<ProjectExportsCreatorState> = {
       selectedExportType: exportType,
@@ -240,7 +249,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     }
 
     if (newStateObj.selectedRows?.size === 0) {
-      newStateObj.selectedRows = new Set(getAllSelectableRows())
+      newStateObj.selectedRows = getDefaultExportRows()
     }
 
     stateRef.current.definedExports.forEach((definedExport) => {
@@ -347,7 +356,9 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       name: '',
       export_settings: {
         fields_from_all_versions: currentState.isIncludeAllVersionsEnabled,
-        fields: [],
+        fields: currentState.isCustomSelectionEnabled
+          ? Array.from(currentState.selectedRows)
+          : Array.from(getDefaultExportRows()),
         group_sep: currentState.groupSeparator,
         hierarchy_in_labels: currentState.isIncludeGroupsEnabled,
         lang: currentState.selectedExportFormat.value,
@@ -375,10 +386,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
     if (currentState.isSaveCustomExportEnabled) {
       payload.name = currentState.customExportName || generateExportName()
-    }
-
-    if (currentState.isCustomSelectionEnabled) {
-      payload.export_settings.fields = Array.from(currentState.selectedRows)
     }
 
     const foundDefinedExport = currentState.definedExports.find(
