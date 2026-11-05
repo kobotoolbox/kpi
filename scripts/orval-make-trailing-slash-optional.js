@@ -20,14 +20,15 @@ function processFile(filePath) {
 
   // Change http.get('path/', ...) to http.get('path{/}?', ...)
   // The {/}? syntax makes the trailing slash optional in path-to-regexp
-  const pattern = /http\.(get|post|put|patch|delete)\('(\*\/[^']+)\/'/g
+  // Also matches type arguments, e.g. http.get<{ uidAsset: string }>('path/', ...)
+  const pattern = /http\.(get|post|put|patch|delete)(<[^>(]*>)?\('(\*\/[^']+)\/'/g
 
-  source = source.replace(pattern, (match, method, pathWithoutSlash) => {
+  source = source.replace(pattern, (match, method, typeArgs = '', pathWithoutSlash) => {
     if (pathWithoutSlash.endsWith('{/}')) {
       return match
     }
     modified = true
-    return `http.${method}('${pathWithoutSlash}{/}?'`
+    return `http.${method}${typeArgs}('${pathWithoutSlash}{/}?'`
   })
 
   if (modified) {

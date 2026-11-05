@@ -8,7 +8,6 @@ from openpyxl import load_workbook
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.views import export_download
 from kobo.apps.openrosa.libs.utils.export_tools import generate_export
-from kobo.apps.openrosa.libs.utils.user_auth import http_auth_string
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -37,10 +36,7 @@ class TestFormExports(TestBase):
         return num_rows_fn[export_format](content)
 
     def test_allow_export_download_for_basic_auth(self):
-        extra = {
-            'HTTP_AUTHORIZATION': http_auth_string(self.login_username,
-                                                   self.login_password)
-        }
+        extra = self._set_auth_headers(self.login_username, self.login_password)
         # create export
         export = generate_export(Export.CSV_EXPORT, 'csv', self.user.username,
                                  self.xform.id_string)

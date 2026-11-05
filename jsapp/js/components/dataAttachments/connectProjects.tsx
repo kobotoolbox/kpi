@@ -3,15 +3,26 @@ import './connect-projects.scss'
 import { type MouseEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
 import alertify from 'alertifyjs'
+import { endpoints } from '#/api.endpoints'
 import type { ServerError } from '#/api/ServerError'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useAssetsList, useAssetsPartialUpdate } from '#/api/react-query/manage-projects-and-library-content'
 import { useAssetsPairedDataDestroy, useAssetsPairedDataList } from '#/api/react-query/survey-data'
+import {
+  getOrganizationsAssetsMinimalListRetrieveQueryKey,
+  getOrganizationsRetrieveQueryKey,
+  useOrganizationsAssetsMinimalListRetrieve,
+  useOrganizationsRetrieve,
+} from '#/api/react-query/user-team-organization-usage'
 import bem from '#/bem'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import dataAttachmentsUtils, { type ColumnFilter } from '#/components/dataAttachments/dataAttachmentsUtils'
-import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
+import { MAX_DISPLAYED_STRING_LENGTH, ROOT_URL } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { useProfile } from '#/stores/useProfile'
+import { replaceBracketsWithLink } from '#/textUtils'
+import { ANON_USERNAME } from '#/users/utils'
 import { escapeHtml, generateAutoname, getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'
 import type { AttachedSourceItem, ConnectableAsset } from './common'
 import ConnectProjectsExports from './connectProjectsExports'
@@ -19,9 +30,9 @@ import ConnectProjectsImports from './connectProjectsImports'
 import ConnectProjectsSelect from './connectProjectsSelect'
 import openDataAttachmentColumnsModal from './openDataAttachmentColumnsModal'
 
-const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html'
+const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment_formbuilder.html'
 
-const SHARING_ENABLED_PROJECTS_QUERY = 'data_sharing__enabled:true'
+const SHARING_ENABLED_PROJECTS_PARAMS = { q: 'data_sharing__enabled:true' }
 
 function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const [isShared, setIsShared] = useState(asset.data_sharing?.enabled || false)
@@ -61,7 +72,29 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     refetch: refetchAttachedSources,
   } = useAssetsPairedDataList(asset.uid)
   const { mutate: detachSourceMutate, isPending: isDetachingSource } = useAssetsPairedDataDestroy()
-  const { data: sharingEnabledAssetsResponse } = useAssetsList({ q: SHARING_ENABLED_PROJECTS_QUERY })
+  const { data: sharingEnabledAssetsResponse } = useAssetsList(SHARING_ENABLED_PROJECTS_PARAMS)
+
+  // Not `useOrganizationAssumed`, as form routes are not wrapped in `RequireOrg`
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
+  const { data: organizationResponse, isFetched: isOrganizationFetched } = useOrganizationsRetrieve(organizationId!, {
+    query: {
+      queryKey: getOrganizationsRetrieveQueryKey(organizationId!), // Note: see Orval issue https://github.com/orval-labs/orval/issues/2396
+      staleTime: Number.POSITIVE_INFINITY,
+    },
+  })
+  const organization = organizationResponse?.status === 200 ? organizationResponse.data : undefined
+  // MMO admins and owners don't get org projects from `/assets/`, so we ask the org endpoint too
+  const isOrgAdmin =
+    !!organization?.is_mmo &&
+    (organization.request_user_role === MemberRoleEnum.admin || organization.request_user_role === MemberRoleEnum.owner)
+  const { data: orgSharingEnabledAssetsResponse, isFetched: isOrgSharingEnabledAssetsFetched } =
+    useOrganizationsAssetsMinimalListRetrieve(organizationId!, SHARING_ENABLED_PROJECTS_PARAMS, {
+      query: {
+        queryKey: getOrganizationsAssetsMinimalListRetrieveQueryKey(organizationId!, SHARING_ENABLED_PROJECTS_PARAMS),
+        enabled: isOrgAdmin,
+      },
+    })
   const { mutate: patchDataSharingMutate, isPending: isPatchingDataSharing } = useAssetsPartialUpdate<ServerError>({
     mutation: {
       // Hide default error to avoid duplicate toasts
@@ -73,17 +106,34 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
   const isImportsLoading = isLoadingAttachedSources || isDetachingSource
   const isLoading = isLoadingAttachedSources || isDetachingSource || isPatchingDataSharing
 
-  const sharingEnabledAssetsLoaded = Boolean(sharingEnabledAssetsResponse?.data)
+  // Profile store holds an anonymous placeholder until `/me/` loads
+  const isAccountLoaded = profile.currentLoggedAccount.username !== ANON_USERNAME
+  // Wait until we know whether user is an org admin, so the list doesn't show up partial and then grow.
+  // `isFetched`, so a failed org request still shows the user's projects
+  const isOrgCheckDone = isAccountLoaded && (!organizationId || isOrganizationFetched)
+  const sharingEnabledAssetsLoaded =
+    Boolean(sharingEnabledAssetsResponse?.data) && isOrgCheckDone && (!isOrgAdmin || isOrgSharingEnabledAssetsFetched)
 
   const sharingEnabledAssets = useMemo<ConnectableAsset[]>(() => {
-    return (
+    const userAssets: ConnectableAsset[] =
       sharingEnabledAssetsResponse?.data.results.map((item) => ({
         uid: item.uid,
         url: item.url,
         name: item.name || '',
       })) || []
-    )
-  }, [sharingEnabledAssetsResponse])
+    // Minimal list has no `url`, so we build it
+    const orgAssets: ConnectableAsset[] =
+      orgSharingEnabledAssetsResponse?.status === 200
+        ? orgSharingEnabledAssetsResponse.data.results.map((item) => ({
+            uid: item.uid,
+            url: ROOT_URL + endpoints.ASSET_URL.replace(':uid', item.uid),
+            name: item.name || '',
+          }))
+        : []
+    // Projects shared with the user directly can be in both lists
+    const userAssetUids = new Set(userAssets.map((item) => item.uid))
+    return [...userAssets, ...orgAssets.filter((item) => !userAssetUids.has(item.uid))]
+  }, [sharingEnabledAssetsResponse, orgSharingEnabledAssetsResponse])
 
   const attachedSources = useMemo<AttachedSourceItem[]>(() => {
     const payload = attachedSourcesResponse?.data
@@ -336,24 +386,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
     <bem.FormView__row>
       <bem.FormView__cell m={['page-title']}>
         <i className='k-icon k-icon-folder-out' />
-        <h2>{t('Share data with other project forms')}</h2>
+        <h2>{t('Allow data sharing with other projects')}</h2>
       </bem.FormView__cell>
 
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.FormView__form>
-          <span>
-            {t(
-              'Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments',
-            )}
-            &nbsp;
-            <a
-              href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              {t('here')}
-            </a>
-          </span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: replaceBracketsWithLink(
+                t(
+                  "Allow other forms to use this project's data as a dynamic data attachment. Learn more about dynamic data attachments [here]",
+                ),
+                envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
+              ),
+            }}
+          />
 
           <ConnectProjectsExports
             isShared={isShared}
@@ -369,20 +416,21 @@ function ConnectProjects({ asset }: { asset: AssetResponse }) {
 
       <bem.FormView__cell m={['page-title']}>
         <i className='k-icon k-icon-folder-in' />
-        <h2>{t('Import other project data')}</h2>
+        <h2>{t('Import project data')}</h2>
       </bem.FormView__cell>
 
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.FormView__form>
-          <span>
-            {t(
-              'Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments',
-            )}
-            &nbsp;
-            <a href={envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL} target='_blank'>
-              {t('here')}
-            </a>
-          </span>
+          <span
+            dangerouslySetInnerHTML={{
+              __html: replaceBracketsWithLink(
+                t(
+                  'Select one or more projects to use their data as dynamic data attachments in this project. Learn more about dynamic data attachments [here]',
+                ),
+                envStore.data.support_url + DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL,
+              ),
+            }}
+          />
           <ConnectProjectsImports
             selectComponent={
               <ConnectProjectsSelect

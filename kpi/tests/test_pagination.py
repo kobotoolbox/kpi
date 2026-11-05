@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.db import OperationalError, connection, models
+from django.db.models import Count
 from django.db.models.expressions import RawSQL
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
@@ -244,6 +245,39 @@ class TestLimitedCountPagination(TestCase):
         assert paginator.get_next_link() is None
         # The exact count already proves the page is empty: no page query
         assert len(ctx.captured_queries) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=100)
+    def test_grouped_values_queryset_counts_groups(self):
+        self._make_users(4)
+        queryset = self._queryset().values('is_active').annotate(n=Count('pk'))
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=1)
+    def test_grouped_values_queryset_capped_by_groups_not_rows(self):
+        # Three rows but one group: the cap applies to the groups listed
+        self._make_users(3)
+        queryset = self._queryset().values('is_active').annotate(n=Count('pk'))
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=100)
+    def test_distinct_values_queryset_counts_distinct_values(self):
+        # Two users share a first name: narrowing to `pk` would count 2
+        baker.make(User, username='lcp_a', first_name='Ada')
+        baker.make(User, username='lcp_b', first_name='Ada')
+        queryset = self._queryset().values('first_name').distinct()
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=0, API_LIMITED_COUNT_MAX=100)
+    def test_distinct_model_queryset_is_narrowed_to_pk(self):
+        self._make_users(2)
+        paginator = LimitedCountPagination()
+        with CaptureQueriesContext(connection) as ctx:
+            assert paginator.get_count(self._queryset().distinct()) == 2
+        # DISTINCT runs on `id` alone, not on every column
+        assert '"email"' not in ctx.captured_queries[-1]['sql']
 
     def _make_users(self, count):
         for i in range(count):

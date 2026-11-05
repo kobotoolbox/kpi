@@ -47,7 +47,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:35+0000\n"
+"POT-Creation-Date: 2026-11-03 12:57+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Mohammed Alwadhaf, 2021-2023,2026\n"
 "Language-Team: Arabic (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ar/)\n"
@@ -925,36 +925,36 @@ msgstr "يجب أن يكون هناك نص معرّف واحد."
 msgid "There should be a single title."
 msgstr "يجب أن يكون هناك عنوان واحد."
 
-#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/apps/logger/views.py:63
 #: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "تم التقديم بنجاح."
 
-#: kobo/apps/openrosa/apps/logger/views.py:94
+#: kobo/apps/openrosa/apps/logger/views.py:102
 msgid ""
 "There was a problem receiving your ODK submission. [Error: IO Error reading "
 "data]"
 msgstr "كانت هناك مشكلة في استلام عملية إرسال مجموعة البيانات المفتوحة الخاص بك. [خطأ: خطأ في قراءة بيانات الإدخال والإخراج]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:98
+#: kobo/apps/openrosa/apps/logger/views.py:110
 msgid ""
 "There was a problem receiving your ODK submission. [Error: multiple "
 "submission files (?)]"
 msgstr "كانت هناك مشكلة في استلام عملية إرسال مجموعة البيانات المفتوحة الخاص بك. [خطأ: ملفات التقديم المتعددة (؟)]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:120
+#: kobo/apps/openrosa/apps/logger/views.py:136
 #, python-format
 msgid ""
 "Submission complete. Out of %(total)d survey instances, %(success)d were "
 "imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
 msgstr "تم الانتهاء من عملية الإرسال. تم استيراد %(success)d من إجمالي %(total)d من نسخ الاستبيان، (تم رفض %(rejected)d باعتبارها مكررة، أو نماذج مفقودة، وما إلى ذلك.)"
 
-#: kobo/apps/openrosa/apps/logger/views.py:190
+#: kobo/apps/openrosa/apps/logger/views.py:210
 #, python-format
 msgid "No XLS file for your form %(id)s"
 msgstr "لا يوجد ملف XLS للنموذج %(id)s الخاص بك"
 
-#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/logger/views.py:228
 #: kobo/apps/openrosa/apps/viewer/views.py:42
 #: kobo/apps/openrosa/apps/viewer/views.py:95
 #: kobo/apps/openrosa/apps/viewer/views.py:114
@@ -2284,15 +2284,15 @@ msgstr ""
 msgid "Invalid request"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "an admin"
 msgstr "مشرف "
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "a member"
 msgstr "عضو "
 
-#: kobo/apps/organizations/models.py:445
+#: kobo/apps/organizations/models.py:471
 msgid "You're invited to join ##organization_name## organization"
 msgstr "أنت مدعو للانضمام إلى منظمة ##organization_name##"
 
@@ -3092,140 +3092,140 @@ msgstr "تتطلب حقول الاختيار خيارًا واحدًا على ا
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "تم تمكين المصادقة متعددة العوامل لهذا الحساب. "
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:331
 msgid "Can view asset"
 msgstr "يمكن عرض الأصول"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:332
 msgid "Can discover asset in public lists"
 msgstr "يمكن اكتشاف الأصول في القوائم العامة"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:333
 msgid "Can manage all aspects of asset"
 msgstr "يمكن إدارة جميع جوانب الأصول"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:335
 msgid "Can submit data to asset"
 msgstr "يمكن إرسال البيانات إلى الأصول"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:336
 msgid "Can view submitted data for asset"
 msgstr "يمكن عرض البيانات المرسلة للأصول"
 
-#: kpi/models/asset.py:314
+#: kpi/models/asset.py:337
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "يمكن اتخاذ إجراءات جزئية على البيانات المرسلة للأصول لمستخدمين محددين"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:340
 msgid "Can modify submitted data for asset"
 msgstr "يمكن تعديل البيانات المرسلة للأصل"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:341
 msgid "Can delete submitted data for asset"
 msgstr "يمكن حذف البيانات المرسلة للأصل"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:342
 msgid "Can validate submitted data asset"
 msgstr "يمكن التحقق من صحة أصول البيانات المرسلة"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "project"
 msgstr "المشروع"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "form"
 msgstr "نموذج"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:363
 msgid "template"
 msgstr "قالب"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:364
 msgid "block"
 msgstr "مجمع"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:365
 msgid "question"
 msgstr "السؤال"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:366
 msgid "text"
 msgstr "نص"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:367
 msgid "empty"
 msgstr "فارغ"
 
-#: kpi/models/asset.py:345
+#: kpi/models/asset.py:368
 msgid "collection"
 msgstr "مجموعة"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:375
 msgid "View ##asset_type_label##"
 msgstr "عرض ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:376
 msgid "Edit ##asset_type_label##"
 msgstr "تحرير ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:377
 msgid "Discover ##asset_type_label##"
 msgstr "اكتشف ##asset_type_label##"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:378
 msgid "Manage ##asset_type_label##"
 msgstr "إدارة ##asset_type_label##"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:379
 msgid "Add submissions"
 msgstr "إضافة عمليات الإرسال"
 
-#: kpi/models/asset.py:357
+#: kpi/models/asset.py:380
 msgid "View submissions"
 msgstr "عرض عمليات الإرسال"
 
-#: kpi/models/asset.py:360
+#: kpi/models/asset.py:383
 msgid "Act on submissions only from specific users"
 msgstr "التعامل مع الطلبات الواردة من مستخدمين محددين فقط"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:386
 msgid "View submissions only from specific users"
 msgstr "عرض عمليات الإرسال من مستخدمين محددين فقط"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:389
 msgid "Edit submissions only from specific users"
 msgstr "تحرير عمليات الإرسال من مستخدمين محددين فقط"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:392
 msgid "Delete submissions only from specific users"
 msgstr "حذف عمليات الإرسال من مستخدمين محددين فقط"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:395
 msgid "Validate submissions only from specific users"
 msgstr "التحقق من صحة عمليات الإرسال من مستخدمين محددين فقط"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:398
 msgid "Edit submissions"
 msgstr "تحرير عمليات الإرسال"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:399
 msgid "Delete submissions"
 msgstr "حذف عمليات الإرسال"
 
-#: kpi/models/asset.py:377
+#: kpi/models/asset.py:400
 msgid "Validate submissions"
 msgstr "التحقق من عمليات الإرسال"
 
-#: kpi/models/asset.py:734
+#: kpi/models/asset.py:768
 msgid "Only partial permissions for submissions are supported"
 msgstr "يتم دعم الأذونات الجزئية فقط لعمليات الإرسال"
 
-#: kpi/models/asset.py:1463
+#: kpi/models/asset.py:1497
 msgid "Can not assign '{}' permission to owner"
 msgstr "لا يمكن تعيين الإذن '{}' للمالك"
 
-#: kpi/models/asset.py:1467
+#: kpi/models/asset.py:1501
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "لا يمكن تعيين الإذن '{}'. الأذونات الجزئية مفقودة."
 

@@ -8,7 +8,7 @@ import jsonschema
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.db import connection
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -24,6 +24,7 @@ from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
+    LIMITED_COUNT_MANY,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_METADATA_ASSET,
@@ -44,10 +45,10 @@ from kpi.tests.base_test_case import (
     BaseTestCase,
 )
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 from kpi.tests.utils.mixins import AssetFileTestCaseMixin
 from kpi.tests.utils.mock import patch_ssrf_dns
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view
@@ -655,18 +656,18 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
 
     def test_query_counts(self):
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(28, 50)):
+        with self.assertNumQueries(FuzzyInt(24, 50)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
     def test_list_can_load_with_desynchronized_assets(self):
@@ -684,6 +685,30 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         assert len(response.data['results']) == 2
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        response = self.client.get(self.list_url, data={'metadata': 'on'})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0
+        assert 'metadata' in response.data
+
+    def test_list_status_of_asset_open_to_anonymous_submissions(self):
+        """
+        A project whose only permission besides its owner's is anonymous
+        `add_submissions` is shared, in the list as in its detail
+        """
+
+        self.asset.assign_perm(get_anonymous_user(), PERM_ADD_SUBMISSIONS)
+
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+        result = next(r for r in response.data['results'] if r['uid'] == self.asset.uid)
+        assert result['status'] == 'shared'
+
+        detail_response = self.client.get(result['url'])
+        assert detail_response.data['status'] == 'shared'
 
     def test_current_user_permissions_only_owner_without_param(self):
         """
@@ -1207,14 +1232,16 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         regional_res = self.client.get(
             view_0_url, headers={'accept': 'application/json'}
         )
-        assert regional_res.json()['count'] == 2
+        regional_data = regional_res.json()
+        assert 'count' not in regional_data
+        assert len(regional_data['results']) == 2
 
         view_1_url = results[1]['assets']
         regional_res = self.client.get(
             view_1_url, headers={'accept': 'application/json'}
         )
         regional_data = regional_res.json()
-        assert regional_data['count'] == 1
+        assert len(regional_data['results']) == 1
         asset_countries = set(
             c['value']
             for c in regional_data['results'][0]['settings']['country']
@@ -1294,7 +1321,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         )
         assert regional_res.status_code == status.HTTP_200_OK
         regional_data = regional_res.json()
-        assert regional_data['count'] == 1
+        assert len(regional_data['results']) == 1
         assert regional_data['results'][0]['deployment__submission_count'] is None
 
     def test_project_views_for_anotheruser(self):
@@ -1313,7 +1340,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
                 results[i]['assets'], headers={'accept': 'application/json'}
             )
             regional_data = regional_res.json()
-            assert regional_data['count'] == item['count']
+            assert len(regional_data['results']) == item['count']
             asset_countries = set(
                 c['value']
                 for c in regional_data['results'][0]['settings']['country']
@@ -1658,6 +1685,13 @@ class AssetVersionApiTests(BaseTestCase):
         resp2 = self.client.get(first_version['url'], format='json')
         self.assertEqual(resp2.data['content_hash'],
                          asset.latest_version.content_hash)
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        resp = self.client.get(self.version_list_url, format='json')
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['count'] == LIMITED_COUNT_MANY
+        assert resp.data['results']
 
     def test_restricted_access_to_version(self):
         self.client.logout()
