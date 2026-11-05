@@ -1,3 +1,5 @@
+from allauth import urls as allauth_urls
+from allauth.headless import urls as headless_urls
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -15,7 +17,7 @@ from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
 )
-from kpi.utils.urls import is_request_for_html
+from kpi.utils.urls import exclude_routes, is_request_for_html
 from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
@@ -92,8 +94,26 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
-    path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
-    path('api/v2/allauth/', include('allauth.headless.urls')),
+    # `/me/emails/` is the only way to change an email address, so allauth's
+    # email management is excluded below. The page keeps its name, which allauth
+    # reverses
+    path(
+        'accounts/email/',
+        RedirectView.as_view(url='/#/account/settings', permanent=False),
+        name='account_email',
+    ),
+    # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
+    # from allauth's
+    path(
+        'accounts/',
+        include(exclude_routes(allauth_urls.urlpatterns, {'account_email'})),
+    ),
+    path(
+        'api/v2/allauth/',
+        include(
+            (exclude_routes(headless_urls.urlpatterns, {'manage_email'}), 'headless')
+        ),
+    ),
     re_path(
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),
