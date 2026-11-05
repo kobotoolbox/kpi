@@ -111,59 +111,6 @@ $side-tabs-width-mobile: 70px;
       margin: 20px auto;
     }
   }
-
-  a.form-view__tab {
-    background: transparent;
-    border: none;
-    padding: 6px;
-    border-left: 2px solid transparent;
-    font-size: variables.$base-font-size;
-    cursor: pointer;
-    position: relative;
-    color: colors.$kobo-gray-700;
-    font-weight: normal;
-    letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
-
-    &:hover,
-    &.active {
-      color: colors.$kobo-gray-800;
-    }
-
-    &.active {
-      font-weight: 700;
-
-      // left border is detached from horizontal lines,
-      // so we need to make it a separate element
-      &::before {
-        content: '';
-        position: absolute;
-        width: 4px;
-        height: 100%;
-        top: 0;
-        left: -10px;
-        background-color: colors.$kobo-teal;
-      }
-    }
-
-    &.form-view__tab--disabled {
-      pointer-events: none;
-      opacity: 0.5;
-    }
-
-    .k-icon {
-      font-size: 26px;
-      vertical-align: -7px;
-      line-height: 36px;
-      margin: 0 9px 0 5px;
-    }
-
-    span {
-      vertical-align: middle;
-    }
-  }
 }
 
 .form-view__row {
@@ -589,47 +536,14 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
-@media screen and (height <= 420px) {
-  .form-view__sidetabs {
-    padding-top: 0;
-
-    a.form-view__tab {
-      padding-top: 0;
-      padding-bottom: 0;
-    }
-  }
-}
-
 // TODO: rework all these media queries to mobile first
 @media screen and (width < breakpoints.$b768) {
   .form-view__sidetabs {
     width: $side-tabs-width-mobile;
-
-    a.form-view__tab {
-      padding-right: 3px;
-      padding-left: 1px;
-      font-size: 10px;
-      line-height: 1;
-      text-align: center;
-      display: block;
-      letter-spacing: -0.05em;
-
-      .k-icon {
-        margin: 0;
-      }
-
-      .form-view__tab-name {
-        display: block;
-      }
-    }
   }
 
   .form-view__toptabs {
     height: 39px;
-
-    a.form-view__tab {
-      font-size: variables.$base-font-size;
-    }
   }
 
   .form-view__sidetabs + .form-view {
