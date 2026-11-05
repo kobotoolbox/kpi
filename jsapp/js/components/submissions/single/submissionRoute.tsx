@@ -14,6 +14,7 @@ import SubmissionNeighborNav from './submissionNeighborNav'
 import SubmissionRecordPlaceholder from './submissionRecordPlaceholder'
 import type { SubmissionRouteState } from './submissionRouting'
 import { getDataTablePath, getSubmissionCounterLabel, getSubmissionPath } from './submissionRouting'
+import SubmissionStandIn from './submissionStandIn'
 import { useSubmissionNeighbors } from './useSubmissionNeighbors'
 import { useSubmissionRecord } from './useSubmissionRecord'
 
@@ -36,9 +37,10 @@ export default function SubmissionRoute() {
   // asset data is present.
   const asset = assetUid ? assetStore.getAsset(assetUid) : null
 
-  const { isPending, isError, record, refresh } = useSubmissionRecord(assetUid, submissionId)
+  const { isPending, isError, record, isPlaceholderData, refresh } = useSubmissionRecord(assetUid, submissionId)
 
-  const rootUuid = record ? getSubmissionRootUuid(record) : undefined
+  // While stepping, the previous record stands in, so its UUID mustn't drive the address swap below.
+  const rootUuid = record && !isPlaceholderData ? getSubmissionRootUuid(record) : undefined
 
   const routeState = location.state as SubmissionRouteState | null
   const isModal = Boolean(routeState?.asModal)
@@ -97,7 +99,8 @@ export default function SubmissionRoute() {
 
   const navigation = (
     <SubmissionNeighborNav
-      neighbors={neighbors}
+      // The previous record's neighbours include the one being loaded.
+      neighbors={isPlaceholderData ? { ...neighbors, isLoading: true } : neighbors}
       onGoToSubmission={(neighbor) => {
         const listPosition = routeState?.listPosition
 
@@ -118,26 +121,29 @@ export default function SubmissionRoute() {
     !asset || !record ? (
       <SubmissionRecordPlaceholder isPending={isPending || !asset} isError={isError} submissionId={submissionId} />
     ) : (
-      <SubmissionDetails
-        // Remounting on a different record keeps per-record UI state (such as
-        // a pending "Refresh submission" prompt) from leaking into the next one.
-        key={record._id}
-        asset={asset}
-        submission={record}
-        duplicatedFromUuid={routeState?.duplicatedFromUuid}
-        isInModal={isModal}
-        onRefreshRequested={onRecordChanged}
-        onChanged={onRecordChanged}
-        onDeleted={leave}
-        onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
-          // The list position is deliberately dropped: a brand new record does not
-          // necessarily match the table's filters (filtering by `_id` is the clearest
-          // case), and claiming a place in a list it is not part of would leave the
-          // user with a wrong count and wrong Previous/Next. So the duplicate steps
-          // through the full list instead.
-          goToRecord(newSubmissionDbId, { duplicatedFromUuid, backTo: routeState?.backTo })
-        }}
-      />
+      <SubmissionStandIn isActive={isPlaceholderData}>
+        <SubmissionDetails
+          // Remounting on a different record keeps per-record UI state (such as
+          // a pending "Refresh submission" prompt) from leaking into the next one.
+          key={record._id}
+          asset={asset}
+          submission={record}
+          // The banner belongs to the new record, not to the one standing in.
+          duplicatedFromUuid={isPlaceholderData ? undefined : routeState?.duplicatedFromUuid}
+          isInModal={isModal}
+          onRefreshRequested={onRecordChanged}
+          onChanged={onRecordChanged}
+          onDeleted={leave}
+          onDuplicated={(newSubmissionDbId, duplicatedFromUuid) => {
+            // The list position is deliberately dropped: a brand new record does not
+            // necessarily match the table's filters (filtering by `_id` is the clearest
+            // case), and claiming a place in a list it is not part of would leave the
+            // user with a wrong count and wrong Previous/Next. So the duplicate steps
+            // through the full list instead.
+            goToRecord(newSubmissionDbId, { duplicatedFromUuid, backTo: routeState?.backTo })
+          }}
+        />
+      </SubmissionStandIn>
     )
 
   if (isModal) {

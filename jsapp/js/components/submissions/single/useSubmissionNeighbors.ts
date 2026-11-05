@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useRef } from 'react'
 import type { PaginatedDataResponseListCount } from '#/api/models/paginatedDataResponseListCount'
 import {
   type assetsDataListResponse,
@@ -42,6 +43,64 @@ export interface SubmissionNeighbors {
   total?: PaginatedDataResponseListCount
   /** Asks for fresh neighbours, after something changed the record's place in the list. */
   refresh: () => void
+}
+
+type SettledNeighbors = Omit<SubmissionNeighbors, 'isLoading' | 'refresh'>
+
+/** Neighbours among the data table's rows, see `getSubmissionListWindowParams`. */
+function getListNeighbors(
+  listPosition: SubmissionListPosition,
+  submissionId: number | undefined,
+  window: ReturnType<typeof selectWindow>,
+): SettledNeighbors {
+  const rows = window?.rows ?? []
+  const windowStart = Math.max(listPosition.index - LIST_WINDOW_REACH, 0)
+  const toNeighbor = (rowIndex: number) => {
+    const submission = rowIndex >= windowStart ? rows[rowIndex - windowStart] : undefined
+    return submission && { rootUuid: getSubmissionRootUuid(submission), listIndex: rowIndex }
+  }
+
+  // The record is usually where the table had it, but a record leaving or
+  // joining the list before it (say, after a new validation status) shifts it.
+  // Wherever we find it, that is its real place.
+  const foundAt = rows.findIndex((row) => row._id === submissionId)
+  if (foundAt !== -1) {
+    const index = windowStart + foundAt
+    return { prev: toNeighbor(index - 1), next: toNeighbor(index + 1), index: index + 1, total: window?.count }
+  }
+
+  // Not there at all - it dropped out of the filter, most likely. The rows that
+  // closed up the gap are its neighbours now, and the counter has nothing to say.
+  const { index } = listPosition
+  return { prev: toNeighbor(index - 1), next: toNeighbor(index), total: window?.count }
+}
+
+/** Neighbours among every submission, newest first. */
+function getAllNeighbors(
+  prev: ReturnType<typeof selectNeighbor>,
+  next: ReturnType<typeof selectNeighbor>,
+): SettledNeighbors {
+  const neighbors = {
+    prev: prev?.submission && { rootUuid: getSubmissionRootUuid(prev.submission) },
+    next: next?.submission && { rootUuid: getSubmissionRootUuid(next.submission) },
+  }
+
+  // Submissions are listed newest first, so everything "before" the current
+  // record is newer than it.
+  const newerCount = prev?.count
+  const olderCount = next?.count
+
+  // Past the count limit there is no telling where the record sits.
+  if (typeof newerCount !== 'number' || olderCount === undefined) {
+    return neighbors
+  }
+
+  return {
+    ...neighbors,
+    index: newerCount + 1,
+    // A capped count on the far side caps the total too.
+    total: typeof olderCount === 'number' ? newerCount + olderCount + 1 : olderCount,
+  }
 }
 
 /**
@@ -90,54 +149,23 @@ export function useSubmissionNeighbors(
     }
   }
 
-  if (listPosition) {
-    const rows = queryWindow.data?.rows ?? []
-    const windowStart = Math.max(listPosition.index - LIST_WINDOW_REACH, 0)
-    const toNeighbor = (rowIndex: number) => {
-      const submission = rowIndex >= windowStart ? rows[rowIndex - windowStart] : undefined
-      return submission && { rootUuid: getSubmissionRootUuid(submission), listIndex: rowIndex }
-    }
+  // `isLoading` rather than `isPending`, which stays true for a query that never runs.
+  const isLoading = listPosition ? queryWindow.isLoading : queryPrev.isLoading || queryNext.isLoading
 
-    // `isLoading` rather than `isPending`, which stays true for a query that never runs.
-    const isLoading = queryWindow.isLoading
-    const total = queryWindow.data?.count
-
-    // The record is usually where the table had it, but a record leaving or
-    // joining the list before it (say, after a new validation status) shifts it.
-    // Wherever we find it, that is its real place.
-    const foundAt = rows.findIndex((row) => row._id === submissionId)
-    if (foundAt !== -1) {
-      const index = windowStart + foundAt
-      return { isLoading, prev: toNeighbor(index - 1), next: toNeighbor(index + 1), index: index + 1, total, refresh }
-    }
-
-    // Not there at all - it dropped out of the filter, most likely. The rows that
-    // closed up the gap are its neighbours now, and the counter has nothing to say.
-    const { index } = listPosition
-    return { isLoading, prev: toNeighbor(index - 1), next: toNeighbor(index), total, refresh }
+  // While new neighbours load, keep the last ones, so the heading counter doesn't blink.
+  const lastSettled = useRef<SubmissionNeighbors>()
+  if (isLoading && lastSettled.current) {
+    return { ...lastSettled.current, isLoading: true, refresh }
   }
 
-  const neighbors = {
-    isLoading: queryPrev.isLoading || queryNext.isLoading,
-    prev: queryPrev.data?.submission && { rootUuid: getSubmissionRootUuid(queryPrev.data.submission) },
-    next: queryNext.data?.submission && { rootUuid: getSubmissionRootUuid(queryNext.data.submission) },
-    refresh,
+  const neighbors = listPosition
+    ? getListNeighbors(listPosition, submissionId, queryWindow.data)
+    : getAllNeighbors(queryPrev.data, queryNext.data)
+  const result = { ...neighbors, isLoading, refresh }
+
+  if (!isLoading) {
+    lastSettled.current = result
   }
 
-  // Submissions are listed newest first, so everything "before" the current
-  // record is newer than it.
-  const newerCount = queryPrev.data?.count
-  const olderCount = queryNext.data?.count
-
-  // Past the count limit there is no telling where the record sits.
-  if (typeof newerCount !== 'number' || olderCount === undefined) {
-    return neighbors
-  }
-
-  return {
-    ...neighbors,
-    index: newerCount + 1,
-    // A capped count on the far side caps the total too.
-    total: typeof olderCount === 'number' ? newerCount + olderCount + 1 : olderCount,
-  }
+  return result
 }
