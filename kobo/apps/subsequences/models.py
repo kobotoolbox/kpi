@@ -844,8 +844,9 @@ class TranscriptionChunk(AbstractTimeStampedModel):
     are how real durations are measured
     """
 
+    id = models.BigAutoField(primary_key=True)
     # `stc` stands for subsequence transcription chunk
-    uid = KpiUidField(uid_prefix='stc', primary_key=True)
+    uid = KpiUidField(uid_prefix='stc')
     asset = models.ForeignKey(
         'kpi.Asset',
         related_name='transcription_chunks',

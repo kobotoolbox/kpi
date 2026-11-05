@@ -29,11 +29,10 @@ class Migration(migrations.Migration):
                         default=kpi.models.abstract_models._get_default_datetime
                     ),
                 ),
+                ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 (
                     'uid',
-                    kpi.fields.kpi_uid.KpiUidField(
-                        _null=False, primary_key=True, uid_prefix='stc'
-                    ),
+                    kpi.fields.kpi_uid.KpiUidField(_null=False, uid_prefix='stc'),
                 ),
                 ('submission_uuid', models.CharField(max_length=249)),
                 ('question_xpath', models.CharField(max_length=2000)),
