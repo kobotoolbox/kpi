@@ -67,6 +67,8 @@ from kpi.utils.schema_extensions.response import (
 )
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.models import MfaMethodsWrapper
+from .constants import OWNER_REMOVAL_ERROR
+from .exceptions import InvalidMembershipRequest
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -787,6 +789,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         member = instance
+        if member.organization.is_owner(member.user):
+            raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
+
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)

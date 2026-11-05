@@ -57,6 +57,7 @@ from .constants import (
     ORG_ADMIN_ROLE,
     ORG_EXTERNAL_ROLE,
     ORG_MEMBER_ROLE,
+    OWNER_ROLE_LOCKED_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
 )
 from .exceptions import InvalidMembershipRequest
@@ -170,6 +171,10 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     def validate_role(self, role):
         if role not in [ORG_ADMIN_ROLE, ORG_MEMBER_ROLE]:
             raise InvalidMembershipRequest(INVALID_ROLE_ERROR)
+
+        if self.instance and self.instance.organization.is_owner(self.instance.user):
+            raise InvalidMembershipRequest(OWNER_ROLE_LOCKED_ERROR)
+
         return role
 
 
