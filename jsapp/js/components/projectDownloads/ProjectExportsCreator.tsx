@@ -6,10 +6,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
 import {
   useAssetsExportSettingsCreate,
-  useAssetsExportSettingsList,
   useAssetsExportSettingsPartialUpdate,
   useAssetsExportsCreate,
 } from '#/api/react-query/survey-data'
+import type { AssetsExportSettingsListQueryResult, useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import { getFlatQuestionsList, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
 import bem from '#/bem'
 import Select from '#/components/common/Select'
@@ -45,6 +45,7 @@ const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
 interface ProjectExportsCreatorProps {
   asset: AssetResponse
+  exportSettingsQuery: ReturnType<typeof useAssetsExportSettingsList<AssetsExportSettingsListQueryResult>>
   selectedExportType: ExportTypeDefinition
   setSelectedExportType: (newType: ExportTypeDefinition) => void
 }
@@ -90,7 +91,7 @@ interface DefinedExportOption {
  * weren't saved as named custom setting.
  */
 export default function ProjectExportsCreator(props: ProjectExportsCreatorProps) {
-  const exportSettingsQuery = useAssetsExportSettingsList(props.asset.uid)
+  const exportSettingsQuery = props.exportSettingsQuery
   const createExportMutation = useAssetsExportsCreate()
   const createExportSettingMutation = useAssetsExportSettingsCreate()
   const updateExportSettingMutation = useAssetsExportSettingsPartialUpdate()

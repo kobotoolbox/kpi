@@ -40,7 +40,7 @@ import type { SupplementalDataAutomaticTranslation } from '../models/supplementa
 import type { SupplementalDataManualQual } from '../models/supplementalDataManualQual'
 import type { SupplementalDataManualTranscription } from '../models/supplementalDataManualTranscription'
 import type { SupplementalDataManualTranslation } from '../models/supplementalDataManualTranslation'
-import { invalidateItem, invalidatePaginatedList, optimisticallyUpdateItem } from './common'
+import { invalidateInfiniteList, invalidateItem, invalidatePaginatedList, optimisticallyUpdateItem } from './common'
 
 /**
  * Applies survey-data mutation defaults to a QueryClient instance.
@@ -94,6 +94,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
         onSettled: (_data, _error, { uidAsset }) => {
           client.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(uidAsset), exact: true })
           invalidatePaginatedList(getAssetsExportSettingsListQueryKey(uidAsset), client)
+          invalidateInfiniteList(getAssetsExportSettingsListQueryKey(uidAsset), client)
         },
       },
     }),
@@ -106,6 +107,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
         onSettled: (_data, _error, { uidAsset, uidExportSetting }) => {
           client.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(uidAsset), exact: true })
           invalidatePaginatedList(getAssetsExportSettingsListQueryKey(uidAsset), client)
+          invalidateInfiniteList(getAssetsExportSettingsListQueryKey(uidAsset), client)
           invalidateItem(getAssetsExportSettingsRetrieveQueryKey(uidAsset, uidExportSetting), client)
         },
       },
@@ -119,6 +121,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
         onSettled: (_data, _error, { uidAsset, uidExportSetting }) => {
           client.invalidateQueries({ queryKey: getAssetsExportSettingsListQueryKey(uidAsset), exact: true })
           invalidatePaginatedList(getAssetsExportSettingsListQueryKey(uidAsset), client)
+          invalidateInfiniteList(getAssetsExportSettingsListQueryKey(uidAsset), client)
           invalidateItem(getAssetsExportSettingsRetrieveQueryKey(uidAsset, uidExportSetting), client)
         },
       },
