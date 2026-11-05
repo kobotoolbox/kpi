@@ -9,6 +9,7 @@ from formpack import FormPack
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.models import Asset
+from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 
 F1 = {
     'survey': [
@@ -591,13 +592,23 @@ class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
             'get_attachment_xpaths_from_version',
             wraps=asset.get_attachment_xpaths_from_version,
         ) as mock_get_xpaths_from_version:
-            asset.deployment.get_submission(
-                submission_id=self.submissions[0]['_id'],
-                user=asset.owner,
-            )
+            with patch(
+                'kpi.models.asset_version.to_xlsform_structure',
+                wraps=to_xlsform_structure,
+            ) as mock_to_xlsform_structure:
+                asset.deployment.get_submission(
+                    submission_id=self.submissions[0]['_id'],
+                    user=asset.owner,
+                )
 
         version = mock_get_xpaths_from_version.call_args.args[0]
+        # Reading `version.version_content` would load the whole field, choices
+        # included, and Django would then stop listing it as deferred
         assert 'version_content' in version.get_deferred_fields()
+        # The version has choices, and the content that it compiles has none
+        mock_to_xlsform_structure.assert_called_once()
+        assert 'choices' not in mock_to_xlsform_structure.call_args.args[0]
+        assert version.version_content['choices']
 
     def test_fetch_one_cache_miss_uses_version_specific_xpaths(self):
         """

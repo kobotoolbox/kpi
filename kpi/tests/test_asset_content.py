@@ -16,7 +16,6 @@ from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
 from kpi.models.asset_version import AssetVersion
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.sluggify import sluggify_label
 
 
@@ -1038,7 +1037,9 @@ class TestAssetContent(TestCase):
             'get_attachment_xpaths_from_version',
             wraps=asset.get_attachment_xpaths_from_version,
         ) as mock_get_xpaths_from_version:
-            with self.assertNumQueries(FuzzyInt(1, 2)):
+            # One query for the newest deployed version, and one for the rows of
+            # the deployed versions
+            with self.assertNumQueries(2):
                 assert sorted(asset.get_all_attachment_xpaths()) == [
                     'Image',
                     'Image_renamed',
@@ -1114,7 +1115,8 @@ class TestAssetContent(TestCase):
             'get_attachment_xpaths_from_version',
             wraps=self.asset.get_attachment_xpaths_from_version,
         ) as mock_get_xpaths_from_version:
-            with self.assertNumQueries(FuzzyInt(1, 2)):
+            # One query for the rows of the versions
+            with self.assertNumQueries(1):
                 assert sorted(
                     self.asset.get_attachment_xpaths_from_version_uids(version_uids)
                 ) == ['Image', 'Image_renamed']
@@ -1138,7 +1140,8 @@ class TestAssetContent(TestCase):
         version = self._deploy_content(_content_with_choices())
         deferred_version = self._deferred_version(version)
 
-        with self.assertNumQueries(FuzzyInt(1, 2)):
+        # One query for the content without its choices
+        with self.assertNumQueries(1):
             schema = deferred_version.to_formpack_schema(include_choices=False)
 
         assert 'version_content' in deferred_version.get_deferred_fields()
@@ -1175,7 +1178,8 @@ class TestAssetContent(TestCase):
         deferred_version = self._deferred_version(version)
         cache.delete(f'attachment_xpaths:{self.asset.uid}:{version.uid}')
 
-        with self.assertNumQueries(FuzzyInt(1, 2)):
+        # One query for the content without its choices
+        with self.assertNumQueries(1):
             xpaths = self.asset.get_attachment_xpaths_from_version(deferred_version)
 
         assert xpaths == ['photo']
@@ -1195,8 +1199,9 @@ class TestAssetContent(TestCase):
         deferred_version = self._deferred_version(version)
         cache.delete(f'attachment_xpaths:{self.asset.uid}:{version.uid}')
 
-        # One more query than a form without a matrix, to read its choices
-        with self.assertNumQueries(FuzzyInt(2, 3)):
+        # One query for the content without its choices, and one more than a form
+        # without a matrix, for the whole content
+        with self.assertNumQueries(2):
             xpaths = self.asset.get_attachment_xpaths_from_version(deferred_version)
 
         assert sorted(xpaths) == [
@@ -1215,8 +1220,9 @@ class TestAssetContent(TestCase):
         self._deploy_content(_content_with_choices())
         asset = Asset.objects.get(pk=self.asset.pk)
 
-        # One query for the rows, and one more per version
-        with self.assertNumQueries(FuzzyInt(2, 3)):
+        # One query for the rows of the two versions, and one more per version for
+        # its content
+        with self.assertNumQueries(3):
             pack, _ = build_formpack(asset, submission_stream=[])
 
         assert len(pack.versions) == 2
