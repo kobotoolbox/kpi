@@ -258,7 +258,10 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     try {
       await createExportMutation.mutateAsync({
         uidAsset: props.asset.uid,
-        data: response.export_settings as never,
+        data: {
+          ...response.export_settings,
+          ...(response.name ? { name: response.name } : {}),
+        } as never,
       })
     } catch (error: unknown) {
       const errorMessage = getApiErrorMessage(error as OrvalFetchError) || t('Failed to create export')
