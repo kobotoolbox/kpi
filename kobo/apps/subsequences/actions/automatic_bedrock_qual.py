@@ -10,6 +10,8 @@ from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 from openai import OpenAIError
 from PIL import Image, ImageOps
+from pillow_heif import register_heif_opener
+
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
@@ -262,9 +264,11 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
         Return b64-encoded image, resized if necessary to fit maximum size limits
         """
         filename = attachment_dict.get('filename')
-        filesize = default_storage.size(filename)
+        register_heif_opener()
+
         with default_storage.open(filename) as fp:
             raw_bytes = fp.read()
+            filesize = len(raw_bytes)
             if filesize > MAX_IMAGE_SIZE:
                 buffer = BytesIO(raw_bytes)
                 with Image.open(buffer) as image:
@@ -274,13 +278,14 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     # use sqrt here because the scale factor will be applied
                     # to both height and width
                     scale = math.sqrt(MAX_IMAGE_SIZE / filesize)
-                    new_w = max(1, int(image.width * scale))
-                    new_h = max(1, int(image.height * scale))
+                    new_w = max(1, float(image.width * scale))
+                    new_h = max(1, float(image.height * scale))
+                    longest_side = max(new_h, new_w)
                     # LANCZOS is standard for shrinking images while
                     # maintaining overall quality
-                    resized = image.resize((new_w, new_h), Image.LANCZOS)
+                    image.thumbnail((longest_side, longest_side), Image.LANCZOS)
                     outbytes = BytesIO()
-                    resized.save(outbytes, format=image_format)
+                    image.save(outbytes, format=image_format)
                     # the image metadata may mean the file is still too big, even after
                     # rescale. Keep reducing dimensions by half until it's small enough
 
@@ -289,9 +294,10 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     ) > MAX_IMAGE_SIZE:
                         new_w = max(1, new_w // 2)
                         new_h = max(1, new_h // 2)
-                        resized = resized.resize((new_w, new_h), Image.LANCZOS)
+                        longest_side = max(new_h, new_w)
+                        image.thumbnail((longest_side, longest_side), Image.LANCZOS)
                         outbytes = BytesIO()
-                        resized.save(outbytes, format=image_format)
+                        image.save(outbytes, format=image_format)
                         if outbytes.getbuffer().nbytes == current_size:
                             # we've made the image as small as it can go
                             # and it's still too large
