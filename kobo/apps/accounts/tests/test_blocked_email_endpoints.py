@@ -69,9 +69,7 @@ class BlockedAllauthEmailEndpointsTestCase(TestCase):
         self._assert_email_unchanged()
 
     @data('post', 'delete')
-    def test_headless_manage_email_is_not_found_with_unvalidated_password(
-        self, method
-    ):
+    def test_headless_manage_email_is_not_found_with_unvalidated_password(self, method):
         # `RestrictedAccessMiddleware` must keep the 404, not swap it for its
         # 403 page and then crash
         UserProfile.objects.update_or_create(

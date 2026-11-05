@@ -6,7 +6,6 @@ from django.test import Client, RequestFactory, TestCase
 from model_bakery import baker
 
 from kobo.apps.openrosa.apps.main.models import UserProfile
-
 from kobo.apps.openrosa.libs.utils.middleware import (
     OpenRosaTrailingSlashMiddleware,
 )
