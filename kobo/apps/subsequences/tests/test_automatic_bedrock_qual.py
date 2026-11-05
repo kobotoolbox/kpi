@@ -5,9 +5,8 @@ import os
 import time
 import uuid
 from datetime import timedelta
-
 from io import BytesIO
-from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
+from unittest.mock import ANY, DEFAULT, call, patch
 
 import jsonschema
 import pytest
@@ -20,7 +19,6 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from openai import OpenAIError
-
 from PIL import Image
 from rest_framework import status
 from rest_framework.reverse import reverse

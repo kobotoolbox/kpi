@@ -1,10 +1,7 @@
 import base64
-import json
 import math
 from copy import deepcopy
-from dataclasses import dataclass
 from io import BytesIO
-from json import JSONDecodeError
 from typing import Optional
 from xml.sax.saxutils import escape
 
@@ -12,7 +9,6 @@ from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutErr
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 from openai import OpenAIError
-
 from PIL import Image, ImageOps
 
 from kobo.apps.organizations.constants import UsageType
@@ -64,7 +60,9 @@ from .automatic_bedrock_qual_utils import (
     CLIENTS_BY_NAME,
     OSS120,
     ClaudeSonnet,
-    Gemma4, LLModel)
+    Gemma4,
+    LLModel,
+)
 
 MAX_IMAGE_SIZE = 3.75e6 * 3 / 4  # max image size for Bedrock with room for encoding
 
