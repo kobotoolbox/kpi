@@ -506,8 +506,6 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name',
 }
 
-export const QUERY_LIMIT_DEFAULT = 1000
-
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,
   connect_projects: 30,
@@ -668,7 +666,6 @@ const constants = {
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
   MAX_DISPLAYED_STRING_LENGTH,
   SURVEY_DETAIL_ATTRIBUTES,
