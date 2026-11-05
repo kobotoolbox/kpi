@@ -30,7 +30,7 @@ import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import FormViewSideTabs from '#/project/formViewSideTabs'
+import FormViewSideTabs from '#/project/FormViewSideTabs'
 import ProjectTopTabs from '#/project/projectTopTabs.component'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import { RouteGuardPendingContext } from '#/router/RouteGuardSpinner'
@@ -117,7 +117,7 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
           {isMainShown && (
             <>
               {isFormSingle && <ProjectTopTabs />}
-              <FormViewSideTabs show={isFormSingle} />
+              <FormViewSideTabs />
             </>
           )}
 

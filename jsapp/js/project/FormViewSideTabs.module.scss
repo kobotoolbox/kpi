@@ -1,0 +1,76 @@
+@use 'scss/breakpoints';
+@use 'scss/colors';
+@use 'scss/variables';
+
+// The `form-view__sidetabs` container (and the page next to it) is still laid out in `_kobo.form-view.scss`.
+
+.tab {
+  // No background in any state, so Mantine's active styles only drive the colors below
+  --nl-bg: transparent;
+  --nl-hover: transparent;
+
+  position: relative;
+  width: auto;
+  margin-left: 10px;
+  padding: 6px;
+  color: colors.$kobo-gray-700;
+  font-size: variables.$base-font-size;
+  letter-spacing: -0.01em;
+
+  &:hover {
+    background-color: transparent;
+    color: colors.$kobo-gray-800;
+  }
+
+  &[data-active] {
+    color: colors.$kobo-gray-800;
+    font-weight: 700;
+
+    // Sits in the gap left by `margin-left`, flush with the container edge
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -10px;
+      width: 4px;
+      height: 100%;
+      background-color: colors.$kobo-teal;
+    }
+  }
+}
+
+.tabIcon {
+  margin: 0 9px 0 5px;
+
+  i {
+    font-size: 26px;
+    line-height: 36px;
+  }
+}
+
+.tabLabel {
+  font-size: inherit;
+}
+
+@media screen and (height <= 420px) {
+  .tab {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+// Narrow container, so the label goes under the icon
+@media screen and (width < #{breakpoints.$b768}) {
+  .tab {
+    flex-direction: column;
+    padding: 0 3px 0 1px;
+    font-size: 10px;
+    line-height: 1;
+    text-align: center;
+    letter-spacing: -0.05em;
+  }
+
+  .tabIcon {
+    margin: 0;
+  }
+}
