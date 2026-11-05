@@ -173,7 +173,7 @@ jobs:
       topic: "${{ needs.version.outputs.current_minor }} release"
       content: |
         :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
-        - @*QA* & @*product*: the release window is as long as it takes to tag the release version. If you want to "scrap" this release then ask devs to manually delete the branch.
+        - @*QA* & @*product*: the release window is as long as it takes to tag the release version. If you want to delete this release then run [delete workflow](https://github.com/kobotoolbox/kpi/actions/workflows/release-3-delete.yml) yourself.
 
 
   notify-prev:

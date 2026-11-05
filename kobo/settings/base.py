@@ -14,7 +14,11 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
+from kpi.constants import (
+    AUTH_SERVER_TAG_CHOICES,
+    PERM_DELETE_ASSET,
+    PERM_MANAGE_ASSET,
+)
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
@@ -244,6 +248,13 @@ CONSTANCE_CONFIG = {
         'Show the KoboToolbox logo on the sign-in and account creation pages. '
         'Turn this off to display only the logo uploaded under '
         'Configuration files',
+    ),
+    'AUTH_SERVER_TAG': (
+        '',
+        'Server name tag shown at the top of the sign-in and account creation '
+        'cards. Leave as None on private servers to show the logo uploaded '
+        'under Configuration files instead',
+        'server_tag_choice',
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
@@ -782,6 +793,13 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
+    'server_tag_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': [('', 'None')] + AUTH_SERVER_TAG_CHOICES,
+            'required': False,
+        },
+    ],
     'disabled': [
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
@@ -801,6 +819,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
         'SHOW_KOBOTOOLBOX_LOGO',
+        'AUTH_SERVER_TAG',
         'TERMS_OF_SERVICE_URL',
         'LAST_TOS_UPDATE',
         'PRIVACY_POLICY_URL',
@@ -1040,7 +1059,6 @@ MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 MARKDOWNX_UPLOAD_CONTENT_TYPES = [
     'image/jpeg',
     'image/png',
-    'image/svg+xml',
     'image/gif',
     'image/webp',
 ]
@@ -1091,7 +1109,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.LimitedCountPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1153,6 +1171,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthServerTagEnum': 'kpi.constants.AUTH_SERVER_TAG_CHOICES',
         'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
@@ -1197,7 +1216,7 @@ SPECTACULAR_SETTINGS = {
             'name': 'Manage projects and library content',
             'description': (
                 'Create, organize, and manage projects, assets '
-                '(projects/library content), and tags',
+                '(projects/library content), and tags'
             ),
         },
         {
@@ -1416,6 +1435,27 @@ BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
 BULK_ACTION_STUCK_THRESHOLD = env.int(
     'BULK_ACTION_STUCK_THRESHOLD',
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
+)
+
+# The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
+# than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
+TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
+    'TRANSCRIPTION_SILENCE_MIN_DURATION',
+    0.5,
+)
+
+# Loudness thresholds, in dBFS, tried in order until every cut has a pause to
+# land in. Recording levels differ enormously between files, so no single
+# threshold finds the pauses in all of them
+TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
+
+# Longest a single silence detection pass may run. It streams the whole
+# recording out of storage, so allow for a slow download, but never let a web
+# request hang on it for ever
+TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
+    'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
+    300,
 )
 
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
@@ -1887,14 +1927,43 @@ ACCOUNT_FORMS = {
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+# Accounts can share an email, so login stays username-only: allauth rejects
+# `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
-ACCOUNT_RATE_LIMITS = False
+ACCOUNT_RATE_LIMITS = {
+    # Brute force. Per username ("key") and per IP. Also applies to wrong
+    # MFA codes, per user. 10 matches the "5-10 failures, 15-minute lockout"
+    # in the issue; 30 per IP tolerates a few people mistyping behind one
+    # address while capping a spray from one IP at 120 guesses an hour.
+    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'),
+    # All login POSTs per IP, successful or not. Set loosely so a
+    # training room behind one address is not blocked. '' turns it off.
+    'login': env.str('ALLAUTH_LOGIN_RATE_LIMIT', '40/m/ip'),
+    # Account creation spam. Default.
+    'signup': env.str('ALLAUTH_SIGNUP_RATE_LIMIT', '20/m/ip'),
+    # Reset emails per IP, and per address so one inbox cannot be flooded.
+    # Defaults.
+    'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT', '20/m/ip,5/m/key'),
+    'reset_password_from_key': env.str(
+        'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT', '20/m/ip'
+    ),
+    # Per logged-in user, so shared IPs are unaffected. Defaults.
+    'reauthenticate': env.str('ALLAUTH_REAUTHENTICATE_RATE_LIMIT', '10/m/user'),
+    'change_password': env.str('ALLAUTH_CHANGE_PASSWORD_RATE_LIMIT', '5/m/user'),
+    'manage_email': env.str('ALLAUTH_MANAGE_EMAIL_RATE_LIMIT', '10/m/user'),
+    # Off: /api/v2/email-confirmations/ already has its own per-address
+    # throttle (EMAIL_CONFIRMATION_REQUESTS_PER_HOUR).
+    'confirm_email': '',
+}
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.
 # changing the email address) demands it again
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
+# Use X-Forwarded-For as the primary source of truth for client IPs
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
+
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -2269,6 +2338,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 # to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
+# Maximum allowed size (in bytes) of the `choices` sheet in an XLSForm
+MAX_CHOICES_SIZE_BYTES = env.int('MAX_CHOICES_SIZE_BYTES', 2 * 1024 * 1024)
+
 # OpenRosa setting in bytes
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
@@ -2506,6 +2578,9 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+# Same, for the XPaths of a single form version. A version never changes, so
+# its entry can live much longer than the one that merges all versions
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 30 * 86400
 
 # Cache time-to-live (in seconds) for the survey question types and default
 # language used by NLP actions
@@ -2526,6 +2601,9 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 )
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
+)
+AUTOQA_GEMMA_MODEL_AIP_ARN = env.str(
+    'AUTOQA_GEMMA_MODEL_AIP_ARN', default='google.gemma-3-27b-it'
 )
 
 # 24 months x 31 days/month = 744 default

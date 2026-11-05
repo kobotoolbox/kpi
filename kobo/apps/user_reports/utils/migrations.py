@@ -12,7 +12,7 @@ POST_TERMINATE_SLEEP = 3
 # used by migrations to determine if they are responsible for running CREATE_MV_SQL
 # when updating the sql, add a new version to the end of the list and gate the migration
 # on `if <my_new_version> == CREATE_MV_SQL_VERSIONS[-1]`
-CREATE_MV_SQL_VERSIONS = ['initial', '20260807']
+CREATE_MV_SQL_VERSIONS = ['initial', '20260807', '20261021']
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -114,9 +114,9 @@ CREATE_MV_BASE_SQL = f"""
         ) AS validated_email,
         EXISTS (
             SELECT 1
-            FROM accounts_mfa_mfamethodswrapper mfa
+            FROM mfa_authenticator mfa
             WHERE mfa.user_id = au.id
-            AND mfa.is_active = true
+            AND mfa.type = 'totp'
         ) AS mfa_is_active,
         EXISTS (
             SELECT 1

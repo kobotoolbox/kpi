@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:35+0000\n"
+"POT-Creation-Date: 2026-11-03 12:57+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Ridho Dwi Dharmawan <ridhodwidh@gmail.com>, 2022\n"
 "Language-Team: Indonesian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/id/)\n"
@@ -888,36 +888,36 @@ msgstr "Harus ada satu id string saja."
 msgid "There should be a single title."
 msgstr "Harus ada satu judul saja."
 
-#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/apps/logger/views.py:63
 #: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "Kiriman berhasil."
 
-#: kobo/apps/openrosa/apps/logger/views.py:94
+#: kobo/apps/openrosa/apps/logger/views.py:102
 msgid ""
 "There was a problem receiving your ODK submission. [Error: IO Error reading "
 "data]"
 msgstr "Terjadi masalah saat menerima kiriman ODK Anda. [Kesalahan: Kesalahan IO membaca data]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:98
+#: kobo/apps/openrosa/apps/logger/views.py:110
 msgid ""
 "There was a problem receiving your ODK submission. [Error: multiple "
 "submission files (?)]"
 msgstr "Terjadi masalah saat menerima kiriman ODK Anda. [Kesalahan: file kiriman ganda (?)]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:120
+#: kobo/apps/openrosa/apps/logger/views.py:136
 #, python-format
 msgid ""
 "Submission complete. Out of %(total)d survey instances, %(success)d were "
 "imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
 msgstr "Kiriman selesai. Dari %(total)d instansi survei, %(success)d berhasil diimpor, (%(rejected)d ditolak sebagai duplikat, formulir tidak ada, dll.)"
 
-#: kobo/apps/openrosa/apps/logger/views.py:190
+#: kobo/apps/openrosa/apps/logger/views.py:210
 #, python-format
 msgid "No XLS file for your form %(id)s"
 msgstr "Tidak ada file XLS untuk formulir Anda %(id)s"
 
-#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/logger/views.py:228
 #: kobo/apps/openrosa/apps/viewer/views.py:42
 #: kobo/apps/openrosa/apps/viewer/views.py:95
 #: kobo/apps/openrosa/apps/viewer/views.py:114
@@ -2247,15 +2247,15 @@ msgstr ""
 msgid "Invalid request"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "an admin"
 msgstr "admin"
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "a member"
 msgstr "anggota"
 
-#: kobo/apps/organizations/models.py:445
+#: kobo/apps/organizations/models.py:471
 msgid "You're invited to join ##organization_name## organization"
 msgstr "Anda diundang untuk bergabung organisasi##organization_name## "
 
@@ -3050,140 +3050,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Autentikasi multifaktor diaktifkan untuk akun ini. "
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:331
 msgid "Can view asset"
 msgstr "Dapat melihat aset"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:332
 msgid "Can discover asset in public lists"
 msgstr "Dapat menemukan aset dalam daftar publik"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:333
 msgid "Can manage all aspects of asset"
 msgstr "Dapat mengelola semua aspek dari aset"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:335
 msgid "Can submit data to asset"
 msgstr "Dapat mengirimkan data ke aset"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:336
 msgid "Can view submitted data for asset"
 msgstr "Dapat melihat data yang dikirimkan untuk aset"
 
-#: kpi/models/asset.py:314
+#: kpi/models/asset.py:337
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Dapat melakukan tindakan sebagian pada data yang dikirimkan untuk aset bagi pengguna tertentu"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:340
 msgid "Can modify submitted data for asset"
 msgstr "Dapat mengubah data yang dikirimkan untuk aset"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:341
 msgid "Can delete submitted data for asset"
 msgstr "Dapat menghapus data yang dikirimkan untuk aset"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:342
 msgid "Can validate submitted data asset"
 msgstr "Dapat memvalidasi data yang dikirimkan aset"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "project"
 msgstr "proyek"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "form"
 msgstr "formulir"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:363
 msgid "template"
 msgstr "templat"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:364
 msgid "block"
 msgstr "blok"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:365
 msgid "question"
 msgstr "pertanyaan"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:366
 msgid "text"
 msgstr "teks"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:367
 msgid "empty"
 msgstr "kosong"
 
-#: kpi/models/asset.py:345
+#: kpi/models/asset.py:368
 msgid "collection"
 msgstr "koleksi"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:375
 msgid "View ##asset_type_label##"
 msgstr "Lihat ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:376
 msgid "Edit ##asset_type_label##"
 msgstr "Edit ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:377
 msgid "Discover ##asset_type_label##"
 msgstr "Temukan ##asset_type_label##"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:378
 msgid "Manage ##asset_type_label##"
 msgstr "Kelola ##asset_type_label##"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:379
 msgid "Add submissions"
 msgstr "Tambahkan kiriman"
 
-#: kpi/models/asset.py:357
+#: kpi/models/asset.py:380
 msgid "View submissions"
 msgstr "Lihat kiriman"
 
-#: kpi/models/asset.py:360
+#: kpi/models/asset.py:383
 msgid "Act on submissions only from specific users"
 msgstr "Lakukan tindakan pada kiriman hanya dari pengguna tertentu"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:386
 msgid "View submissions only from specific users"
 msgstr "Lihat kiriman hanya dari pengguna tertentu"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:389
 msgid "Edit submissions only from specific users"
 msgstr "Edit kiriman hanya dari pengguna tertentu"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:392
 msgid "Delete submissions only from specific users"
 msgstr "Hapus kiriman hanya dari pengguna tertentu"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:395
 msgid "Validate submissions only from specific users"
 msgstr "Validasi kiriman hanya dari pengguna tertentu"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:398
 msgid "Edit submissions"
 msgstr "Edit kiriman"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:399
 msgid "Delete submissions"
 msgstr "Hapus kiriman"
 
-#: kpi/models/asset.py:377
+#: kpi/models/asset.py:400
 msgid "Validate submissions"
 msgstr "Validasi kiriman"
 
-#: kpi/models/asset.py:734
+#: kpi/models/asset.py:768
 msgid "Only partial permissions for submissions are supported"
 msgstr "Hanya izin sebagian untuk kiriman yang didukung"
 
-#: kpi/models/asset.py:1463
+#: kpi/models/asset.py:1497
 msgid "Can not assign '{}' permission to owner"
 msgstr "Tidak dapat memberikan izin '{}' kepada pemilik"
 
-#: kpi/models/asset.py:1467
+#: kpi/models/asset.py:1501
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Tidak dapat memberikan izin '{}'. Izin sebagian tidak ada."
 

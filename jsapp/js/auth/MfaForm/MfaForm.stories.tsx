@@ -5,10 +5,9 @@ import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import LoginRoute from '#/auth/LoginRoute/LoginRoute'
-import { type Canvas, field } from '#/auth/authStoryHelpers'
+import { type Canvas, field, findField } from '#/auth/authStoryHelpers'
 import {
   MFA_AUTHENTICATE_URL,
-  allauthConfigurationMock,
   loginMfaRequiredMock,
   mfaErrorsMock,
   mfaFlowExpiredMock,
@@ -27,6 +26,9 @@ const environmentMock = makeEnvironmentMock()
 /** An instance whose tokens are longer than the default six, which only the description shows. */
 const longCodeEnvironmentMock = makeEnvironmentMock({ mfa_code_length: 8 })
 
+/** An instance whose admin emptied `MFA_LOCALIZED_HELP_TEXT`, leaving the help panel to its own copy. */
+const noHelpTextEnvironmentMock = makeEnvironmentMock({ mfa_localized_help_text: '' })
+
 let postedBody: unknown = null
 
 const mfaRecordingMock = () =>
@@ -43,17 +45,13 @@ const mfaRecordingMock = () =>
   })
 
 /**
- * Storybook replaces the handler array rather than merging it, so every story restates `/environment`,
- * allauth's configuration, and the sign-in that asks for a code - that first step is what puts this form on
- * screen. The configuration only matters to the step before this one, which needs a credential to ask for.
+ * Storybook replaces the handler array rather than merging it, so every story restates `/environment` and
+ * the sign-in that asks for a code - that first step is what puts this form on screen.
  */
 const storyHandlers = (options?: { environment?: RequestHandler; mfa?: RequestHandler }): RequestHandler[] =>
-  [
-    options?.environment ?? environmentMock,
-    allauthConfigurationMock(['username']),
-    loginMfaRequiredMock(),
-    options?.mfa,
-  ].filter((handler): handler is RequestHandler => Boolean(handler))
+  [options?.environment ?? environmentMock, loginMfaRequiredMock(), options?.mfa].filter(
+    (handler): handler is RequestHandler => Boolean(handler),
+  )
 
 const onAuthenticated = fn()
 
@@ -92,9 +90,7 @@ async function reachCodeForm(canvas: Canvas) {
   onAuthenticated.mockClear()
   postedBody = null
 
-  // The login button holds a spinner until `/environment` says which credential this server takes
-  await waitFor(() => expect(canvas.getByRole('button', { name: 'Log in' })).toBeEnabled())
-  await userEvent.type(field(canvas, 'Username'), CREDENTIALS.username)
+  await userEvent.type(await findField(canvas, 'Username'), CREDENTIALS.username)
   await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
   await userEvent.click(canvas.getByRole('button', { name: 'Log in' }))
 
@@ -180,8 +176,26 @@ export const ServerErrors: Story = {
   },
 }
 
-/** What to do without the authenticator app. Reached from the form's button. */
+/** What to do without the authenticator app, in the admin's words. Reached from the form's button. */
 export const VerificationIssues: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await reachCodeForm(canvas)
+
+    await openVerificationIssues(canvas)
+
+    await canvas.findByText(/you will need to request assistance by contacting/)
+    expect(canvas.getByRole('link', { name: 'support@kobo.local' })).toHaveAttribute(
+      'href',
+      'mailto:support@kobo.local',
+    )
+    expect(canvas.queryByLabelText(/^Code/)).not.toBeInTheDocument()
+  },
+}
+
+/** An admin who cleared the help text still leaves the panel saying something. */
+export const VerificationIssuesWithoutHelpText: Story = {
+  parameters: { msw: { handlers: storyHandlers({ environment: noHelpTextEnvironmentMock }) } },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     await reachCodeForm(canvas)
@@ -190,7 +204,6 @@ export const VerificationIssues: Story = {
 
     // The instance's own address, from `/environment` - not the KoboToolbox one the source string carries.
     await canvas.findByText(/contact support@kobo.local for help/)
-    expect(canvas.queryByLabelText(/^Code/)).not.toBeInTheDocument()
   },
 }
 

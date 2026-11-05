@@ -3,6 +3,7 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
+from allauth.mfa.models import Authenticator
 from allauth.socialaccount.models import SocialAccount
 from constance.test import override_config
 from django.conf import settings
@@ -85,6 +86,21 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Make sure that all 3 users from the 'test_data' are included
         self.assertEqual(len(response.data['results']), 3)
+
+    def test_mfa_is_active_reflects_totp_authenticator(self):
+        def someuser_mfa_is_active():
+            refresh_user_reports_materialized_view(concurrently=False)
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            return next(
+                r for r in response.data['results'] if r['username'] == 'someuser'
+            )['mfa_is_active']
+
+        self.assertFalse(someuser_mfa_is_active())
+        Authenticator.objects.create(
+            user=self.someuser, type=Authenticator.Type.TOTP, data={'secret': 'x'}
+        )
+        self.assertTrue(someuser_mfa_is_active())
 
     def test_endpoint_returns_error_when_mv_is_missing(self):
         # Drop the materialized view before the test

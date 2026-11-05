@@ -8,7 +8,9 @@ import {
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import {
   findAttachmentByQuestionXpaths,
@@ -53,6 +55,11 @@ export default function DataTableCell(props: DataTableCellProps) {
   // a negative translation index (see `TableSettings`).
   const shouldShowSelectLabels = props.translationIndex > -1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
+  const isNlpImageActionsEnabled = useFeatureFlag(FeatureFlag.nlpImageActionsEnabled)
+
+  // TODO: drop the image check along with `FeatureFlag.nlpImageActionsEnabled` once NLP for images is complete.
+  const hasProcessingAction = (questionType: AnyRowTypeName | undefined) =>
+    isNlpSupported(questionType) && (questionType !== QUESTION_TYPES.image.id || isNlpImageActionsEnabled)
 
   const shouldRenderUndefinedNestedKeyAsRepeat = (() => {
     if (props.columnValue !== undefined || !props.columnKey.includes('/')) {
@@ -99,7 +106,8 @@ export default function DataTableCell(props: DataTableCellProps) {
         rowName={props.columnKey}
         // Processing doesn't support repeat groups, so NLP supported questions get a disabled way into it.
         showDisabledProcessingAction={
-          isNlpSupported(props.question?.type) && isInRepeatGroup(props.asset, props.columnKey, props.submissionData)
+          hasProcessingAction(props.question?.type) &&
+          isInRepeatGroup(props.asset, props.columnKey, props.submissionData)
         }
       />
     )
@@ -149,6 +157,8 @@ export default function DataTableCell(props: DataTableCellProps) {
             submissionTotal={props.submissionCount}
             submission={props.submissionData}
             asset={props.asset}
+            xpath={questionXpath}
+            showProcessingAction={hasProcessingAction(questionType)}
           />
         )
       }

@@ -3,7 +3,8 @@ import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { ExtraProjectMetadataFieldType } from '#/constants'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
-import type { UserFieldName } from './account/account.constants'
+import { choicesFromTuples } from '#/utils'
+import type { UserMetadataField } from './account/account.constants'
 
 export interface EnvironmentResponse {
   terms_of_service_url: string
@@ -54,12 +55,6 @@ export interface EnvironmentResponse {
  * `observer()` themselves.
  */
 
-export interface UserMetadataField {
-  name: UserFieldName
-  required: boolean
-  label: string
-}
-
 export interface EnvStoreFieldItem {
   name: string
   required: boolean
@@ -105,7 +100,6 @@ export class EnvStoreData {
   public max_retry_time: number = 4 * 60 // seconds
   public project_metadata_fields: EnvStoreFieldItem[] = []
   public extra_project_metadata_fields: ExtraProjectMetadataField[] = []
-  public user_metadata_fields: UserMetadataField[] = []
   public sector_choices: LabelValuePair[] = []
   public operational_purpose_choices: LabelValuePair[] = []
   public country_choices: LabelValuePair[] = []
@@ -155,27 +149,6 @@ export class EnvStoreData {
     }
     return dict
   }
-
-  public getUserMetadataFieldsAsSimpleDict() {
-    // dict[name] => {name, required, label}
-    const dict: { [fieldName: string]: UserMetadataField } = {}
-    for (const field of this.user_metadata_fields) {
-      dict[field.name] = field
-    }
-    return dict
-  }
-
-  public getUserMetadataFieldLabel(fieldName: UserFieldName): string {
-    return this.getUserMetadataFieldsAsSimpleDict()[fieldName]?.label || fieldName
-  }
-
-  public getUserMetadataRequiredFieldNames(): UserFieldName[] {
-    return this.user_metadata_fields.filter((item) => item.required).map((item) => item.name)
-  }
-
-  public getUserMetadataFieldNames(): UserFieldName[] {
-    return this.user_metadata_fields.map((item) => item.name)
-  }
 }
 
 class EnvStore {
@@ -194,17 +167,6 @@ class EnvStore {
     this.onGetEnvCompleted(response)
   }
 
-  /**
-   * A DRY utility function that turns an array of two items into an object with
-   * 'value' and 'label' properties.
-   */
-  private nestedArrToChoiceObjs = (i: string[]): LabelValuePair => {
-    return {
-      value: i[0],
-      label: i[1],
-    }
-  }
-
   private onGetEnvCompleted(response: EnvironmentResponse) {
     this.data.terms_of_service_url = response.terms_of_service_url
     this.data.privacy_policy_url = response.privacy_policy_url
@@ -217,7 +179,6 @@ class EnvStore {
     this.data.max_retry_time = response.frontend_max_retry_time
     this.data.project_metadata_fields = response.project_metadata_fields
     this.data.extra_project_metadata_fields = response.extra_project_metadata_fields || []
-    this.data.user_metadata_fields = response.user_metadata_fields
     this.data.submission_placeholder = response.submission_placeholder
     this.data.use_team_label = response.use_team_label
     this.data.usage_limit_enforcement = response.usage_limit_enforcement
@@ -232,16 +193,16 @@ class EnvStore {
     this.data.allow_self_account_deletion = Boolean(response.allow_self_account_deletion)
 
     if (response.sector_choices) {
-      this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs)
+      this.data.sector_choices = choicesFromTuples(response.sector_choices)
     }
     if (response.operational_purpose_choices) {
-      this.data.operational_purpose_choices = response.operational_purpose_choices.map(this.nestedArrToChoiceObjs)
+      this.data.operational_purpose_choices = choicesFromTuples(response.operational_purpose_choices)
     }
     if (response.country_choices) {
-      this.data.country_choices = response.country_choices.map(this.nestedArrToChoiceObjs)
+      this.data.country_choices = choicesFromTuples(response.country_choices)
     }
     if (response.interface_languages) {
-      this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs)
+      this.data.interface_languages = choicesFromTuples(response.interface_languages)
     }
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled

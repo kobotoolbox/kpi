@@ -1,6 +1,7 @@
-import { Stack, Typography } from '@mantine/core'
+import { Stack } from '@mantine/core'
 import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import styles from './AuthAside.module.scss'
+import InjectedHtml from './InjectedHtml'
 
 export interface AuthAsideProps {
   /** `auth_configuration.supporting_image_url` */
@@ -21,7 +22,7 @@ export default function AuthAside({ imageUrl, text }: AuthAsideProps) {
     <Stack gap='lg'>
       {imageUrl && <img className={styles.image} src={imageUrl} alt='' />}
 
-      {text && <Typography className={styles.text} fz='sm' dangerouslySetInnerHTML={{ __html: text }} />}
+      {text && <InjectedHtml className={styles.text} fz='sm' html={text} />}
     </Stack>
   )
 }

@@ -1,22 +1,47 @@
 import React from 'react'
 
-import { Checkbox } from '@mantine/core'
-import { IconBrandInstagramFilled, IconBrandLinkedinFilled, IconBrandTwitterFilled } from '@tabler/icons-react'
+import { Checkbox, type SelectProps } from '@mantine/core'
+import {
+  type Icon,
+  IconBrandInstagramFilled,
+  IconBrandLinkedinFilled,
+  IconBrandTwitterFilled,
+} from '@tabler/icons-react'
 import cx from 'classnames'
 import KoboIcon from '#/components/common/KoboIcon'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import Textarea from '#/components/common/Textarea'
+import type { ComboboxData } from '#/components/common/select.types'
 import { addRequiredToLabel } from '#/textUtils'
-import envStore from '../envStore'
-import type { AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
-import { hasNoOrganizationAffiliation } from './account.utils'
+import { recordKeys } from '#/utils'
+import type { AccountFieldsConfig, AccountFieldsErrors, AccountFieldsValues, UserFieldName } from './account.constants'
+import { ORGANIZATION_DEPENDENT_FIELD_NAMES } from './account.constants'
+import { getUserMetadataFieldsByName, hasNoOrganizationAffiliation } from './account.utils'
 import { GENDER_SELECT_OPTIONS, ORGANIZATION_TYPE_SELECT_OPTIONS } from './accountFieldOptions'
 import styles from './accountFieldsEditor.module.scss'
 
 type UserFieldValue = string | boolean
 
+/** The fields holding text, as opposed to a checkbox. */
+type TextFieldName = {
+  [K in UserFieldName]-?: NonNullable<AccountFieldsValues[K]> extends string ? K : never
+}[UserFieldName]
+
+type Section = 'main' | 'bio' | 'social' | 'newsletter'
+
+/** When both fields of a pair are shown, they start a new row together. */
+const ROW_PAIRS: Partial<Record<UserFieldName, UserFieldName>> = {
+  country: 'city',
+  organization: 'organization_website',
+}
+
 interface AccountFieldsEditorProps {
+  /**
+   * What this instance asks for: which fields exist, how they are labelled, and the country and sector choices.
+   * A prop rather than a store reading, so this works both with MobX and React Query.
+   */
+  fieldsConfig: AccountFieldsConfig
   /**
    * A list of fields to display in editor. Regardless of this list, all
    * the fields values will be returned with `onChange` callback (to avoid
@@ -38,19 +63,17 @@ interface AccountFieldsEditorProps {
  * values. It DOES NOT handle the API calls to update the values on the endpoint.
  */
 export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
-  if (!envStore.isReady) {
-    return null
-  }
-
-  const metadata = envStore.data.getUserMetadataFieldsAsSimpleDict()
+  const { userMetadataFields } = props.fieldsConfig
+  const metadata = getUserMetadataFieldsByName(userMetadataFields)
 
   /** Get label for a given user metadata fieldname */
   function getLabel(fieldName: UserFieldName): string {
-    if (!metadata[fieldName]?.label) {
+    const label = metadata[fieldName]?.label
+    if (!label) {
       // Here it means a field is on screen that the Backend never configured, which is worth knowing about
       console.error(`No label for fieldname "${fieldName}"`)
     }
-    return envStore.data.getUserMetadataFieldLabel(fieldName)
+    return label || fieldName
   }
 
   /** Is this field required by Backend configuration? */
@@ -61,10 +84,6 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   /** Get label and (required) for a given user metadata fieldname */
   function getLabelWithRequired(fieldName: UserFieldName): string {
     return addRequiredToLabel(getLabel(fieldName), isRequired(fieldName))
-  }
-
-  function onAnyFieldChange(fieldName: UserFieldName, newValue: UserFieldValue) {
-    props.onFieldChange(fieldName, newValue)
   }
 
   const cleanedUrl = (value: string) => {
@@ -90,7 +109,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   function updateWebsiteAddress(input: string) {
     const cleaned = cleanedUrl(input)
     if (cleaned !== input) {
-      onAnyFieldChange('organization_website', cleaned)
+      props.onFieldChange('organization_website', cleaned)
     }
   }
 
@@ -104,9 +123,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
    * Field will be displayed if it is enabled on Back end and not omitted
    * in `displayedFields`.
    *
-   * NOTE: Organization-related fields are treated differently. See:
-   *       - isOrganizationTypeFieldToBeDisplayed()
-   *       - areOrganizationFieldsToBeSkipped
+   * NOTE: Organization-related fields are treated differently, see `isShown`.
    */
   function isFieldToBeDisplayed(name: UserFieldName) {
     return (
@@ -121,320 +138,161 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   }
 
   /**
-   * Always show 'organization_type' if it is enabled on Back end and
-   * 'organization' or 'organization_website' would be shown.
-   *
-   * Organization Type is used as a toggle for those fields ('skip logic')
-   * so it needs to be reachable regardless of props.displayedFields
-   */
-  function isOrganizationTypeFieldToBeDisplayed() {
-    return (
-      'organization_type' in metadata &&
-      (isFieldToBeDisplayed('organization_type') ||
-        isFieldToBeDisplayed('organization') ||
-        isFieldToBeDisplayed('organization_website'))
-    )
-  }
-
-  /**
    * 'Skip logic' for 'organization' and 'organization_website', controlled
    * by the value of 'organization_type' dropdown.
    */
   const areOrganizationFieldsToBeSkipped = hasNoOrganizationAffiliation(
     props.values,
-    envStore.data.getUserMetadataFieldNames(),
+    userMetadataFields.map((field) => field.name),
   )
 
   /**
-   * There's a subtle aspect of this layout that is hard to achieve with CSS
-   * only. There are pairs of fields that, if they appear together, they
-   * should to start a new row so they can appear side-by-side. But, if just
-   * one of these fields appears, it should share a row with its neighbor.
-   *
-   * It's tricky:
-   *
-   *  (1) A flex child can't force a flex to wrap early, except by being too
-   *      wide to share a row. One solution is to insert a spacer the same size
-   *      as a field, only when it is preceded by an odd number of fields. We
-   *      can determine this with a JS counter in the render function, or in CSS
-   *      with an :nth- pseudo-selectors. (*CSS idea is unverified -ph)
-   *  (2) We can only tell if that spacer is needed based on fields that appear
-   *      later in the form, which rules out most CSS selectors. In JS, we can
-   *      use boolean logic in the render function. Or in CSS we can use the
-   *      newly-landed :has(), or place the spacers later in the DOM and reorder
-   *      them with flex order. (*CSS idea is unverified -ph)
-   *
-   * Both solutions are a little dicey
-   *
-   * 1. Use the newly-landed :has() along with :nth-child() to conditionally add
-   *    a spacer into the flow if it's needed. (Hypothetical solution.)
-   * 2. Increment a counter in JavaScript to count even or odd rows, and use
-   *    JS logic. (This was the first thing I tried and it works.)
-   *
-   * In the interest of keeping "presentational" concerns in CSS as much as
-   * possible and avoid weaving a counter variable in a render statement,
-   * I may try the CSS solution.
-   *   -ph
+   * Whether the field ends up on screen. Organization type toggles the organization fields, so it comes along
+   * with either of them, regardless of `displayedFields`.
    */
-  let fieldCount = 0 // field counter to adjust wrapping with spacers
+  function isShown(name: UserFieldName) {
+    if (name === 'organization_type') {
+      return (
+        name in metadata &&
+        (isFieldToBeDisplayed(name) || ORGANIZATION_DEPENDENT_FIELD_NAMES.some(isFieldToBeDisplayed))
+      )
+    }
+    if (ORGANIZATION_DEPENDENT_FIELD_NAMES.includes(name)) {
+      return isFieldToBeDisplayed(name) && !areOrganizationFieldsToBeSkipped
+    }
+    return isFieldToBeDisplayed(name)
+  }
+
+  const textProps = (name: TextFieldName) => ({
+    value: props.values[name] || '',
+    onChange: (evt: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      props.onFieldChange(name, evt.currentTarget.value),
+    error: props.errors?.[name],
+  })
+
+  const labelProps = (name: UserFieldName) => ({ label: getLabel(name), required: isRequired(name) })
+
+  const select = (name: TextFieldName, data: ComboboxData<string>, extra?: Pick<SelectProps, 'searchable'>) => (
+    <Select
+      size='sm'
+      {...labelProps(name)}
+      name={name}
+      clearable={!isRequired(name)}
+      value={props.values[name]}
+      onChange={(value) => props.onFieldChange(name, value || '')}
+      onClear={() => props.onFieldChange(name, '')}
+      data={data}
+      error={props.errors?.[name]}
+      {...extra}
+    />
+  )
+
+  // The label goes in the placeholder, as the "Social" heading labels the group.
+  const socialInput = (name: TextFieldName, icon: Icon) => (
+    <TextInput
+      size='sm'
+      leftSection={<KoboIcon icon={icon} size='sm' />}
+      placeholder={getLabelWithRequired(name)}
+      {...textProps(name)}
+    />
+  )
+
+  // Every field has to be listed, so adding one to `AccountFieldsValues` fails the build until it is handled here.
+  // Display order follows key order.
+  const fields: Record<UserFieldName, { section: Section; render: () => React.ReactNode } | null> = {
+    name: {
+      section: 'main',
+      render: () => (
+        <TextInput
+          size='sm'
+          {...labelProps('name')}
+          {...textProps('name')}
+          placeholder={t('Use this to display your real name to other users')}
+          autoFocus
+        />
+      ),
+    },
+    gender: { section: 'main', render: () => select('gender', GENDER_SELECT_OPTIONS, { searchable: false }) },
+    country: { section: 'main', render: () => select('country', props.fieldsConfig.countryChoices) },
+    city: { section: 'main', render: () => <TextInput size='sm' {...labelProps('city')} {...textProps('city')} /> },
+    sector: { section: 'main', render: () => select('sector', props.fieldsConfig.sectorChoices) },
+    organization_type: {
+      section: 'main',
+      render: () => select('organization_type', ORGANIZATION_TYPE_SELECT_OPTIONS),
+    },
+    organization: {
+      section: 'main',
+      render: () => <TextInput size='sm' {...labelProps('organization')} {...textProps('organization')} />,
+    },
+    organization_website: {
+      section: 'main',
+      render: () => (
+        <TextInput
+          size='sm'
+          type='url'
+          {...labelProps('organization_website')}
+          {...textProps('organization_website')}
+          onBlur={(evt) => updateWebsiteAddress(evt.currentTarget.value)}
+          onKeyDown={(evt) => onWebsiteKeydown(evt.key)}
+        />
+      ),
+    },
+    bio: {
+      section: 'bio',
+      render: () => <Textarea autosize size='sm' minRows={2} {...labelProps('bio')} {...textProps('bio')} />,
+    },
+    twitter: { section: 'social', render: () => socialInput('twitter', IconBrandTwitterFilled) },
+    linkedin: { section: 'social', render: () => socialInput('linkedin', IconBrandLinkedinFilled) },
+    instagram: { section: 'social', render: () => socialInput('instagram', IconBrandInstagramFilled) },
+    newsletter_subscription: {
+      section: 'newsletter',
+      render: () => (
+        <>
+          <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
+          <Checkbox
+            checked={props.values.newsletter_subscription || false}
+            onChange={(evt) => props.onFieldChange('newsletter_subscription', evt.currentTarget.checked)}
+            label={getLabel('newsletter_subscription')}
+          />
+        </>
+      ),
+    },
+    // Not edited in this form
+    require_auth: null,
+  }
+
+  const namesIn = (section: Section) => recordKeys(fields).filter((name) => fields[name]?.section === section)
+
+  const renderField = (name: UserFieldName) => (
+    <div key={name} className={styles.field}>
+      {fields[name]?.render()}
+    </div>
+  )
+
+  // Flexbox can't wrap a row early, so an empty spacer fills the odd slot before a pair. The pair check
+  // ignores the "no organization" rule, so organization type keeps its half-width slot when that applies.
+  const mainItems: React.ReactNode[] = []
+  for (const name of namesIn('main')) {
+    const pairedWith = ROW_PAIRS[name]
+    if (pairedWith && mainItems.length % 2 === 1 && isFieldToBeDisplayed(name) && isFieldToBeDisplayed(pairedWith)) {
+      mainItems.push(<div key={`${name}-spacer`} className={cx(styles.field, styles.spacer)} />)
+    }
+    if (isShown(name)) {
+      mainItems.push(renderField(name))
+    }
+  }
+
+  const socialNames = namesIn('social').filter(isShown)
 
   return (
     <div className={styles.root}>
-      <div className={styles.flexFields}>
-        {/* Full name */}
-        {/* Comma operator evaluates left-to-right, returns rightmost operand.
-            We increment fieldCount and ignore the result. */}
-        {isFieldToBeDisplayed('name') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <TextInput
-                size='sm'
-                label={getLabel('name')}
-                required={isRequired('name')}
-                onChange={(evt) => onAnyFieldChange('name', evt.currentTarget.value)}
-                value={props.values.name}
-                error={props.errors?.name}
-                placeholder={t('Use this to display your real name to other users')}
-                autoFocus
-              />
-            </div>
-          ))}
-
-        {/* Gender */}
-        {isFieldToBeDisplayed('gender') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <Select
-                size='sm'
-                label={getLabel('gender')}
-                required={isRequired('gender')}
-                name='gender'
-                searchable={false} // too little options
-                clearable={!isRequired('gender')}
-                value={props.values.gender}
-                onChange={(value) => onAnyFieldChange('gender', value || '')}
-                onClear={() => onAnyFieldChange('gender', '')}
-                data={GENDER_SELECT_OPTIONS}
-                error={props.errors?.gender}
-              />
-            </div>
-          ))}
-
-        {/*
-          Start a new row for country and city if both are present.
-          Insert a spacer if the preceding number of rows is odd.
-        */}
-        {!!(fieldCount % 2) && isFieldToBeDisplayed('country') && isFieldToBeDisplayed('city') && fieldCount++ && (
-          <div className={cx(styles.field, styles.spacer)} />
-        )}
-
-        {/* Country */}
-        {isFieldToBeDisplayed('country') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <Select
-                size='sm'
-                label={getLabel('country')}
-                required={isRequired('country')}
-                name='country'
-                clearable={!isRequired('country')}
-                value={props.values.country}
-                onChange={(value) => onAnyFieldChange('country', value || '')}
-                onClear={() => onAnyFieldChange('country', '')}
-                data={envStore.data.country_choices}
-                error={props.errors?.country}
-              />
-            </div>
-          ))}
-
-        {/* City */}
-        {isFieldToBeDisplayed('city') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <TextInput
-                size='sm'
-                label={getLabel('city')}
-                required={isRequired('city')}
-                value={props.values.city || ''}
-                onChange={(evt) => onAnyFieldChange('city', evt.currentTarget.value)}
-                error={props.errors?.city}
-              />
-            </div>
-          ))}
-        {/* Primary Sector */}
-        {isFieldToBeDisplayed('sector') &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <Select
-                size='sm'
-                label={getLabel('sector')}
-                required={isRequired('sector')}
-                name='sector'
-                clearable={!isRequired('sector')}
-                value={props.values.sector}
-                onChange={(value) => onAnyFieldChange('sector', value || '')}
-                onClear={() => onAnyFieldChange('sector', '')}
-                data={envStore.data.sector_choices}
-                error={props.errors?.sector}
-              />
-            </div>
-          ))}
-
-        {/* Organization Type */}
-        {isOrganizationTypeFieldToBeDisplayed() &&
-          (fieldCount++,
-          (
-            <div className={styles.field}>
-              <Select
-                size='sm'
-                label={getLabel('organization_type')}
-                required={isRequired('organization_type')}
-                name='organization_type'
-                clearable={!isRequired('organization_type')}
-                value={props.values.organization_type}
-                onChange={(value) => onAnyFieldChange('organization_type', value || '')}
-                onClear={() => onAnyFieldChange('organization_type', '')}
-                data={ORGANIZATION_TYPE_SELECT_OPTIONS}
-                error={props.errors?.organization_type}
-              />
-            </div>
-          ))}
-
-        {/*
-          Start a new row for these two organization fields if both are present.
-          Insert a spacer if the preceding number of rows is odd.
-        */}
-        {!!(fieldCount % 2) && isFieldToBeDisplayed('organization') && isFieldToBeDisplayed('organization_website') && (
-          <div className={cx(styles.field, styles.spacer)} />
-        )}
-        {/*
-          At this point we can stop counting fields because we don't need to
-          know if we're on the even or odd side anymore.
-        */}
-
-        {/* Organization */}
-        {isFieldToBeDisplayed('organization') && !areOrganizationFieldsToBeSkipped && (
-          <div className={styles.field}>
-            <TextInput
-              size='sm'
-              label={getLabel('organization')}
-              required={isRequired('organization')}
-              onChange={(evt) => onAnyFieldChange('organization', evt.currentTarget.value)}
-              value={props.values.organization}
-              error={props.errors?.organization}
-            />
-          </div>
-        )}
-
-        {/* Organization Website */}
-        {isFieldToBeDisplayed('organization_website') && !areOrganizationFieldsToBeSkipped && (
-          <div className={styles.field}>
-            <TextInput
-              label={getLabel('organization_website')}
-              type='url'
-              size='sm'
-              value={props.values.organization_website || ''}
-              required={isRequired('organization_website')}
-              onChange={(evt) => onAnyFieldChange('organization_website', evt.currentTarget.value)}
-              onBlur={(evt) => updateWebsiteAddress(evt.currentTarget.value)}
-              onKeyDown={(evt) => onWebsiteKeydown(evt.key)}
-              error={props.errors?.organization_website}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className={styles.row}>
-        {/* Bio */}
-        {isFieldToBeDisplayed('bio') && (
-          <div className={styles.field}>
-            <Textarea
-              autosize
-              size='sm'
-              minRows={2}
-              label={getLabel('bio')}
-              required={isRequired('bio')}
-              value={props.values.bio || ''}
-              onChange={(evt) => onAnyFieldChange('bio', evt.currentTarget.value)}
-              error={props.errors?.bio}
-            />
-          </div>
-        )}
-      </div>
-
+      <div className={styles.flexFields}>{mainItems}</div>
+      <div className={styles.row}>{namesIn('bio').filter(isShown).map(renderField)}</div>
       <div className={cx(styles.row, styles.rowSocial)}>
-        {/* Social */}
-        {(isFieldToBeDisplayed('twitter') || isFieldToBeDisplayed('linkedin') || isFieldToBeDisplayed('instagram')) && (
-          <>
-            <div className={styles.socialLabel}>{t('Social')}</div>
-
-            {/* Twitter */}
-            {isFieldToBeDisplayed('twitter') && (
-              <div className={styles.field}>
-                <TextInput
-                  size='sm'
-                  leftSection={<KoboIcon icon={IconBrandTwitterFilled} size='sm' />}
-                  placeholder={getLabelWithRequired('twitter')}
-                  value={props.values.twitter || ''}
-                  onChange={(evt) => onAnyFieldChange('twitter', evt.currentTarget.value)}
-                  error={props.errors?.twitter}
-                />
-              </div>
-            )}
-
-            {/* LinkedIn */}
-            {isFieldToBeDisplayed('linkedin') && (
-              <div className={styles.field}>
-                <TextInput
-                  size='sm'
-                  leftSection={<KoboIcon icon={IconBrandLinkedinFilled} size='sm' />}
-                  placeholder={getLabelWithRequired('linkedin')}
-                  value={props.values.linkedin || ''}
-                  onChange={(evt) => onAnyFieldChange('linkedin', evt.currentTarget.value)}
-                  error={props.errors?.linkedin}
-                />
-              </div>
-            )}
-
-            {/* Instagram */}
-            {isFieldToBeDisplayed('instagram') && (
-              <div className={styles.field}>
-                <TextInput
-                  size='sm'
-                  leftSection={<KoboIcon icon={IconBrandInstagramFilled} size='sm' />}
-                  placeholder={getLabelWithRequired('instagram')}
-                  value={props.values.instagram || ''}
-                  onChange={(evt) => onAnyFieldChange('instagram', evt.currentTarget.value)}
-                  error={props.errors?.instagram}
-                />
-              </div>
-            )}
-          </>
-        )}
+        {socialNames.length > 0 && <div className={styles.socialLabel}>{t('Social')}</div>}
+        {socialNames.map(renderField)}
       </div>
-
-      <div className={styles.row}>
-        {/* Newsletter subscription opt-in */}
-        {isFieldToBeDisplayed('newsletter_subscription') && (
-          <>
-            <div className={styles.field}>
-              <label className={styles.checkboxLabel}>{t('Newsletter')}</label>
-              <Checkbox
-                checked={props.values.newsletter_subscription || false}
-                onChange={(evt: React.ChangeEvent<HTMLInputElement>) =>
-                  onAnyFieldChange('newsletter_subscription', evt.currentTarget.checked)
-                }
-                label={getLabel('newsletter_subscription')}
-              />
-            </div>
-          </>
-        )}
-      </div>
+      <div className={styles.row}>{namesIn('newsletter').filter(isShown).map(renderField)}</div>
     </div>
   )
 }

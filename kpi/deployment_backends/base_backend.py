@@ -27,7 +27,11 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
-from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    META_INSTANCE_ID,
+    META_ROOT_UUID,
+    SUBMISSION_TIME,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
@@ -453,10 +457,6 @@ class BaseDeploymentBackend(abc.ABC):
     def redeploy(self, active: bool = None):
         pass
 
-    def remove_enketo_survey_links_for_data_collectors(self, tokens):
-        for token in tokens:
-            self.remove_enketo_links_for_single_data_collector(token)
-
     @abc.abstractmethod
     def remove_enketo_links_for_single_data_collector(self, token):
         pass
@@ -516,9 +516,6 @@ class BaseDeploymentBackend(abc.ABC):
         redis_client: Redis | Pipeline | None = None,
     ):
         pass
-
-    def set_status(self, status):
-        self.save_to_db({'status': status})
 
     @abc.abstractmethod
     def set_validation_status(
@@ -895,6 +892,19 @@ class BaseDeploymentBackend(abc.ABC):
         submission['_validation_status'] = (
             submission.get('_validation_status', None) or {}
         )
+        submission_time = submission.get('_submission_time', None)
+        if submission_time:
+            try:
+                # submission_time should always be stored as UTC, check the tz anyway
+                as_date = datetime.datetime.fromisoformat(submission_time)
+            except ValueError:
+                pass
+            else:
+                if as_date.tzinfo is None:
+                    as_date = as_date.replace(tzinfo=datetime.timezone.utc)
+                submission[SUBMISSION_TIME] = as_date.astimezone(
+                    datetime.timezone.utc
+                ).isoformat()
         submission.pop('_tags', None)
         submission.pop('_notes', None)
         return submission

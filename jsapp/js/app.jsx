@@ -42,6 +42,7 @@ import {
 } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
 import profileStore from '#/stores/profile'
+import CloseModalsOnNavigate from './router/CloseModalsOnNavigate'
 import { router, withRouter } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { cssVariablesResolverKobo, themeKobo } from './theme'
@@ -167,7 +168,7 @@ const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, 
   }
 
   if (profileDetails.status === 'active') {
-    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} />
+    return <ProfileDetailsBlocker isMmoMember={profileDetails.isMmoMember} fieldsConfig={profileDetails.fieldsConfig} />
   }
 
   // TODO: We have multiple routes that shouldn't display `MainHeader`,
@@ -193,21 +194,6 @@ class App extends React.Component {
     this.state = {}
   }
 
-  componentDidMount() {
-    this.unsubscribeRouter = router.subscribe(this.onRouteChange.bind(this))
-  }
-
-  componentWillUnmount() {
-    this.unsubscribeRouter?.()
-  }
-
-  onRouteChange() {
-    // hide modal on every page change
-    if (pageState.state.modal) {
-      pageState.hideModal()
-    }
-  }
-
   /** Whether to display the top header navigation and the side menu. */
   shouldDisplayMainLayoutElements() {
     return (
@@ -231,6 +217,7 @@ class App extends React.Component {
             <Notifications />
             <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
               <Tracking />
+              <CloseModalsOnNavigate />
               <ToasterConfig />
 
               <AppGuard

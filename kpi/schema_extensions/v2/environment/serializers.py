@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from kpi.constants import AUTH_THEME_CHOICES
+from kpi.constants import AUTH_SERVER_TAG_CHOICES, AUTH_THEME_CHOICES
 
 
 class AuthConfigurationSerializer(serializers.Serializer):
@@ -26,11 +26,19 @@ class AuthConfigurationSerializer(serializers.Serializer):
     show_kobotoolbox_logo = serializers.BooleanField(
         help_text='Whether to display the KoboToolbox logo outside the container'
     )
+    server_tag = serializers.ChoiceField(
+        choices=AUTH_SERVER_TAG_CHOICES,
+        allow_null=True,
+        help_text=(
+            'Server name tag shown at the top of the container, or `null` on '
+            'servers that have none. Takes precedence over `logo_url`'
+        ),
+    )
     logo_url = serializers.CharField(
         allow_null=True,
         help_text=(
-            'Relative URL of the logo shown inside the container, or `null` '
-            'when none has been uploaded'
+            'Relative URL of the logo shown at the top of the container when '
+            '`server_tag` is `null`, or `null` when none has been uploaded'
         ),
     )
     supporting_image_url = serializers.CharField(
@@ -46,13 +54,6 @@ class AuthConfigurationSerializer(serializers.Serializer):
             'Rendered HTML displayed alongside the account creation form, '
             'localized for the request language. Empty when unset'
         ),
-    )
-    allow_login_with_username = serializers.BooleanField(
-        help_text=(
-            'Whether this server accepts a username at sign-in. Reflects the '
-            'login methods the server is configured with, so the sign-in form '
-            'never offers a credential the server would reject'
-        )
     )
 
 

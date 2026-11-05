@@ -92,6 +92,14 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
     }
   }, [canStartNextPage, fields, startedPages])
 
+  const changePageCount = (count: number) => {
+    setPageCount(count)
+    // Pages past the new count are dropped, so if it goes back up they have to be walked one at a time again
+    setPageProgress((progress) => {
+      return { ...progress, count: Math.min(progress.count, count) }
+    })
+  }
+
   const isLoading = results.some((result) => result.isLoading)
 
   return (
@@ -102,7 +110,7 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
       isLoading={isLoading}
       totalCount={totalCount}
       pageCount={pageCount}
-      setPageCount={setPageCount}
+      setPageCount={changePageCount}
       setFields={setFields}
     />
   )

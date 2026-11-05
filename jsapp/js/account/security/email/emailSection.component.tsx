@@ -1,4 +1,3 @@
-import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
 import { useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
@@ -10,7 +9,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
 import Icon from '#/components/common/icon'
 import profileStore from '#/stores/profile'
-import { formatTime, notify } from '#/utils'
+import { formatTime } from '#/utils'
 import styles from './emailSection.module.scss'
 import { useRemoveUnverifiedEmails } from './useRemoveUnverifiedEmails'
 
@@ -57,13 +56,13 @@ export default function EmailSection() {
     // Clear errors before making an API call
     setFieldErrors([])
 
-    createEmail.mutate({ data: { email: address } }, { onSuccess: () => setNewEmail('') })
+    createEmail.mutate({ data: { email: address } })
   }
 
   function removePendingEmail() {
     removeUnverifiedEmails.mutate(undefined, {
       onSuccess: () => {
-        setNewEmail('')
+        setNewEmail(initialEmail)
         setResentAt(null)
       },
     })
@@ -92,7 +91,7 @@ export default function EmailSection() {
     if (emailPattern.test(newEmail)) {
       changeEmail(newEmail)
     } else {
-      notify.error(t('Invalid email address'))
+      setFieldErrors([t('Invalid email address')])
     }
   }
 
@@ -101,6 +100,8 @@ export default function EmailSection() {
   const isSSO =
     profile.isInitialLoadComplete && 'social_accounts' in currentAccount && currentAccount.social_accounts.length >= 1
   const userCanChangeEmail = organization.is_mmo ? organization.request_user_role !== MemberRoleEnum.member : true
+  // No editing while an address waits for confirmation.
+  const isEditable = isReady && userCanChangeEmail && !unverifiedEmail
 
   return (
     <section className={securityStyles.securitySection}>
@@ -114,7 +115,7 @@ export default function EmailSection() {
           userCanChangeEmail ? styles.body : styles.emailUpdateDisabled,
         ])}
       >
-        {isReady && userCanChangeEmail ? (
+        {isEditable ? (
           <TextInput
             value={newEmail}
             placeholder={t('Type new email address')}
@@ -122,9 +123,10 @@ export default function EmailSection() {
             type='email'
             w='100%'
             disabled={isSSO}
+            error={fieldErrors.join(' ')}
           />
         ) : (
-          <div className={styles.emailText}>{newEmail}</div>
+          <div className={styles.emailText}>{initialEmail}</div>
         )}
 
         {unverifiedEmail?.email && isReady && (
@@ -156,21 +158,18 @@ export default function EmailSection() {
         )}
       </div>
       {userCanChangeEmail && (
+        // Stays rendered when empty, to keep the layout.
         <div className={styles.options}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSubmit()
-            }}
-          >
-            <Group gap='sm'>
-              <Text c='red'>{fieldErrors.join(' ')}</Text>
-
-              <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO} loading={isBusy}>
-                {t('Change')}
-              </ButtonNew>
-            </Group>
-          </form>
+          {isEditable && (
+            <ButtonNew
+              variant='filled'
+              onClick={handleSubmit}
+              disabled={isSSO || newEmail === initialEmail}
+              loading={isBusy}
+            >
+              {t('Change')}
+            </ButtonNew>
+          )}
         </div>
       )}
     </section>

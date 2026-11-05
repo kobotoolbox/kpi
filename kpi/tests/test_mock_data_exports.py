@@ -7,11 +7,13 @@ from unittest import mock
 from zoneinfo import ZoneInfo
 
 import openpyxl
+from ddt import data, ddt
 from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,
@@ -21,8 +23,24 @@ from kpi.constants import (
 )
 from kpi.models import Asset, SubmissionExportTask
 from kpi.models.import_export_task import ImportExportStatusChoices
-from kpi.utils.mongo_helper import drop_mock_only
 from kpi.utils.object_permission import get_anonymous_user
+
+
+def drop_mock_only(func):
+    """
+    This decorator should be used on every method that drop data in MongoDB
+    in a testing environment. It ensures that MockMongo is used and no production
+    data is deleted
+    """
+
+    def _inner(*args, **kwargs):
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
+        return func(*args, **kwargs)
+
+    return _inner
 
 
 class MockDataExportsBase(TestCase):
@@ -153,7 +171,7 @@ class MockDataExportsBase(TestCase):
                         '$kuid': '5fa1fc59',
                         'label': [
                             'Do you have body fluids that occupy intracellular space?',
-                            '\xbfTienes fluidos corporales que ocupan espacio intracelular?',
+                            '\xbfTienes fluidos corporales que ocupan espacio intracelular?',  # noqa
                         ],
                         'name': 'Do_you_have_body_flu_intracellular_space',
                         'required': False,
@@ -373,6 +391,7 @@ class MockDataExportsBase(TestCase):
         return asset
 
 
+@ddt
 class MockDataExports(MockDataExportsBase):
     def setUp(self):
         super().setUp()
@@ -477,12 +496,12 @@ class MockDataExports(MockDataExportsBase):
     def test_csv_export_default_options(self):
         submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version.uid
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines)
 
@@ -500,10 +519,10 @@ class MockDataExports(MockDataExportsBase):
     def test_csv_export_default_options_partial_submissions(self):
         submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
             f'"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"1"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"1"',
         ]
         self.run_csv_export_test(expected_lines, user=self.anotheruser)
 
@@ -513,12 +532,12 @@ class MockDataExports(MockDataExportsBase):
         export_options = {
             'lang': 'English',
         }
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
             f'"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -528,12 +547,12 @@ class MockDataExports(MockDataExportsBase):
         export_options = {
             'lang': 'Spanish',
         }
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -544,11 +563,11 @@ class MockDataExports(MockDataExportsBase):
             'lang': 'English',
             'tag_cols_for_header': [],
         }
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -560,12 +579,12 @@ class MockDataExports(MockDataExportsBase):
             'lang': 'English',
             'group_sep': '%',
         }
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?%Spherical";"What kind of symmetry do you have?%Radial";"What kind of symmetry do you have?%Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -573,12 +592,12 @@ class MockDataExports(MockDataExportsBase):
         submissions = self.forms[self.form_names[0]]['submissions']
         version_uid = self.asset.latest_deployed_version_uid
         export_options = {'hierarchy_in_labels': 'true'}
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"start";"end";"External Characteristics/What kind of symmetry do you have?";"External Characteristics/What kind of symmetry do you have?/Spherical";"External Characteristics/What kind of symmetry do you have?/Radial";"External Characteristics/What kind of symmetry do you have?/Bilateral";"External Characteristics/How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
             '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -657,7 +676,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[0]['_id'],
                     '48583952-1892-4931-8d9c-869e7b49bafb',
-                    '2017-10-23T09:41:19',
+                    '2017-10-23T09:41:19+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -677,7 +696,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[1]['_id'],
                     '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
-                    '2017-10-23T09:41:38',
+                    '2017-10-23T09:41:38+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -697,7 +716,7 @@ class MockDataExports(MockDataExportsBase):
                     'Yes',
                     submissions[2]['_id'],
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
-                    '2017-10-23T09:42:11',
+                    '2017-10-23T09:42:11+00:00',
                     '',
                     'submitted_via_web',
                     'anotheruser',
@@ -767,7 +786,7 @@ class MockDataExports(MockDataExportsBase):
                     'Yes',
                     submissions[2]['_id'],
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
-                    '2017-10-23T09:42:11',
+                    '2017-10-23T09:42:11+00:00',
                     '',
                     'submitted_via_web',
                     'anotheruser',
@@ -837,7 +856,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[0]['_id'],
                     '48583952-1892-4931-8d9c-869e7b49bafb',
-                    '2017-10-23T09:41:19',
+                    '2017-10-23T09:41:19+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -857,7 +876,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[1]['_id'],
                     '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
-                    '2017-10-23T09:41:38',
+                    '2017-10-23T09:41:38+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -877,7 +896,7 @@ class MockDataExports(MockDataExportsBase):
                     'Yes',
                     submissions[2]['_id'],
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
-                    '2017-10-23T09:42:11',
+                    '2017-10-23T09:42:11+00:00',
                     '',
                     'submitted_via_web',
                     'anotheruser',
@@ -938,7 +957,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[0]['_id'],
                     '48583952-1892-4931-8d9c-869e7b49bafb',
-                    '2017-10-23T09:41:19',
+                    '2017-10-23T09:41:19+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -955,7 +974,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[1]['_id'],
                     '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
-                    '2017-10-23T09:41:38',
+                    '2017-10-23T09:41:38+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -972,7 +991,7 @@ class MockDataExports(MockDataExportsBase):
                     'Yes',
                     submissions[2]['_id'],
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
-                    '2017-10-23T09:42:11',
+                    '2017-10-23T09:42:11+00:00',
                     '',
                     'submitted_via_web',
                     'anotheruser',
@@ -1039,7 +1058,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[0]['_id'],
                     '48583952-1892-4931-8d9c-869e7b49bafb',
-                    '2017-10-23T09:41:19',
+                    '2017-10-23T09:41:19+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -1058,7 +1077,7 @@ class MockDataExports(MockDataExportsBase):
                     'No',
                     submissions[1]['_id'],
                     '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
-                    '2017-10-23T09:41:38',
+                    '2017-10-23T09:41:38+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -1077,7 +1096,7 @@ class MockDataExports(MockDataExportsBase):
                     'Yes',
                     submissions[2]['_id'],
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
-                    '2017-10-23T09:42:11',
+                    '2017-10-23T09:42:11+00:00',
                     '',
                     'submitted_via_web',
                     'anotheruser',
@@ -1215,7 +1234,7 @@ class MockDataExports(MockDataExportsBase):
                 ],
                 [
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
-                    '2021-06-30T22:12:56',
+                    '2021-06-30T22:12:56+00:00',
                     'uuid:f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                     1.0,
                 ],
@@ -1242,7 +1261,7 @@ class MockDataExports(MockDataExportsBase):
                     1.0,
                     '',
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
-                    '2021-06-30T22:12:56',
+                    '2021-06-30T22:12:56+00:00',
                     '',
                     '',
                     '',
@@ -1256,7 +1275,7 @@ class MockDataExports(MockDataExportsBase):
                     1.0,
                     '',
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
-                    '2021-06-30T22:12:56',
+                    '2021-06-30T22:12:56+00:00',
                     '',
                     '',
                     '',
@@ -1292,7 +1311,7 @@ class MockDataExports(MockDataExportsBase):
                 [
                     submissions[0]['_id'],
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
-                    '2021-06-30T22:12:56',
+                    '2021-06-30T22:12:56+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -1325,7 +1344,7 @@ class MockDataExports(MockDataExportsBase):
                     1.0,
                     submissions[0]['_id'],
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
-                    '2021-06-30T22:12:56',
+                    '2021-06-30T22:12:56+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -1340,7 +1359,7 @@ class MockDataExports(MockDataExportsBase):
                     1.0,
                     submissions[0]['_id'],
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
-                    '2021-06-30T22:12:56',
+                    '2021-06-30T22:12:56+00:00',
                     '',
                     'submitted_via_web',
                     '',
@@ -1585,11 +1604,11 @@ class MockDataExports(MockDataExportsBase):
         # this deployment.
         version_uid = self.asset.latest_deployed_version_uid
         self.asset.deploy(backend='mock', active=True)
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"Do you descend... new label";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
-            f'"no";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            f'"no";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            f'"yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            f'"no";"{submissions[0]["_id"]}";"48583952-1892-4931-8d9c-869e7b49bafb";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            f'"no";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38+00:00";"";"submitted_via_web";"";"{version_uid}";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            f'"yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11+00:00";"";"submitted_via_web";"anotheruser";"{version_uid}";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, {'fields_from_all_versions': 'false'})
 
@@ -1648,9 +1667,9 @@ class MockDataExports(MockDataExportsBase):
         ]
         asset.deployment.mock_submissions(submissions)
         # observe that `ignore` does not appear!
-        expected_lines = [
+        expected_lines = [  # noqa: E501
             '"q";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
-            f'"123";"{submissions[0]["_id"]}";"{submissions[0]["_uuid"]}";"2017-10-23T09:41:19";"";"submitted_via_web";"someuser";"{asset.latest_deployed_version.uid}";"uuid:{submissions[0]["_uuid"]}";"1"',
+            f'"123";"{submissions[0]["_id"]}";"{submissions[0]["_uuid"]}";"2017-10-23T09:41:19+00:00";"";"submitted_via_web";"someuser";"{asset.latest_deployed_version.uid}";"uuid:{submissions[0]["_uuid"]}";"1"',
         ]
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)
@@ -1691,3 +1710,29 @@ class MockDataExports(MockDataExportsBase):
 
         # testing anotheruser can export data
         self.run_csv_export_test(user=self.anotheruser)
+
+    @data(
+        '2026-01-01T01:01:01',  # naive
+        '2026-01-01T06:01:01+05:00',  # different timezone
+        '2026-01-01T01:01:01+00:00',  # in UTC
+    )
+    def test_submission_time_always_has_tz_in_export(self, time_str):
+        a = self._create_asset_with_submissions(
+            content={'survey': [{'label': 'q1', 'name': 'q1', 'type': 'text'}]},
+            submissions=[{'q1': 'a1'}],
+            user=self.user,
+            name='Naive datetime',
+        )
+        instance = Instance.objects.get(xform__kpi_asset_uid=a.uid)
+        mongo_document = settings.MONGO_DB.instances.find_one(
+            {'meta/rootUuid': f'uuid:{instance.root_uuid}'}
+        )
+        settings.MONGO_DB.instances.update_one(
+            {'_id': mongo_document['_id']},
+            {'$set': {'_submission_time': time_str}},
+        )
+        expected_lines = [  # noqa: E501
+            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_status";"_submitted_by";"__version__";"meta/rootUuid";"_index"',
+            f'"a1";"{mongo_document["_id"]}";"{mongo_document["_uuid"]}";"2026-01-01T01:01:01+00:00";"";"submitted_via_web";"someuser";"{a.latest_deployed_version.uid}";"uuid:{instance.uuid}";"1"',
+        ]
+        self.run_csv_export_test(expected_lines, asset=a)
