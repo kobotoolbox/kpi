@@ -25,7 +25,9 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
 
     if asset.has_deployment:
         if use_all_form_versions:
-            _versions = asset.deployed_versions
+            # Load each version's content on its own, so that the raw contents
+            # never pile up in memory
+            _versions = asset.deployed_versions.defer('version_content').iterator()
         else:
             _versions = [asset.deployed_versions.first()]
     else:
@@ -34,7 +36,11 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
 
     schemas = []
     version_ids_newest_first = []
+    # Find the AssetVersion UID for each deprecated reversion ID
+    _reversion_ids = {}
     for v in _versions:
+        if v._reversion_version:
+            _reversion_ids[str(v._reversion_version)] = v.uid
         try:
             fp_schema = v.to_formpack_schema()
         # FIXME: should FormPack validation errors have their own
@@ -57,12 +63,6 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
 
     # FormPack() expects the versions to be ordered from oldest to newest
     pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
-
-    # Find the AssetVersion UID for each deprecated reversion ID
-    _reversion_ids = dict([
-        (str(v._reversion_version), v.uid)
-        for v in _versions if v._reversion_version
-    ])
 
     # A submission often contains many version keys, e.g. `__version__`,
     # `_version_`, `_version__001`, `_version__002`, each with a different
