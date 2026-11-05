@@ -107,6 +107,4 @@ class BlockedAllauthEmailEndpointsTestCase(TestCase):
         assert '/api/v2/allauth/{client}/v1/account/email' in get_schema()['paths']
         for client in ('browser', 'app'):
             assert f'/api/v2/allauth/{client}/v1/account/email' not in result['paths']
-            assert (
-                f'/api/v2/allauth/{client}/v1/auth/email/verify' in result['paths']
-            )
+            assert f'/api/v2/allauth/{client}/v1/auth/email/verify' in result['paths']
