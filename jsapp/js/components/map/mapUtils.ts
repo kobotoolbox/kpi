@@ -42,7 +42,7 @@ export function getMapPageCount(
     return 1
   }
 
-  const pageCount = normalizeQueryLimit(querylimit) / SUBMISSIONS_PER_PAGE
+  const pageCount = Math.ceil(normalizeQueryLimit(querylimit) / SUBMISSIONS_PER_PAGE)
   if (typeof totalCount === 'number') {
     return Math.min(pageCount, Math.max(Math.ceil(totalCount / SUBMISSIONS_PER_PAGE), 1))
   }

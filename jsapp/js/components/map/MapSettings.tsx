@@ -64,7 +64,6 @@ interface MapSettingsTabDefinition {
   label: string
 }
 
-const QUERY_LIMIT_MINIMUM = 1000
 const MAP_LAYER_DROPZONE_ACCEPT: Accept = {
   'text/csv': ['.csv'],
   'application/vnd.google-earth.kml+xml': ['.kml'],
@@ -280,7 +279,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     const tabsToDisplay = buildMapSettingsTabsToDisplay({
       hasMultipleGeopointQuestions: this.state.geoQuestions.length > 1,
-      hasLargeQueryCount: this.state.queryCount > QUERY_LIMIT_MINIMUM,
+      hasLargeQueryCount: this.state.queryCount > QUERY_LIMIT_DEFAULT,
       hasChangeAssetPermission,
     })
 
