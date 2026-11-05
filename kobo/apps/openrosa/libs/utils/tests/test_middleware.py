@@ -1,6 +1,11 @@
 # coding: utf-8
+from ddt import data, ddt
+from django.conf import settings
 from django.http import HttpResponseNotFound
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase
+from model_bakery import baker
+
+from kobo.apps.openrosa.apps.main.models import UserProfile
 
 from kobo.apps.openrosa.libs.utils.middleware import (
     OpenRosaTrailingSlashMiddleware,
@@ -60,3 +65,37 @@ class OpenRosaTrailingSlashMiddlewareTests(TestCase):
     def test_double_trailing_slash_collapses_target(self):
         response = self._process('/submission//')
         self.assertIn('Retry the request at /submission', response.content.decode())
+
+
+@ddt
+class RestrictedAccessMiddlewareUnresolvedURLTests(TestCase):
+    """
+    An unresolved URL must stay a 404 for users whose password is not validated.
+    `process_view()` never runs for it, so `RestrictedAccessMiddleware` used to
+    swap the 404 for its 403 page, and the audit log middleware then crashed
+    reading `request.resolver_match.url_name` on `None`
+    """
+
+    def setUp(self):
+        self.user = baker.make(settings.AUTH_USER_MODEL)
+        # A fresh client, so the middleware is freshly loaded too: its state
+        # must not depend on what the previous request left behind
+        self.client = Client(raise_request_exception=False)
+        self.client.force_login(self.user)
+
+    @data('get', 'post')
+    def test_unresolved_url_is_not_found_with_unvalidated_password(self, method):
+        UserProfile.objects.update_or_create(
+            user=self.user, defaults={'validated_password': False}
+        )
+
+        response = getattr(self.client, method)('/this/does/not/exist/')
+
+        assert response.status_code == 404
+
+    def test_unresolved_url_is_not_found_without_profile(self):
+        UserProfile.objects.filter(user=self.user).delete()
+
+        response = self.client.post('/this/does/not/exist/')
+
+        assert response.status_code == 404
