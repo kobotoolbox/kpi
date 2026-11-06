@@ -16,14 +16,10 @@ interface NewPasswordFormValues {
 
 /** How the reset ended, for the route to turn into a panel */
 export type NewPasswordOutcome =
-  /** The password was changed, and allauth signed the account in on its way out */
-  | { kind: 'changedAndSignedIn' }
-  /** The password was changed and nobody is signed in, which is the KPI default */
+  /** The password was changed */
   | { kind: 'changed' }
   /** The key stopped being usable between loading this form and submitting it */
   | { kind: 'keyRejected' }
-  /** A session appeared while this form was open - allauth will not reset a password behind one */
-  | { kind: 'alreadyAuthenticated' }
 
 /** Fields allauth may name in `param` */
 const SERVER_KNOWN_FIELDS = ['password', 'key'] as const
@@ -53,18 +49,10 @@ export default function NewPasswordForm({ resetKey, onOutcome }: NewPasswordForm
     mutation: {
       // Rejections land here too, not in `onError`: `fetchAllauth` hands back everything below 500 as data.
       onSuccess: (response) => {
-        // 200 means `ACCOUNT_LOGIN_ON_PASSWORD_RESET` is on. Off - the KPI default - allauth answers 401:
-        // the password changed, there is just no session to show for it.
-        if (response.status === 200) {
-          onOutcome({ kind: 'changedAndSignedIn' })
-          return
-        }
-        if (response.status === 401) {
+        // Note: KPI leaves `ACCOUNT_LOGIN_ON_PASSWORD_RESET` off, so the reset never signs anybody in. A 200 only means
+        // the browser was signed in already, which is no sign-in to announce.
+        if (response.status === 200 || response.status === 401) {
           onOutcome({ kind: 'changed' })
-          return
-        }
-        if (response.status === 409) {
-          onOutcome({ kind: 'alreadyAuthenticated' })
           return
         }
         const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, SERVER_KNOWN_FIELDS)
