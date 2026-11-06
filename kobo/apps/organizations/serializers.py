@@ -60,7 +60,6 @@ from .constants import (
     OWNER_ROLE_LOCKED_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
-    RECIPIENT_CANNOT_BE_OWNER_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
 )
@@ -706,47 +705,31 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     def validate_recipient(self, value):
         organization = self._get_organization()
 
-        if '@' in str(value):
-            eligible_admins = OrganizationUser.objects.filter(
-                organization=organization,
-                is_admin=True,
-                user__email__iexact=value,
-                user__is_active=True,
-            ).select_related('user')
-            if organization.owner_user_object:
-                eligible_admins = eligible_admins.exclude(
-                    user=organization.owner_user_object
-                )
+        eligible_admins = OrganizationUser.objects.filter(
+            organization=organization,
+            is_admin=True,
+            user__is_active=True,
+        ).select_related('user')
+        if organization.owner_user_object:
+            eligible_admins = eligible_admins.exclude(
+                user=organization.owner_user_object
+            )
 
-            count = eligible_admins.count()
-            if count == 1:
-                return eligible_admins.first().user
+        if '@' in str(value):
+            matches = eligible_admins.filter(user__email__iexact=value)
+            count = matches.count()
             if count > 1:
                 raise serializers.ValidationError(
                     replace_placeholders(RECIPIENT_AMBIGUOUS_EMAIL_ERROR, email=value)
                 )
+        else:
+            matches = eligible_admins.filter(user__username=value)
+            count = matches.count()
 
-            users = User.objects.filter(email__iexact=value, is_active=True)
-            if not users.exists():
-                raise serializers.ValidationError(
-                    replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=value)
-                )
-            if any(organization.is_owner(u) for u in users):
-                raise serializers.ValidationError(RECIPIENT_CANNOT_BE_OWNER_ERROR)
-            raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
+        if count == 1:
+            return matches.first().user
 
-        # Username lookup
-        user = User.objects.filter(username=value, is_active=True).first()
-        if not user:
-            raise serializers.ValidationError(
-                replace_placeholders(USER_DOES_NOT_EXIST_ERROR, invitee=value)
-            )
-        if organization.is_owner(user):
-            raise serializers.ValidationError(RECIPIENT_CANNOT_BE_OWNER_ERROR)
-        if not organization.is_admin_only(user):
-            raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
-
-        return user
+        raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
 
     def validate(self, attrs):
         organization = self._get_organization()

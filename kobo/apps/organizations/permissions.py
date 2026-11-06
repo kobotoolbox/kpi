@@ -146,7 +146,7 @@ class IsOrgOwnerPermission(ValidationPasswordPermissionMixin, IsAuthenticated):
         view.user_role = user_role
         view.organization = organization
 
-        if user_role == ORG_EXTERNAL_ROLE:
+        if user_role == ORG_EXTERNAL_ROLE or not organization.is_mmo:
             raise Http404
 
         return user_role == ORG_OWNER_ROLE

@@ -10,7 +10,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import (
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
-    RECIPIENT_CANNOT_BE_OWNER_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
 )
 from kobo.apps.organizations.models import (
@@ -87,6 +86,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
     def test_recipient_must_be_active_admin_in_same_team(self):
         """
         Recipient must be an active admin within the same organization.
+        Non-admins, owners, external users, and non-existent users all return
+        the same generic error to prevent user enumeration.
         """
         # Regular member in same organization
         response = self._create_transfer(self.owner_user, self.member_user.username)
@@ -103,18 +104,26 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertIn('recipient', response.data)
         self.assertEqual(
             str(response.data['recipient'][0]),
-            str(RECIPIENT_CANNOT_BE_OWNER_ERROR),
+            str(RECIPIENT_MUST_BE_ADMIN_ERROR),
         )
 
         # External user
         response = self._create_transfer(self.owner_user, self.external_user.username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
+        self.assertEqual(
+            str(response.data['recipient'][0]),
+            str(RECIPIENT_MUST_BE_ADMIN_ERROR),
+        )
 
         # Non-existent user
         response = self._create_transfer(self.owner_user, 'non_existent_username')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
+        self.assertEqual(
+            str(response.data['recipient'][0]),
+            str(RECIPIENT_MUST_BE_ADMIN_ERROR),
+        )
 
     def test_recipient_cannot_be_inactive_admin(self):
         """
@@ -126,6 +135,21 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         response = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('recipient', response.data)
+        self.assertEqual(
+            str(response.data['recipient'][0]),
+            str(RECIPIENT_MUST_BE_ADMIN_ERROR),
+        )
+
+    def test_non_mmo_organization_cannot_initiate_transfer(self):
+        """
+        Non-MMO organizations (such as personal default organizations)
+        reject ownership transfers with 404 Not Found.
+        """
+        self.organization.mmo_override = False
+        self.organization.save(update_fields=['mmo_override'])
+
+        response = self._create_transfer(self.owner_user, self.admin_user.username)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_recipient_can_be_identified_by_email(self):
         """
