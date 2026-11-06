@@ -10,7 +10,6 @@ interface TableMediaPreviewModalTitleProps {
   titleText: string
   titleTextTooltip?: string
   questionIcon?: IconName
-  actions?: React.ReactNode
   showSubmissionContext?: boolean
 }
 
@@ -29,8 +28,6 @@ export default function TableMediaPreviewModalTitle(props: TableMediaPreviewModa
           </Text>
         </Group>
       </Stack>
-
-      {props.actions && <Group gap='sm'>{props.actions}</Group>}
     </Group>
   )
 }

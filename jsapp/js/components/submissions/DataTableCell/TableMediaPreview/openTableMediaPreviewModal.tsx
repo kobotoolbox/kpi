@@ -1,7 +1,10 @@
+import { Group, Stack } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import React from 'react'
 import { actions } from '#/actions'
-import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import AttachmentActionButtons from '#/attachments/AttachmentActionButtons'
+import ProcessingActionButton from '#/components/common/ProcessingActionButton'
+import { getProcessingActionLabel } from '#/components/processing/common/utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
@@ -20,6 +23,8 @@ interface OpenTableMediaPreviewModalAttachmentArgs {
   submissionTotal: number
   submission: SubmissionResponse
   asset: AssetResponse
+  /** Adds a button (e.g. "Analyze image") that closes the dialog and calls this to open Processing. Omit to leave it out. */
+  onOpenProcessing?: () => void
 }
 
 interface OpenTableMediaPreviewModalTextArgs {
@@ -42,6 +47,11 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
     const titleText = args.mediaAttachment.download_url
       ? truncateString(args.displayValue, 30)
       : getSubmissionPositionLabel(args.submissionIndex, args.submissionTotal)
+    const onOpenProcessing = args.onOpenProcessing
+    const onDeleted = () => {
+      actions.resources.refreshTableSubmissions()
+      modals.close(modalId)
+    }
 
     modalId = modals.open({
       title: (
@@ -51,26 +61,36 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
           submissionTotal={args.submissionTotal}
           titleText={titleText}
           titleTextTooltip={args.displayValue}
-          actions={
-            <AttachmentActionsDropdown
-              asset={args.asset}
-              submission={args.submission}
-              attachmentUid={args.mediaAttachment.uid}
-              onDeleted={() => {
-                actions.resources.refreshTableSubmissions()
-                modals.close(modalId)
-              }}
-            />
-          }
         />
       ),
       size: 'xl',
       children: (
-        <TableMediaPreview
-          questionType={args.questionType}
-          mediaAttachment={args.mediaAttachment}
-          displayValue={args.displayValue}
-        />
+        <Stack>
+          <TableMediaPreview
+            questionType={args.questionType}
+            mediaAttachment={args.mediaAttachment}
+            displayValue={args.displayValue}
+          />
+
+          <Group justify='space-between'>
+            <AttachmentActionButtons
+              asset={args.asset}
+              submission={args.submission}
+              attachmentUid={args.mediaAttachment.uid}
+              onDeleted={onDeleted}
+            />
+
+            {onOpenProcessing && (
+              <ProcessingActionButton
+                label={getProcessingActionLabel(args.questionType)}
+                onClick={() => {
+                  modals.close(modalId)
+                  onOpenProcessing()
+                }}
+              />
+            )}
+          </Group>
+        </Stack>
       ),
     })
   } else {
