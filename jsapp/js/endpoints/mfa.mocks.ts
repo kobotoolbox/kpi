@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw'
+import type { CredentialField } from '#/account/security/reauthentication/reauthentication.api'
 import type { TOTPAuthenticator } from '#/api/models/tOTPAuthenticator'
 import { sessionAuthenticatedMock } from './allauth.mocks'
 
@@ -43,7 +44,7 @@ export interface MfaMockState {
 }
 
 /** Rejects anything but `valid` under `field`, the way allauth does */
-function withCredentialCheck(field: 'code' | 'password', valid: string, accepted: () => Response) {
+function withCredentialCheck(field: CredentialField, valid: string, accepted: () => Response) {
   return async ({ request }: { request: Request }) => {
     const body = (await request.json()) as Record<string, string>
 
@@ -131,10 +132,17 @@ export const mfaPostCounterMock = (endpoint: keyof typeof COUNTED_URLS, onPost: 
     onPost()
   })
 
-export const reauthenticateMocks = () => [
-  http.post(REAUTHENTICATE_URL, withCredentialCheck('password', VALID_PASSWORD, reauthenticated)),
-  http.post(MFA_REAUTHENTICATE_URL, withCredentialCheck('code', VALID_CODE, reauthenticated)),
-]
+/** `onAccepted` hears which credential went through, for mocks that refuse until then */
+export const reauthenticateMocks = (onAccepted?: (field: CredentialField) => void) => {
+  const accept = (field: CredentialField) => () => {
+    onAccepted?.(field)
+    return reauthenticated()
+  }
+  return [
+    http.post(REAUTHENTICATE_URL, withCredentialCheck('password', VALID_PASSWORD, accept('password'))),
+    http.post(MFA_REAUTHENTICATE_URL, withCredentialCheck('code', VALID_CODE, accept('code'))),
+  ]
+}
 
 /** Every handler over one state - what most stories need. Put overrides first, msw takes the first match. */
 export const mfaMocks = (state: MfaMockState, session: Parameters<typeof sessionAuthenticatedMock>[0] = {}) => [

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { CredentialRejection, assertOk, reauthenticate } from '#/account/security/reauthentication/reauthentication.api'
 import { type OrvalFetchError, onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import {
   allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet,
@@ -7,45 +8,18 @@ import {
   allauthBrowserV1AccountAuthenticatorsTotpDelete,
   allauthBrowserV1AccountAuthenticatorsTotpGet,
   allauthBrowserV1AccountAuthenticatorsTotpPost,
-  allauthBrowserV1Auth2faReauthenticatePost,
-  allauthBrowserV1AuthReauthenticatePost,
   getAllauthBrowserV1AccountAuthenticatorsGetQueryKey,
   useAllauthBrowserV1AccountAuthenticatorsGet,
   useAllauthBrowserV1AuthSessionGet,
 } from '#/api/react-query/authentication-allauth-headless'
-import { type AllauthResponse, splitAllauthErrors } from '#/auth/allauthErrors'
+import { splitAllauthErrors } from '#/auth/allauthErrors'
 import { getAuthStatusQueryKey } from '#/auth/authChangeWatcher'
 import { getAuthStatus } from '#/auth/authStatus'
 import { notify } from '#/utils'
 
 // allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. KPI asks for it in the
-// modal rather than on a screen of its own, so each write reauthenticates first with what the modal collected.
-
-/** The modal input a refusal belongs to */
-type MfaField = 'code' | 'password'
-
-/** allauth refused a request. The modal shows it by `field`; with no field it becomes a toast. */
-export class MfaRejection extends Error {
-  constructor(
-    readonly field: MfaField | null,
-    message: string,
-  ) {
-    super(message)
-    this.name = 'MfaRejection'
-  }
-}
-
-/** Throws a {@link MfaRejection} unless allauth answered 200 */
-function assertOk<T extends AllauthResponse>(
-  response: T,
-  field: MfaField | null,
-): asserts response is Extract<T, { status: 200 }> {
-  if (response.status === 200) {
-    return
-  }
-  const { fieldErrors, formErrors } = splitAllauthErrors(response, field ? [field] : [])
-  throw new MfaRejection(field, (field && fieldErrors[field]) || formErrors[0])
-}
+// modal rather than on a screen of its own, and wants the password and the code together, so each write
+// reauthenticates first with what the modal collected.
 
 /** A TOTP token or a recovery code - allauth takes either */
 interface MfaCode {
@@ -79,8 +53,8 @@ export function useMfaStatus() {
 }
 
 /**
- * Whether allauth will want the password before 2FA goes on. Always, for accounts that have one: the backend timeout
- * is configurable, so we can't tell if an earlier reauthentication still counts.
+ * Whether to ask for the password along with the code. Always, for accounts that have one: the backend timeout is
+ * configurable, so we can't tell if an earlier reauthentication still counts.
  */
 export function useIsPasswordNeeded() {
   const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
@@ -99,11 +73,11 @@ export function useIsPasswordNeeded() {
 function useMfaMutation<TData, TVariables = void>(key: string, mutationFn: (variables: TVariables) => Promise<TData>) {
   const queryClient = useQueryClient()
 
-  return useMutation<TData, OrvalFetchError | MfaRejection, TVariables>({
+  return useMutation<TData, OrvalFetchError | CredentialRejection, TVariables>({
     mutationKey: ['mfa', key],
     mutationFn,
     onError: (error, variables, context) => {
-      if (!(error instanceof MfaRejection)) {
+      if (!(error instanceof CredentialRejection)) {
         onErrorDefaultHandler(error, variables, context)
       } else if (!error.field) {
         notify(error.message, 'error')
@@ -111,10 +85,6 @@ function useMfaMutation<TData, TVariables = void>(key: string, mutationFn: (vari
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: getAllauthBrowserV1AccountAuthenticatorsGetQueryKey() }),
   })
-}
-
-async function reauthenticateWithCode(code: string) {
-  assertOk(await allauthBrowserV1Auth2faReauthenticatePost({ code }), 'code')
 }
 
 /**
@@ -129,7 +99,7 @@ export const useMfaActivate = () =>
       return { qrCodeUrl: response.data.meta.totp_url }
     }
     // A 200 (2FA already on) or a 409 (allauth won't add one). The status reread fixes the switch
-    throw new MfaRejection(null, splitAllauthErrors(response, []).formErrors[0])
+    throw new CredentialRejection(null, splitAllauthErrors(response, []).formErrors[0])
   })
 
 interface MfaConfirmVariables extends MfaCode {
@@ -140,9 +110,7 @@ interface MfaConfirmVariables extends MfaCode {
 /** Turns 2FA on. Read the codes allauth made along with it through {@link useMfaRecoveryCodes}. */
 export const useMfaConfirmCode = () =>
   useMfaMutation<void, MfaConfirmVariables>('confirm', async ({ code, password }) => {
-    if (password !== undefined) {
-      assertOk(await allauthBrowserV1AuthReauthenticatePost({ password }), 'password')
-    }
+    await reauthenticate({ password })
     assertOk(await allauthBrowserV1AccountAuthenticatorsTotpPost({ code }), 'code')
   })
 
@@ -154,28 +122,30 @@ export const useMfaConfirmCode = () =>
 export const useMfaRecoveryCodes = () =>
   useMfaMutation<string[], Partial<MfaCode>>('recoveryCodes', async ({ code }) => {
     if (code) {
-      await reauthenticateWithCode(code)
+      await reauthenticate({ code })
     }
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
     return response.data.data.unused_codes
   })
 
-/** The code is the reauthentication allauth wants first: its delete takes no body of its own */
+interface MfaDeactivateVariables extends MfaCode {
+  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
+  password?: string
+}
+
+/** KPI wants every credential the account has before 2FA goes off, so the password as well as the code */
 export const useMfaDeactivate = () =>
-  useMfaMutation<void, MfaCode>('deactivate', async ({ code }) => {
-    await reauthenticateWithCode(code)
+  useMfaMutation<void, MfaDeactivateVariables>('deactivate', async ({ code, password }) => {
+    await reauthenticate({ password, code })
     // KPI refuses with a 403 for superusers under `SUPERUSER_AUTH_ENFORCEMENT`
     assertOk(await allauthBrowserV1AccountAuthenticatorsTotpDelete(), 'code')
   })
 
-/**
- * Replaces the recovery codes, invalidating the previous set. Reauthenticates with the code first, same as
- * {@link useMfaDeactivate}
- */
+/** Replaces the recovery codes, invalidating the previous set. allauth takes the code alone here. */
 export const useMfaRegenerateCodes = () =>
   useMfaMutation<string[], MfaCode>('regenerate', async ({ code }) => {
-    await reauthenticateWithCode(code)
+    await reauthenticate({ code })
 
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesPost()
     assertOk(response, 'code')

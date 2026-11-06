@@ -2,19 +2,27 @@ import React, { useState, useEffect } from 'react'
 
 import classnames from 'classnames'
 import { when } from 'mobx'
+import { useMfaStatus } from '#/account/security/mfa/mfa.api'
 import { fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
+import TextInput from '#/components/common/TextInput'
 import PasswordStrength from '#/components/passwordStrength.component'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import profileStore from '#/stores/profile'
 import { notify } from '#/utils'
 import styles from './updatePasswordForm.module.scss'
 
 const FIELD_REQUIRED_ERROR = t('This field is required.')
+
+/** The backend sends either one message or a list */
+function toErrorList(error: string[] | string | undefined) {
+  return typeof error === 'string' ? [error] : error
+}
 
 interface UpdatePasswordFormProps {
   /**
@@ -34,6 +42,16 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
   const [newPasswordError, setNewPasswordError] = useState<string[] | undefined>()
   const [verifyPassword, setVerifyPassword] = useState('')
   const [verifyPasswordError, setVerifyPasswordError] = useState<string[] | undefined>()
+  /** A token or recovery code, asked for when 2FA is on */
+  const [mfaCode, setMfaCode] = useState('')
+  const [mfaCodeError, setMfaCodeError] = useState<string[] | undefined>()
+  /** The backend asked for a code, so the field shows even with the flag off or no 2FA status */
+  const [wasCodeAsked, setWasCodeAsked] = useState(false)
+
+  const isAuthRedesignEnabled = useFeatureFlag(FeatureFlag.authRedesignEnabled)
+  const { data: mfaStatus } = useMfaStatus()
+  // Upfront only behind the flag until DEV-3258 makes the backend require the code
+  const isCodeNeeded = (isAuthRedesignEnabled && Boolean(mfaStatus?.isActive)) || wasCodeAsked
 
   useEffect(() => {
     when(() => envStore.isReady).then(() => setIsEnvStoreReady(true))
@@ -44,8 +62,9 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
     setCurrentPasswordError(undefined)
     setNewPasswordError(undefined)
     setVerifyPasswordError(undefined)
+    setMfaCodeError(undefined)
 
-    // Any of the three inputs can't be empty
+    // None of the inputs can be empty
     if (!currentPassword) {
       setCurrentPasswordError([FIELD_REQUIRED_ERROR])
       hasErrors = true
@@ -56,6 +75,10 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
     }
     if (!verifyPassword) {
       setVerifyPasswordError([FIELD_REQUIRED_ERROR])
+      hasErrors = true
+    }
+    if (isCodeNeeded && !mfaCode.trim()) {
+      setMfaCodeError([FIELD_REQUIRED_ERROR])
       hasErrors = true
     }
 
@@ -74,6 +97,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
           {
             current_password: currentPassword,
             new_password: newPassword,
+            ...(isCodeNeeded && { mfa_code: mfaCode.trim() }),
           },
           { notifyAboutError: false },
         )
@@ -81,6 +105,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         setCurrentPassword('')
         setNewPassword('')
         setVerifyPassword('')
+        setMfaCode('')
         notify(t('changed password successfully'))
         if (typeof props.onSuccess === 'function') {
           props.onSuccess()
@@ -88,19 +113,11 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
       } catch (error) {
         const errorObj = error as FailResponse
 
-        if (errorObj.responseJSON?.current_password) {
-          if (typeof errorObj.responseJSON.current_password === 'string') {
-            setCurrentPasswordError([errorObj.responseJSON.current_password])
-          } else {
-            setCurrentPasswordError(errorObj.responseJSON.current_password)
-          }
-        }
-        if (errorObj.responseJSON?.new_password) {
-          if (typeof errorObj.responseJSON.new_password === 'string') {
-            setNewPasswordError([errorObj.responseJSON.new_password])
-          } else {
-            setNewPasswordError(errorObj.responseJSON.new_password)
-          }
+        setCurrentPasswordError(toErrorList(errorObj.responseJSON?.current_password))
+        setNewPasswordError(toErrorList(errorObj.responseJSON?.new_password))
+        setMfaCodeError(toErrorList(errorObj.responseJSON?.mfa_code))
+        if (errorObj.responseJSON?.mfa_code) {
+          setWasCodeAsked(true)
         }
 
         setIsPending(false)
@@ -163,6 +180,22 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
           onChange={(evt) => setVerifyPassword(evt.currentTarget.value)}
         />
       </div>
+
+      {/* Last, so the token is typed right before it is sent and has no time to expire */}
+      {isCodeNeeded && (
+        <div className={styles.row}>
+          <TextInput
+            label={t('Two-factor authentication code')}
+            placeholder={t('Enter token or backup code')}
+            error={mfaCodeError?.join(' ')}
+            value={mfaCode}
+            onChange={(evt) => setMfaCode(evt.currentTarget.value)}
+            autoComplete='one-time-code'
+            // Not `numeric`: a recovery code has letters too
+            inputMode='text'
+          />
+        </div>
+      )}
 
       <div className={styles.row}>
         <ButtonNew variant='filled' size='lg' type='submit' loading={isPending}>

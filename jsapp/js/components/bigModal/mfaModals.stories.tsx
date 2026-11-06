@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { toast } from 'react-hot-toast'
-import { expect, fn, userEvent, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { Canvas } from '#/auth/authStoryHelpers'
 import Modal from '#/components/common/modal'
 import {
@@ -71,6 +71,22 @@ async function submitCode(canvas: Canvas, code: string) {
 
 async function typePassword(canvas: Canvas, password: string) {
   await userEvent.type(await canvas.findByLabelText('Password'), password)
+}
+
+/**
+ * For SSO-only accounts. Until the session answers the modal assumes a password, shows its field and keeps Next
+ * disabled, so this waits for the field to go before anything is pressed. A long timeout, as a slow CI runner can
+ * take over a second to answer.
+ */
+async function waitForNoPasswordField(canvas: Canvas) {
+  await canvas.findByRole('textbox')
+  await waitFor(() => expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument(), { timeout: 5000 })
+}
+
+/** Turning 2FA off takes the password as well as the code */
+async function submitTurnOff(canvas: Canvas, code: string, password = VALID_PASSWORD) {
+  await typePassword(canvas, password)
+  await submitCode(canvas, code)
 }
 
 async function expectBackupCodes(canvas: Canvas) {
@@ -157,10 +173,10 @@ export const ConfirmWithoutPassword: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
+    await waitForNoPasswordField(canvas)
     await submitCode(canvas, VALID_CODE)
 
     await expectBackupCodes(canvas)
-    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
   },
 }
 
@@ -182,7 +198,7 @@ export const ReconfigureContinuesToNewSetup: Story = {
     const canvas = within(canvasElement)
 
     await userEvent.click(await canvas.findByRole('button', { name: 'Next' }))
-    await submitCode(canvas, VALID_CODE)
+    await submitTurnOff(canvas, VALID_CODE)
 
     // The modal opened without a QR code, so this secret can only come from the new setup
     await userEvent.click(await canvas.findByText('Enter key manually'))
@@ -196,20 +212,66 @@ export const ReconfigureContinuesToNewSetup: Story = {
   },
 }
 
-export const DeactivateRejectsBadCode: Story = {
+/** SSO-only accounts have no password, so the code alone does it */
+export const DeactivateWithoutPassword: Story = {
   args: { modalType: 'deactivate' },
+  parameters: { msw: { handlers: mfaMocks(state, { hasUsablePassword: false }) } },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
 
-    await submitCode(canvas, '000000')
+    await waitForNoPasswordField(canvas)
+    await submitCode(canvas, VALID_CODE)
 
+    await waitFor(() => expect(args.onModalClose).toHaveBeenCalled())
+  },
+}
+
+/** Regenerating keeps allauth's rule: the code alone */
+export const RegenerateWithoutPassword: Story = {
+  args: { modalType: 'regenerate' },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.click(await canvas.findByRole('button', { name: 'Next' }))
+    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
+    await submitCode(canvas, VALID_CODE)
+
+    await expectBackupCodes(canvas)
+  },
+}
+
+/** Turning 2FA off takes both, and each refusal shows by its own field */
+export const DeactivateWithPasswordAndCode: Story = {
+  args: { modalType: 'deactivate' },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement)
+    const next = () => userEvent.click(canvas.getByRole('button', { name: 'Next' }))
+    const code = await canvas.findByRole('textbox')
+
+    // Nothing to press until both are in
+    await userEvent.type(code, '000000')
+    expect(canvas.getByRole('button', { name: 'Next' })).toBeDisabled()
+
+    await typePassword(canvas, 'wrong password')
+    await next()
+    expect(await canvas.findByText('Incorrect password.')).toBeInTheDocument()
+
+    // Every submit empties the code field
+    const password = canvas.getByLabelText('Password')
+    await userEvent.clear(password)
+    await userEvent.type(password, VALID_PASSWORD)
+    await userEvent.type(code, '000000')
+    await next()
     // By the field only, no toast
     expect(await canvas.findAllByText(INCORRECT_CODE_MESSAGE)).toHaveLength(1)
     expect(args.onModalClose).not.toHaveBeenCalled()
 
     // A new attempt clears it
-    await userEvent.type(canvas.getByRole('textbox'), '1')
+    await userEvent.type(code, VALID_CODE)
     expect(canvas.queryByText(INCORRECT_CODE_MESSAGE)).not.toBeInTheDocument()
+    await next()
+
+    await waitFor(() => expect(args.onModalClose).toHaveBeenCalled())
   },
 }
 
@@ -219,7 +281,7 @@ export const DeactivateRefusedForSuperuser: Story = {
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement)
 
-    await submitCode(canvas, VALID_CODE)
+    await submitTurnOff(canvas, VALID_CODE)
 
     expect(await canvas.findByText('You cannot deactivate two-factor authentication.')).toBeInTheDocument()
     expect(args.onModalClose).not.toHaveBeenCalled()
