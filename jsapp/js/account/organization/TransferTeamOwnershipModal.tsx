@@ -26,19 +26,22 @@ export default function TransferTeamOwnershipModal({
 }: TransferTeamOwnershipModalProps) {
   const recipientLabel = targetFullName ? `${targetFullName} (@${username})` : `@${username}`
   const [checked, setChecked] = useState(false)
+  const [beforeRecipient, afterRecipient = ''] = t(
+    'This action will transfer ownership of ##orgName## to ##recipient##.',
+  )
+    .replace('##orgName##', orgName)
+    .split('##recipient##')
 
   return (
     <ModalNew size='lg' title={t('Transfer ownership')} opened={isModalOpen} onClose={onCancel}>
       <Stack>
         <Stack>
           <Text>
-            {orgName
-              ? t('This action will transfer ownership of ##orgName## to').replace('##orgName##', orgName)
-              : t('This action will transfer ownership to')}{' '}
+            {beforeRecipient}
             <Text span fw={600}>
               {recipientLabel}
             </Text>
-            {'.'}
+            {afterRecipient}
           </Text>
 
           <Text>
