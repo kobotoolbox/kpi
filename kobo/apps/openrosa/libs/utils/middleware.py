@@ -144,6 +144,11 @@ class RestrictedAccessMiddleware(MiddlewareMixin):
         self._skipped_view = False
 
     def process_response(self, request, response):
+        # An unresolved URL never reaches `process_view()`, so the flags below
+        # would be left over from an earlier request. Leave its 404 alone
+        if request.resolver_match is None:
+            return response
+
         if not request.user.is_authenticated or isinstance(
             request.user, DataCollectorUser
         ):

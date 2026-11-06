@@ -3,7 +3,7 @@ import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { isConflictingOngoingJobForSubmission } from './conflictingOngoingJob'
 
 function buildBulkAction(
@@ -16,7 +16,7 @@ function buildBulkAction(
   // status has a submission status of the same name, so we can just look it up.
   const submissionStatus = BulkActionSubmissionStatusResponseStatusEnum[status]
 
-  return getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  return getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
     uid: `bulk-${submissionUuid}-${language}`,
     status,
     action_id: ActionIdEnum.automatic_google_transcription,

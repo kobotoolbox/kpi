@@ -5,7 +5,7 @@ import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-r
 import { expect, waitFor, within } from 'storybook/test'
 import { endpoints } from '#/api.endpoints'
 import type { PaginatedDataResponseListCount } from '#/api/models/paginatedDataResponseListCount'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { MetaQuestionTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
@@ -21,7 +21,7 @@ const mockAssetUid = 'aTestMapAssetUid123'
 // The types are structurally compatible at runtime (see DataTableWrapper.stories.tsx for details)
 
 // Asset with only start-geopoint (no regular geopoint question)
-const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({
+const assetWithOnlyStartGeopoint = getAssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Start-Geopoint Only',
   deployment__active: true,
@@ -59,7 +59,7 @@ const assetWithOnlyStartGeopoint = getApiV2AssetsRetrieveResponseMock({
 }) as unknown as AssetResponse
 
 // Asset with both start-geopoint AND regular geopoint
-const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
+const assetWithBothGeopointTypes = getAssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Both Geopoint Types',
   deployment__active: true,
@@ -104,7 +104,7 @@ const assetWithBothGeopointTypes = getApiV2AssetsRetrieveResponseMock({
 }) as unknown as AssetResponse
 
 // Asset used to check how points collected on both sides of the 180th meridian are displayed
-const assetWithPacificGeopoints = getApiV2AssetsRetrieveResponseMock({
+const assetWithPacificGeopoints = getAssetsRetrieveResponseMock({
   uid: mockAssetUid,
   name: 'Test Form with Points Across the 180th Meridian',
   deployment__active: true,
