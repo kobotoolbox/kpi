@@ -1,5 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { toast } from 'react-hot-toast'
 import { expect, fn, userEvent, within } from 'storybook/test'
+import type { Canvas } from '#/auth/authStoryHelpers'
+import Modal from '#/components/common/modal'
 import {
   BACKUP_CODES,
   INCORRECT_CODE_MESSAGE,
@@ -14,6 +17,7 @@ import {
 } from '#/endpoints/mfa.mocks'
 import { seedEnvStore } from '#/envStore.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
+import ToasterConfig from '#/toasterConfig'
 import MFAModals from './mfaModals'
 
 /** Shared by every story, reset before each */
@@ -31,15 +35,33 @@ const meta: Meta<typeof MFAModals> = {
   args: { onModalClose: fn() },
   beforeEach: async () => {
     state.totp = null
+    // Toasts outlive a story, and one story checks there are none
+    toast.remove()
     return seedSettings()
   },
-  decorators: [queryClientDecorator],
+  decorators: [
+    (Story) => (
+      <>
+        <ToasterConfig />
+        {/* `BigModal`'s frame, so each step shows at its real size */}
+        <Modal
+          open
+          onClose={() => {}}
+          title='Two-factor authentication'
+          className='modal--custom-header modal--mfa-setup'
+        >
+          <Modal.Body>
+            <Story />
+          </Modal.Body>
+        </Modal>
+      </>
+    ),
+    queryClientDecorator,
+  ],
 }
 
 export default meta
 type Story = StoryObj<typeof MFAModals>
-
-type Canvas = ReturnType<typeof within>
 
 /** Types a code into the step currently showing and presses on */
 async function submitCode(canvas: Canvas, code: string) {
@@ -121,6 +143,10 @@ export const ConfirmRejectsBadPassword: Story = {
 
     expect(await canvas.findByText('Incorrect password.')).toBeInTheDocument()
     expect(state.totp).toBeNull()
+
+    // A new attempt clears it
+    await typePassword(canvas, 'x')
+    expect(canvas.queryByText('Incorrect password.')).not.toBeInTheDocument()
   },
 }
 
@@ -177,8 +203,13 @@ export const DeactivateRejectsBadCode: Story = {
 
     await submitCode(canvas, '000000')
 
-    expect(await canvas.findByText(INCORRECT_CODE_MESSAGE)).toBeInTheDocument()
+    // By the field only, no toast
+    expect(await canvas.findAllByText(INCORRECT_CODE_MESSAGE)).toHaveLength(1)
     expect(args.onModalClose).not.toHaveBeenCalled()
+
+    // A new attempt clears it
+    await userEvent.type(canvas.getByRole('textbox'), '1')
+    expect(canvas.queryByText(INCORRECT_CODE_MESSAGE)).not.toBeInTheDocument()
   },
 }
 

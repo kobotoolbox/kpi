@@ -260,7 +260,10 @@ function MFAModals(props: MFAModalsProps) {
           size='lg'
           error={errorText}
           value={inputString}
-          onChange={(evt) => setInputString(evt.currentTarget.value)}
+          onChange={(evt) => {
+            setInputString(evt.currentTarget.value)
+            setErrorText(undefined)
+          }}
           // Keeps password managers from filling it in as the username for the password field below
           autoComplete='one-time-code'
         />
@@ -289,7 +292,10 @@ function MFAModals(props: MFAModalsProps) {
             placeholder={t('Password')}
             error={passwordError}
             value={password}
-            onChange={(evt) => setPassword(evt.currentTarget.value)}
+            onChange={(evt) => {
+              setPassword(evt.currentTarget.value)
+              setPasswordError(undefined)
+            }}
             autoComplete='current-password'
           />
         </bem.MFAModal__p>
