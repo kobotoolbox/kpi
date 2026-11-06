@@ -11,5 +11,5 @@ Python dependencies, PostgreSQL, MongoDB and Redis live in the kobo-install cont
 ## Checking work
 
 - Tests: `pytest <path>`. `pyproject.toml` already sets `DJANGO_SETTINGS_MODULE=kobo.settings.testing`. Add `-n auto` for runs that span many modules.
-- Format: `./format-python.sh <base>` before committing, where `<base>` is the branch that the PR targets, such as `origin/main` or `origin/release/2.026.37`. It only touches lines that differ from `<base>`. Never run `black`, `ruff format` or `isort` on whole files.
+- Format: `./format-python.sh <base>` before committing, where `<base>` is the branch that the PR targets, such as `origin/main` or `origin/release/2.026.37`. Its Darker step reformats only the lines that differ from `<base>`, but its Ruff step fixes quotes, imports and a few other rules anywhere in the changed files, so review the full diff afterward. Never run `black`, `ruff format` or `isort` on whole files.
 - API schema: after a change to a view, a serializer or an `extend_schema` decorator, run `./scripts/generate_api.sh`, and commit `static/openapi/` together with the regenerated `jsapp/js/api/` files. The script also runs Orval through npm; if Orval fails, run `npm ci` first. `--skip-orval` regenerates only the schema.

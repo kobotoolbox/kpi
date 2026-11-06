@@ -18,7 +18,7 @@ Run `./format-python.sh <base>` before committing. The script compares the worki
 
 It runs two steps on the changed files:
 
-1. `ruff check --fix` with a few rules: quote style, import sorting, unused imports, deprecated `mock`, extraneous parentheses and the missing newline at the end of a file.
+1. `ruff check --fix` on each changed file as a whole, with a few rules: quote style, import sorting, unused imports, deprecated `mock`, extraneous parentheses and the missing newline at the end of a file. It can change lines that you did not touch, so review the full diff afterward.
 2. `darker`, which applies Black and isort to the changed lines only, then runs flake8 the way CI does.
 
 Ruff only fixes; it does not format. Formatting follows Black through Darker, not `ruff format`. Do not run `black`, `ruff format` or `isort` on whole files: they reformat lines that the change did not touch and bloat the diff.
