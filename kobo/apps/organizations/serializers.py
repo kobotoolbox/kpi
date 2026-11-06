@@ -643,11 +643,8 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
 
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
-    recipient = serializers.CharField(write_only=True, required=True)
+    recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
-    recipient_username = serializers.CharField(
-        source='recipient.username', read_only=True
-    )
     organization_id = serializers.CharField(
         source='sender.organization.id', read_only=True
     )
@@ -672,7 +669,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_name',
             'sender',
             'recipient',
-            'recipient_username',
             'status',
             'billing_review_requested',
             'created',
@@ -683,7 +679,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_id',
             'organization_name',
             'sender',
-            'recipient_username',
             'status',
             'created',
             'modified',
@@ -711,8 +706,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             except Organization.DoesNotExist:
                 raise NotFound({'detail': t('Organization not found.')})
 
-        user = self.context['request'].user
-        return user.organization
+        raise NotFound({'detail': t('Organization not found.')})
 
     def validate_recipient(self, value):
         organization = self._get_organization()
@@ -747,11 +741,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         organization = self._get_organization()
         request_user = get_database_user(self.context['request'].user)
 
-        # 1. Validates that the requester is the current Team Owner
-        if not organization.is_owner(request_user):
-            raise serializers.ValidationError({'detail': NOT_ENOUGH_PERMISSIONS_ERROR})
-
-        # 2. Enforces the business rule that only one ownership transfer can
+        # Enforces the business rule that only one ownership transfer can
         # be pending per team
         if OrgOwnershipTransferInvite.objects.filter(
             sender=request_user,
@@ -763,7 +753,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
 
         attrs['organization'] = organization
         attrs['sender'] = request_user
-        attrs['recipient_user'] = attrs['recipient']
         return attrs
 
     def create(self, validated_data):
@@ -771,16 +760,18 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             with transaction.atomic():
                 transfer = OrgOwnershipTransferInvite.objects.create(
                     sender=validated_data['sender'],
-                    recipient=validated_data['recipient_user'],
+                    recipient=validated_data['recipient'],
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
                     status=InviteStatusChoices.PENDING,
                 )
         except IntegrityError as err:
-            raise serializers.ValidationError(
-                {'detail': [OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR]}
-            ) from err
+            if 'unique_pending_org_ownership_transfer' in str(err):
+                raise serializers.ValidationError(
+                    {'detail': [OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR]}
+                ) from err
+            raise
 
         transfer.send_invite_email()
         return transfer
