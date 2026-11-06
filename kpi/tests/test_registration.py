@@ -175,6 +175,43 @@ class RegistrationTestCase(TestCase):
             response.content,
         )
 
+    def test_login_shows_signup_link_by_default(self):
+        response = self.client.get(reverse('account_login'))
+        self.assertContains(response, t('Create an account'))
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_login_hides_signup_link_when_registration_closed(self):
+        response = self.client.get(reverse('account_login'))
+        self.assertNotContains(response, t('Create an account'))
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_login_shows_signup_link_when_open_signup_provider_exists(self):
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        SocialAppCustomData.objects.create(
+            social_app=social_app, is_public=True, open_signup=True
+        )
+
+        response = self.client.get(reverse('account_login'))
+        self.assertContains(response, t('Create an account'))
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_login_hides_signup_link_when_open_signup_provider_is_private(self):
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        SocialAppCustomData.objects.create(social_app=social_app, open_signup=True)
+
+        response = self.client.get(reverse('account_login'))
+        self.assertNotContains(response, t('Create an account'))
+
     @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
     def test_cannot_use_password_with_managed_social_app(self):
         social_app = SocialApp.objects.create(
@@ -286,3 +323,92 @@ class RegistrationTestCase(TestCase):
         )
         success = get_social_adapter().is_open_for_signup(request, social_login)
         assert success is False
+
+    def _social_login_for(self, custom_data_kwargs, email):
+        request = RequestFactory().get(reverse('account_login'))
+        provider = MockProvider(request=request)
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider=provider.id,
+        )
+        provider.app = social_app
+        SocialAppCustomData.objects.create(social_app=social_app, **custom_data_kwargs)
+        return request, SocialLogin(user=User(email=email), provider=provider)
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_open_signup_allows_any_domain_when_registration_closed(self):
+        request, social_login = self._social_login_for(
+            {'open_signup': True}, 'user@some-other-domain.test'
+        )
+
+        assert get_social_adapter().is_open_for_signup(request, social_login) is True
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_open_signup_false_keeps_unlisted_domain_closed(self):
+        request, social_login = self._social_login_for(
+            {'open_signup': False}, 'user@some-other-domain.test'
+        )
+
+        assert get_social_adapter().is_open_for_signup(request, social_login) is False
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_open_signup_without_custom_data_keeps_unlisted_domain_closed(self):
+        request = RequestFactory().get(reverse('account_login'))
+        provider = MockProvider(request=request)
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider=provider.id,
+        )
+        provider.app = social_app
+        social_login = SocialLogin(
+            user=User(email='user@some-other-domain.test'), provider=provider
+        )
+
+        assert get_social_adapter().is_open_for_signup(request, social_login) is False
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_open_signup_allows_missing_email(self):
+        # A provider that hands over no address must not raise on the domain
+        # lookup; there is simply nothing to match a managed domain against
+        request, social_login = self._social_login_for({'open_signup': True}, '')
+
+        assert get_social_adapter().is_open_for_signup(request, social_login) is True
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_closed_signup_with_missing_email_does_not_raise(self):
+        # The same for a provider that is not open: no address means no managed
+        # domain can match, not an `IndexError` on the split
+        request, social_login = self._social_login_for({'open_signup': False}, '')
+
+        assert get_social_adapter().is_open_for_signup(request, social_login) is False
+
+    @override_settings(SOCIALACCOUNT_PROVIDERS=SOCIALACCOUNT_PROVIDERS)
+    def test_open_signup_does_not_lift_managed_password_ban(self):
+        # `open_signup` opens SSO registration; the managed-domain rule bans
+        # passwords on a domain, and the two must stay independent
+        social_app = SocialApp.objects.create(
+            client_id='test.service.id',
+            secret='test.service.secret',
+            name='Test App',
+            provider='Test App',
+        )
+        custom_data = SocialAppCustomData.objects.create(
+            social_app=social_app, managed=True, open_signup=True
+        )
+        SocialAppManagedDomain.objects.create(
+            domain='example.com', social_app=custom_data
+        )
+        data = self.valid_data.copy()
+        data['email'] = 'user@example.com'
+
+        response = self.client.post(reverse('account_signup'), data=data)
+        self.assertIn(
+            b'Your organization has restricted the use of passwords.'
+            b' Please sign up using SSO instead.',
+            response.content,
+        )
+        self.assertFalse(User.objects.filter(username='alice').exists())

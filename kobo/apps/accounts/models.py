@@ -98,6 +98,13 @@ class SocialAppCustomData(models.Model):
     managed = models.BooleanField(
         default=False, help_text='Allow clients to manage users exclusively through SSO'
     )
+    open_signup = models.BooleanField(
+        default=False,
+        help_text=(
+            'Allow anyone who signs in with this provider to create an '
+            'account, whatever their email domain'
+        ),
+    )
     send_in_app_message = models.BooleanField(
         default=True, help_text='Notify unlinked users on managed SSO activation'
     )

@@ -278,7 +278,32 @@ class HeadlessProviderSignupTestCase(TestCase):
         assert response.status_code == 400
         assert not get_user_model().objects.filter(username='sso_user').exists()
 
-    def _create_social_app(self, provider_id, managed):
+    @override_config(REGISTRATION_OPEN=False)
+    def test_open_signup_provider_accepts_any_domain(self):
+        # `open_signup` lets a provider create accounts for whoever it
+        # authenticates, with no managed domain to list
+        self._create_social_app('open-sso', managed=False, open_signup=True)
+        email = 'someone@unlisted.test'
+        self._stash_pending_signup(provider_id='open-sso', email=email)
+
+        response = self._post(self._payload(email=email))
+
+        assert response.status_code == 200, response.content
+        user = get_user_model().objects.get(username='sso_user')
+        assert user.email == email
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_closed_signup_provider_rejects_unlisted_domain(self):
+        # The same handshake through a provider without `open_signup` stays
+        # closed, which is the whole point of a closed registration
+        self._stash_pending_signup(provider_id=UNMANAGED_PROVIDER_ID)
+
+        response = self._post(self._payload())
+
+        assert response.status_code == 403
+        assert not get_user_model().objects.filter(username='sso_user').exists()
+
+    def _create_social_app(self, provider_id, managed, open_signup=False):
         social_app = SocialApp.objects.create(
             provider='openid_connect',
             provider_id=provider_id,
@@ -287,7 +312,7 @@ class HeadlessProviderSignupTestCase(TestCase):
             secret=f'{provider_id}.client.secret',
         )
         custom_data = SocialAppCustomData.objects.create(
-            social_app=social_app, managed=managed
+            social_app=social_app, managed=managed, open_signup=open_signup
         )
         if managed:
             SocialAppManagedDomain.objects.create(

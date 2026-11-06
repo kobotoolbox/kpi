@@ -2,7 +2,10 @@ from allauth.socialaccount.models import SocialApp
 from django.test import TestCase, override_settings
 
 from kobo.apps.accounts.models import SocialAppCustomData
-from kobo.apps.accounts.templatetags.get_provider_appname import get_social_apps
+from kobo.apps.accounts.templatetags.get_provider_appname import (
+    get_social_apps,
+    has_open_signup,
+)
 from .constants import SOCIALACCOUNT_PROVIDERS
 
 
@@ -37,3 +40,21 @@ class TemplateTagsTestCase(TestCase):
         )
         custom_data.save()
         assert list(get_social_apps()) == [self.social_app]
+
+    def test_open_signup_requires_public_app(self):
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app, is_public=True, open_signup=True
+        )
+        assert has_open_signup()
+
+    def test_open_signup_false_by_default(self):
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app, is_public=True
+        )
+        assert not has_open_signup()
+
+    def test_open_signup_ignores_private_app(self):
+        SocialAppCustomData.objects.create(
+            social_app=self.social_app, open_signup=True
+        )
+        assert not has_open_signup()
