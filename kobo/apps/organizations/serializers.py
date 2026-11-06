@@ -18,7 +18,6 @@ from kobo.apps.organizations.models import (
     Organization,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
-    OrganizationOwner,
     OrganizationOwnershipTransfer,
     OrganizationType,
     OrganizationUser,
