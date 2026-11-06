@@ -25,7 +25,9 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
 
     if asset.has_deployment:
         if use_all_form_versions:
-            _versions = asset.deployed_versions
+            # Load each version's content on its own, so that the raw contents
+            # never pile up in memory
+            _versions = asset.deployed_versions.defer('version_content').iterator()
         else:
             _versions = [asset.deployed_versions.first()]
     else:
