@@ -23,6 +23,9 @@ const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/pr
 const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formXform'))
 const FormJson = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formJson'))
 const SectionNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/sectionNotFound'))
+const SubmissionRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ '#/components/submissions/single/submissionRoute'),
+)
 const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formNotFound'))
 
 export const router = createHashRouter(
@@ -153,7 +156,10 @@ export const router = createHashRouter(
                     requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                   />
                 }
-              />
+              >
+                {/* Nested, so the table can stay mounted under a record opened from it */}
+                <Route path={ROUTES.FORM_SUBMISSION} element={<SubmissionRoute />} />
+              </Route>
               <Route
                 path={ROUTES.FORM_DOWNLOADS}
                 element={

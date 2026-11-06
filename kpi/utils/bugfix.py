@@ -26,23 +26,27 @@ def repair_file_column_content_and_save(asset, include_versions=True) -> bool:
     BAD_TIME = datetime.datetime(
         2024, 4, 30, 15, 27, 2, tzinfo=datetime.timezone.utc
     )
+    # formpack repairs only content that lists this column in `translated`.
+    # Filtering on it lets the database skip healthy content, which can weigh
+    # hundreds of megabytes across the versions of a form with long choice lists
+    DAMAGED_TRANSLATED = ['media::file']
 
     any_change = False
     with transaction.atomic():
         # Lock and refetch the latest content to guard against clobbering
         # concurrent updates
         content = (
-            Asset.objects.filter(pk=asset.pk, date_modified__gte=BAD_TIME)
+            Asset.objects.filter(
+                pk=asset.pk,
+                date_modified__gte=BAD_TIME,
+                content__translated__contains=DAMAGED_TRANSLATED,
+            )
             .select_for_update()
-            .values('content')
+            .values_list('content', flat=True)
             .first()
         )
-        if not content:
-            # This asset was not modified recently enough to be affected by
-            # this bug
-            return False
 
-        if repair_file_column_content_in_place(content):
+        if content and repair_file_column_content_in_place(content):
             Asset.objects.filter(pk=asset.pk).update(content=content)
             any_change = True
             # Also update the in-memory asset instance passed to this function
@@ -54,9 +58,14 @@ def repair_file_column_content_and_save(asset, include_versions=True) -> bool:
         # Previous versions of the content may need repair, regardless of
         # whether or not the current content did
         for pk, version_content in (
-            asset.asset_versions.filter(date_modified__gte=BAD_TIME, deployed=True)
+            asset.asset_versions.filter(
+                date_modified__gte=BAD_TIME,
+                deployed=True,
+                version_content__translated__contains=DAMAGED_TRANSLATED,
+            )
             .select_for_update()
             .values_list('pk', 'version_content')
+            .iterator(chunk_size=1)
         ):
             if repair_file_column_content_in_place(version_content):
                 AssetVersion.objects.filter(pk=pk).update(

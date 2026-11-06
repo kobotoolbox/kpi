@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { reportStyleFactory, reportsResponseDataFactory } from './reports.factory'
@@ -137,7 +137,7 @@ describe('populateSelectQuestionLabels', () => {
 
     // TODO: Improve backend OpenAPI schema for Asset
     // - Make date_created and date_modified required (they're auto-populated by Django)
-    const asset = getApiV2AssetsRetrieveResponseMock({
+    const asset = getAssetsRetrieveResponseMock({
       content: {
         survey: [
           {

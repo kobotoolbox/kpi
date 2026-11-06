@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
+import type { AssetsAdvancedFeaturesBulkActionsListParams } from '#/api/models/assetsAdvancedFeaturesBulkActionsListParams'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import {
   getAssetsAdvancedFeaturesBulkActionsListQueryKey,
   useAssetsAdvancedFeaturesBulkActionsList,
 } from '#/api/react-query/survey-data'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { useProfile } from '#/stores/useProfile'
 import { getBulkActionsPollingIntervalMs, useDataTableBulkActions } from './useDataTableBulkActions'
 
@@ -15,7 +16,7 @@ jest.mock('#/api/react-query/survey-data', () => {
   return {
     ...actual,
     getAssetsAdvancedFeaturesBulkActionsListQueryKey: jest.fn(
-      (uidAsset?: string, params?: unknown) =>
+      (uidAsset: string, params?: AssetsAdvancedFeaturesBulkActionsListParams) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     ),
     useAssetsAdvancedFeaturesBulkActionsList: jest.fn(),
@@ -45,7 +46,7 @@ function buildBulkAction(
   createdByUsername: string,
   overrides: Partial<BulkActionResponse> = {},
 ): BulkActionResponse {
-  return getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+  return getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
     uid: `bulk-${status}-${createdByUsername}`,
     status,
     action_id: ActionIdEnum.automatic_google_transcription,
@@ -98,7 +99,7 @@ describe('useDataTableBulkActions', () => {
   beforeEach(() => {
     jest.resetAllMocks()
     getBulkActionsListQueryKeyMock.mockImplementation(
-      (uidAsset?: string, params?: unknown) =>
+      (uidAsset: string, params?: AssetsAdvancedFeaturesBulkActionsListParams) =>
         ['api', 'v2', 'assets', uidAsset, 'advanced-features', 'bulk-actions', ...(params ? [params] : [])] as const,
     )
     envStore.data.asr_mt_features_enabled = true
@@ -116,6 +117,27 @@ describe('useDataTableBulkActions', () => {
 
     chai.expect(result.current.activeBulkActions).to.deep.equal([])
     chai.expect(result.current.hasActiveBulkActionsCreatedByCurrentUser).to.equal(false)
+  })
+
+  it('disables the bulk actions query when ASR/MT features are disabled in env', () => {
+    envStore.data.asr_mt_features_enabled = false
+    mockSession('zefir')
+    mockBulkActions(undefined)
+
+    renderHook(() => useDataTableBulkActions('asset-123'))
+
+    const options = useBulkActionsListMock.mock.calls[0][2]
+    chai.expect(options?.query?.enabled).to.equal(false)
+  })
+
+  it('enables the bulk actions query when ASR/MT features are enabled and asset uid is present', () => {
+    mockSession('zefir')
+    mockBulkActions(undefined)
+
+    renderHook(() => useDataTableBulkActions('asset-123'))
+
+    const options = useBulkActionsListMock.mock.calls[0][2]
+    chai.expect(options?.query?.enabled).to.equal(true)
   })
 
   it('filters to pending/in-progress actions and returns true when current user has an active action', () => {
