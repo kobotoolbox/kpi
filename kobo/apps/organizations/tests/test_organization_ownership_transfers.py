@@ -84,6 +84,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             self.assertFalse(transfer.billing_review_requested)
             self.assertIn('uid', response.data)
             self.assertEqual(response.data['uid'], transfer.uid)
+            self.assertEqual(response.data['recipient'], self.admin_user.username)
 
     def test_recipient_must_be_active_admin_in_same_team(self):
         """

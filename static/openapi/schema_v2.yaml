@@ -19848,9 +19848,8 @@ components:
     OrganizationOwnershipTransfer:
       type: object
       properties:
-        guid:
+        uid:
           type: string
-          format: uuid
           readOnly: true
         organization_id:
           type: string
@@ -19863,16 +19862,13 @@ components:
           readOnly: true
         recipient:
           type: string
-          writeOnly: true
-        recipient_username:
-          type: string
-          readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/InviteStatusChoicesEnum'
+          - $ref: '#/components/schemas/OrganizationOwnershipTransferStatusEnum'
           readOnly: true
         billing_review_requested:
           type: boolean
+          default: false
         created:
           type: string
           format: date-time
@@ -19883,14 +19879,33 @@ components:
           readOnly: true
       required:
       - created
-      - guid
       - modified
       - organization_id
       - organization_name
       - recipient
-      - recipient_username
       - sender
       - status
+      - uid
+    OrganizationOwnershipTransferStatusEnum:
+      enum:
+      - accepted
+      - cancelled
+      - complete
+      - declined
+      - expired
+      - failed
+      - in_progress
+      - pending
+      type: string
+      description: |-
+        * `accepted` - Accepted
+        * `cancelled` - Cancelled
+        * `complete` - Complete
+        * `declined` - Declined
+        * `expired` - Expired
+        * `failed` - Failed
+        * `in_progress` - In Progress
+        * `pending` - Pending
     OrganizationResponse:
       type: object
       properties:

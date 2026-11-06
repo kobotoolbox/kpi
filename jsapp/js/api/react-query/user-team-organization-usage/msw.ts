@@ -48,6 +48,8 @@ import { MemberRoleEnum } from '../../models/memberRoleEnum'
 
 import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
 
+import { OrganizationOwnershipTransferStatusEnum } from '../../models/organizationOwnershipTransferStatusEnum'
+
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -983,14 +985,13 @@ export const getOrganizationsMembersPartialUpdateResponseMock = (
 export const getOrganizationsOwnershipTransfersCreateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
