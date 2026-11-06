@@ -80,6 +80,7 @@ from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
+    OWNER_REMOVAL_ERROR,
     PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
@@ -458,10 +459,23 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('organizations', 'members/delete.md'),
-        responses=open_api_204_empty_response(
-            require_auth=False,
-            validate_payload=False,
-        ),
+        responses={
+            **open_api_204_empty_response(
+                require_auth=False,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Bad request',
+                        value={'detail': 'Invalid request'},
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='username',

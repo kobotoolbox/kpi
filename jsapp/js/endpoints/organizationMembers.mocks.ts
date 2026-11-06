@@ -47,7 +47,7 @@ export const membersMockList: MemberListResponse[] = [
 /**
  * Mock API handler for the organization members endpoint. Use it in Storybook stories in `parameters.msw.handlers[]`.
  *
- * Hand-rolled rather than wrapping Orval's `getApiV2OrganizationsMembersListMockHandler`, which hardcodes `status: 200`
+ * Hand-rolled rather than wrapping Orval's `getOrganizationsMembersListMockHandler`, which hardcodes `status: 200`
  * and can only override the response body - so it cannot express the two errors below.
  *
  * Reproduces the parts of the `q` contract that callers have to cope with: a bare phrase under

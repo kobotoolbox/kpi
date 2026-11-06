@@ -50,6 +50,8 @@ INVITE_STATUS_UNSETTABLE_ERROR = t(
 NOT_ENOUGH_PERMISSIONS_ERROR = t(
     'You do not have enough permissions to perform this action'
 )
+OWNER_REMOVAL_ERROR = t('The owner cannot be removed from the organization')
+OWNER_ROLE_LOCKED_ERROR = t('The role of the owner cannot be changed')
 ORG_ADMIN_ROLE = 'admin'
 ORG_EXTERNAL_ROLE = 'external'
 ORG_MEMBER_ROLE = 'member'
