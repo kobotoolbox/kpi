@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core import mail
@@ -25,7 +26,10 @@ from kobo.apps.organizations.models import (
     OrganizationOwnershipTransfer,
     OrganizationUser,
 )
-from kobo.apps.organizations.tasks import transfer_organization_ownership
+from kobo.apps.organizations.tasks import (
+    mark_organization_ownership_transfer_as_expired,
+    transfer_organization_ownership,
+)
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
@@ -826,3 +830,100 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         mock_create_invite.assert_not_called()
         self.organization.refresh_from_db()
         self.assertEqual(self.organization.owner_user_object, self.owner_user)
+
+    @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
+    def test_mark_organization_ownership_transfer_as_expired(self):
+        """
+        Pending ownership transfers older than the configured expiry threshold
+        are updated to EXPIRED, while newer transfers remain PENDING.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        expired_transfer = OrganizationOwnershipTransfer.objects.first()
+        eight_days_ago = timezone.now() - timedelta(days=8)
+        OrganizationOwnershipTransfer.objects.filter(pk=expired_transfer.pk).update(
+            created=eight_days_ago
+        )
+
+        mark_organization_ownership_transfer_as_expired()
+
+        expired_transfer.refresh_from_db()
+        self.assertEqual(
+            expired_transfer.status, OrganizationInviteStatusChoices.EXPIRED
+        )
+
+    @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
+    def test_mark_organization_ownership_transfer_as_expired_leaves_recent_transfers_pending(
+        self,
+    ):
+        """
+        Transfers created within the expiration window remain PENDING.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        recent_transfer = OrganizationOwnershipTransfer.objects.first()
+
+        mark_organization_ownership_transfer_as_expired()
+
+        recent_transfer.refresh_from_db()
+        self.assertEqual(
+            recent_transfer.status, OrganizationInviteStatusChoices.PENDING
+        )
+
+    @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
+    def test_mark_organization_ownership_transfer_as_expired_ignores_non_pending(
+        self,
+    ):
+        """
+        Transfers in terminal statuses (COMPLETE, CANCELLED, DECLINED, FAILED)
+        are never changed to EXPIRED even if older than the threshold.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrganizationOwnershipTransfer.objects.first()
+        transfer.status = OrganizationInviteStatusChoices.DECLINED
+        transfer.save(update_fields=['status'])
+
+        eight_days_ago = timezone.now() - timedelta(days=8)
+        OrganizationOwnershipTransfer.objects.filter(pk=transfer.pk).update(
+            created=eight_days_ago
+        )
+
+        mark_organization_ownership_transfer_as_expired()
+
+        transfer.refresh_from_db()
+        self.assertEqual(
+            transfer.status, OrganizationInviteStatusChoices.DECLINED
+        )
+
+    @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
+    def test_expired_transfer_releases_single_transfer_lock(self):
+        """
+        Once a pending ownership transfer expires, the single-transfer lock on
+        the organization is released and a new transfer can be initiated.
+        """
+        # First transfer initiated
+        res1 = self._create_transfer(self.owner_user, self.admin_user.username)
+        self.assertEqual(res1.status_code, status.HTTP_201_CREATED)
+
+        # Second transfer blocked while first is pending
+        res2 = self._create_transfer(self.owner_user, self.admin_user.username)
+        self.assertEqual(res2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            str(res2.data['detail'][0]),
+            str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
+        )
+
+        # Age the transfer past expiry and run task
+        transfer = OrganizationOwnershipTransfer.objects.first()
+        eight_days_ago = timezone.now() - timedelta(days=8)
+        OrganizationOwnershipTransfer.objects.filter(pk=transfer.pk).update(
+            created=eight_days_ago
+        )
+        mark_organization_ownership_transfer_as_expired()
+
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, OrganizationInviteStatusChoices.EXPIRED)
+
+        # New transfer can now be initiated successfully
+        res3 = self._create_transfer(self.owner_user, self.admin_user.username)
+        self.assertEqual(res3.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(OrganizationOwnershipTransfer.objects.count(), 2)
+
