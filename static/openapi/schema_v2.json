@@ -27459,9 +27459,8 @@
             "OrganizationOwnershipTransfer": {
                 "type": "object",
                 "properties": {
-                    "guid": {
+                    "uid": {
                         "type": "string",
-                        "format": "uuid",
                         "readOnly": true
                     },
                     "organization_id": {
@@ -27477,23 +27476,19 @@
                         "readOnly": true
                     },
                     "recipient": {
-                        "type": "string",
-                        "writeOnly": true
-                    },
-                    "recipient_username": {
-                        "type": "string",
-                        "readOnly": true
+                        "type": "string"
                     },
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/InviteStatusChoicesEnum"
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransferStatusEnum"
                             }
                         ],
                         "readOnly": true
                     },
                     "billing_review_requested": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": false
                     },
                     "created": {
                         "type": "string",
@@ -27508,15 +27503,28 @@
                 },
                 "required": [
                     "created",
-                    "guid",
                     "modified",
                     "organization_id",
                     "organization_name",
                     "recipient",
-                    "recipient_username",
                     "sender",
-                    "status"
+                    "status",
+                    "uid"
                 ]
+            },
+            "OrganizationOwnershipTransferStatusEnum": {
+                "enum": [
+                    "accepted",
+                    "cancelled",
+                    "complete",
+                    "declined",
+                    "expired",
+                    "failed",
+                    "in_progress",
+                    "pending"
+                ],
+                "type": "string",
+                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
             },
             "OrganizationResponse": {
                 "type": "object",
