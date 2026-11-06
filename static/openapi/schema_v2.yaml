@@ -19771,16 +19771,22 @@ components:
       enum:
       - accepted
       - cancelled
+      - complete
       - declined
       - expired
+      - failed
+      - in_progress
       - pending
       - resent
       type: string
       description: |-
         * `accepted` - Accepted
         * `cancelled` - Cancelled
+        * `complete` - Complete
         * `declined` - Declined
         * `expired` - Expired
+        * `failed` - Failed
+        * `in_progress` - In Progress
         * `pending` - Pending
         * `resent` - Resent
     InviteeRoleEnum:
