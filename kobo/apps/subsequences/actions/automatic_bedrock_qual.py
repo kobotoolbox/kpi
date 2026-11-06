@@ -66,7 +66,7 @@ from .automatic_bedrock_qual_utils import (
     LLModel,
 )
 
-MAX_IMAGE_SIZE = 3.75e6 * 3 / 4  # max image size for Bedrock with room for encoding
+MAX_IMAGE_PIXELS = 645120  # max image size for Bedrock with room for encoding
 
 
 class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
@@ -129,22 +129,20 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     if a.get('question_xpath') == self.source_question_xpath
                 )
                 image_bytes = self.format_image_for_llm(attachment)
-                image_mimetype = attachment.get('mimetype')
-
-                return self.construct_image_request(prompt, image_bytes, image_mimetype)
+                return self.construct_image_request(prompt, image_bytes)
             except (FileNotFoundError, StopIteration):
                 raise AttachmentNotFoundException()
         else:
             return self.construct_text_request(prompt)
 
-    def construct_image_request(self, prompt, image_bytes, mimetype):
+    def construct_image_request(self, prompt, image_bytes):
         return {
             'role': 'user',
             'content': [
                 {'type': 'input_text', 'text': prompt},
                 {
                     'type': 'input_image',
-                    'image_url': f'data:{mimetype};base64,{image_bytes}',
+                    'image_url': f'data:image/jpeg;base64,{image_bytes}',
                 },
             ],
         }
@@ -261,50 +259,27 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
 
     def format_image_for_llm(self, attachment_dict: dict) -> str:
         """
-        Return b64-encoded image, resized if necessary to fit maximum size limits
+        Return b64-encoded image, converted to jpg and resized if necessary
+        to fit maximum size limits
         """
         filename = attachment_dict.get('filename')
         register_heif_opener()
 
         with default_storage.open(filename) as fp:
             raw_bytes = fp.read()
-            filesize = len(raw_bytes)
-            if filesize > MAX_IMAGE_SIZE:
-                buffer = BytesIO(raw_bytes)
-                with Image.open(buffer) as image:
-                    image_format = image.format
-                    # keep rotation information
-                    ImageOps.exif_transpose(image, in_place=True)
-                    # use sqrt here because the scale factor will be applied
-                    # to both height and width
-                    scale = math.sqrt(MAX_IMAGE_SIZE / filesize)
-                    new_w = max(1, float(image.width * scale))
-                    new_h = max(1, float(image.height * scale))
-                    longest_side = max(new_h, new_w)
-                    # LANCZOS is standard for shrinking images while
-                    # maintaining overall quality
-                    image.thumbnail((longest_side, longest_side), Image.LANCZOS)
-                    outbytes = BytesIO()
-                    image.save(outbytes, format=image_format)
-                    # the image metadata may mean the file is still too big, even after
-                    # rescale. Keep reducing dimensions by half until it's small enough
+            in_buffer = BytesIO(raw_bytes)
+            out_buffer = BytesIO()
+            with Image.open(in_buffer) as image:
+                ImageOps.exif_transpose(image, in_place=True)
+                width, height = image.size
+                total_pixels = image.size[0] * image.size[1]
+                if total_pixels > MAX_IMAGE_PIXELS:
+                    max_height = math.floor((height/total_pixels)*MAX_IMAGE_PIXELS)
+                    max_width = math.floor((width/total_pixels)*MAX_IMAGE_PIXELS)
+                    image.thumbnail((max_width, max_height), Image.LANCZOS)
+                image.save(out_buffer, format='JPEG', quality=90)
+        return base64.b64encode(out_buffer.getvalue()).decode()
 
-                    while (
-                        current_size := outbytes.getbuffer().nbytes
-                    ) > MAX_IMAGE_SIZE:
-                        new_w = max(1, new_w // 2)
-                        new_h = max(1, new_h // 2)
-                        longest_side = max(new_h, new_w)
-                        image.thumbnail((longest_side, longest_side), Image.LANCZOS)
-                        outbytes = BytesIO()
-                        image.save(outbytes, format=image_format)
-                        if outbytes.getbuffer().nbytes == current_size:
-                            # we've made the image as small as it can go
-                            # and it's still too large
-                            raise ImageTooLarge
-                    return base64.b64encode(outbytes.getvalue()).decode('utf-8')
-            else:
-                return base64.b64encode(raw_bytes).decode('utf-8')
 
     def get_output_fields(self) -> list[dict]:
         return []
