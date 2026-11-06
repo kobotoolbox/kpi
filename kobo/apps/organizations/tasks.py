@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from celery.signals import task_failure
 from constance import config
 from django.apps import apps
@@ -52,6 +53,13 @@ def transfer_member_data_ownership_to_org(user_id: int):
 
 
 @celery_app.task(
+    autoretry_for=(
+        SoftTimeLimitExceeded,
+        TimeLimitExceeded,
+    ),
+    max_retries=5,
+    retry_backoff=60,
+    retry_jitter=False,
     queue='kpi_low_priority_queue',
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
@@ -64,6 +72,9 @@ def transfer_organization_ownership(transfer_id: int):
     OrganizationUser = apps.get_model('organizations', 'OrganizationUser')
 
     try:
+        # Phase 1: Atomically swap OrganizationOwner and update outgoing
+        # owner role to Admin in its own transaction so row locks are released
+        # quickly and do not block concurrent requests.
         with transaction.atomic():
             transfer = (
                 OrganizationOwnershipTransfer.objects.select_for_update()
@@ -83,10 +94,10 @@ def transfer_organization_ownership(transfer_id: int):
                 )
                 return
 
-            transfer.status = OrganizationInviteStatusChoices.IN_PROGRESS
-            transfer.save(update_fields=['status', 'modified'])
+            if transfer.status != OrganizationInviteStatusChoices.IN_PROGRESS:
+                transfer.status = OrganizationInviteStatusChoices.IN_PROGRESS
+                transfer.save(update_fields=['status', 'modified'])
 
-            # Atomically update OrganizationOwner record to the new owner
             org_owner = OrganizationOwner.objects.select_for_update().get(
                 organization=transfer.organization
             )
@@ -94,45 +105,51 @@ def transfer_organization_ownership(transfer_id: int):
                 organization=transfer.organization,
                 user=transfer.recipient,
             )
-            org_owner.organization_user = new_org_user
-            org_owner.save(update_fields=['organization_user'])
+            if org_owner.organization_user_id != new_org_user.id:
+                org_owner.organization_user = new_org_user
+                org_owner.save(update_fields=['organization_user'])
 
-            # Update outgoing owner's member record to Admin (is_admin = True)
             outgoing_org_user = OrganizationUser.objects.select_for_update().get(
                 organization=transfer.organization,
                 user=transfer.sender,
             )
-            outgoing_org_user.is_admin = True
-            outgoing_org_user.save(update_fields=['is_admin'])
+            if not outgoing_org_user.is_admin:
+                outgoing_org_user.is_admin = True
+                outgoing_org_user.save(update_fields=['is_admin'])
 
-            # Batch project transfers for all projects owned by the outgoing owner
-            sender = transfer.sender
-            recipient = transfer.recipient
-            user_assets = (
-                sender.assets.only('pk', 'uid')
-                .exclude(
-                    pk__in=Transfer.objects.values_list('asset_id', flat=True).filter(
-                        invite__sender=sender, invite__recipient=recipient
-                    )
+        # Phase 2: Batch project transfers chunk by chunk. Each chunk commits
+        # its own project transfers and immediately kicks off Celery tasks for
+        # Mongo and S3 file moves. If the task is interrupted, .exclude()
+        # ensures it picks up only the remaining assets without duplicating work.
+        sender = transfer.sender
+        recipient = transfer.recipient
+        user_assets = (
+            sender.assets.only('pk', 'uid')
+            .exclude(
+                pk__in=Transfer.objects.values_list('asset_id', flat=True).filter(
+                    invite__sender=sender, invite__recipient=recipient
                 )
-                .iterator()
+            )
+            .iterator()
+        )
+
+        for asset_batch in chunked(
+            user_assets, settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
+        ):
+            create_invite(
+                sender=sender,
+                recipient=recipient,
+                assets=list(asset_batch),
+                invite_class_name='OrgMembershipAutoInvite',
             )
 
-            for asset_batch in chunked(
-                user_assets, settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
-            ):
-                create_invite(
-                    sender=sender,
-                    recipient=recipient,
-                    assets=list(asset_batch),
-                    invite_class_name='OrgMembershipAutoInvite',
-                )
-
-            # Update transfer record status to complete
+        # Phase 3: Mark transfer as complete and trigger completion emails.
+        with transaction.atomic():
+            transfer = OrganizationOwnershipTransfer.objects.select_for_update().get(
+                pk=transfer_id
+            )
             transfer.status = OrganizationInviteStatusChoices.COMPLETE
             transfer.save(update_fields=['status', 'modified'])
-
-            # On commit send email notifications to both owners
             transaction.on_commit(transfer.send_completion_email)
 
     except Exception as e:

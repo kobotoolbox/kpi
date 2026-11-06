@@ -814,7 +814,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         transfer.refresh_from_db()
         self.assertEqual(transfer.status, OrganizationInviteStatusChoices.FAILED)
         self.organization.refresh_from_db()
-        self.assertEqual(self.organization.owner_user_object, self.owner_user)
+        self.assertEqual(self.organization.owner_user_object, self.admin_user)
 
     def test_transfer_organization_ownership_task_skips_terminal_status(self):
         """
