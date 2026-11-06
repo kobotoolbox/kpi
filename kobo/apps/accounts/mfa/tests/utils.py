@@ -1,6 +1,8 @@
 import pyotp
 from allauth.mfa.adapter import get_adapter
+from allauth.mfa.models import Authenticator
 from allauth.mfa.totp.internal.auth import SECRET_SESSION_KEY
+from django.contrib.auth.hashers import make_password
 from django.test import TestCase
 from django.urls import reverse
 
@@ -36,3 +38,22 @@ def activate_mfa_for_user(client, user):
             data={'code': str(code)},
         )
     client.logout()
+
+
+def set_legacy_recovery_codes(user, codes: list[str]) -> Authenticator:
+    """
+    Replace `user`'s recovery codes with `codes`, stored as the migration from
+    the former 2FA system (trench) did: its hashed codes, encrypted by allauth
+    """
+    Authenticator.objects.filter(
+        user_id=user.pk, type=Authenticator.Type.RECOVERY_CODES
+    ).delete()
+    adapter = get_adapter()
+    return Authenticator.objects.create(
+        user=user,
+        type=Authenticator.Type.RECOVERY_CODES,
+        data={
+            'migrated_codes': [adapter.encrypt(make_password(c)) for c in codes],
+            'used_mask': 0,
+        },
+    )
