@@ -203,6 +203,45 @@ export const SearchRejectedByBackend: Story = {
   },
 }
 
+/**
+ * A member with a pending ownership transfer shows a different badge, a disabled
+ * role selector, and "Resend invitation" / "Cancel invitation" in the actions menu.
+ * The `pending_transfer` field is cast because it is not yet in the generated type.
+ */
+export const PendingOwnerTransfer: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        organizationMock(),
+        organizationMembersMock([
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          buildMember('matt90', 'Matthew Sungur', { pending_transfer: true } as any),
+          buildMember('alice', 'Alice Alvarez'),
+        ]),
+        helpBubbleMock,
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByText('Matthew Sungur')
+
+    const mattRow = canvas.getByText('Matthew Sungur').closest('tr')!
+
+    // Badge shows "Pending owner" instead of "Active"
+    expect(within(mattRow).getByText('Pending owner')).toBeInTheDocument()
+
+    // Role selector is disabled
+    expect(within(mattRow).getByDisplayValue('Member')).toBeDisabled()
+
+    // Actions menu shows transfer-specific items
+    await userEvent.click(within(mattRow).getByRole('button'))
+    const page = within(canvasElement.ownerDocument.body)
+    await page.findByText('Resend invitation')
+    expect(page.getByText('Cancel invitation')).toBeInTheDocument()
+  },
+}
+
 /** The error is not a dead end: fixing the phrase brings the table back. */
 export const SearchRecoversFromRejectedPhrase: Story = {
   play: async ({ canvasElement }) => {
