@@ -10,6 +10,7 @@
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { MemberListResponseInvite } from './memberListResponseInvite'
+import type { MemberListResponsePendingTransfer } from './memberListResponsePendingTransfer'
 import type { MemberListResponseRole } from './memberListResponseRole'
 
 export interface MemberListResponse {
@@ -33,4 +34,5 @@ export interface MemberListResponse {
   /** @nullable */
   user__is_active: boolean | null
   invite: MemberListResponseInvite
+  pending_transfer: MemberListResponsePendingTransfer
 }

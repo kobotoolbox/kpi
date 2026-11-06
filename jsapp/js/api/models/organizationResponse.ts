@@ -24,6 +24,7 @@ export interface OrganizationResponse {
   readonly modified: string
   readonly is_owner: boolean
   readonly is_mmo: boolean
+  readonly has_pending_ownership_transfer: boolean
   readonly request_user_role: MemberRoleEnum
   readonly members: string
   readonly assets: string
