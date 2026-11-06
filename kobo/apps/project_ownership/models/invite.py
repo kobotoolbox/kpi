@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import jsonschema
 from constance import config
 from django.conf import settings
 from django.db import models
@@ -16,8 +17,7 @@ from .choices import InviteStatusChoices
 
 class InviteType(models.TextChoices):
     ORG_MEMBERSHIP = 'org-membership'
-    # Not implemented yet:
-    # ORG_OWNERSHIP_TRANSFER = 'org-ownership-transfer'
+    ORG_OWNERSHIP_TRANSFER = 'org-ownership-transfer'
     USER_OWNERSHIP_TRANSFER = 'user-ownership-transfer'
 
 
@@ -62,11 +62,30 @@ class Invite(AbstractTimeStampedModel):
         default=InviteType.USER_OWNERSHIP_TRANSFER,
         max_length=30,
     )
+    metadata = models.JSONField(default=dict)
+    METADATA_SCHEMA = {'type': 'object', 'additionalProperties': False}
+
     objects = InviteManager()
     all_objects = InviteAllManager()
 
     class Meta:
         verbose_name = 'invite'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['sender'],
+                condition=models.Q(
+                    invite_type=InviteType.ORG_OWNERSHIP_TRANSFER,
+                    status=InviteStatusChoices.PENDING,
+                ),
+                name='unique_pending_org_ownership_transfer',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        if self.metadata is None:
+            self.metadata = {}
+        jsonschema.validate(self.metadata, self.METADATA_SCHEMA)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return (

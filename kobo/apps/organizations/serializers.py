@@ -18,9 +18,9 @@ from kobo.apps.organizations.models import (
     Organization,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
-    OrganizationOwnershipTransfer,
     OrganizationType,
     OrganizationUser,
+    OrgOwnershipTransferInvite,
     create_organization,
 )
 from kobo.apps.project_ownership.models import InviteStatusChoices
@@ -646,17 +646,26 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient_username = serializers.CharField(
         source='recipient.username', read_only=True
     )
-    organization_id = serializers.CharField(source='organization.id', read_only=True)
-    organization_name = serializers.CharField(
-        source='organization.name', read_only=True
+    organization_id = serializers.CharField(
+        source='sender.organization.id', read_only=True
     )
-    created = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
-    modified = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ', read_only=True)
+    organization_name = serializers.CharField(
+        source='sender.organization.name', read_only=True
+    )
+    created = serializers.DateTimeField(
+        source='date_created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
+    )
+    modified = serializers.DateTimeField(
+        source='date_modified', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
+    )
+    billing_review_requested = serializers.BooleanField(
+        required=False, default=False
+    )
 
     class Meta:
-        model = OrganizationOwnershipTransfer
+        model = OrgOwnershipTransferInvite
         fields = [
-            'guid',
+            'uid',
             'organization_id',
             'organization_name',
             'sender',
@@ -668,7 +677,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'modified',
         ]
         read_only_fields = [
-            'guid',
+            'uid',
             'organization_id',
             'organization_name',
             'sender',
@@ -681,6 +690,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['recipient'] = instance.recipient.username
+        representation['billing_review_requested'] = instance.billing_review_requested
         return representation
 
     def _get_organization(self):
@@ -741,8 +751,9 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
 
         # 2. Enforces the business rule that only one ownership transfer can
         # be pending per team
-        if organization.ownership_transfers.filter(
-            status=OrganizationInviteStatusChoices.PENDING
+        if OrgOwnershipTransferInvite.objects.filter(
+            sender=request_user,
+            status=InviteStatusChoices.PENDING,
         ).exists():
             raise serializers.ValidationError(
                 {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
@@ -756,14 +767,13 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             with transaction.atomic():
-                transfer = OrganizationOwnershipTransfer.objects.create(
-                    organization=validated_data['organization'],
+                transfer = OrgOwnershipTransferInvite.objects.create(
                     sender=validated_data['sender'],
                     recipient=validated_data['recipient_user'],
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
-                    status=OrganizationInviteStatusChoices.PENDING,
+                    status=InviteStatusChoices.PENDING,
                 )
         except IntegrityError as err:
             raise serializers.ValidationError(
