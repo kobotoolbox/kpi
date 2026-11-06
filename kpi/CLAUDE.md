@@ -1,0 +1,1 @@
+@../kobo/AGENTS.md
