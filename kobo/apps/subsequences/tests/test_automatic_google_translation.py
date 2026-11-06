@@ -9,12 +9,14 @@ from ddt import data as ddt_data
 from ddt import ddt, unpack
 from django.conf import settings
 from django.test import TestCase
+from django.utils import timezone
 
 from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import GoogleQuotaExceededError, TranscriptionNotFound
+from ..utils.time import utc_datetime_to_js_str
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -791,6 +793,49 @@ class AutomaticGoogleTranslationLimitTestCase(TestCase):
         xpath = 'group_name/question_name'  # irrelevant for this test
         params = [{'language': 'fr'}, {'language': 'en'}]
         action = AutomaticGoogleTranslationAction(xpath, params)
+        with patch(
+            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+        ) as patched_calculator:
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.MT_CHARACTERS: {'exceeded': True}
+            }
+            if should_raise:
+                with pytest.raises(UsageLimitExceededException):
+                    action.check_limits(u, action_data)
+            else:
+                action.check_limits(u, action_data)
+
+        if not should_raise:
+            patched_calculator.return_value.get_usage_balances.assert_not_called()
+
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @ddt_data(
+        ({'language': 'es'}, False),
+        ({'language': 'fr'}, True),
+    )
+    @unpack
+    def test_check_limit_with_in_progress_language(self, action_data, should_raise):
+        u = User.objects.create(username='dummy')
+        xpath = 'group_name/question_name'  # irrelevant for this test
+        params = [{'language': 'fr'}, {'language': 'es'}]
+        prefetched_dependencies = {
+            'question_supplemental_data': {
+                AutomaticGoogleTranslationAction.ID: {
+                    'es': {
+                        '_versions': [
+                            {
+                                '_data': {'status': 'in_progress', 'language': 'es'},
+                                '_dateCreated': utc_datetime_to_js_str(timezone.now()),
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        action = AutomaticGoogleTranslationAction(
+            xpath, params, prefetched_dependencies=prefetched_dependencies
+        )
         with patch(
             'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
         ) as patched_calculator:
