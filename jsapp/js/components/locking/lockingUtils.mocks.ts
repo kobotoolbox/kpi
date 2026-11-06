@@ -1,6 +1,6 @@
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import {
   AssetTypeName,
   GroupTypeBeginName,
@@ -15,7 +15,7 @@ import { LOCKING_PROFILE_PROP_NAME, LOCK_ALL_PROP_NAME, LockingRestrictionName }
  * This is a minimal response from asset endpoint. Uses Orval-generated factory
  * for type safety and to ensure all required fields are present.
  */
-const minimalAssetResponse = getApiV2AssetsRetrieveResponseMock({
+const minimalAssetResponse = getAssetsRetrieveResponseMock({
   uid: 'aBcDe12345',
   name: 'Test form',
   owner__username: 'zefir',

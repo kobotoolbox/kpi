@@ -66,7 +66,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -116,7 +116,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -161,7 +161,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -262,7 +262,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -312,7 +312,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -357,7 +357,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -433,7 +433,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -536,7 +536,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -630,7 +630,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -824,7 +824,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "description": "No response body"
@@ -867,7 +867,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -944,7 +944,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             },
@@ -982,7 +982,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "400": {
                         "content": {
@@ -1042,7 +1042,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -1167,7 +1167,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -1267,7 +1267,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             },
@@ -1326,7 +1326,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -1426,7 +1426,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -1510,7 +1510,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -1882,7 +1882,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -2125,7 +2125,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -2405,7 +2405,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -2785,7 +2785,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -3015,7 +3015,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -3252,7 +3252,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -3426,7 +3426,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -3601,7 +3601,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -3859,7 +3859,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -3944,7 +3944,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -4009,15 +4009,6 @@
                                 "xml"
                             ]
                         }
-                    },
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "ID of the data (when applicable)",
-                        "required": true
                     },
                     {
                         "name": "limit",
@@ -4097,7 +4088,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -4181,7 +4172,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -4316,7 +4307,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -4383,7 +4374,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -4468,7 +4459,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -4553,7 +4544,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -4638,7 +4629,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -4723,7 +4714,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -4808,7 +4799,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -4882,7 +4873,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -5398,7 +5389,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -6102,7 +6093,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -6463,15 +6454,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "ID of the data (when applicable)",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -6509,7 +6491,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -6535,15 +6517,6 @@
                 "operationId": "api_v2_assets_data_bulk_destroy",
                 "description": "## Bulk delete submissions\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/\n```\n\n**Payload**\n```json\n{\n           \"submissions_ids\": [\n               1,\n               2\n           ]\n        }\n```\n* Where: `submissions_ids` (required) is a list of submission root id on the data\nto delete\n\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been deleted\"\n}\n```\n* Where: `number_of_submissions` is the number of items that was deleted\n\n\n_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._\n",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "ID of the data (when applicable)",
-                        "required": true
-                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -6670,7 +6643,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -6720,15 +6693,6 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "ID of the data (when applicable)",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -6766,7 +6730,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -6792,15 +6756,6 @@
                 "operationId": "api_v2_assets_data_validation_statuses_destroy",
                 "description": "## Bulk delete submissions status\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/validation_statuses/\n```\n\n**Payload**\n```json\n{\n  \"payload\": {\n    \"submission_ids\": [\n        1,\n        2\n      ],\n    \"validation_status.uid\": \"validation_status\"\n  }\n}\n```\n* Where: \"submissions_ids\" (required) is a list of submission root id on the data\nto delete\n\nThe validation status of the submission can be updated. The `validation_status.uid` should be a `string`, and it must be one of the following values:\n- `validation_status_approved`\n- `validation_status_not_approved`\n- `validation_status_on_hold`\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been updated\"\n}\n```\n\n_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._\n",
                 "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "ID of the data (when applicable)",
-                        "required": true
-                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -6881,7 +6836,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -6946,7 +6901,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -7048,7 +7003,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -7171,7 +7126,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -7237,7 +7192,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -7324,7 +7279,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -7398,7 +7353,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -7662,7 +7617,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -7746,7 +7701,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -7851,7 +7806,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -8039,7 +7994,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -8135,7 +8090,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -8221,7 +8176,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -8429,7 +8384,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -8505,7 +8460,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -8581,7 +8536,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -8684,7 +8639,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -8760,7 +8715,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -8847,7 +8802,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -8931,7 +8886,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9133,7 +9088,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -9226,7 +9181,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -9338,7 +9293,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -9423,7 +9378,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9508,7 +9463,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9584,7 +9539,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9671,7 +9626,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9745,7 +9700,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9890,7 +9845,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -9951,7 +9906,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -10064,7 +10019,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -10169,7 +10124,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -10337,7 +10292,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -10532,7 +10487,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -10679,7 +10634,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -10784,7 +10739,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -10869,7 +10824,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -10935,7 +10890,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -11107,7 +11062,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -11154,7 +11109,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             }
@@ -11183,7 +11138,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -11230,7 +11185,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             }
@@ -11285,7 +11240,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             }
@@ -11350,7 +11305,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -11434,7 +11389,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "429": {
                         "content": {
@@ -11502,7 +11457,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             }
@@ -11561,7 +11516,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -11616,7 +11571,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -11712,7 +11667,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -11814,7 +11769,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -11871,7 +11826,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -11965,7 +11920,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12023,7 +11978,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12088,7 +12043,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12198,7 +12153,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12256,7 +12211,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12314,7 +12269,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12396,7 +12351,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12481,7 +12436,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12547,7 +12502,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12634,7 +12589,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -12722,7 +12677,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -12953,7 +12908,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -13020,7 +12975,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -13094,7 +13049,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -13222,6 +13177,24 @@
                                             "detail": "Not found."
                                         },
                                         "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": "Invalid request"
+                                        },
+                                        "summary": "Bad request"
                                     }
                                 }
                             }
@@ -13359,7 +13332,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -13495,7 +13468,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -13616,7 +13589,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -13737,7 +13710,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -13858,7 +13831,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "429": {
                         "content": {
@@ -13988,7 +13961,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -14065,7 +14038,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             }
@@ -14105,7 +14078,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     }
                 }
             }
@@ -14170,7 +14143,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14235,7 +14208,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14298,7 +14271,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14399,7 +14372,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14454,7 +14427,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14531,7 +14504,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14613,7 +14586,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14783,7 +14756,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -14895,7 +14868,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -14952,7 +14925,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -15036,7 +15009,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -15156,7 +15129,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -15238,8 +15211,19 @@
         "/api/v2/project-views/{uid_project_view}/assets/": {
             "get": {
                 "operationId": "api_v2_project_views_assets_retrieve",
-                "description": "## Retrieve assets available in project view\n",
+                "description": "## Retrieve assets available in project view\n\nSuperusers can add `?extra_fields=on` to get, for each project, its sharing `status`, its `summary`, the uid and the content hash of its latest version (`version_id`, `version__content_hash`), the uid of its deployed version (`deployed_version_id`) and its number of versions (`version_count`). Comparing `version_id` with a previous crawl tells which forms changed, so that only those need `/api/v2/assets/{uid_asset}/content/`. The parameter is ignored for other users.\n",
                 "parameters": [
+                    {
+                        "in": "query",
+                        "name": "extra_fields",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "on"
+                            ]
+                        },
+                        "description": "Superusers only: `on` adds `status`, `summary`, `version_id`, `version__content_hash`, `deployed_version_id` and `version_count` to each project"
+                    },
                     {
                         "in": "query",
                         "name": "limit",
@@ -15285,7 +15269,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -15380,7 +15364,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -15461,7 +15445,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -15534,7 +15518,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -16747,7 +16731,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -16805,7 +16789,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -17037,7 +17021,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17147,7 +17131,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17301,7 +17285,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17416,7 +17400,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17466,7 +17450,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17523,7 +17507,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17624,7 +17608,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17681,7 +17665,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17782,7 +17766,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17859,7 +17843,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -17962,7 +17946,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -18058,7 +18042,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "403": {
                         "content": {
@@ -18116,7 +18100,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "404": {
                         "content": {
@@ -18163,7 +18147,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -18227,7 +18211,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -18399,7 +18383,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -18480,7 +18464,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -18623,7 +18607,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -18689,7 +18673,7 @@
                                 }
                             }
                         },
-                        "description": null
+                        "description": ""
                     },
                     "401": {
                         "content": {
@@ -18830,11 +18814,7 @@
                     "Authentication (Allauth Headless)"
                 ],
                 "description": "There are many configuration options that alter the functionality\nand behavior of django-allauth, some of which can also impact the\nfrontend. Therefore, relevant configuration options are exposed via\nthis endpoint. The data returned is not user/authentication\ndependent. Hence, it suffices to only fetch this data once at boot\ntime of your application.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/Configuration"
@@ -18850,11 +18830,7 @@
                     "Authentication (Allauth Headless)"
                 ],
                 "description": "There are many configuration options that alter the functionality\nand behavior of django-allauth, some of which can also impact the\nfrontend. Therefore, relevant configuration options are exposed via\nthis endpoint. The data returned is not user/authentication\ndependent. Hence, it suffices to only fetch this data once at boot\ntime of your application.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/Configuration"
@@ -18870,11 +18846,7 @@
                 ],
                 "summary": "Login",
                 "description": "Login using a username-password or email-password combination.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Login"
                 },
@@ -18939,11 +18911,7 @@
                 ],
                 "summary": "Login",
                 "description": "Login using a username-password or email-password combination.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Login"
                 },
@@ -19008,11 +18976,7 @@
                 ],
                 "summary": "Signup",
                 "description": "Whether or not `username`, `email`, `phone` or combination of those are\nrequired depends on the configuration of django-allauth. Additionally,\nif a custom signup form is used there may be other custom properties\nrequired.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Signup"
                 },
@@ -19081,11 +19045,7 @@
                 ],
                 "summary": "Signup",
                 "description": "Whether or not `username`, `email`, `phone` or combination of those are\nrequired depends on the configuration of django-allauth. Additionally,\nif a custom signup form is used there may be other custom properties\nrequired.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/Signup"
                 },
@@ -19157,9 +19117,6 @@
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/EmailVerificationKey"
-                    },
-                    {
-                        "$ref": "#/components/parameters/Client"
                     }
                 ],
                 "responses": {
@@ -19201,9 +19158,6 @@
                 "summary": "Verify an email",
                 "description": "Complete the email verification process. Depending on the configuration,\nemail addresses are either verified by opening a link that is sent to\ntheir email address, or, by inputting a code that is sent. On the API,\nboth cases are handled identically. Meaning, the required key is either\nthe one from the link, or, the code itself.\n\nNote that a status code of 401 does not imply failure. It indicates that\nthe email verification was successful, yet, the user is still not signed\nin. For example, in case `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is set to\n`False`, a 401 is returned when verifying as part of login/signup.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -19257,9 +19211,6 @@
                 "parameters": [
                     {
                         "$ref": "#/components/parameters/EmailVerificationKey"
-                    },
-                    {
-                        "$ref": "#/components/parameters/Client"
                     }
                 ],
                 "responses": {
@@ -19301,9 +19252,6 @@
                 "summary": "Verify an email",
                 "description": "Complete the email verification process. Depending on the configuration,\nemail addresses are either verified by opening a link that is sent to\ntheir email address, or, by inputting a code that is sent. On the API,\nboth cases are handled identically. Meaning, the required key is either\nthe one from the link, or, the code itself.\n\nNote that a status code of 401 does not imply failure. It indicates that\nthe email verification was successful, yet, the user is still not signed\nin. For example, in case `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` is set to\n`False`, a 401 is returned when verifying as part of login/signup.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -19356,9 +19304,6 @@
                 "description": "Requests a new email verification code.\nRequires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -19392,9 +19337,6 @@
                 "description": "Requests a new email verification code.\nRequires `ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_RESEND = True`.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -19427,9 +19369,6 @@
                 "summary": "Verify a phone number",
                 "description": "Complete the phone number verification process. Note that a status code\nof 401 does not imply failure. It merely indicates that the phone number\nverification was successful, yet, the user is still not signed in.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -19477,9 +19416,6 @@
                 "description": "Complete the phone number verification process. Note that a status code\nof 401 does not imply failure. It merely indicates that the phone number\nverification was successful, yet, the user is still not signed in.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -19526,9 +19462,6 @@
                 "description": "Requests a new phone number verification code.\nRequires `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_RESEND = True`.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -19562,9 +19495,6 @@
                 "description": "Requests a new phone number verification code.\nRequires `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_RESEND = True`.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -19597,9 +19527,6 @@
                 "summary": "Reauthenticate",
                 "description": "In order to safeguard the account, some actions require the user to be\nrecently authenticated.  If you try to perform such an action without\nhaving been recently authenticated, a `401` status is returned, listing\nflows that can be performed to reauthenticate. One such flow is the flow\nwith ID `reauthenticate`, which allows for the user to input the\npassword. This is the endpoint related towards that flow.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -19639,9 +19566,6 @@
                 "description": "In order to safeguard the account, some actions require the user to be\nrecently authenticated.  If you try to perform such an action without\nhaving been recently authenticated, a `401` status is returned, listing\nflows that can be performed to reauthenticate. One such flow is the flow\nwith ID `reauthenticate`, which allows for the user to input the\npassword. This is the endpoint related towards that flow.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -19678,11 +19602,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/RequestPassword"
                 },
@@ -19719,11 +19639,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/RequestPassword"
                 },
@@ -19761,9 +19677,6 @@
                     "Authentication (Allauth Headless)"
                 ],
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/PasswordResetKey"
                     }
@@ -19806,11 +19719,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ResetPassword"
                 },
@@ -19859,9 +19768,6 @@
                 ],
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/PasswordResetKey"
                     }
                 ],
@@ -19903,11 +19809,7 @@
                 "tags": [
                     "Authentication (Allauth Headless)"
                 ],
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ResetPassword"
                 },
@@ -19982,9 +19884,6 @@
                 "description": "Authenticates with a third-party provider using provider tokens received\nby other means. For example, in case of a mobile app, the authentication\nflow runs completely on the device itself, without any interaction with\nthe API. Then, when the (device) authentication completes and the mobile\napp receives an access and/or ID token, it can hand over these tokens\nvia this endpoint to authenticate on the server.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20051,9 +19950,6 @@
                 "description": "Authenticates with a third-party provider using provider tokens received\nby other means. For example, in case of a mobile app, the authentication\nflow runs completely on the device itself, without any interaction with\nthe API. Then, when the (device) authentication completes and the mobile\napp receives an access and/or ID token, it can hand over these tokens\nvia this endpoint to authenticate on the server.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20118,11 +20014,7 @@
                 ],
                 "summary": "Provider signup information",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\nThe information available so far, such as the pending provider account,\ncan be retrieved via this endpoint.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/ProviderSignup"
@@ -20146,11 +20038,7 @@
                 ],
                 "summary": "Provider signup",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ProviderSignup"
                 },
@@ -20219,11 +20107,7 @@
                 ],
                 "summary": "Provider signup information",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\nThe information available so far, such as the pending provider account,\ncan be retrieved via this endpoint.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "$ref": "#/components/responses/ProviderSignup"
@@ -20247,11 +20131,7 @@
                 ],
                 "summary": "Provider signup",
                 "description": "If, while signing up using a third-party provider account, there is\ninsufficient information received from the provider to automatically\ncomplete the signup process, an additional step is needed to complete\nthe missing data before the user is fully signed up and authenticated.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ProviderSignup"
                 },
@@ -20322,9 +20202,6 @@
                 "description": "If, during authentication,  a response with status 401 is encountered where one of the pending\nflows has ID `mfa_authenticate`, that indicates that the Two-Factor Authentication stage needs to\nbe completed.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20365,9 +20242,6 @@
                 "summary": "Two-factor authentication",
                 "description": "If, during authentication,  a response with status 401 is encountered where one of the pending\nflows has ID `mfa_authenticate`, that indicates that the Two-Factor Authentication stage needs to\nbe completed.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -20410,9 +20284,6 @@
                 "description": "In order to safeguard the account, some actions require the user to be\nrecently authenticated.  If you try to perform such an action without\nhaving been recently authenticated, a `401` status is returned, listing\nflows that can be performed to reauthenticate. One such flow is the flow\nwith ID `mfa_reauthenticate`, which allows for the user to input an\nauthenticator code (e.g. TOTP or recovery code). This is the endpoint\nrelated towards that flow.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20451,9 +20322,6 @@
                 "description": "In order to safeguard the account, some actions require the user to be\nrecently authenticated.  If you try to perform such an action without\nhaving been recently authenticated, a `401` status is returned, listing\nflows that can be performed to reauthenticate. One such flow is the flow\nwith ID `mfa_reauthenticate`, which allows for the user to input an\nauthenticator code (e.g. TOTP or recovery code). This is the endpoint\nrelated towards that flow.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20490,11 +20358,7 @@
                 ],
                 "summary": "Confirm login code",
                 "description": "Use this endpoint to pass along the received \"special\" login code.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ConfirmLoginCode"
                 },
@@ -20553,11 +20417,7 @@
                 ],
                 "summary": "Confirm login code",
                 "description": "Use this endpoint to pass along the received \"special\" login code.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    }
-                ],
+                "parameters": [],
                 "requestBody": {
                     "$ref": "#/components/requestBodies/ConfirmLoginCode"
                 },
@@ -20617,9 +20477,6 @@
                 "summary": "List the connected third-party provider accounts",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20637,9 +20494,6 @@
                 "summary": "Disconnect a third-party provider account\n",
                 "description": "Disconnect a third-party provider account, returning the remaining\naccounts that are still connected. The disconnect is not allowed if it\nwould leave the account unusable. For example, if no password was\nset up yet.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -20681,9 +20535,6 @@
                 "summary": "List the connected third-party provider accounts",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -20701,9 +20552,6 @@
                 "summary": "Disconnect a third-party provider account\n",
                 "description": "Disconnect a third-party provider account, returning the remaining\naccounts that are still connected. The disconnect is not allowed if it\nwould leave the account unusable. For example, if no password was\nset up yet.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -20737,416 +20585,6 @@
                 "operationId": "api_v2_allauth_app_v1_account_providers_delete"
             }
         },
-        "/api/v2/allauth/browser/v1/account/email": {
-            "get": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "List email addresses",
-                "description": "Retrieves the list of email addresses of the account.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Authentication"
-                    }
-                },
-                "operationId": "api_v2_allauth_browser_v1_account_email_get"
-            },
-            "post": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Add/Change email address\n",
-                "description": "The following functionality is available:\n\n  - Adding a new email address for an already signed in user (`ACCOUNT_CHANGE_EMAIL = False`).\n  - Change to a new email address for an already signed in user   (`ACCOUNT_CHANGE_EMAIL = True`).\n  - Change to a new email address during the email verification process at signup (`ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_CHANGE = True`).\n\nIn all cases, an email verification mail will be sent containing a link or code that needs to be verified.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Email"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationOrReauthentication"
-                    },
-                    "409": {
-                        "description": "Conflict. For example, when no user is authenticated and no email verification flow is pending.\n",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConflictResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_browser_v1_account_email_post"
-            },
-            "put": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Request email verification",
-                "description": "Requests for (another) email verification email to be sent. Note that\nsending emails is rate limited, so when you send too many requests the\nemail will not be sent.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Email"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/StatusOK"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Too many email verification mails were already sent.\n",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_browser_v1_account_email_put"
-            },
-            "patch": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Change primary email address",
-                "description": "Used to change primary email address to a different one. Note that only verified email addresses\ncan be marked as primary.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/MarkPrimaryEmail"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_browser_v1_account_email_patch"
-            },
-            "delete": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Remove an email address",
-                "description": "Used to remove an email address.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Email"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_browser_v1_account_email_delete"
-            }
-        },
-        "/api/v2/allauth/app/v1/account/email": {
-            "get": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "List email addresses",
-                "description": "Retrieves the list of email addresses of the account.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Authentication"
-                    }
-                },
-                "operationId": "api_v2_allauth_app_v1_account_email_get"
-            },
-            "post": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Add/Change email address\n",
-                "description": "The following functionality is available:\n\n  - Adding a new email address for an already signed in user (`ACCOUNT_CHANGE_EMAIL = False`).\n  - Change to a new email address for an already signed in user   (`ACCOUNT_CHANGE_EMAIL = True`).\n  - Change to a new email address during the email verification process at signup (`ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_CHANGE = True`).\n\nIn all cases, an email verification mail will be sent containing a link or code that needs to be verified.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Email"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationOrReauthentication"
-                    },
-                    "409": {
-                        "description": "Conflict. For example, when no user is authenticated and no email verification flow is pending.\n",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ConflictResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_app_v1_account_email_post"
-            },
-            "put": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Request email verification",
-                "description": "Requests for (another) email verification email to be sent. Note that\nsending emails is rate limited, so when you send too many requests the\nemail will not be sent.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Email"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/StatusOK"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Too many email verification mails were already sent.\n",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ForbiddenResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_app_v1_account_email_put"
-            },
-            "patch": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Change primary email address",
-                "description": "Used to change primary email address to a different one. Note that only verified email addresses\ncan be marked as primary.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/MarkPrimaryEmail"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_app_v1_account_email_patch"
-            },
-            "delete": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Remove an email address",
-                "description": "Used to remove an email address.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/Email"
-                },
-                "responses": {
-                    "200": {
-                        "$ref": "#/components/responses/EmailAddresses"
-                    },
-                    "400": {
-                        "description": "An input error occurred.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                },
-                                "examples": {
-                                    "invalid_code": {
-                                        "$ref": "#/components/examples/InvalidEmail"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "operationId": "api_v2_allauth_app_v1_account_email_delete"
-            }
-        },
         "/api/v2/allauth/browser/v1/account/phone": {
             "get": {
                 "tags": [
@@ -21155,9 +20593,6 @@
                 "summary": "Get the phone number",
                 "description": "Retrieves the phone number of the account, if any. Note that while the\nendpoint returns a list of phone numbers, at most one entry is returned.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21179,9 +20614,6 @@
                 "summary": "Change the phone number\n",
                 "description": "The following functionality is available:\n\n- Initiate the phone number change process for signed in users.\n- Change to a new phone number during the phone number verification\n  process at signup for unauthenticated users. Note that this requires:\n  `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_CHANGE = True`.\n\nIn both cases, after posting a new phone number, proceed with the phone\nverification endpoint to confirm the change of the phone number by\nposting the verification code.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21236,9 +20668,6 @@
                 "description": "Retrieves the phone number of the account, if any. Note that while the\nendpoint returns a list of phone numbers, at most one entry is returned.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21259,9 +20688,6 @@
                 "summary": "Change the phone number\n",
                 "description": "The following functionality is available:\n\n- Initiate the phone number change process for signed in users.\n- Change to a new phone number during the phone number verification\n  process at signup for unauthenticated users. Note that this requires:\n  `ACCOUNT_PHONE_VERIFICATION_SUPPORTS_CHANGE = True`.\n\nIn both cases, after posting a new phone number, proceed with the phone\nverification endpoint to confirm the change of the phone number by\nposting the verification code.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21315,9 +20741,6 @@
                 "summary": "List authenticators",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21342,9 +20765,6 @@
                 ],
                 "summary": "List authenticators",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21372,9 +20792,6 @@
                 "description": "Retrieve the information about the current TOTP authenticator, if any.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21398,9 +20815,6 @@
                 "summary": "Activate TOTP",
                 "description": "The code should be provided from the consuming TOTP authenticator\napplication which was generated using the TOTP authenticator secret\nretrieved from the TOTP authenticator status endpoint.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21444,9 +20858,6 @@
                 "description": "Deactivates TOTP authentication. If the user authentication is not\nsufficiently recent, a reauthentication flow (`401`) will is presented.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21469,9 +20880,6 @@
                 "summary": "TOTP authenticator status",
                 "description": "Retrieve the information about the current TOTP authenticator, if any.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21496,9 +20904,6 @@
                 "summary": "Activate TOTP",
                 "description": "The code should be provided from the consuming TOTP authenticator\napplication which was generated using the TOTP authenticator secret\nretrieved from the TOTP authenticator status endpoint.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21542,9 +20947,6 @@
                 "description": "Deactivates TOTP authentication. If the user authentication is not\nsufficiently recent, a reauthentication flow (`401`) will is presented.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21568,9 +20970,6 @@
                 "description": "List recovery codes.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21593,9 +20992,6 @@
                 ],
                 "summary": "Regenerate recovery codes",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21632,9 +21028,6 @@
                 "description": "List recovery codes.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21657,9 +21050,6 @@
                 ],
                 "summary": "Regenerate recovery codes",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21696,9 +21086,6 @@
                 "description": "Retrieve information about the authentication status for the current\nsession.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21723,9 +21110,6 @@
                 "description": "Logs out the user from the current session.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21745,9 +21129,6 @@
                 "summary": "Get authentication status\n",
                 "description": "Retrieve information about the authentication status for the current\nsession.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21772,9 +21153,6 @@
                 "summary": "Logout",
                 "description": "Logs out the user from the current session.\n",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21824,9 +21202,6 @@
                 "description": "In order to change the password of an account, the current and new\npassword must be provider.  However, accounts that were created by\nsigning up using a third-party provider do not have a password set. In\nthat case, the current password is not required.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21853,9 +21228,6 @@
                 "description": "In order to change the password of an account, the current and new\npassword must be provider.  However, accounts that were created by\nsigning up using a third-party provider do not have a password set. In\nthat case, the current password is not required.\n",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21881,9 +21253,6 @@
                 "summary": "List sessions",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21900,9 +21269,6 @@
                 ],
                 "summary": "End one or more sessions",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -21929,9 +21295,6 @@
                 "summary": "List sessions",
                 "parameters": [
                     {
-                        "$ref": "#/components/parameters/Client"
-                    },
-                    {
                         "$ref": "#/components/parameters/SessionToken"
                     }
                 ],
@@ -21948,9 +21311,6 @@
                 ],
                 "summary": "End one or more sessions",
                 "parameters": [
-                    {
-                        "$ref": "#/components/parameters/Client"
-                    },
                     {
                         "$ref": "#/components/parameters/SessionToken"
                     }
@@ -32907,6 +32267,138 @@
                     },
                     "owner_label": {
                         "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "summary": {
+                        "type": "object",
+                        "properties": {
+                            "geo": {
+                                "type": "boolean"
+                            },
+                            "labels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "columns": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "lock_all": {
+                                "type": "boolean"
+                            },
+                            "lock_any": {
+                                "type": "boolean"
+                            },
+                            "languages": {
+                                "type": "array",
+                                "items": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
+                                }
+                            },
+                            "row_count": {
+                                "type": "integer"
+                            },
+                            "name_quality": {
+                                "type": "object",
+                                "properties": {
+                                    "ok": {
+                                        "type": "integer"
+                                    },
+                                    "bad": {
+                                        "type": "integer"
+                                    },
+                                    "good": {
+                                        "type": "integer"
+                                    },
+                                    "total": {
+                                        "type": "integer"
+                                    },
+                                    "firsts": {
+                                        "type": "object",
+                                        "properties": {
+                                            "ok": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "index": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "bad": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "index": {
+                                                        "type": "integer"
+                                                    },
+                                                    "label": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "default_translation": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ],
+                                "nullable": true
+                            },
+                            "naming_conflicts": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "version_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "version__content_hash": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "deployed_version_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "version_count": {
+                        "type": "integer"
                     }
                 },
                 "required": [
@@ -39224,9 +38716,7 @@
     "tags": [
         {
             "name": "Manage projects and library content",
-            "description": [
-                "Create, organize, and manage projects, assets (projects/library content), and tags"
-            ]
+            "description": "Create, organize, and manage projects, assets (projects/library content), and tags"
         },
         {
             "name": "Form content",
