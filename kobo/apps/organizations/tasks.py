@@ -231,3 +231,23 @@ def mark_organization_invite_as_expired():
         Mailer.send(email_messages)
     except MailerError as e:
         logging.warning(f'Failed to send expired organization invite emails: {e}')
+
+
+@celery_app.task
+def mark_organization_ownership_transfer_as_expired():
+    OrganizationOwnershipTransfer = apps.get_model(
+        'organizations', 'OrganizationOwnershipTransfer'
+    )
+
+    expiry_threshold = timezone.now() - timedelta(
+        days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
+    )
+
+    OrganizationOwnershipTransfer.objects.filter(
+        created__lte=expiry_threshold,
+        status=OrganizationInviteStatusChoices.PENDING,
+    ).update(
+        status=OrganizationInviteStatusChoices.EXPIRED,
+        modified=timezone.now(),
+    )
+

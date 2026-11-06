@@ -1667,6 +1667,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    'organization-ownership-transfer-mark-as-expired': {
+        'task': 'kobo.apps.organizations.tasks.mark_organization_ownership_transfer_as_expired',
+        'schedule': crontab(minute='*/30'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
