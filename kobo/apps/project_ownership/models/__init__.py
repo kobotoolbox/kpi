@@ -3,5 +3,9 @@ from .choices import (
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
-from .invite import Invite
+from .invite import (
+    Invite,
+    OrgMembershipAutoInvite,
+    OrgOwnershipTransferInvite,
+)
 from .transfer import Transfer, TransferStatus

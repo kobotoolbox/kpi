@@ -20,10 +20,12 @@ from kobo.apps.organizations.models import (
     OrganizationInviteStatusChoices,
     OrganizationType,
     OrganizationUser,
-    OrgOwnershipTransferInvite,
     create_organization,
 )
-from kobo.apps.project_ownership.models import InviteStatusChoices
+from kobo.apps.project_ownership.models import (
+    InviteStatusChoices,
+    OrgOwnershipTransferInvite,
+)
 from kpi.exceptions import RetryAfterAPIException
 from kpi.schema_extensions.v2.organizations.fields import (
     AssetField,

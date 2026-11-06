@@ -20,6 +20,7 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.project_ownership.models import OrgOwnershipTransferInvite
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import (
@@ -77,7 +78,6 @@ from .models import (
     OrganizationInviteStatusChoices,
     OrganizationOwner,
     OrganizationUser,
-    OrgOwnershipTransferInvite,
 )
 from .permissions import (
     HasOrgRolePermission,

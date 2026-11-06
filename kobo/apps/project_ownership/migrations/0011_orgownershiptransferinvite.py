@@ -4,7 +4,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('organizations', '0011_emptyorganization'),
         ('project_ownership', '0010_unique_pending_org_ownership_transfer'),
     ]
 
@@ -13,6 +12,7 @@ class Migration(migrations.Migration):
             name='OrgOwnershipTransferInvite',
             fields=[],
             options={
+                'verbose_name': 'organization ownership transfer invite',
                 'proxy': True,
                 'indexes': [],
                 'constraints': [],
