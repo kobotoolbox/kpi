@@ -723,17 +723,13 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
         with (
             immediate_on_commit(),
-            patch(
-                'kobo.apps.organizations.tasks.create_invite'
-            ) as mock_create_invite,
+            patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
         ):
             transfer_organization_ownership(transfer.pk)
 
         # 1. OrganizationOwner is updated
         self.organization.refresh_from_db()
-        self.assertEqual(
-            self.organization.owner_user_object, self.admin_user
-        )
+        self.assertEqual(self.organization.owner_user_object, self.admin_user)
         org_owner = OrganizationOwner.objects.get(organization=self.organization)
         self.assertEqual(org_owner.organization_user.user, self.admin_user)
 
@@ -780,9 +776,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
         with (
             immediate_on_commit(),
-            patch(
-                'kobo.apps.organizations.tasks.create_invite'
-            ) as mock_create_invite,
+            patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
         ):
             transfer_organization_ownership(transfer.pk)
 

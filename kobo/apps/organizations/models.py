@@ -626,9 +626,8 @@ class OrganizationOwnershipTransfer(models.Model):
 
         new_owner_email = EmailMessage(
             to=self.recipient.email,
-            subject=t(
-                'You are now the owner of the %(team_name)s team'
-            ) % {'team_name': self.organization.name},
+            subject=t('You are now the owner of the %(team_name)s team')
+            % {'team_name': self.organization.name},
             plain_text_content_or_template=(
                 'emails/organization_ownership_transfer_completed_new_owner.txt'
             ),
@@ -670,9 +669,8 @@ class OrganizationOwnershipTransfer(models.Model):
 
         new_owner_email = EmailMessage(
             to=self.recipient.email,
-            subject=t(
-                'You have declined ownership of %(team_name)s.'
-            ) % {'team_name': self.organization.name},
+            subject=t('You have declined ownership of %(team_name)s.')
+            % {'team_name': self.organization.name},
             plain_text_content_or_template=(
                 'emails/organization_ownership_transfer_declined_new_owner.txt'
             ),
