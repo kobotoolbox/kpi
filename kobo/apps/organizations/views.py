@@ -76,8 +76,8 @@ from .models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
-    OrganizationOwnershipTransfer,
     OrganizationUser,
+    OrgOwnershipTransferInvite,
 )
 from .permissions import (
     HasOrgRolePermission,
@@ -991,10 +991,20 @@ class OrganizationOwnershipTransferViewSet(
     parent_lookup_field = 'uid_organization'
 
     def get_queryset(self):
-        organization_id = self.kwargs.get(self.parent_lookup_field)
-        return OrganizationOwnershipTransfer.objects.filter(
-            organization_id=organization_id
-        ).select_related('sender', 'recipient', 'organization')
+        organization = getattr(self, 'organization', None)
+        if not organization:
+            organization_id = self.kwargs.get(self.parent_lookup_field)
+            if organization_id:
+                try:
+                    organization = Organization.objects.get(id=organization_id)
+                except Organization.DoesNotExist:
+                    organization = None
+
+        if organization and organization.owner_user_object:
+            return OrgOwnershipTransferInvite.objects.filter(
+                sender=organization.owner_user_object
+            ).select_related('sender', 'recipient')
+        return OrgOwnershipTransferInvite.objects.none()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

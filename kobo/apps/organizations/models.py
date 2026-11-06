@@ -1,4 +1,3 @@
-import uuid
 from functools import partial
 from typing import Literal
 
@@ -26,6 +25,8 @@ from organizations.abstract import (
     AbstractOrganizationUser,
 )
 from organizations.utils import create_organization as create_organization_base
+
+from kobo.apps.project_ownership.models.invite import Invite, InviteType
 
 from kpi.exceptions import MailerError
 from kpi.fields import KpiUidField
@@ -504,51 +505,66 @@ class OrganizationInvitation(AbstractOrganizationInvitation):
 create_organization = partial(create_organization_base, model=Organization)
 
 
-class OrganizationOwnershipTransfer(models.Model):
-    guid = models.UUIDField(
-        default=uuid.uuid4, editable=False, unique=True, db_index=True
-    )
-    organization = models.ForeignKey(
-        'organizations.Organization',
-        on_delete=models.CASCADE,
-        related_name='ownership_transfers',
-    )
-    sender = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='sent_organization_ownership_transfers',
-    )
-    recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='received_organization_ownership_transfers',
-    )
-    status = models.CharField(
-        max_length=11,
-        choices=OrganizationInviteStatusChoices.choices,
-        default=OrganizationInviteStatusChoices.PENDING,
-        db_index=True,
-    )
-    billing_review_requested = models.BooleanField(default=False)
-    created = models.DateTimeField(default=timezone.now, editable=False)
-    modified = models.DateTimeField(auto_now=True)
+class OrgOwnershipTransferInviteManager(models.Manager):
+
+    def create(self, **kwargs):
+        billing_review_requested = kwargs.pop('billing_review_requested', False)
+        metadata = kwargs.setdefault('metadata', {})
+        if 'billing_review_requested' not in metadata:
+            metadata['billing_review_requested'] = billing_review_requested
+        return super().create(
+            invite_type=InviteType.ORG_OWNERSHIP_TRANSFER, **kwargs
+        )
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(invite_type=InviteType.ORG_OWNERSHIP_TRANSFER)
+        )
+
+
+class OrgOwnershipTransferInvite(Invite):
+    METADATA_SCHEMA = {
+        'type': 'object',
+        'properties': {'billing_review_requested': {'type': 'boolean'}},
+        'required': ['billing_review_requested'],
+        'additionalProperties': False,
+    }
+
+    objects = OrgOwnershipTransferInviteManager()
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['organization'],
-                condition=Q(status=OrganizationInviteStatusChoices.PENDING),
-                name='unique_pending_org_ownership_transfer',
-            )
-        ]
-        ordering = ['-created']
+        proxy = True
+        verbose_name = 'organization ownership transfer invite'
 
     def __str__(self) -> str:
+        org_name = (
+            self.sender.organization.name
+            if hasattr(self.sender, 'organization') and self.sender.organization
+            else ''
+        )
         return (
-            f'Ownership transfer for {self.organization.name} '
+            f'Ownership transfer for {org_name} '
             f'from {self.sender.username} to {self.recipient.username} '
             f'({self.status})'
         )
+
+    @property
+    def organization(self):
+        return self.sender.organization
+
+    @property
+    def billing_review_requested(self) -> bool:
+        if self.metadata is None:
+            return False
+        return self.metadata.get('billing_review_requested', False)
+
+    @billing_review_requested.setter
+    def billing_review_requested(self, value: bool):
+        if self.metadata is None:
+            self.metadata = {}
+        self.metadata['billing_review_requested'] = bool(value)
 
     def send_invite_email(self):
         recipient_language = settings.LANGUAGE_CODE
@@ -557,17 +573,18 @@ class OrganizationOwnershipTransfer(models.Model):
                 'last_ui_language', settings.LANGUAGE_CODE
             )
 
+        org = self.organization
         accept_url = (
             f'{settings.KOBOFORM_URL}/#/projects/home'
-            f'?organization_ownership_transfer={self.guid}'
-            f'&organization_id={self.organization.id}'
+            f'?organization_ownership_transfer={self.uid}'
+            f'&organization_id={org.id}'
         )
 
         template_variables = {
             'new_owner_username': self.recipient.username,
             'current_owner_username': self.sender.username,
             'current_owner_email': self.sender.email,
-            'team_name': self.organization.name,
+            'team_name': org.name,
             'accept_url': accept_url,
             'billing_review_requested': self.billing_review_requested,
         }
@@ -591,3 +608,9 @@ class OrganizationOwnershipTransfer(models.Model):
             logging.warning(
                 f'Failed to send organization ownership transfer request email: {e}'
             )
+
+    def send_acceptance_email(self):
+        pass
+
+    def send_refusal_email(self):
+        pass

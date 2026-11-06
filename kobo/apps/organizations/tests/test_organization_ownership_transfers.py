@@ -12,13 +12,11 @@ from kobo.apps.organizations.constants import (
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
 )
-from kobo.apps.organizations.models import (
-    OrganizationInviteStatusChoices,
-    OrganizationOwnershipTransfer,
-)
+from kobo.apps.organizations.models import OrgOwnershipTransferInvite
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
+from kobo.apps.project_ownership.models import InviteStatusChoices
 from kpi.exceptions import MailerError
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.placeholders import replace_placeholders
@@ -75,13 +73,15 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(response.status_code, expected_status)
 
         if expected_status == status.HTTP_201_CREATED:
-            self.assertEqual(OrganizationOwnershipTransfer.objects.count(), 1)
-            transfer = OrganizationOwnershipTransfer.objects.first()
+            self.assertEqual(OrgOwnershipTransferInvite.objects.count(), 1)
+            transfer = OrgOwnershipTransferInvite.objects.first()
             self.assertEqual(transfer.organization, self.organization)
             self.assertEqual(transfer.sender, self.owner_user)
             self.assertEqual(transfer.recipient, self.admin_user)
-            self.assertEqual(transfer.status, OrganizationInviteStatusChoices.PENDING)
+            self.assertEqual(transfer.status, InviteStatusChoices.PENDING)
             self.assertFalse(transfer.billing_review_requested)
+            self.assertIn('uid', response.data)
+            self.assertEqual(response.data['uid'], transfer.uid)
 
     def test_recipient_must_be_active_admin_in_same_team(self):
         """
@@ -157,7 +157,18 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         """
         response = self._create_transfer(self.owner_user, self.admin_user.email)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        transfer = OrganizationOwnershipTransfer.objects.first()
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        self.assertEqual(transfer.recipient, self.admin_user)
+
+    def test_recipient_can_be_identified_by_mixed_case_email(self):
+        """
+        Recipient email match is case-insensitive.
+        """
+        response = self._create_transfer(
+            self.owner_user, self.admin_user.email.upper()
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        transfer = OrgOwnershipTransferInvite.objects.first()
         self.assertEqual(transfer.recipient, self.admin_user)
 
     def test_recipient_email_resolves_team_admin_when_shared_with_external_user(
@@ -172,7 +183,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
         response = self._create_transfer(self.owner_user, self.admin_user.email)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        transfer = OrganizationOwnershipTransfer.objects.first()
+        transfer = OrgOwnershipTransferInvite.objects.first()
         self.assertEqual(transfer.recipient, self.admin_user)
 
     def test_recipient_ambiguous_email_returns_400(self):
@@ -214,8 +225,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
 
         # Resolve first transfer (e.g. declined), then can create another
-        transfer = OrganizationOwnershipTransfer.objects.first()
-        transfer.status = OrganizationInviteStatusChoices.DECLINED
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        transfer.status = InviteStatusChoices.DECLINED
         transfer.save(update_fields=['status'])
 
         response3 = self._create_transfer(self.owner_user, self.admin_user.username)
@@ -234,7 +245,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(response.data['billing_review_requested'])
 
-        transfer = OrganizationOwnershipTransfer.objects.first()
+        transfer = OrgOwnershipTransferInvite.objects.first()
         self.assertTrue(transfer.billing_review_requested)
 
         self.assertEqual(len(mail.outbox), 1)
@@ -264,8 +275,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             sent_email.subject,
         )
 
-        transfer = OrganizationOwnershipTransfer.objects.first()
-        expected_param = f'organization_ownership_transfer={transfer.guid}'
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        expected_param = f'organization_ownership_transfer={transfer.uid}'
         expected_org_param = f'organization_id={self.organization.id}'
 
         billing_notice = (
@@ -298,7 +309,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         ):
             response = self._create_transfer(self.owner_user, self.admin_user.username)
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            self.assertEqual(OrganizationOwnershipTransfer.objects.count(), 1)
+            self.assertEqual(OrgOwnershipTransferInvite.objects.count(), 1)
 
     def test_simultaneous_transfers_conflict_returns_400(self):
         """
@@ -306,7 +317,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         return 400 with OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR instead of 500.
         """
         with patch.object(
-            OrganizationOwnershipTransfer.objects,
+            OrgOwnershipTransferInvite.objects,
             'create',
             side_effect=IntegrityError('unique_pending_org_ownership_transfer'),
         ):
