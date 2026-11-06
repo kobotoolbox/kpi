@@ -12,11 +12,13 @@ from kobo.apps.organizations.constants import (
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
 )
-from kobo.apps.organizations.models import OrgOwnershipTransferInvite
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
-from kobo.apps.project_ownership.models import InviteStatusChoices
+from kobo.apps.project_ownership.models import (
+    InviteStatusChoices,
+    OrgOwnershipTransferInvite,
+)
 from kpi.exceptions import MailerError
 from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.placeholders import replace_placeholders
@@ -304,7 +306,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         A failure in sending the email is logged and does not fail the API call.
         """
         with patch(
-            'kobo.apps.organizations.models.Mailer.send',
+            'kobo.apps.project_ownership.models.invite.Mailer.send',
             side_effect=MailerError('SMTP connection error'),
         ):
             response = self._create_transfer(self.owner_user, self.admin_user.username)
