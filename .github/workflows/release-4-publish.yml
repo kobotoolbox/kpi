@@ -213,7 +213,7 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-    - uses: linear/linear-release-action@53ad0f863963e7f8e270fba18426bbb55ef55384 # v.0.17.2
+    - uses: linear/linear-release-action@dd4fc407f860b9460d2cf0b3fb1edd8985cf443f # v.0.18.2
       with:
         access_key: ${{ secrets.LINEAR_PIPELINE_KEY_KPI }}
         command: complete
