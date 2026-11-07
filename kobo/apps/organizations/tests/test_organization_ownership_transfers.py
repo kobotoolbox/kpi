@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from constance import config
 from ddt import data, ddt, unpack
 from django.core import mail
 from django.db import IntegrityError
@@ -287,12 +288,18 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             "team's billing details upon accepting this transfer."
         )
 
+        expected_expiry_notice = (
+            'This transfer request will expire in '
+            f'{config.PROJECT_OWNERSHIP_INVITE_EXPIRY} days.'
+        )
+
         # Check plaintext body
         self.assertIn(self.admin_user.username, sent_email.body)
         self.assertIn(self.owner_user.username, sent_email.body)
         self.assertIn(self.organization.name, sent_email.body)
         self.assertIn(expected_param, sent_email.body)
         self.assertIn(expected_org_param, sent_email.body)
+        self.assertIn(expected_expiry_notice, sent_email.body)
         self.assertNotIn(billing_notice, sent_email.body)
 
         # Check HTML alternative if present
@@ -300,6 +307,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             html_content = sent_email.alternatives[0][0]
             self.assertIn(expected_param, html_content)
             self.assertIn(expected_org_param, html_content)
+            self.assertIn(expected_expiry_notice, html_content)
             self.assertNotIn(billing_notice, html_content)
 
     def test_mailer_error_does_not_prevent_transfer_creation(self):

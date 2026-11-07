@@ -320,6 +320,7 @@ class OrgOwnershipTransferInvite(Invite):
             'team_name': org.name,
             'accept_url': accept_url,
             'billing_review_requested': self.billing_review_requested,
+            'invite_expiry': config.PROJECT_OWNERSHIP_INVITE_EXPIRY,
         }
 
         email_message = EmailMessage(
