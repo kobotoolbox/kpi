@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Union
+from typing import TYPE_CHECKING, Union
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -7,10 +9,11 @@ from django.apps import apps
 from django.conf import settings
 from django.utils import timezone
 
-from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
-from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kpi.models.object_permission import ObjectPermission
+
+if TYPE_CHECKING:
+    from kobo.apps.kobo_auth.shortcuts import User
+    from kobo.apps.organizations.models import Organization
 
 
 def get_billing_dates(organization: Union['Organization', None]):
@@ -23,6 +26,11 @@ def get_billing_dates(organization: Union['Organization', None]):
     )
     if not organization or not settings.STRIPE_ENABLED:
         return first_of_this_month, first_of_next_month
+
+    from kobo.apps.stripe.utils.billing_dates import (
+        get_current_billing_period_dates_by_org,
+    )
+
     calculated_dates = get_current_billing_period_dates_by_org([organization]).get(
         organization.id
     )
