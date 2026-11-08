@@ -97,22 +97,22 @@ export default function MemberActionsDropdown({
         <Menu.Target>{target}</Menu.Target>
 
         <Menu.Dropdown>
-          {isPendingOwnershipTransfer ? (
-            <>
-              <Menu.Item variant='light'>{t('Resend invitation')}</Menu.Item>
-              <Menu.Item variant='danger'>{t('Cancel invitation')}</Menu.Item>
-            </>
-          ) : (
-            isTransferOwnershipEnabled &&
-            currentUserRole === MemberRoleEnum.owner && (
+          {currentUserRole === MemberRoleEnum.owner &&
+            (isPendingOwnershipTransfer ? (
               <>
-                <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
-                  {t('Make owner')}
-                </Menu.Item>
-                <Menu.Divider />
+                <Menu.Item variant='light'>{t('Resend invitation')}</Menu.Item>
+                <Menu.Item variant='danger'>{t('Cancel invitation')}</Menu.Item>
               </>
-            )
-          )}
+            ) : (
+              isTransferOwnershipEnabled && (
+                <>
+                  <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
+                    {t('Make owner')}
+                  </Menu.Item>
+                  <Menu.Divider />
+                </>
+              )
+            ))}
           <Menu.Item
             variant='danger'
             onClick={() => setIsRemoveModalVisible(true)}
