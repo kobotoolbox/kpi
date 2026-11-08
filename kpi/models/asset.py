@@ -631,11 +631,11 @@ class Asset(
         elif only_cached_data:
             return None
 
-        # See `get_attachment_xpaths_from_version_uids()` for why the contents
-        # are deferred
+        # See `get_attachment_xpaths_from_version_uids()` for why the content is
+        # deferred
         versions = (
             self.asset_versions.filter(deployed=True)
-            .defer('version_content', 'deployed_content')
+            .defer('version_content')
             .iterator()
         )
         xpaths = set()
@@ -676,8 +676,9 @@ class Asset(
 
             # Read the content only once the cache has been given its chance:
             # expanding a version's content is the expensive part of this method,
-            # and `self.content` may be a deferred field
-            content = version.to_formpack_schema()['content']
+            # and `self.content` may be a deferred field. Xpaths come from the
+            # questions alone, so there is no need to pay for the choices
+            content = version.to_formpack_schema(include_choices=False)['content']
         else:
             content = self.content
 
@@ -735,12 +736,12 @@ class Asset(
 
         # A `version_content` weighs several megabytes on a large form, and
         # `iterator()` alone still fetches rows by chunks of 2000, i.e. every
-        # version at once. Deferring the contents keeps the rows small, and
+        # version at once. Deferring the content keeps the rows small, and
         # `get_attachment_xpaths_from_version()` loads a content only when the
         # version misses the Redis cache, one version at a time
         versions = (
             self.asset_versions.filter(uid__in=version_uids, deployed=True)
-            .defer('version_content', 'deployed_content')
+            .defer('version_content')
             .iterator()
         )
 

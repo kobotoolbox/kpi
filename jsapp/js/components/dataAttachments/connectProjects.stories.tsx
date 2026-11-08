@@ -52,7 +52,7 @@ type Story = StoryObj<typeof ConnectProjects>
 
 async function openProjectSelect(canvasElement: HTMLElement) {
   const canvas = within(canvasElement)
-  await userEvent.click(await canvas.findByPlaceholderText('Select a different project to import data from'))
+  await userEvent.click(await canvas.findByPlaceholderText('Select a project to import data from'))
   return within(canvasElement.ownerDocument.body)
 }
 

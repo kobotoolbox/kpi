@@ -20,7 +20,7 @@ export default function RESTServices({ asset, hookUid }: RESTServicesProps) {
   return (
     <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('REST Services')} | KoboToolbox`}>
       <div className='rest-services form-view form-view--rest-services'>
-        {hookUid && <RESTServiceLogs assetUid={asset.uid} hookUid={hookUid} />}
+        {hookUid && <RESTServiceLogs asset={asset} hookUid={hookUid} />}
         {!hookUid && <RESTServicesList assetUid={asset.uid} />}
       </div>
     </DocumentTitle>
