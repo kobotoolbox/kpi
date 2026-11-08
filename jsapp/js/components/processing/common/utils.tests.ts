@@ -3,6 +3,7 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
+import { submissionWithAttachmentsWithUnicode } from '#/components/submissions/submissionUtils.mocks'
 import { QUESTION_TYPES } from '#/constants'
 import { ProcessingTab } from '../routes.utils'
 import {
@@ -277,20 +278,19 @@ describe('hasAnalysisSource', () => {
     chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
   })
 
-  /** Builds a submission with a photo answered at `XPATH`. */
-  function buildImageSubmission(isDeleted: boolean): DataResponse {
-    return {
-      [XPATH]: 'photo.jpg',
-      _attachments: [{ question_xpath: XPATH, is_deleted: isDeleted }],
-    } as unknown as DataResponse
-  }
+  const PHOTO_SUBMISSION = submissionWithAttachmentsWithUnicode as unknown as DataResponse
+  const PHOTO_XPATH = submissionWithAttachmentsWithUnicode._attachments[0].question_xpath
+  const DELETED_PHOTO_SUBMISSION = {
+    ...submissionWithAttachmentsWithUnicode,
+    _attachments: [{ ...submissionWithAttachmentsWithUnicode._attachments[0], is_deleted: true }],
+  } as unknown as DataResponse
 
   it('is true for an image question with a photo, even without a transcript', () => {
-    chai.expect(hasAnalysisSource(IMAGE, buildImageSubmission(false), buildSupplement([]), XPATH)).to.equal(true)
+    chai.expect(hasAnalysisSource(IMAGE, PHOTO_SUBMISSION, buildSupplement([]), PHOTO_XPATH)).to.equal(true)
   })
 
   it('is false for an image question whose photo was deleted', () => {
-    chai.expect(hasAnalysisSource(IMAGE, buildImageSubmission(true), buildSupplement([]), XPATH)).to.equal(false)
+    chai.expect(hasAnalysisSource(IMAGE, DELETED_PHOTO_SUBMISSION, buildSupplement([]), PHOTO_XPATH)).to.equal(false)
   })
 
   it('is false for an image question without a photo', () => {
