@@ -99,7 +99,6 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   GROUP_SEPARATOR: '/',
   INCLUDE_ALL_VERSIONS: true,
   INCLUDE_GROUPS: false,
-  SAVE_CUSTOM_EXPORT: false,
   // by default all rows should be selected, but we can't know the asset rows
   // here, so the set will be empty, and the component using
   // DEFAULT_EXPORT_SETTINGS is responsible to fill it up

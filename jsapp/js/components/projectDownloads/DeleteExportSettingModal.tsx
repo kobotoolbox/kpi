@@ -54,7 +54,7 @@ export function DeleteExportSettingModal({
   return (
     <Stack gap='md'>
       <Text>
-        {t('Are you sure you want to delete the export settings "##NAME##"? This action is not reversible.').replace(
+        {t('Are you sure you want to delete the export settings "##NAME##"? Any synchronous export associated with these settings will be deleted. This action is not reversible.').replace(
           '##NAME##',
           exportSettingName,
         )}
