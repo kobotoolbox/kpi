@@ -84,6 +84,10 @@ jobs:
       - name: Check error pages bundle stays self-contained
         run: npm run lint:error-bundle
 
+      # Catches bundle bloat and dev-only code in the build
+      - name: Check bundle size
+        run: npm run lint:bundle-size
+
       # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only
         run: npm run lint:eslint -- --quiet
