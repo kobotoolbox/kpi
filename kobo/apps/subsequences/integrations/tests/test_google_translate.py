@@ -1,6 +1,7 @@
 from concurrent.futures import TimeoutError
 from unittest.mock import MagicMock, patch
 
+import pytest
 from constance.test import override_config
 from django.core.cache import cache
 from django.test import TestCase
@@ -13,6 +14,7 @@ from kobo.apps.subsequences.integrations.google.google_translate import (
 from kobo.apps.subsequences.integrations.google.rate_limit import (
     GoogleServiceRateLimitExceeded,
 )
+from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 
 
@@ -57,6 +59,57 @@ class TestGoogleTranslate(TestCase):
                             self.submission,
                             self.asset,
                         )
+
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_REGION='global',
+    )
+    def test_on_new_operation_runs_only_when_a_job_would_start(self):
+        short_text = 'Hello'
+        long_text = 'a' * (GoogleTranslationService.MAX_SYNC_CHARS + 1)
+        cases = [
+            (short_text, None, True),
+            (long_text, None, True),
+            (long_text, 'operations/translate-1', False),
+        ]
+        for content, operation_name, should_refuse in cases:
+            with self.subTest(size=len(content), operation_name=operation_name):
+                service = self._build_service()
+                service.on_new_operation = MagicMock(
+                    side_effect=UsageLimitExceededException
+                )
+                params = {
+                    'language': 'fr',
+                    '_dependency': {'language': 'en', 'value': content},
+                }
+                with (
+                    patch.object(
+                        service, '_get_source_language_code', return_value='en-US'
+                    ),
+                    patch.object(
+                        service, '_get_translation_language_code', return_value='fr'
+                    ),
+                    patch.object(
+                        service,
+                        '_get_operation_reference',
+                        return_value=operation_name,
+                    ),
+                    patch.object(
+                        service,
+                        '_poll_async_translation',
+                        return_value={'status': 'in_progress'},
+                    ),
+                ):
+                    if should_refuse:
+                        with pytest.raises(UsageLimitExceededException):
+                            service.process_data('q1', params)
+                    else:
+                        service.process_data('q1', params)
+
+                if should_refuse:
+                    service.translate_client.translate_text.assert_not_called()
+                else:
+                    service.on_new_operation.assert_not_called()
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',

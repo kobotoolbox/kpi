@@ -16,6 +16,7 @@ from kobo.apps.subsequences.integrations.google.google_transcribe import (
 from kobo.apps.subsequences.integrations.google.rate_limit import (
     GoogleServiceRateLimitExceeded,
 )
+from kpi.exceptions import UsageLimitExceededException
 
 
 class MockBlob:
@@ -41,6 +42,56 @@ def _get_service_for_process_data():
     service.asset = MagicMock()
     service._clear_operation_reference = MagicMock()
     return service
+
+
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_asr_language_code_overrides',  # noqa E501
+    return_value={},
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_runs_on_new_operation_before_starting(
+    _mock_location, _mock_overrides
+):
+    service = _get_service_for_process_data()
+    service._get_google_language_config = MagicMock(
+        return_value=MagicMock(language_code='en-US', location_code='global')
+    )
+    service._get_operation_reference = MagicMock(return_value=None)
+    service.get_converted_audio = MagicMock()
+    service.on_new_operation = MagicMock(side_effect=UsageLimitExceededException)
+
+    with pytest.raises(UsageLimitExceededException):
+        service.process_data('audio', {'language': 'en'})
+    # Refused before the audio is transcoded or anything is sent to Google
+    service.get_converted_audio.assert_not_called()
+
+
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_asr_language_code_overrides',  # noqa E501
+    return_value={},
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_skips_on_new_operation_when_resuming(
+    _mock_location, _mock_overrides
+):
+    service = _get_service_for_process_data()
+    service._get_google_language_config = MagicMock(
+        return_value=MagicMock(language_code='en-US', location_code='global')
+    )
+    service._get_operation_reference = MagicMock(return_value='operations/1')
+    service._get_operation_payload = MagicMock(return_value={'done': False})
+    service.on_new_operation = MagicMock(side_effect=UsageLimitExceededException)
+
+    result = service.process_data('audio', {'language': 'en'})
+
+    assert result == {'status': 'in_progress'}
+    service.on_new_operation.assert_not_called()
 
 
 def test_adapt_response_handles_nested_batch_result_payloads():

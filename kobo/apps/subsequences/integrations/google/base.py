@@ -35,6 +35,10 @@ class GoogleService(ABC):
     API_VERSION = None
     API_RESOURCE = None
 
+    # Optional callable run right before starting a new Google operation.
+    # It may raise to refuse the start
+    on_new_operation = None
+
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         super().__init__()
         self.submission = submission
@@ -153,6 +157,13 @@ class GoogleService(ABC):
             self.asset.owner_id,
             self.asset.id,
         )
+
+    def _before_new_operation(self) -> None:
+        """
+        Run the `on_new_operation` callable, if any
+        """
+        if self.on_new_operation:
+            self.on_new_operation()
 
     def _get_cache_key(
         self, xpath: str, source_lang: str, target_lang: str | None

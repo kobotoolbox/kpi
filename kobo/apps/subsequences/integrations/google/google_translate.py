@@ -225,6 +225,7 @@ class GoogleTranslationService(GoogleService):
             }
 
         if len(content) <= self.MAX_SYNC_CHARS:
+            self._before_new_operation()
             return self._translate_sync(
                 content,
                 source_language_code,
@@ -239,6 +240,7 @@ class GoogleTranslationService(GoogleService):
         )
 
         if not operation_name:
+            self._before_new_operation()
             return self._start_async_translation(
                 xpath,
                 content,

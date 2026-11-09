@@ -1001,6 +1001,13 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
+        if self._has_operation_in_progress(action_data):
+            # `check_limits` trusted the stored status, but a job waiting on
+            # Google quota is `in_progress` too and has not been charged yet
+            service.on_new_operation = lambda: super(
+                BaseAutomaticNLPAction, self
+            ).check_limits(self.asset.owner, action_data)
+
         quota_poll_scheduled = False
         try:
             service_data = service.process_data(

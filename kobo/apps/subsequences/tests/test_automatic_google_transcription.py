@@ -656,3 +656,64 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
 
         if not should_raise:
             patched_calculator.return_value.get_usage_balances.assert_not_called()
+
+    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    def test_job_waiting_to_start_is_limit_checked_when_it_starts(self):
+        # A job waiting on Google quota is stored as `in_progress` with no
+        # operation and no usage counted yet
+        prefetched_dependencies = {
+            'question_supplemental_data': {
+                AutomaticGoogleTranscriptionAction.ID: {
+                    '_versions': [
+                        {
+                            '_dateCreated': utc_datetime_to_js_str(timezone.now()),
+                            '_data': {'status': 'in_progress', 'language': 'en'},
+                        }
+                    ]
+                }
+            }
+        }
+        action = AutomaticGoogleTranscriptionAction(
+            'q1',
+            [{'language': 'en'}],
+            asset=MagicMock(),
+            prefetched_dependencies=prefetched_dependencies,
+        )
+        mock_service = MagicMock()
+        mock_service.process_data.side_effect = (
+            lambda *args, **kwargs: mock_service.on_new_operation()
+        )
+        with (
+            patch(
+                'kobo.apps.subsequences.actions.automatic_google_transcription'
+                '.GoogleTranscriptionService',
+                return_value=mock_service,
+            ),
+            patch(
+                'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+            ) as patched_calculator,
+        ):
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.ASR_SECONDS: {'exceeded': True}
+            }
+            with pytest.raises(UsageLimitExceededException):
+                action.run_external_process(EMPTY_SUBMISSION, {}, {'language': 'en'})
+
+    def test_regular_start_is_not_limit_checked_twice(self):
+        action = AutomaticGoogleTranscriptionAction(
+            'q1', [{'language': 'en'}], asset=MagicMock()
+        )
+        mock_service = MagicMock(spec=['process_data'])
+        mock_service.process_data.return_value = {
+            'status': 'complete',
+            'value': 'Hello',
+        }
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_transcription'
+            '.GoogleTranscriptionService',
+            return_value=mock_service,
+        ):
+            action.run_external_process(EMPTY_SUBMISSION, {}, {'language': 'en'})
+
+        assert not hasattr(mock_service, 'on_new_operation')
