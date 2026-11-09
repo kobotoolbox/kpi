@@ -14,6 +14,7 @@ import {
   FILTER_EXACT_TYPES,
   LAST_COLUMNS_ORDER,
   SUBMISSION_ACTIONS_ID,
+  SortValues,
   TEXT_FILTER_QUESTION_IDS,
   TEXT_FILTER_QUESTION_TYPES,
   VALIDATION_STATUS_ID_PROP,
@@ -27,7 +28,14 @@ import {
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import type {
+  AssetResponse,
+  SubmissionResponse,
+  SubmissionsSort,
+  SurveyChoice,
+  SurveyRow,
+  TableSortBySetting,
+} from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
 import type { TableColumn } from './table.types'
 
@@ -699,6 +707,21 @@ export interface TableFilterQuery {
   queryObj: {
     [key: string]: string | null | { $in: number[] } | { $regex: string; $options: string }
   }
+}
+
+/**
+ * The order the data table lists submissions in: by the sorted column, newest first otherwise. Ties go newest first
+ * too, so tied rows keep their order between requests, which paging and stepping between records both rely on.
+ */
+export function getTableSort(sortBy: TableSortBySetting | null): SubmissionsSort {
+  const newestFirst = { id: '_id', desc: true }
+
+  if (sortBy === null) {
+    return [newestFirst]
+  }
+
+  const sortedColumn = { id: sortBy.fieldId, desc: sortBy.value === SortValues.DESCENDING }
+  return sortBy.fieldId === newestFirst.id ? [sortedColumn] : [sortedColumn, newestFirst]
 }
 
 /**
