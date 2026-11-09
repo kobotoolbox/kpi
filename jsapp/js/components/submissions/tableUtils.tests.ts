@@ -1,6 +1,7 @@
 import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import { SortValues } from './tableConstants'
 import {
   CELL_PREVIEW_MAX_LENGTH,
   buildColumnRowFinder,
@@ -10,6 +11,7 @@ import {
   getColumnLabel,
   getMetadataColumns,
   getSelectResponseLabel,
+  getTableSort,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
@@ -22,6 +24,25 @@ import {
 } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
+  describe('getTableSort', () => {
+    it('lists newest first with no sort set', () => {
+      chai.expect(getTableSort(null)).to.deep.equal([{ id: '_id', desc: true }])
+    })
+
+    it('breaks ties on the sorted column newest first, so tied rows keep one order', () => {
+      chai.expect(getTableSort({ fieldId: 'Your_name', value: SortValues.ASCENDING })).to.deep.equal([
+        { id: 'Your_name', desc: false },
+        { id: '_id', desc: true },
+      ])
+    })
+
+    it('needs no tie-break when sorting by `_id`, which is unique', () => {
+      chai
+        .expect(getTableSort({ fieldId: '_id', value: SortValues.ASCENDING }))
+        .to.deep.equal([{ id: '_id', desc: false }])
+    })
+  })
+
   describe('getColumnLabel', () => {
     it('should return proper label for background-audio question', () => {
       const test = getColumnLabel(assetWithBgAudioAndNLP, 'background-audio', true)

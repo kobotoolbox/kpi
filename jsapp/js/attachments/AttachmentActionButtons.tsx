@@ -10,6 +10,8 @@ interface AttachmentActionButtonsProps {
   asset: AssetResponse
   submission: SubmissionResponse | DataResponse
   attachmentUid: string
+  /** Leaves out the "Delete" button, e.g. in Processing, which doesn't refresh after a deletion made here. */
+  hideDeleteAction?: boolean
   /** Called after the attachment was deleted successfully, see `AttachmentDeleteModal`. */
   onDeleted?: () => void
 }
@@ -30,7 +32,7 @@ export default function AttachmentActionButtons(props: AttachmentActionButtonsPr
 
   return (
     <Group gap='xs'>
-      {userCanChangeSubmission && (
+      {userCanChangeSubmission && !props.hideDeleteAction && (
         <ActionIcon
           variant='transparent'
           size='md'

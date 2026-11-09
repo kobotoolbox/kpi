@@ -2,6 +2,7 @@ import { Group, Stack } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import React from 'react'
 import { actions } from '#/actions'
+import type { DataResponse } from '#/api/models/dataResponse'
 import AttachmentActionButtons from '#/attachments/AttachmentActionButtons'
 import ProcessingActionButton from '#/components/common/ProcessingActionButton'
 import { getProcessingActionLabel } from '#/components/processing/common/utils'
@@ -19,12 +20,15 @@ interface OpenTableMediaPreviewModalAttachmentArgs {
   questionIcon: IconName
   mediaAttachment: SubmissionAttachment
   displayValue: string
-  submissionIndex: number
-  submissionTotal: number
-  submission: SubmissionResponse
+  /** Position of the submission in the Data Table. Omit where there is no such list (e.g. in Processing). */
+  submissionIndex?: number
+  submissionTotal?: number
+  submission: SubmissionResponse | DataResponse
   asset: AssetResponse
   /** Adds a button (e.g. "Analyze image") that closes the dialog and calls this to open Processing. Omit to leave it out. */
   onOpenProcessing?: () => void
+  /** Leaves out the "Delete" action, e.g. in Processing, which doesn't refresh after a deletion made here. */
+  hideDeleteAction?: boolean
 }
 
 interface OpenTableMediaPreviewModalTextArgs {
@@ -44,9 +48,10 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
   if ('mediaAttachment' in args) {
     // If attachment URLs are unavailable (e.g. stale/deleted attachment metadata),
     // use submission position text instead of a file-name-based title.
-    const titleText = args.mediaAttachment.download_url
-      ? truncateString(args.displayValue, 30)
-      : getSubmissionPositionLabel(args.submissionIndex, args.submissionTotal)
+    const titleText =
+      args.mediaAttachment.download_url || args.submissionIndex === undefined || args.submissionTotal === undefined
+        ? truncateString(args.displayValue, 30)
+        : getSubmissionPositionLabel(args.submissionIndex, args.submissionTotal)
     const onOpenProcessing = args.onOpenProcessing
     const onDeleted = () => {
       actions.resources.refreshTableSubmissions()
@@ -77,6 +82,7 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
               asset={args.asset}
               submission={args.submission}
               attachmentUid={args.mediaAttachment.uid}
+              hideDeleteAction={args.hideDeleteAction}
               onDeleted={onDeleted}
             />
 

@@ -12,6 +12,9 @@ jest.mock('#/auth/authChangeWatcher', () => {
   return { recordAllauthResponse: mockedRecordAllauthResponse }
 })
 
+// Pretend KPI runs under `/kpi`
+jest.mock('#/constants', () => ({ ROOT_URL: 'http://localhost/kpi' }))
+
 jest.mock('./ServerError', () => {
   return {
     ServerError: {
@@ -45,6 +48,14 @@ describe('fetchAllauth', () => {
 
   afterEach(() => {
     fetchSpy.mockRestore()
+  })
+
+  it('requests the URL under the root path', async () => {
+    fetchSpy.mockReturnValue(makeResponse(200, {}))
+
+    await fetchAllauth('/api/v2/allauth/browser/v1/auth/session', { method: 'GET' })
+
+    chai.expect(fetchSpy.mock.calls[0][0]).to.equal('http://localhost/kpi/api/v2/allauth/browser/v1/auth/session')
   })
 
   it('returns 401 as data instead of throwing', async () => {
@@ -139,7 +150,7 @@ describe('fetchAllauth', () => {
       chai.expect(mockedRecordAllauthResponse.mock.calls[0][1].data).to.deep.equal(body)
     })
 
-    // The watcher needs it to tell the session query's own fetch apart from everything else
+    // The watcher needs it to tell the session query's own fetch apart from everything else. It gets the plain URL.
     it('says where the answer came from', async () => {
       fetchSpy.mockReturnValue(makeResponse(200, { meta: { is_authenticated: true } }))
 
