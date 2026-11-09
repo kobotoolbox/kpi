@@ -1,7 +1,7 @@
 import { type NavigateFunction, matchPath } from 'react-router-dom'
-import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES } from '#/router/routerConstants'
 import { AuthChangeEvent } from './authStatus'
-import { getLoginRouteWithNext, getUrlForNextRoute } from './nextUrl'
+import { getLoginRouteWithNext, getUrlForNextRoute, isAuthenticationScreen } from './nextUrl'
 
 // Where each auth change sends somebody, kept apart from `AuthChangeRedirector` so the whole decision reads top to
 // bottom and can be tested without a browser
@@ -61,7 +61,7 @@ export function redirectForAuthChange(change: AuthChange, context: RedirectConte
       }
       // The one move that cannot be a soft navigation - see `getUrlForNextRoute`. With nowhere named and not on an
       // authentication screen, this is a sign-in from another tab: already the right page, it just needs the session.
-      if (nextRoute || routePath.startsWith(ROUTES.AUTH_ROOT)) {
+      if (nextRoute || isAuthenticationScreen(routePath)) {
         goToPage(getUrlForNextRoute(nextRoute))
       } else {
         goToPage(null)

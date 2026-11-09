@@ -15,8 +15,9 @@ import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 
 /**
- * The address is confirmed. Whether that also signed the account in decides where we send people next: allauth only
- * signs in the browser that signed up, so a link opened anywhere else leaves nobody signed in.
+ * The address is confirmed. Whether that also signed the account in decides where we send people next. KPI turns
+ * `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` on, but allauth only signs in a session holding a pending login: the one that
+ * signed up, or one whose login stopped at email verification. A link opened anywhere else leaves nobody signed in.
  */
 function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
   return (
@@ -185,9 +186,8 @@ function ActivateAccountPanels({ activationKey }: { activationKey: string }) {
   const confirm = useAllauthBrowserV1AuthEmailVerifyPost()
 
   // From allauth's docs: "a status code of 401 does not imply failure. It indicates that the email
-  // verification was successful, yet, the user is still not signed in". KPI turns
-  // `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` on, but allauth only signs in the browser that signed up, so the link opened
-  // anywhere else lands here. Either way the address is now confirmed.
+  // verification was successful, yet, the user is still not signed in". When that happens is explained on
+  // `ConfirmedPanel`. Either way the address is now confirmed.
   const confirmStatus = confirm.data?.status
 
   function renderPanel() {

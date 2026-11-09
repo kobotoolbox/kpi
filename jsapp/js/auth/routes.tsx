@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Route } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { FeatureFlag } from '#/featureFlags'
 import RequireAnonymous from '#/router/RequireAnonymous'
@@ -69,6 +69,9 @@ export default function authRoutes() {
       */}
       <Route path={AUTH_ROUTES.PROVIDER_SIGNUP} element={<ProviderSignupRoute />} />
       <Route path={AUTH_ROUTES.PROVIDER_LOGIN} element={<ProviderLoginRoute />} />
+
+      {/* Anything else under `/auth`, such as an old or mistyped link, starts over at the login screen */}
+      <Route path='*' element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
     </Route>
   )
 }
