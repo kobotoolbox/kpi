@@ -9,10 +9,9 @@ const outputPath = path.resolve(__dirname, '../jsapp/compiled/')
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
 fs.mkdirSync(outputPath, { recursive: true })
 
-// One moment locale per language translated in `locale/`, since instances can enable any of them.
+// One moment locale per language translated in `locale/`, since instances can enable any of them
 const getMomentLocales = () => {
   const translationsDir = path.resolve(__dirname, '../locale')
-  // Fail loudly: a missing `locale/` would otherwise quietly give everyone English dates.
   if (!fs.existsSync(translationsDir)) {
     throw new Error(`No translations at ${translationsDir}, so moment locales can't be picked.`)
   }
@@ -22,7 +21,6 @@ const getMomentLocales = () => {
     .readdirSync(translationsDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name.toLowerCase().replace(/_/g, '-'))
-  // Same fallback as `moment.locale()`: `de-de` uses `de` when there's no `de-de` locale.
   return [...new Set(languages.flatMap((code) => [code, code.split('-')[0]]))].filter((code) => available.has(code))
 }
 
