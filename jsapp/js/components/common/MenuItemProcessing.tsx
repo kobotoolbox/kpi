@@ -2,21 +2,26 @@ import { Tooltip } from '@mantine/core'
 import { IconPencilStar } from '@tabler/icons-react'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
+import { getProcessingActionLabel } from '#/components/processing/common/utils'
 import { goToProcessing } from '#/components/processing/routes.utils'
+import type { AnyRowTypeName } from '#/constants'
 
 interface MenuItemProcessingProps {
   assetUid: string
   xpath: string
   submissionEditId: string
+  /** Picks the label, see `getProcessingActionLabel`. */
+  questionType?: AnyRowTypeName
   /** Disables the item, showing this as its tooltip. */
   disabledReason?: string
 }
 
-/** A "Translate & analyze" menu item, opening Processing for the given question. */
+/** A menu item opening Processing for the given question. */
 export default function MenuItemProcessing({
   assetUid,
   xpath,
   submissionEditId,
+  questionType,
   disabledReason,
 }: MenuItemProcessingProps) {
   const isDisabled = disabledReason !== undefined
@@ -31,7 +36,7 @@ export default function MenuItemProcessing({
         closeMenuOnClick={!isDisabled}
         onClick={isDisabled ? undefined : () => goToProcessing(assetUid, xpath, submissionEditId)}
       >
-        {t('Translate & analyze')}
+        {getProcessingActionLabel(questionType)}
       </Menu.Item>
     </Tooltip>
   )
