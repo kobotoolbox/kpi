@@ -137,7 +137,8 @@ def handle_usage_deduction(
         current_usage = 0
     new_total_usage = current_usage + amount
     if new_total_usage > plan_limit:
+        # Plan limits may be floats; add-on JSONB counters must stay integral.
         deduction = (
-            amount if current_usage >= plan_limit else new_total_usage - plan_limit
+            amount if current_usage >= plan_limit else int(new_total_usage - plan_limit)
         )
         PlanAddOn.deduct_add_ons_for_organization(organization, usage_type, deduction)
