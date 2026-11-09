@@ -281,7 +281,7 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 if image.has_transparency_data:
                     # put transparent images on a white background
                     white_bg = Image.new('RGBA', image.size, 'WHITE')
-                    image = Image.alpha_composite(white_bg, image)
+                    image = Image.alpha_composite(white_bg, image.convert('RGBA'))
                 image = image.convert('RGB')
                 image.save(out_buffer, format='JPEG', quality=90)
         return base64.b64encode(out_buffer.getvalue()).decode()
