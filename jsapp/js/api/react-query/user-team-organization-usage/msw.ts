@@ -1154,6 +1154,85 @@ export const getProjectViewsAssetsRetrieveResponseMock = (
       url: faker.helpers.arrayElement([faker.internet.url(), undefined]),
     })),
     owner_label: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    summary: faker.helpers.arrayElement([
+      {
+        geo: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+        labels: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        columns: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+        lock_all: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+        lock_any: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+        languages: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+          ),
+          undefined,
+        ]),
+        row_count: faker.helpers.arrayElement([faker.number.int(), undefined]),
+        name_quality: faker.helpers.arrayElement([
+          {
+            ok: faker.helpers.arrayElement([faker.number.int(), undefined]),
+            bad: faker.helpers.arrayElement([faker.number.int(), undefined]),
+            good: faker.helpers.arrayElement([faker.number.int(), undefined]),
+            total: faker.helpers.arrayElement([faker.number.int(), undefined]),
+            firsts: faker.helpers.arrayElement([
+              {
+                ok: faker.helpers.arrayElement([
+                  {
+                    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                    index: faker.helpers.arrayElement([faker.number.int(), undefined]),
+                    label: faker.helpers.arrayElement([
+                      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                        faker.string.alpha({ length: { min: 10, max: 20 } }),
+                      ),
+                      undefined,
+                    ]),
+                  },
+                  undefined,
+                ]),
+                bad: faker.helpers.arrayElement([
+                  {
+                    name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                    index: faker.helpers.arrayElement([faker.number.int(), undefined]),
+                    label: faker.helpers.arrayElement([
+                      Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+                        faker.string.alpha({ length: { min: 10, max: 20 } }),
+                      ),
+                      undefined,
+                    ]),
+                  },
+                  undefined,
+                ]),
+              },
+              undefined,
+            ]),
+          },
+          undefined,
+        ]),
+        default_translation: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+        naming_conflicts: faker.helpers.arrayElement([
+          Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() =>
+            faker.string.alpha({ length: { min: 10, max: 20 } }),
+          ),
+          undefined,
+        ]),
+      },
+      undefined,
+    ]),
+    version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version__content_hash: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    deployed_version_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+    version_count: faker.helpers.arrayElement([faker.number.int(), undefined]),
   })),
   ...overrideResponse,
 })

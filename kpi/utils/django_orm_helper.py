@@ -12,7 +12,7 @@ from django.db.models.functions import Coalesce
 class DeductUsageValue(Func):
 
     function = 'jsonb_set'
-    usage_value = "COALESCE(%(expressions)s ->> '%(keyname)s', '0')::int"
+    usage_value = "COALESCE(%(expressions)s ->> '%(keyname)s', '0')::numeric"
     template = (
         '%(function)s(%(expressions)s,'
         '\'{"%(keyname)s"}\','
@@ -21,7 +21,7 @@ class DeductUsageValue(Func):
         f'THEN {usage_value} - %(amount)s '
         'ELSE 0 '
         'END '
-        ')::text::jsonb)'
+        ')::int::text::jsonb)'
     )
     arity = 1
 
