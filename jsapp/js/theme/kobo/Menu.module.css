@@ -19,6 +19,10 @@
   &[data-variant='danger'] {
     color: var(--mantine-color-red-5);
   }
+
+  &[data-variant='light'] {
+    color: var(--mantine-color-blue-4);
+  }
 }
 
 .itemSection[data-position='left'] {
