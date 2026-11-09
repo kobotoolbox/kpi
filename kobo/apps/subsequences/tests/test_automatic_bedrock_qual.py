@@ -42,7 +42,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
-    ImageTooLarge,
+    InvalidImageDimensions,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
@@ -1008,10 +1008,10 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
                     action_data, self.submission
                 )
 
-        request_content = request['messages'][0]['content']
-        assert request_content[0] == {'type': 'text', 'text': 'prompt'}
-        assert request_content[1]['type'] == 'image_url'
-        assert request_content[1]['image_url']['url'] == 'data:image/png;base64,123'
+        request_content = request['content']
+        assert request_content[0] == {'type': 'input_text', 'text': 'prompt'}
+        assert request_content[1]['type'] == 'input_image'
+        assert request_content[1]['image_url'] == 'data:image/jpeg;base64,123'
 
     def test_generate_image_request_data_image_response_missing(self):
         self.asset.content = {
@@ -1052,12 +1052,12 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
         original_file = os.path.join(
             settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow.png'
         )
-        original_file_size = os.path.getsize(original_file)
         with Image.open(original_file) as image:
             original_height, original_width = image.height, image.width
+            original_pixel_count = image.height * image.width
         with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_SIZE',
-            math.floor(original_file_size * 0.9),
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_PIXELS',
+            math.floor(original_pixel_count * 0.9),
         ):
             image_bytes = self.action.format_image_for_llm(attachment)
         reencoded = base64.b64decode(image_bytes)
@@ -1065,14 +1065,15 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
             new_height, new_width = new_image.height, new_image.width
         assert new_height < original_height
         assert new_width < original_width
+        assert (original_height / original_width) == (new_height / new_width)
 
-    def test_resize_image_too_large(self):
+    def test_unscalable_image(self):
         attachment = self.submission['_attachments'][0]
         with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_SIZE',
-            1,  # set a max size to a value too small for any image file
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_PIXELS',
+            1,  # set a max size to a value too small for sane rescale
         ):
-            with self.assertRaises(ImageTooLarge):
+            with self.assertRaises(InvalidImageDimensions):
                 self.action.format_image_for_llm(attachment)
 
 

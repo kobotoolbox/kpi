@@ -30,8 +30,8 @@ from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_hand
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
-    ImageTooLarge,
     InvalidAction,
+    InvalidImageDimensions,
     InvalidXPath,
     ManualQualNotFound,
     SubsequenceAcceptanceError,
@@ -631,9 +631,9 @@ class DataViewSet(
             )
         except AttachmentNotFoundException:
             raise serializers.ValidationError({'detail': 'Attachment not found'})
-        except ImageTooLarge:
+        except InvalidImageDimensions:
             raise serializers.ValidationError(
-                {'detail': 'Image too large for LLM analysis'}
+                {'detail': 'Image cannot be rescaled for for LLM analysis'}
             )
 
         return Response(supplemental_data)

@@ -12,7 +12,6 @@ from openai import OpenAIError
 from PIL import Image, ImageOps
 from pillow_heif import register_heif_opener
 
-
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
 from kobo.apps.subsequences.actions.mixins import RequiresAdditionalSource
@@ -31,7 +30,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
-    ImageTooLarge,
+    InvalidImageDimensions,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.prompts import (
@@ -272,14 +271,16 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
             with Image.open(in_buffer) as image:
                 ImageOps.exif_transpose(image, in_place=True)
                 width, height = image.size
-                total_pixels = image.size[0] * image.size[1]
+                total_pixels = width * height
                 if total_pixels > MAX_IMAGE_PIXELS:
                     max_height = math.floor((height/total_pixels)*MAX_IMAGE_PIXELS)
                     max_width = math.floor((width/total_pixels)*MAX_IMAGE_PIXELS)
+                    if max_height == 0 or max_width == 0:
+                        raise InvalidImageDimensions
                     image.thumbnail((max_width, max_height), Image.LANCZOS)
                 if image.has_transparency_data:
                     # put transparent images on a white background
-                    white_bg = Image.new("RGBA", image.size, "WHITE")
+                    white_bg = Image.new('RGBA', image.size, 'WHITE')
                     image = Image.alpha_composite(white_bg, image)
                 image = image.convert('RGB')
                 image.save(out_buffer, format='JPEG', quality=90)

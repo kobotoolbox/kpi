@@ -57,19 +57,20 @@ class DependencyNotFound(Exception):
     pass
 
 
-class ImageTooLarge(Exception):
-    """
-    Raised when an image cannot be resized to below the maximum size
-    """
-    pass
-
-
 class InvalidAction(Exception):
     """
     The referenced action does not exist or was not configured for the given
     question XPath at the asset level
     """
 
+    pass
+
+
+class InvalidImageDimensions(Exception):
+    """
+    Raised when an image cannot be rescaled to below the maximum size while
+    preserving the aspect ratio
+    """
     pass
 
 
