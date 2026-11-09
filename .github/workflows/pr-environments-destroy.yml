@@ -1,0 +1,34 @@
+name: Destroy PR preview environment on close
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App Token
+        id: app_token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.KOBO_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+          owner: kobotoolbox
+          repositories: "devops"
+
+      - name: Trigger destroy workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: kpi_ephemeral_destroy.yml
+          repo: kobotoolbox/devops
+          ref: kpi-auto-destroy # TODO: revert to main after testing
+          token: ${{ steps.app_token.outputs.token }}
+          inputs: |
+            {
+              "input_type": "PR",
+              "input_value": "${{ github.event.pull_request.number }}"
+            }
