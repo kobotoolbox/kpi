@@ -412,8 +412,8 @@ export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
 ])
 
 /**
- * Whether a display applies to a question type. Audio, Text and Image show the
- * response itself, so each one only applies to its own question type.
+ * Whether a display applies to a question type. Audio, Text and Image show the response itself, so each one only
+ * applies to its own question type.
  */
 export function isDisplayAvailable(display: DisplaysList[number], questionType: AnyRowTypeName | undefined): boolean {
   if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
@@ -435,9 +435,8 @@ export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | u
 }
 
 /**
- * Gets the default displays for a given processing tab, dropping whichever of
- * Audio/Text/Image can't apply to the given question type (they're mutually
- * exclusive, and the baked-in defaults above include all of them).
+ * Gets the default displays for a given processing tab, dropping whichever of Audio/Text/Image can't apply to the
+ * given question type (they're mutually exclusive, and the baked-in defaults above include all of them).
  *
  * @param tabName - The processing tab name
  * @param questionType - The current question's type, if known
