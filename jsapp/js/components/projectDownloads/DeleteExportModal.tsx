@@ -9,7 +9,7 @@ export interface DeleteExportModalProps {
 export function DeleteExportModal({ onConfirm, onCancel }: DeleteExportModalProps) {
   return (
     <Stack gap='md'>
-      <Text>{t('Are you sure you want to delete this export? This action is not reversible.')}</Text>
+      <Text>{t('Are you sure you want to delete this export? Any synchronous export associated with these settings will be deleted. This action is not reversible.')}</Text>
 
       <Group justify='flex-end' mt='lg'>
         <ButtonNew variant='light' size='md' onClick={onCancel}>
