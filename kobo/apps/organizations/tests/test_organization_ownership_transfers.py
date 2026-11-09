@@ -168,9 +168,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         """
         Recipient email match is case-insensitive.
         """
-        response = self._create_transfer(
-            self.owner_user, self.admin_user.email.upper()
-        )
+        response = self._create_transfer(self.owner_user, self.admin_user.email.upper())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         transfer = OrgOwnershipTransferInvite.objects.first()
         self.assertEqual(transfer.recipient, self.admin_user)

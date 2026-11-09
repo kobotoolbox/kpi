@@ -5,8 +5,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import F, Q
-from django.utils import timezone
+from django.db.models import F
 from django.utils.translation import gettext_lazy as t
 from django.utils.translation import override
 from django_request_cache import cache_for_request

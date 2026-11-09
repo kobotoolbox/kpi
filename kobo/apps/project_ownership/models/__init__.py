@@ -6,6 +6,6 @@ from .choices import (
 from .invite import (
     Invite,
     OrgMembershipAutoInvite,
-    OrgOwnershipTransferInvite,
+    OrgOwnershipTransferInvite,  # noqa F401
 )
 from .transfer import Transfer, TransferStatus

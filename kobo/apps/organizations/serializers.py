@@ -657,9 +657,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     modified = serializers.DateTimeField(
         source='date_modified', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
     )
-    billing_review_requested = serializers.BooleanField(
-        required=False, default=False
-    )
+    billing_review_requested = serializers.BooleanField(required=False, default=False)
 
     class Meta:
         model = OrgOwnershipTransferInvite

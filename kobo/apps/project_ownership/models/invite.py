@@ -252,15 +252,11 @@ class OrgOwnershipTransferInviteManager(models.Manager):
         metadata = kwargs.setdefault('metadata', {})
         if 'billing_review_requested' not in metadata:
             metadata['billing_review_requested'] = billing_review_requested
-        return super().create(
-            invite_type=InviteType.ORG_OWNERSHIP_TRANSFER, **kwargs
-        )
+        return super().create(invite_type=InviteType.ORG_OWNERSHIP_TRANSFER, **kwargs)
 
     def get_queryset(self):
         return (
-            super()
-            .get_queryset()
-            .filter(invite_type=InviteType.ORG_OWNERSHIP_TRANSFER)
+            super().get_queryset().filter(invite_type=InviteType.ORG_OWNERSHIP_TRANSFER)
         )
 
 
