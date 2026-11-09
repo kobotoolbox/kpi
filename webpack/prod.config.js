@@ -9,20 +9,6 @@ const publicPath = (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX
 const prodConfig = WebpackCommon({
   mode: 'production',
   optimization: {
-    splitChunks: {
-      cacheGroups: {
-        commons: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          // Every entry but `errorApp` shares one `vendors` chunk. The error
-          // pages have to render when the main app can't load, so they must not
-          // depend on that (multi-MB) shared chunk - see
-          // `scripts/check_error_bundle_isolation.js`, which fails the build if
-          // this coupling ever comes back.
-          chunks: (chunk) => chunk.name !== 'errorApp',
-        },
-      },
-    },
     // Speed up the minify step with swc
     // https://webpack.js.org/plugins/terser-webpack-plugin/#swc
     minimizer: [
