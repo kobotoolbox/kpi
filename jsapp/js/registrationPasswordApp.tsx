@@ -45,7 +45,7 @@ class RegistrationPasswordApp extends React.Component<{}, RegistrationPasswordAp
   }
 
   render() {
-    if (envStore.isReady && envStore.data.enable_password_entropy_meter) {
+    if (envStore.isReady && envStore.data.enable_password_entropy_meter && this.state.currentPass !== '') {
       return <LazyPasswordStrength password={this.state.currentPass} />
     }
 
