@@ -26,6 +26,8 @@ const config: Config = {
     '\\.(css|scss)$': 'identity-obj-proxy',
     // 🖼️ webpack resolves these to a URL string; give tests a stand-in
     '\\.(svg|png|jpg|gif|ttf|eot|woff2?)$': '<rootDir>/fileMock.js',
+    // 📦 same API as `lodash-es`, but CommonJS, so Jest doesn't have to transform it
+    '^lodash-es$': 'lodash',
   },
 
   // Extensions to try in order (for import statements with no extension)

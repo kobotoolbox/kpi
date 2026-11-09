@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import Button from '#/components/common/button'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
@@ -36,7 +36,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
     if (props.filters.length === 0) {
       return [{}]
     } else {
-      return clonedeep(props.filters)
+      return cloneDeep(props.filters)
     }
   }
 
@@ -52,7 +52,7 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
   }
 
   const addFilter = () => {
-    const newFilters = clonedeep(filters)
+    const newFilters = cloneDeep(filters)
     newFilters.push({})
     setFilters(newFilters)
   }
@@ -69,13 +69,13 @@ export default function ProjectsFilter(props: ProjectsFilterProps) {
   }
 
   const onFilterEditorChange = (filterIndex: number, filter: ProjectsFilterDefinition) => {
-    const newFilters = clonedeep(filters)
+    const newFilters = cloneDeep(filters)
     newFilters[filterIndex] = filter
     setFilters(newFilters)
   }
 
   const onFilterEditorDelete = (filterIndex: number) => {
-    const newFilters = clonedeep(filters)
+    const newFilters = cloneDeep(filters)
     newFilters.splice(filterIndex, 1)
     setFilters(newFilters)
   }

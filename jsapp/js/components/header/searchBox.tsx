@@ -1,6 +1,6 @@
 import React from 'react'
 
-import debounce from 'lodash.debounce'
+import { debounce } from 'lodash-es'
 import { autorun } from 'mobx'
 import { observer } from 'mobx-react'
 import bem from '#/bem'

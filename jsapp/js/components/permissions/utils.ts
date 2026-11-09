@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isSelfOwned } from '#/assetUtils'
 import { AssetTypeName } from '#/constants'
@@ -220,7 +220,7 @@ export function getPartialByResponsesFilter(
   })
 
   if (found) {
-    const foundClone = clonedeep(found)
+    const foundClone = cloneDeep(found)
     // Remove `_submitted_by`, leave "by responses" stuff (at current point
     // in time we leave everything else)
     delete foundClone._submitted_by

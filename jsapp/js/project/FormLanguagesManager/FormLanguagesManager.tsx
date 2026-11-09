@@ -1,6 +1,6 @@
 import { Box, Group, Text } from '@mantine/core'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useBlocker } from 'react-router-dom'
 import type { PaginatedListResponse } from '#/UniversalTable'
