@@ -1,13 +1,12 @@
 import { Box, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
 import { COLLECTION_METHODS, CollectionMethodName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
-import { notify } from '#/utils'
+import { copyToClipboard, notify } from '#/utils'
 
 interface FormLandingCollectDataProps {
   asset: AssetResponse
@@ -37,7 +36,13 @@ export default function FormLandingCollectData({
   openRosaServerAnchor.href = envStore.data.open_rosa_server
   const kobocollectUrl = openRosaServerAnchor.origin
 
-  const copiedToClipboard = () => notify(t('Copied to clipboard'))
+  const copyCollectLink = async (text: string) => {
+    if (await copyToClipboard(text)) {
+      notify(t('Copied to clipboard'))
+    } else {
+      notify.error(t('Could not copy to clipboard'))
+    }
+  }
 
   const renderCollectLink = () => {
     if (selectedMethod === CollectionMethodName.android) {
@@ -63,25 +68,21 @@ export default function FormLandingCollectData({
 
     if (selectedMethod === CollectionMethodName.iframe_url) {
       return (
-        <CopyToClipboard
-          text={`<iframe src=${selectedMethodLink} width="800" height="600"></iframe>`}
-          onCopy={copiedToClipboard}
-          options={{ format: 'text/plain' }}
+        <ButtonNew
+          variant='light'
+          size='md'
+          onClick={() => copyCollectLink(`<iframe src=${selectedMethodLink} width="800" height="600"></iframe>`)}
         >
-          <ButtonNew variant='light' size='md'>
-            {t('Copy')}
-          </ButtonNew>
-        </CopyToClipboard>
+          {t('Copy')}
+        </ButtonNew>
       )
     }
 
     return (
       <>
-        <CopyToClipboard text={selectedMethodLink} onCopy={copiedToClipboard} options={{ format: 'text/plain' }}>
-          <ButtonNew variant='light' size='md'>
-            {t('Copy')}
-          </ButtonNew>
-        </CopyToClipboard>
+        <ButtonNew variant='light' size='md' onClick={() => copyCollectLink(selectedMethodLink)}>
+          {t('Copy')}
+        </ButtonNew>
         <ButtonNew variant='light' size='md' onClick={() => window.open(selectedMethodLink, '_blank')}>
           {t('Open')}
         </ButtonNew>

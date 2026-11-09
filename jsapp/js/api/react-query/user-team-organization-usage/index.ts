@@ -2120,6 +2120,11 @@ export type organizationsMembersDestroyResponse204 = {
   status: 204
 }
 
+export type organizationsMembersDestroyResponse400 = {
+  data: ErrorDetail
+  status: 400
+}
+
 export type organizationsMembersDestroyResponse403 = {
   data: ErrorDetail
   status: 403
@@ -2134,6 +2139,7 @@ export type organizationsMembersDestroyResponseSuccess = organizationsMembersDes
   headers: Headers
 }
 export type organizationsMembersDestroyResponseError = (
+  | organizationsMembersDestroyResponse400
   | organizationsMembersDestroyResponse403
   | organizationsMembersDestroyResponse404
 ) & {
@@ -2790,6 +2796,8 @@ export const getProjectViewsAssetsRetrieveUrl = (uidProjectView: string, params?
 
 /**
  * ## Retrieve assets available in project view
+ *
+ * Superusers can add `?extra_fields=on` to get, for each project, its sharing `status`, its `summary`, the uid and the content hash of its latest version (`version_id`, `version__content_hash`), the uid of its deployed version (`deployed_version_id`) and its number of versions (`version_count`). Comparing `version_id` with a previous crawl tells which forms changed, so that only those need `/api/v2/assets/{uid_asset}/content/`. The parameter is ignored for other users.
  */
 export const projectViewsAssetsRetrieve = async (
   uidProjectView: string,
