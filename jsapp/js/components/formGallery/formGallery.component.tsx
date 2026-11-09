@@ -45,7 +45,6 @@ export default function FormGallery(props: FormGalleryProps) {
   const [
     {
       submissions,
-      totalSubmissions,
       isLoading,
       next,
       isFullscreen,
@@ -221,7 +220,7 @@ export default function FormGallery(props: FormGalleryProps) {
         <ModalNew
           opened={isModalOpen}
           onClose={closeModal}
-          title={`Image ${currentModalImageIndex + 1} of ${totalSubmissions}`}
+          title={t('Image ##number##').replace('##number##', String(currentModalImageIndex + 1))}
           size='lg'
           centered
         >

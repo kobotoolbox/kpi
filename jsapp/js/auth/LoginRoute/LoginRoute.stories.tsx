@@ -11,6 +11,7 @@ import {
   loginAuthenticatedMock,
   loginEmailVerificationRequiredMock,
   loginErrorsMock,
+  loginUnhandledStepMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
 import { makeAuthConfigurationMock, makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
@@ -267,6 +268,20 @@ export const EmailVerificationRequired: Story = {
     // Hedged on both counts, and the field keeps the address for a second attempt.
     await canvas.findByText(/a new link has been requested for it/)
     expect(canvas.getByLabelText('Email')).toHaveValue(CREDENTIALS.email)
+  },
+}
+
+/** Right password, then a step this screen has no form for. Says so, rather than blaming the password. */
+export const UnhandledLoginStep: Story = {
+  parameters: { msw: { handlers: storyHandlers({ login: loginUnhandledStepMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByText('Your account needs a login step that is not available here. Please contact support.')
+    expect(canvas.queryByText('Something went wrong. Please try again later.')).not.toBeInTheDocument()
   },
 }
 
