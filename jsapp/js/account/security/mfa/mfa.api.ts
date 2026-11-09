@@ -117,6 +117,14 @@ async function reauthenticateWithCode(code: string) {
   assertOk(await allauthBrowserV1Auth2faReauthenticatePost({ code }), 'code')
 }
 
+/** Replaces the recovery codes, invalidating the previous set */
+async function generateRecoveryCodes(field: MfaField | null) {
+  const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesPost()
+  assertOk(response, field)
+  // allauth's spec leaves out this 200, which carries the same body as the GET
+  return (response as allauthBrowserV1AccountAuthenticatorsRecoveryCodesGetResponse200).data.data.unused_codes
+}
+
 /**
  * Reserves a TOTP secret and returns its QR code. 2FA stays off until {@link useMfaConfirmCode} accepts a token.
  * A mutation, not a query: every read replaces the secret.
@@ -158,7 +166,8 @@ export const useMfaRecoveryCodes = () =>
     }
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
-    return response.data.data.unused_codes
+    // KPI hides codes kept from the old 2FA system, as it only has their hashes. A new setup gets new ones instead
+    return response.data.data.unused_codes ?? generateRecoveryCodes(null)
   })
 
 /** The code is the reauthentication allauth wants first: its delete takes no body of its own */
@@ -169,16 +178,9 @@ export const useMfaDeactivate = () =>
     assertOk(await allauthBrowserV1AccountAuthenticatorsTotpDelete(), 'code')
   })
 
-/**
- * Replaces the recovery codes, invalidating the previous set. Reauthenticates with the code first, same as
- * {@link useMfaDeactivate}
- */
+/** Reauthenticates with the code first, same as {@link useMfaDeactivate} */
 export const useMfaRegenerateCodes = () =>
   useMfaMutation<string[], MfaCode>('regenerate', async ({ code }) => {
     await reauthenticateWithCode(code)
-
-    const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesPost()
-    assertOk(response, 'code')
-    // allauth's spec leaves out this 200, which carries the same body as the GET
-    return (response as allauthBrowserV1AccountAuthenticatorsRecoveryCodesGetResponse200).data.data.unused_codes
+    return generateRecoveryCodes('code')
   })
