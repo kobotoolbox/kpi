@@ -973,12 +973,12 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
         self.asset.deploy(backend='mock')
         submission = {
             '__version__': self.asset.latest_deployed_version.uid,
-            'q1': 'yellow.png',
+            'q1': 'yellow_rectangle.png',
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
                     'id': 1,
-                    'filename': 'yellow.png',
+                    'filename': 'yellow_rectangle.png',
                     'mimetype': 'image/png',
                     'question_xpath': 'q1',
                 },
@@ -1050,7 +1050,7 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
     def test_resize_image(self):
         attachment = self.submission['_attachments'][0]
         original_file = os.path.join(
-            settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow.png'
+            settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow_rectangle.png'
         )
         with Image.open(original_file) as image:
             original_height, original_width = image.height, image.width
@@ -1069,9 +1069,15 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
 
     def test_unscalable_image(self):
         attachment = self.submission['_attachments'][0]
+        original_file = os.path.join(
+            settings.BASE_DIR, 'kpi', 'fixtures', 'attachments', 'yellow_rectangle.png'
+        )
+        with Image.open(original_file) as image:
+            # ensure a non-square image
+            assert image.size[0] != image.size[1]
         with patch(
             'kobo.apps.subsequences.actions.automatic_bedrock_qual.MAX_IMAGE_PIXELS',
-            1,  # set a max size to a value too small for sane rescale
+            1,  # non-square image cannot be resized to 1x1
         ):
             with self.assertRaises(InvalidImageDimensions):
                 self.action.format_image_for_llm(attachment)
