@@ -96,9 +96,7 @@ export function getSsoConnectErrorMessage(code: string): string {
   if (code === PROVIDER_ERROR_CODES.permissionDenied) {
     return getProviderRedirectErrorMessage(PROVIDER_ERROR_CODES.denied)
   }
-  // TODO: DEV-1971 send the user through a reauthentication instead of asking them to sign in again.
-  if (code === PROVIDER_ERROR_CODES.reauthenticationRequired) {
-    return t('Please log in again before connecting single-sign on (SSO) to your account.')
-  }
+  // Note: no `reauthentication_required` case. allauth only sends it once `SOCIALACCOUNT_REAUTHENTICATION_REQUIRED` is
+  // on, and KPI leaves it off. TODO: DEV-1971 if that changes, ask for the credentials in place
   return t('We could not connect your account to that provider. Please try again.')
 }
