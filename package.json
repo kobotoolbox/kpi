@@ -125,6 +125,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.4.1",
+    "lodash": "^4.18.1",
     "mini-css-extract-plugin": "^2.10.2",
     "moment": "^2.30.1",
     "msw": "^2.11.3",
