@@ -9,18 +9,25 @@ const outputPath = path.resolve(__dirname, '../jsapp/compiled/')
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
 fs.mkdirSync(outputPath, { recursive: true })
 
-// HACK: we needed to define this postcss-loader because of a problem with
-// including CSS files from node_modules directory, i.e. this build error:
-// `Error: No PostCSS Config found in: /srv/node_modules/…`
-const postCssLoader = {
-  loader: 'postcss-loader',
-  options: {
-    sourceMap: true,
-    postcssOptions: {
-      plugins: ['autoprefixer'],
+// Each loader gets `sourceMap` explicitly, since by default they follow the JS source maps, which are on in
+// production too. CSS ships inside the JS, so its maps would go to every user.
+const getStyleLoaders = (sourceMap, { sass = false, modules } = {}) => [
+  'style-loader',
+  { loader: 'css-loader', options: { sourceMap, ...(modules && { modules }) } },
+  // HACK: we needed to define this postcss-loader because of a problem with
+  // including CSS files from node_modules directory, i.e. this build error:
+  // `Error: No PostCSS Config found in: /srv/node_modules/…`
+  {
+    loader: 'postcss-loader',
+    options: {
+      sourceMap,
+      postcssOptions: {
+        plugins: ['autoprefixer'],
+      },
     },
   },
-}
+  ...(sass ? [{ loader: 'sass-loader', options: { sourceMap } }] : []),
+]
 
 const swcLoader = {
   loader: require.resolve('swc-loader'),
@@ -35,7 +42,7 @@ const swcLoader = {
   },
 }
 
-const commonOptions = {
+const getCommonOptions = (cssSourceMap) => ({
   module: {
     rules: [
       {
@@ -52,29 +59,21 @@ const commonOptions = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', postCssLoader],
+        use: getStyleLoaders(cssSourceMap),
       },
       {
         test: /\.scss$/,
         exclude: /\.module\.scss$/,
-        use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader'],
+        use: getStyleLoaders(cssSourceMap, { sass: true }),
       },
       {
         test: /\.module\.scss$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
-              },
-              sourceMap: true,
-            },
+        use: getStyleLoaders(cssSourceMap, {
+          sass: true,
+          modules: {
+            localIdentName: '[name]__[local]--[hash:base64:5]',
           },
-          postCssLoader,
-          'sass-loader',
-        ],
+        }),
       },
       {
         test: /\.coffee$/,
@@ -135,9 +134,10 @@ const commonOptions = {
     }),
     new webpack.ProvidePlugin({ $: ['jquery', 'default'] }),
   ],
-}
+})
 
 module.exports = (options) => {
+  const commonOptions = getCommonOptions(options?.mode !== 'production')
   options = lodash.mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
     if (lodash.isArray(objValue)) {
       return objValue.concat(srcValue)

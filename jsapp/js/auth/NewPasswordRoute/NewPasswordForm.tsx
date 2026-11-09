@@ -50,7 +50,8 @@ export default function NewPasswordForm({ resetKey, onOutcome }: NewPasswordForm
       // Rejections land here too, not in `onError`: `fetchAllauth` hands back everything below 500 as data.
       onSuccess: (response) => {
         // Note: KPI leaves `ACCOUNT_LOGIN_ON_PASSWORD_RESET` off, so the reset never signs anybody in. A 200 only means
-        // the browser was signed in already, which is no sign-in to announce.
+        // the browser was signed in already. When that was this account, the new password ends the session, and
+        // `AuthChangeRedirector` moves on to the login screen before this panel is seen.
         if (response.status === 200 || response.status === 401) {
           onOutcome({ kind: 'changed' })
           return

@@ -1,12 +1,15 @@
 import chai from 'chai'
 import { type GateInput, getAnonymousGateDecision, getAuthGateDecision } from './authGate'
-import { ANONYMOUS_AUTH_STATUS, type AuthStatus } from './authStatus'
+import { ANONYMOUS_AUTH_STATUS, type AuthStatus, getAuthStatus } from './authStatus'
 
 const signedIn: AuthStatus = {
   ...ANONYMOUS_AUTH_STATUS,
   isAuthenticated: true,
   user: { id: 7, display: 'sallyride', username: 'sallyride', has_usable_password: true, has_validated_password: true },
 }
+
+/** allauth's answer to a sensitive request made too long after the last authentication */
+const reauthenticationRequired = getAuthStatus({ status: 401, data: { meta: { is_authenticated: true } } })
 
 /** Nobody signed in, nothing in flight - each case below states only the part it is about. */
 const gateInput = (overrides: Partial<GateInput> = {}): GateInput => ({
@@ -25,6 +28,11 @@ describe('getAuthGateDecision', () => {
 
   it('allows a route on the endpoint`s word alone', () => {
     chai.expect(getAuthGateDecision(gateInput({ authStatus: signedIn }))).to.equal('allow')
+  })
+
+  // The session behind the ask is real, so the screen that made the request handles it
+  it('allows a route while allauth is asking for credentials again', () => {
+    chai.expect(getAuthGateDecision(gateInput({ authStatus: reauthenticationRequired }))).to.equal('allow')
   })
 
   // The flag-off path, where the endpoint is never asked and `/me/` is the only answer there is.

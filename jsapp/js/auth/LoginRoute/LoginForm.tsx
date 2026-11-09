@@ -82,10 +82,15 @@ export default function LoginForm({ socialApps, isRegistrationClosed = false, on
           onOutcome({ kind: 'emailVerificationRequired' })
           return
         }
-        // Note: no other pending step is handled. Login by code, phone verification and trusted devices are all off in
-        // KPI, so after the password allauth only ever waits on one of these two.
         if (pendingFlowIds.includes(FlowId.mfa_authenticate)) {
           onOutcome({ kind: 'mfaRequired' })
+          return
+        }
+        // Note: no screen for any other pending step. Login by code, phone verification and trusted devices are all
+        // off in KPI, so after the password allauth only ever waits on one of the two above. Should a setting change,
+        // this says so, rather than the generic error suggesting the password was wrong.
+        if (pendingFlowIds.length > 0) {
+          setFormErrors([t('Your account needs a login step that is not available here. Please contact support.')])
           return
         }
         const { fieldErrors, formErrors: bannerErrors } = splitAllauthErrors(response, ['username', 'password'])
