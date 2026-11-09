@@ -1,24 +1,23 @@
 import { Anchor, Box, Flex, Group, Text, UnstyledButton } from '@mantine/core'
 import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
 import React from 'react'
-import CopyToClipboard from 'react-copy-to-clipboard'
-import type { AssetsExportSettingsListQueryResult, useAssetsExportSettingsList } from '#/api/react-query/survey-data'
+import { useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
 import { EXPORT_FORMATS, EXPORT_TYPES, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
 import envStore from '#/envStore'
-import { formatDate, getLangAsObject, notify } from '#/utils'
+import { copyToClipboard, formatDate, getLangAsObject, notify } from '#/utils'
 
 const SYNCHRONOUS_EXPORT_SUPPORT_URL = 'pulling_data_into_powerbi.html'
 
 interface SynchronousExportsTableProps {
-  exportSettingsQuery: ReturnType<typeof useAssetsExportSettingsList<AssetsExportSettingsListQueryResult>>
+  assetUid: string
 }
 
 export default function SynchronousExportsTable(props: SynchronousExportsTableProps) {
-  const query = props.exportSettingsQuery
+  const query = useAssetsExportSettingsList(props.assetUid)
 
   const savedSettings =
     query.data?.status === 200 ? query.data.data.results.filter((setting) => setting.name.trim().length > 0) : []
@@ -27,9 +26,9 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
     const copyLabel = fileType === 'CSV' ? t('Copy CSV sync link') : t('Copy XLSX sync link')
 
     return (
-      <CopyToClipboard
-        text={url}
-        onCopy={(_text, isCopied) => {
+      <Menu.Item
+        onClick={async () => {
+          const isCopied = await copyToClipboard(url)
           if (isCopied) {
             notify(
               fileType === 'CSV' ? t('CSV sync link copied to clipboard') : t('XLSX sync link copied to clipboard'),
@@ -39,8 +38,8 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
           }
         }}
       >
-        <Menu.Item>{copyLabel}</Menu.Item>
-      </CopyToClipboard>
+        {copyLabel}
+      </Menu.Item>
     )
   }
 

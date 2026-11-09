@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import { getAssetsExportSettingsListQueryKey, useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import bem from '#/bem'
 import AnonymousExports from '#/components/projectDownloads/AnonymousExports'
 import LegacyExports from '#/components/projectDownloads/LegacyExports'
@@ -28,12 +27,6 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
   const [selectedExportType, setSelectedExportType] = useState<ExportTypeDefinition>(
     DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE,
   )
-  const exportSettingsQuery = useAssetsExportSettingsList(props.asset.uid, undefined, {
-    query: {
-      enabled: profileStore.isLoggedIn && !selectedExportType.isLegacy,
-      queryKey: getAssetsExportSettingsListQueryKey(props.asset.uid),
-    },
-  })
 
   useEffect(() => {
     setSelectedExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE)
@@ -58,12 +51,11 @@ export default function ProjectDownloads(props: ProjectDownloadsProps) {
       <React.Fragment>
         <ProjectExportsCreator
           asset={props.asset}
-          exportSettingsQuery={exportSettingsQuery}
           selectedExportType={selectedExportType}
           setSelectedExportType={onSetSelectedExportType}
         />
         <ProjectExportsList asset={props.asset} selectedExportType={selectedExportType} />
-        {isSynchronousExportsEnabled && <SynchronousExportsTable exportSettingsQuery={exportSettingsQuery} />}
+        {isSynchronousExportsEnabled && <SynchronousExportsTable assetUid={props.asset.uid} />}
       </React.Fragment>
     )
   }
