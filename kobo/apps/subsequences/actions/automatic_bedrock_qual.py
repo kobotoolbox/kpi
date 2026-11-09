@@ -277,6 +277,11 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     max_height = math.floor((height/total_pixels)*MAX_IMAGE_PIXELS)
                     max_width = math.floor((width/total_pixels)*MAX_IMAGE_PIXELS)
                     image.thumbnail((max_width, max_height), Image.LANCZOS)
+                if image.has_transparency_data:
+                    # put transparent images on a white background
+                    white_bg = Image.new("RGBA", image.size, "WHITE")
+                    image = Image.alpha_composite(white_bg, image)
+                image = image.convert('RGB')
                 image.save(out_buffer, format='JPEG', quality=90)
         return base64.b64encode(out_buffer.getvalue()).decode()
 
