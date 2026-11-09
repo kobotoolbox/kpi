@@ -71,6 +71,7 @@ class InvalidImageDimensions(Exception):
     Raised when an image cannot be rescaled to below the maximum size while
     preserving the aspect ratio
     """
+
     pass
 
 
