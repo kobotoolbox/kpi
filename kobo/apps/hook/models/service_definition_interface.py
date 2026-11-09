@@ -193,7 +193,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
             if (
                 status_code in RETRIABLE_STATUS_CODES
-                and self._tries < constance.config.HOOK_MAX_RETRIES + 1
+                and self._tries < constance.config.HOOK_MAX_RETRIES
             ):
                 log_status = HookLogStatus.PENDING
                 raise HookRemoteServerDownError from e
@@ -263,9 +263,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 log.status = log_status
 
                 if log.status == HookLogStatus.PENDING and (
-                    # +1 because the first attempt is not a retry
+                    # `tries` includes the initial attempt, so the last allowed
+                    # attempt is `HOOK_MAX_RETRIES + 1`
                     log.tries
-                    > constance.config.HOOK_MAX_RETRIES + 1
+                    > constance.config.HOOK_MAX_RETRIES
                 ):
                     log.status = HookLogStatus.FAILED
 
