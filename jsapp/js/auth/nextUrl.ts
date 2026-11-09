@@ -1,6 +1,5 @@
 import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { isReauthenticationRoutePath } from './flowRoutes'
 
 // Reading and writing `?next=` - the route to go to once authentication is out of the way.
 //
@@ -54,26 +53,22 @@ export function resolveNextRoute(rawNext: string | null, origin: Origin): string
 }
 
 /** Screens that exist only to send you onward, which is why `next` must never point at one */
-function isAuthenticationScreen(routePath: string): boolean {
-  return routePath.startsWith(ROUTES.AUTH_ROOT) || isReauthenticationRoutePath(routePath)
+export function isAuthenticationScreen(routePath: string): boolean {
+  return routePath.startsWith(ROUTES.AUTH_ROOT)
 }
 
-/** An authentication screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */
-export function getRouteWithNext(routePath: string, currentRoute: string | null): string {
+/** The login screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */
+export function getLoginRouteWithNext(currentRoute: string | null): string {
   if (!currentRoute) {
-    return routePath
+    return AUTH_ROUTES.LOGIN
   }
-  // The checks want the path alone, but the parameter keeps the query string: that is half of what made it the page.
+  // The check wants the path alone, but the parameter keeps the query string: that is half of what made it the page.
   const [currentPath] = currentRoute.split('?')
-  if (currentPath === routePath || isAuthenticationScreen(currentPath)) {
-    return routePath
+  if (isAuthenticationScreen(currentPath)) {
+    return AUTH_ROUTES.LOGIN
   }
   const params = new URLSearchParams({ next: `/#${currentRoute}` })
-  return `${routePath}?${params}`
-}
-
-export function getLoginRouteWithNext(currentRoute: string | null): string {
-  return getRouteWithNext(AUTH_ROUTES.LOGIN, currentRoute)
+  return `${AUTH_ROUTES.LOGIN}?${params}`
 }
 
 /**

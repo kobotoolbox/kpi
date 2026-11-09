@@ -64,18 +64,14 @@ export default function authRoutes() {
       <Route path={AUTH_ROUTES.NEW_PASSWORD} element={<NewPasswordRoute />} />
 
       {/*
-        `LoginRoute` swaps `MfaForm` into its own card, so the URL stays on `/auth/login` for the whole sign-in and
-        nothing reaches these two on its own. A code means nothing without a sign-in underway, so a stale link starts
-        over rather than showing SectionNotFound.
-      */}
-      <Route path={AUTH_ROUTES.MFA_AUTHENTICATE} element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
-      <Route path={AUTH_ROUTES.MFA_RECOVERY_CODES} element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
-      {/*
         Both halves of the single sign-on flow. `PROVIDER_SIGNUP` is also where allauth returns the browser
         after the provider round trip, whatever the outcome - see `ProviderSignupRoute`.
       */}
       <Route path={AUTH_ROUTES.PROVIDER_SIGNUP} element={<ProviderSignupRoute />} />
       <Route path={AUTH_ROUTES.PROVIDER_LOGIN} element={<ProviderLoginRoute />} />
+
+      {/* Anything else under `/auth`, such as an old or mistyped link, starts over at the login screen */}
+      <Route path='*' element={<Navigate to={AUTH_ROUTES.LOGIN} replace />} />
     </Route>
   )
 }
