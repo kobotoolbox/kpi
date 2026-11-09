@@ -273,8 +273,8 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 width, height = image.size
                 total_pixels = width * height
                 if total_pixels > MAX_IMAGE_PIXELS:
-                    max_height = math.floor((height/total_pixels) * MAX_IMAGE_PIXELS)
-                    max_width = math.floor((width/total_pixels) * MAX_IMAGE_PIXELS)
+                    max_height = math.floor((height / total_pixels) * MAX_IMAGE_PIXELS)
+                    max_width = math.floor((width / total_pixels) * MAX_IMAGE_PIXELS)
                     if max_height == 0 or max_width == 0:
                         raise InvalidImageDimensions
                     image.thumbnail((max_width, max_height), Image.LANCZOS)
