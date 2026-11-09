@@ -63,7 +63,8 @@ const reauthenticated = () =>
     meta: { is_authenticated: true },
   })
 
-const recoveryCodes = () =>
+/** `isHidden` leaves out the codes, as KPI does for the ones kept from the old 2FA system */
+const recoveryCodes = ({ isHidden = false } = {}) =>
   HttpResponse.json({
     status: 200,
     data: {
@@ -72,7 +73,7 @@ const recoveryCodes = () =>
       last_used_at: null,
       total_code_count: BACKUP_CODES.length,
       unused_code_count: BACKUP_CODES.length,
-      unused_codes: BACKUP_CODES,
+      ...(isHidden ? {} : { unused_codes: BACKUP_CODES }),
     },
   })
 
@@ -115,15 +116,22 @@ export const mfaDeactivateRefusedMock = () =>
   )
 
 export const mfaRecoveryCodesMocks = () => [
-  http.get(RECOVERY_CODES_URL, recoveryCodes),
-  http.post(RECOVERY_CODES_URL, recoveryCodes),
+  http.get(RECOVERY_CODES_URL, () => recoveryCodes()),
+  http.post(RECOVERY_CODES_URL, () => recoveryCodes()),
 ]
+
+/** Codes kept from the old 2FA system, which KPI won't show */
+export const mfaRecoveryCodesHiddenMock = () => http.get(RECOVERY_CODES_URL, () => recoveryCodes({ isHidden: true }))
 
 /** Reading the codes breaking. `once` leaves the handler behind it to answer the retry. */
 export const mfaRecoveryCodesServerErrorMock = ({ once }: { once?: boolean } = {}) =>
   http.get(RECOVERY_CODES_URL, () => HttpResponse.json({ detail: 'Internal server error.' }, { status: 500 }), { once })
 
-const COUNTED_URLS = { activate: TOTP_ENDPOINT_URL, mfaReauthenticate: MFA_REAUTHENTICATE_URL }
+const COUNTED_URLS = {
+  activate: TOTP_ENDPOINT_URL,
+  mfaReauthenticate: MFA_REAUTHENTICATE_URL,
+  recoveryCodes: RECOVERY_CODES_URL,
+}
 
 /** Counts POSTs without answering, so the regular mock still does */
 export const mfaPostCounterMock = (endpoint: keyof typeof COUNTED_URLS, onPost: () => void) =>

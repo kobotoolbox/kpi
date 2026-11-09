@@ -143,6 +143,19 @@ export const loginMfaRequiredMock = () =>
     ),
   )
 
+/** The same halfway-there 401, waiting on a step KPI has turned off - trusting the device, here */
+export const loginUnhandledStepMock = () =>
+  http.post(LOGIN_URL, () =>
+    HttpResponse.json(
+      {
+        status: 401,
+        data: { flows: [{ id: 'login' }, { id: 'mfa_trust', is_pending: true }] },
+        meta: { is_authenticated: false },
+      },
+      { status: 401 },
+    ),
+  )
+
 /** Somebody is already signed in - allauth says 409 and nothing else */
 export const loginAlreadyAuthenticatedMock = () =>
   http.post(LOGIN_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
@@ -286,7 +299,7 @@ export const emailVerifyConfirmMock = () =>
     }),
   )
 
-/** Confirmed in a browser other than the one that signed up: verified, nobody signed in, reported as a 401. */
+/** Confirmed with no pending login in the session (see `ConfirmedPanel`): verified, nobody signed in, a 401. */
 export const emailVerifyConfirmWithoutSessionMock = () =>
   http.post(EMAIL_VERIFY_URL, () =>
     HttpResponse.json(

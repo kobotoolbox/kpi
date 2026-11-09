@@ -13,6 +13,7 @@ import {
   mfaDeactivateRefusedMock,
   mfaMocks,
   mfaPostCounterMock,
+  mfaRecoveryCodesHiddenMock,
   mfaRecoveryCodesServerErrorMock,
 } from '#/endpoints/mfa.mocks'
 import { seedEnvStore } from '#/envStore.mocks'
@@ -130,6 +131,34 @@ export const ConfirmRetriesRecoveryCodes: Story = {
     await expectBackupCodes(canvas)
     expect(activationCount).toBe(1)
     expect(reauthenticationCount).toBe(1)
+  },
+}
+
+let generationCount = 0
+
+/** Codes kept from the old 2FA system can't be shown, so a new setup gets new ones */
+export const ConfirmReplacesHiddenRecoveryCodes: Story = {
+  args: { modalType: 'qr', qrCode: TOTP_URL },
+  parameters: {
+    msw: {
+      handlers: [
+        mfaRecoveryCodesHiddenMock(),
+        mfaPostCounterMock('recoveryCodes', () => generationCount++),
+        ...mfaMocks(state),
+      ],
+    },
+  },
+  beforeEach: () => {
+    generationCount = 0
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await typePassword(canvas, VALID_PASSWORD)
+    await submitCode(canvas, VALID_CODE)
+
+    await expectBackupCodes(canvas)
+    expect(generationCount).toBe(1)
   },
 }
 
