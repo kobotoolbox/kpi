@@ -326,3 +326,43 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         )
         assert log.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
         assert log.tries == 4
+
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address('1.2.3.4')),
+    )
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
+    @override_config(HOOK_MAX_RETRIES=3)
+    def test_manual_retry_with_retriable_error_marks_log_as_failed(self, mock_post):
+        """
+        Test that a manual retry sends the data once and marks the log as FAILED
+        on a retriable error, even when the log has automatic retries left.
+        """
+
+        # Mock retriable error (503 Service Unavailable)
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        mock_response.text = 'Service temporarily unavailable'
+        mock_response.raise_for_status.side_effect = (
+            requests.exceptions.RequestException('HTTP 503')
+        )
+        mock_post.return_value = mock_response
+
+        # Create a log that failed once, below HOOK_MAX_RETRIES
+        with patch('kobo.apps.hook.utils.services.service_definition_task.delay'):
+            call_services(self.asset.uid, self.submission_id)
+
+        log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
+        log.status = HookLogStatus.FAILED
+        log.status_code = status.HTTP_404_NOT_FOUND
+        log.tries = 1
+        log.save()
+        assert log.can_retry
+
+        assert log.retry() is False
+
+        log.refresh_from_db()
+        assert mock_post.call_count == 1
+        assert log.status == HookLogStatus.FAILED
+        assert log.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert log.tries == 2
