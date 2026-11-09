@@ -87,6 +87,6 @@ class TestViewerTools(TestBase):
 
     def test_client_ip_defaults_to_remote_addr(self):
         factory = RequestFactory()
-        request = factory.get('/', **{'REMOTE_ADDR': '1.2.3.4'})
+        request = factory.get('/', **{'REMOTE_ADDR': '5.6.7.8'})
         request.META.pop('HTTP_X_FORWARDED_FOR', None)
-        assert get_client_ip(request) == '1.2.3.4'
+        assert get_client_ip(request) == '5.6.7.8'
