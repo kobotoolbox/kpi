@@ -236,6 +236,40 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         response3 = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response3.status_code, status.HTTP_201_CREATED)
 
+    def test_pending_transfer_uniqueness_enforced_when_owner_changes(self):
+        """
+        If an owner initiates a transfer and then the organization owner is
+        reassigned, the new owner still cannot initiate another pending
+        transfer for that same team.
+        """
+        response1 = self._create_transfer(self.owner_user, self.admin_user.username)
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+
+        # Reassign owner to admin_user
+        owner_record = self.organization.owner
+        new_owner_org_user = self.organization.organization_users.get(
+            user=self.admin_user
+        )
+        owner_record.organization_user = new_owner_org_user
+        owner_record.save(update_fields=['organization_user'])
+
+        # Create a second admin to be recipient
+        second_admin = User.objects.create(
+            username='second_admin',
+            email='second_admin@example.com',
+            is_active=True,
+        )
+        self.organization.add_user(second_admin, is_admin=True)
+
+        # New owner attempts to initiate transfer while previous is still pending
+        response2 = self._create_transfer(self.admin_user, second_admin.username)
+        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('detail', response2.data)
+        self.assertEqual(
+            str(response2.data['detail'][0]),
+            str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
+        )
+
     def test_billing_review_requested_flag(self):
         """
         billing_review_requested boolean flag is persisted on the model

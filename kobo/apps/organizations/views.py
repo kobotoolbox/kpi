@@ -1000,10 +1000,10 @@ class OrganizationOwnershipTransferViewSet(
                 except Organization.DoesNotExist:
                     organization = None
 
-        if organization and organization.owner_user_object:
+        if organization:
             return OrgOwnershipTransferInvite.objects.filter(
-                sender=organization.owner_user_object
-            ).select_related('sender', 'recipient')
+                organization=organization
+            ).select_related('sender', 'recipient', 'organization')
         return OrgOwnershipTransferInvite.objects.none()
 
     def create(self, request, *args, **kwargs):

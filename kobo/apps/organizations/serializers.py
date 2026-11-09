@@ -646,10 +646,10 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
     organization_id = serializers.CharField(
-        source='sender.organization.id', read_only=True
+        source='organization.id', read_only=True
     )
     organization_name = serializers.CharField(
-        source='sender.organization.name', read_only=True
+        source='organization.name', read_only=True
     )
     created = serializers.DateTimeField(
         source='date_created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
@@ -744,7 +744,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         # Enforces the business rule that only one ownership transfer can
         # be pending per team
         if OrgOwnershipTransferInvite.objects.filter(
-            sender=request_user,
+            organization=organization,
             status=InviteStatusChoices.PENDING,
         ).exists():
             raise serializers.ValidationError(
@@ -759,6 +759,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 transfer = OrgOwnershipTransferInvite.objects.create(
+                    organization=validated_data['organization'],
                     sender=validated_data['sender'],
                     recipient=validated_data['recipient'],
                     billing_review_requested=validated_data.get(

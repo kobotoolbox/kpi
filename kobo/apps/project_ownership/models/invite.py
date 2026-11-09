@@ -64,6 +64,13 @@ class Invite(AbstractTimeStampedModel):
     )
     metadata = models.JSONField(default=dict)
     METADATA_SCHEMA = {'type': 'object', 'additionalProperties': False}
+    organization = models.ForeignKey(
+        'organizations.Organization',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='ownership_transfers',
+    )
 
     objects = InviteManager()
     all_objects = InviteAllManager()
@@ -72,7 +79,7 @@ class Invite(AbstractTimeStampedModel):
         verbose_name = 'invite'
         constraints = [
             models.UniqueConstraint(
-                fields=['sender'],
+                fields=['organization'],
                 condition=models.Q(
                     invite_type=InviteType.ORG_OWNERSHIP_TRANSFER,
                     status=InviteStatusChoices.PENDING,
@@ -272,20 +279,12 @@ class OrgOwnershipTransferInvite(Invite):
         verbose_name = 'organization ownership transfer invite'
 
     def __str__(self) -> str:
-        org_name = (
-            self.sender.organization.name
-            if hasattr(self.sender, 'organization') and self.sender.organization
-            else ''
-        )
+        org_name = self.organization.name if self.organization else ''
         return (
             f'Ownership transfer for {org_name} '
             f'from {self.sender.username} to {self.recipient.username} '
             f'({self.status})'
         )
-
-    @property
-    def organization(self):
-        return self.sender.organization
 
     @property
     def billing_review_requested(self) -> bool:
