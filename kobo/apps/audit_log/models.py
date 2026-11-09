@@ -2,6 +2,7 @@ import copy
 from typing import Optional
 
 import jsonschema
+from allauth.account.adapter import get_adapter
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
@@ -21,7 +22,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
-    get_client_ip,
     get_human_readable_client_user_agent,
 )
 from kobo.apps.subsequences.constants import Action
@@ -331,7 +331,7 @@ class AccessLog(AuditLog):
             auth_type = ACCESS_LOG_UNKNOWN_AUTH_TYPE
 
         # gather information about the source of the request
-        ip = get_client_ip(request)
+        ip = get_adapter().get_client_ip(request)
         source = get_human_readable_client_user_agent(request)
         metadata = {
             'ip_address': ip,
@@ -516,7 +516,7 @@ class ProjectHistoryLog(AuditLog):
         method = url_name_to_action.get(url_name, None)
         common_metadata = {
             'source': get_human_readable_client_user_agent(request=request),
-            'ip_address': get_client_ip(request),
+            'ip_address': get_adapter().get_client_ip(request),
         }
         if not method:
             return
