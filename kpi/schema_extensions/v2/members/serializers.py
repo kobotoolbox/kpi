@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from kobo.apps.organizations.serializers import OrganizationOwnershipTransferSerializer
 from kpi.schema_extensions.v2.invites.serializers import InviteResponse
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
@@ -23,6 +24,7 @@ MemberListResponse = inline_serializer_class(
         'date_joined': serializers.DateTimeField(allow_null=True),
         'user__is_active': serializers.BooleanField(allow_null=True),
         'invite': InviteResponse(allow_null=True),
+        'pending_transfer': OrganizationOwnershipTransferSerializer(allow_null=True),
     },
 )
 

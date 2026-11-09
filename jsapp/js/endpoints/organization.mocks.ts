@@ -20,6 +20,7 @@ const organizationMock = (override?: Partial<OrganizationResponse>) => {
     modified: '2025-08-04T12:10:49.395459Z',
     is_owner: true,
     is_mmo: false,
+    has_pending_ownership_transfer: false,
     request_user_role: 'owner',
     members: `http://kf.kobo.local/api/v2/organizations/${id}/members/`,
     assets: `http://kf.kobo.local/api/v2/organizations/${id}/assets/`,
