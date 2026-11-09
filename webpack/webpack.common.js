@@ -9,6 +9,23 @@ const outputPath = path.resolve(__dirname, '../jsapp/compiled/')
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
 fs.mkdirSync(outputPath, { recursive: true })
 
+// One moment locale per language translated in `locale/`, since instances can enable any of them.
+const getMomentLocales = () => {
+  const translationsDir = path.resolve(__dirname, '../locale')
+  // Fail loudly: a missing `locale/` would otherwise quietly give everyone English dates.
+  if (!fs.existsSync(translationsDir)) {
+    throw new Error(`No translations at ${translationsDir}, so moment locales can't be picked.`)
+  }
+  const momentLocalesDir = path.join(path.dirname(require.resolve('moment')), 'locale')
+  const available = new Set(fs.readdirSync(momentLocalesDir).map((file) => file.replace(/\.js$/, '')))
+  const languages = fs
+    .readdirSync(translationsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name.toLowerCase().replace(/_/g, '-'))
+  // Same fallback as `moment.locale()`: `de-de` uses `de` when there's no `de-de` locale.
+  return [...new Set(languages.flatMap((code) => [code, code.split('-')[0]]))].filter((code) => available.has(code))
+}
+
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
 // `Error: No PostCSS Config found in: /srv/node_modules/…`
@@ -134,6 +151,8 @@ const commonOptions = {
       output: path.join(outputPath, 'extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({ $: ['jquery', 'default'] }),
+    // moment would otherwise bundle all 139 of its locales.
+    new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, new RegExp(`^\\./(${getMomentLocales().join('|')})$`)),
   ],
 }
 

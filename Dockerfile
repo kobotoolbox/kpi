@@ -82,6 +82,7 @@ COPY --from=npm-install --parents \
 # build context.
 COPY --chown=node:node --parents \
     jsapp/            \
+    locale/           \
     patches/          \
     scripts/          \
     webpack/          \
