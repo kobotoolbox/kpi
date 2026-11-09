@@ -853,10 +853,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                   onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
                     evt.preventDefault()
                     if (state.selectedDefinedExport?.data.uid) {
-                      safeDeleteExportSetting(
-                        state.selectedDefinedExport.data.uid,
-                        state.selectedDefinedExport.label,
-                      )
+                      safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
                     }
                   }}
                   icon={IconTrashFilled}
