@@ -816,8 +816,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
           {state.definedExports.length >= 1 && (
             <Group w='33%' align='flex-end' gap='xs' wrap='nowrap'>
               <Box flex={1}>
-                <Text mb={6}>{t('Apply saved export settings')}</Text>
                 <Select
+                  label={t('Apply saved export settings')}
                   rightSection={state.isUpdatingDefinedExportsList ? <Loader size='xs' /> : undefined}
                   value={state.selectedDefinedExport?.value ?? ''}
                   data={getSelectedDefinedExportOptions()}
