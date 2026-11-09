@@ -20,8 +20,8 @@ from .utils.lazy import LazyMaxRetriesInt
 
 @celery_app.task(
     autoretry_for=(HookRemoteServerDownError,),
-    retry_backoff=60,
-    retry_backoff_max=1200,
+    retry_backoff=settings.HOOK_RETRY_BACKOFF,
+    retry_backoff_max=settings.HOOK_RETRY_BACKOFF_MAX,
     max_retries=LazyMaxRetriesInt(),
     retry_jitter=False,
     queue='kpi_low_priority_queue',

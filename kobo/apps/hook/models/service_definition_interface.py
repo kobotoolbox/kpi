@@ -89,12 +89,13 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         # Just to be sure, we don't retry, set the number of tries at the limit
         return constance.config.HOOK_MAX_RETRIES + 1
 
-    def send(self) -> bool:
+    def send(self, allow_retry: bool = True) -> bool:
         """
         Sends data to external endpoint.
 
         Raise an exception if something is wrong. Retries are only allowed
-        when `HookRemoteServerDownError` is raised.
+        when `HookRemoteServerDownError` is raised, which never happens when
+        `allow_retry` is False.
         """
 
         if not self._hook.active:
@@ -192,7 +193,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 status_code = status.HTTP_504_GATEWAY_TIMEOUT
 
             if (
-                status_code in RETRIABLE_STATUS_CODES
+                allow_retry
+                and status_code in RETRIABLE_STATUS_CODES
                 and self._tries < constance.config.HOOK_MAX_RETRIES
             ):
                 log_status = HookLogStatus.PENDING
