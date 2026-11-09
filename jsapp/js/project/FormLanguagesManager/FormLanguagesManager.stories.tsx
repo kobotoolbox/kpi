@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { AssetContentSurveyItem } from '#/api/models/assetContentSurveyItem'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import ButtonNew from '#/components/common/ButtonNew'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
@@ -29,7 +29,7 @@ function buildInitialAsset(): AssetResponse {
   })
 
   // Cast Orval Asset to legacy AssetResponse (see DataTableWrapper.stories.tsx for details)
-  return getApiV2AssetsRetrieveResponseMock({
+  return getAssetsRetrieveResponseMock({
     uid: mockAssetUid,
     name: 'Storybook Form Languages',
     content: {

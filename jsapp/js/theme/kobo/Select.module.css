@@ -1,6 +1,6 @@
 .input {
   &::placeholder {
-    color: var(--mantine-color-gray-4);
+    color: var(--mantine-color-gray-3);
     opacity: 1;
   }
 }
