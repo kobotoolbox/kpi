@@ -2,12 +2,12 @@ from http import HTTPStatus
 
 from allauth.account.models import EmailAddress
 from allauth.headless.internal.restkit.response import ErrorResponse
-from allauth.headless.mfa.views import (
-    AuthenticateView as BaseHeadlessMfaAuthenticateView,
-)
 from allauth.headless.mfa.response import (
     RecoveryCodesNotFoundResponse,
     RecoveryCodesResponse,
+)
+from allauth.headless.mfa.views import (
+    AuthenticateView as BaseHeadlessMfaAuthenticateView,
 )
 from allauth.headless.mfa.views import (
     ManageRecoveryCodesView as BaseHeadlessManageRecoveryCodesView,
