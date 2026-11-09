@@ -167,7 +167,8 @@ export const useMfaRecoveryCodes = () =>
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
     // KPI hides codes kept from the old 2FA system, as it only has their hashes. A new setup gets new ones instead
-    return response.data.data.unused_codes ?? generateRecoveryCodes(null)
+    const codes = response.data.data.unused_codes
+    return codes?.length ? codes : generateRecoveryCodes(null)
   })
 
 /** The code is the reauthentication allauth wants first: its delete takes no body of its own */
