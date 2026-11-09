@@ -3,9 +3,9 @@ from .choices import (
     TransferStatusChoices,
     TransferStatusTypeChoices,
 )
+from .invite import OrgOwnershipTransferInvite  # noqa F401
 from .invite import (
     Invite,
     OrgMembershipAutoInvite,
-    OrgOwnershipTransferInvite,  # noqa F401
 )
 from .transfer import Transfer, TransferStatus

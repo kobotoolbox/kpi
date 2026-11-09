@@ -645,9 +645,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
-    organization_id = serializers.CharField(
-        source='organization.id', read_only=True
-    )
+    organization_id = serializers.CharField(source='organization.id', read_only=True)
     organization_name = serializers.CharField(
         source='organization.name', read_only=True
     )
