@@ -9,8 +9,8 @@ import type { AllauthResponse } from './allauthErrors'
 // The status code carries the meaning: `200` a session with nothing outstanding, `401` either nobody signed in or
 // somebody who has to prove it again (`meta.is_authenticated` tells those two apart).
 //
-// Note: only `loggedIn` and `loggedOut` are ported. KPI asks for reauthentication in place, on the account security
-// screen (DEV-1971), not on a route of its own, so the reference client's `reauthenticated` and
+// Note: only `loggedIn` and `loggedOut` are ported. KPI is to ask for reauthentication in place, on the account
+// security screen (planned in DEV-1971), not on a route of its own, so the reference client's `reauthenticated` and
 // `reauthenticationRequired` have nothing to redirect to. Its `flowUpdated` is left out because every sign-in step is
 // answered inside the card that started it (the code in `LoginRoute`, the inbox panels after signup). Its `410` handling
 // is left out too: allauth only sends that to `app` clients, and KPI is a `browser` one.

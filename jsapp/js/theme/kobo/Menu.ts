@@ -5,7 +5,7 @@ import { KOBO_Z_INDEX } from './zIndex'
 
 declare module '@mantine/core' {
   export interface MenuItemProps {
-    variant?: 'danger'
+    variant?: 'danger' | 'light'
   }
 }
 

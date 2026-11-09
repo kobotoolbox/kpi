@@ -227,7 +227,7 @@ declare global {
 
     // For legacy use. Instead, use `import * as Sentry from '@sentry/react';`.
     // See note on window.Raven in main.js
-    Raven?: Sentry.BrowserClient
+    Raven?: Pick<typeof Sentry, 'captureException'>
   }
 }
 
