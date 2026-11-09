@@ -1,12 +1,9 @@
 import { Anchor, Box, Flex, Group, Text, UnstyledButton } from '@mantine/core'
 import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
-import { useInfiniteQuery } from '@tanstack/react-query'
 import React from 'react'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import { INFINITE_QUERY_KEY_MARKER } from '#/api/mutation-defaults/common'
-import { assetsExportSettingsList, getAssetsExportSettingsListQueryKey } from '#/api/react-query/survey-data'
+import type { AssetsExportSettingsListQueryResult, useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
-import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
@@ -15,30 +12,16 @@ import envStore from '#/envStore'
 import { formatDate, getLangAsObject, notify } from '#/utils'
 
 const SYNCHRONOUS_EXPORT_SUPPORT_URL = 'pulling_data_into_powerbi.html'
-const SETTINGS_PER_PAGE = 100
 
 interface SynchronousExportsTableProps {
-  assetUid: string
+  exportSettingsQuery: ReturnType<typeof useAssetsExportSettingsList<AssetsExportSettingsListQueryResult>>
 }
 
 export default function SynchronousExportsTable(props: SynchronousExportsTableProps) {
-  const query = useInfiniteQuery({
-    queryKey: [...getAssetsExportSettingsListQueryKey(props.assetUid), INFINITE_QUERY_KEY_MARKER],
-    queryFn: ({ pageParam, signal }) =>
-      assetsExportSettingsList(props.assetUid, { limit: SETTINGS_PER_PAGE, start: pageParam }, { signal }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.status === 200 && lastPage.data.next) {
-        return allPages.length * SETTINGS_PER_PAGE
-      }
-      return undefined
-    },
-  })
+  const query = props.exportSettingsQuery
 
   const savedSettings =
-    query.data?.pages.flatMap((page) =>
-      page.status === 200 ? page.data.results.filter((setting) => setting.name.trim().length > 0) : [],
-    ) || []
+    query.data?.status === 200 ? query.data.data.results.filter((setting) => setting.name.trim().length > 0) : []
 
   function renderCopyAction(url: string, fileType: 'CSV' | 'XLSX') {
     const copyLabel = fileType === 'CSV' ? t('Copy CSV sync link') : t('Copy XLSX sync link')
@@ -106,7 +89,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
           </Anchor>
         )}
       </Flex>
-      {query.isLoading ? null : (query.isError && !query.data) || query.data?.pages[0]?.status !== 200 ? (
+      {query.isLoading ? null : query.isError || query.data?.status !== 200 ? (
         <Text>{t('Failed to load synchronous exports.')}</Text>
       ) : savedSettings.length === 0 ? (
         <Text>{t('Save export settings to generate a synchronous export.')}</Text>
@@ -170,14 +153,6 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
           ])}
         />
       )}
-      <InfiniteScrollTrigger
-        hasNextPage={query.hasNextPage}
-        isFetchingNextPage={query.isFetchingNextPage}
-        isError={query.isFetchNextPageError}
-        onRetry={query.fetchNextPage}
-        onRequestFetchNextPage={query.fetchNextPage}
-        showEndMessage={false}
-      />
     </Box>
   )
 }
