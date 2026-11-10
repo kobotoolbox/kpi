@@ -995,23 +995,8 @@ class OrganizationOwnershipTransferViewSet(
     - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
     """
 
+    queryset = OrgOwnershipTransferInvite.objects.none()
     serializer_class = OrganizationOwnershipTransferSerializer
     permission_classes = [IsOrgOwnerPermission]
     http_method_names = ['post']
     parent_lookup_field = 'uid_organization'
-
-    def get_queryset(self):
-        organization = getattr(self, 'organization', None)
-        if not organization:
-            organization_id = self.kwargs.get(self.parent_lookup_field)
-            if organization_id:
-                try:
-                    organization = Organization.objects.get(id=organization_id)
-                except Organization.DoesNotExist:
-                    organization = None
-
-        if organization and organization.owner_user_object:
-            return OrgOwnershipTransferInvite.objects.filter(
-                sender=organization.owner_user_object
-            ).select_related('sender', 'recipient')
-        return OrgOwnershipTransferInvite.objects.none()
