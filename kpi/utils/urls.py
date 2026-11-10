@@ -1,8 +1,11 @@
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 from django.urls import (
+    URLPattern,
+    URLResolver,
     get_script_prefix,
     resolve,
 )
@@ -101,3 +104,48 @@ def versioned_reverse(
         )
 
     return reverse(viewname, args=args, kwargs=kwargs, request=request, **extra)
+
+
+def exclude_routes(
+    patterns: list[URLPattern | URLResolver], names: set[str]
+) -> list[URLPattern | URLResolver]:
+    """
+    Return `patterns` without the routes named in `names`, at any depth
+
+    Use it to drop a third-party route instead of masking it with an earlier
+    pattern on the same path, which leaves the original registered behind it.
+    Namespaces and app names are kept, so reversing the remaining routes is
+    unaffected. Raises `ImproperlyConfigured` when a name matches no route, so a
+    route renamed upstream cannot quietly come back
+    """
+    kept, excluded = _exclude_routes(patterns, names)
+    if missing := names - excluded:
+        raise ImproperlyConfigured(
+            f'No route to exclude is named {", ".join(sorted(missing))}'
+        )
+    return kept
+
+
+def _exclude_routes(
+    patterns: list[URLPattern | URLResolver], names: set[str]
+) -> tuple[list[URLPattern | URLResolver], set[str]]:
+    kept = []
+    excluded = set()
+    for pattern in patterns:
+        if isinstance(pattern, URLResolver):
+            nested, nested_excluded = _exclude_routes(pattern.url_patterns, names)
+            excluded |= nested_excluded
+            kept.append(
+                URLResolver(
+                    pattern.pattern,
+                    nested,
+                    pattern.default_kwargs,
+                    pattern.app_name,
+                    pattern.namespace,
+                )
+            )
+        elif pattern.name in names:
+            excluded.add(pattern.name)
+        else:
+            kept.append(pattern)
+    return kept, excluded

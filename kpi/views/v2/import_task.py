@@ -1,13 +1,13 @@
 # coding: utf-8
 import base64
 
+from allauth.account.adapter import get_adapter
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
-    get_client_ip,
     get_human_readable_client_user_agent,
 )
 from kpi.models import ImportTask
@@ -101,7 +101,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             'filename': request.POST.get('name', None),
             'destination': request.POST.get('destination', None),
             'desired_type': request.POST.get('desired_type', None),
-            'ip_address': get_client_ip(request),
+            'ip_address': get_adapter().get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
         }
         if 'base64Encoded' in request.POST:

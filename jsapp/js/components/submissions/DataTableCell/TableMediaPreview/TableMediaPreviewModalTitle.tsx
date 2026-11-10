@@ -5,12 +5,12 @@ import type { IconName } from '#/k-icons'
 import { getSubmissionPositionLabel } from './tableMediaPreview.utils'
 
 interface TableMediaPreviewModalTitleProps {
-  submissionIndex: number
-  submissionTotal: number
+  /** Position of the submission, shown with `showSubmissionContext`. */
+  submissionIndex?: number
+  submissionTotal?: number
   titleText: string
   titleTextTooltip?: string
   questionIcon?: IconName
-  actions?: React.ReactNode
   showSubmissionContext?: boolean
 }
 
@@ -18,7 +18,7 @@ export default function TableMediaPreviewModalTitle(props: TableMediaPreviewModa
   return (
     <Group justify='space-between' wrap='nowrap'>
       <Stack gap={2}>
-        {props.showSubmissionContext && (
+        {props.showSubmissionContext && props.submissionIndex !== undefined && props.submissionTotal !== undefined && (
           <Text>{getSubmissionPositionLabel(props.submissionIndex, props.submissionTotal)}</Text>
         )}
 
@@ -29,8 +29,6 @@ export default function TableMediaPreviewModalTitle(props: TableMediaPreviewModa
           </Text>
         </Group>
       </Stack>
-
-      {props.actions && <Group gap='sm'>{props.actions}</Group>}
     </Group>
   )
 }

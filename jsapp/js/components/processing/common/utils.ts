@@ -11,6 +11,7 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+import { findAttachmentByQuestionXpath } from '#/components/submissions/submissionMediaUtils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type {
@@ -210,7 +211,7 @@ export const getBlockedTargetLanguages = (language: LanguageCode, locale?: Local
  * Language codes a new translation must not target, based on the transcript it would be sourced from. Empty when there
  * is nothing to translate yet.
  *
- * Picks the source the way the back end does (`RequiresTranscriptionMixin.attach_action_dependency`): most recent
+ * Picks the source the way the back end does (`RequiresAdditionalSource.attach_action_dependency`): most recent
  * *acceptance* date, skipping versions that were never accepted. `getLatestTranscriptVersionItem` sorts by creation
  * date instead, and the two disagree when versions were accepted out of order, so don't swap one for the other.
  */
@@ -372,11 +373,16 @@ export const isImageQuestionType = (questionType: AnyRowTypeName | undefined): b
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
   isAudioQuestionType(questionType) || isTextQuestionType(questionType) || isImageQuestionType(questionType)
 
+/** The label of an action that opens Processing for a question: images can only be analyzed. */
+export const getProcessingActionLabel = (questionType: AnyRowTypeName | undefined): string =>
+  isImageQuestionType(questionType) ? t('Analyze image') : t('Translate & analyze')
+
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
- * questions are analyzed straight from the submission answer (mirroring the back
- * end's `RequiresTranscriptionMixin.attach_action_dependency`), so they need a
- * non-empty answer; every other type needs a transcript first.
+ * and image questions are analyzed straight from the submission (mirroring the
+ * back end's `RequiresAdditionalSource.attach_action_dependency`): text needs a
+ * non-empty answer, and image a photo that wasn't deleted (the answer keeps its
+ * file name after a deletion). Every other type needs a transcript first.
  */
 export const hasAnalysisSource = (
   questionType: AnyRowTypeName | undefined,
@@ -384,6 +390,10 @@ export const hasAnalysisSource = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): boolean => {
+  if (isImageQuestionType(questionType)) {
+    const attachment = findAttachmentByQuestionXpath(submission, xpath)
+    return attachment !== undefined && !attachment.is_deleted
+  }
   if (isTextQuestionType(questionType)) {
     const answer = submission[xpath]
     return typeof answer === 'string' && answer.trim() !== ''
@@ -397,25 +407,41 @@ export enum StaticDisplays {
   // Keep the enum ordering, since it controls the order of display options in the UI
   Audio = 'Audio',
   Text = 'Text',
+  Image = 'Image',
   Data = 'Data',
   Transcript = 'Transcript',
 }
 
+/** Displays showing the response itself, one per question type (see `isDisplayAvailable`). */
+const ResponseDisplays = [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Image]
+
 export const DefaultDisplays: Map<ProcessingTab, DisplaysList> = new Map([
-  [ProcessingTab.Transcript, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data]],
-  [
-    ProcessingTab.Translations,
-    [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript],
-  ],
-  [ProcessingTab.Analysis, [StaticDisplays.Audio, StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [ProcessingTab.Transcript, [...ResponseDisplays, StaticDisplays.Data]],
+  [ProcessingTab.Translations, [...ResponseDisplays, StaticDisplays.Data, StaticDisplays.Transcript]],
+  [ProcessingTab.Analysis, [...ResponseDisplays, StaticDisplays.Data, StaticDisplays.Transcript]],
 ])
 
 /**
+ * Whether a display applies to a question type. Audio, Text and Image show the response itself, so each one only
+ * applies to its own question type.
+ */
+export function isDisplayAvailable(display: DisplaysList[number], questionType: AnyRowTypeName | undefined): boolean {
+  if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
+  if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
+  if (display === StaticDisplays.Image) return isImageQuestionType(questionType)
+  return true
+}
+
+/**
  * Returns the Processing tabs available for a given question type, in display
- * order. Transcript is omitted for question types that have no audio/video
- * response to transcribe (e.g. text).
+ * order, so the first one is the default tab. Transcript is omitted for
+ * question types that have no audio/video response to transcribe (e.g. text),
+ * and Translations too for those with no text to translate either (image).
  */
 export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | undefined): ProcessingTab[] {
+  if (isImageQuestionType(questionType)) {
+    return [ProcessingTab.Analysis]
+  }
   if (isTextQuestionType(questionType)) {
     return [ProcessingTab.Translations, ProcessingTab.Analysis]
   }
@@ -423,9 +449,8 @@ export function getAvailableTabsForQuestionType(questionType: AnyRowTypeName | u
 }
 
 /**
- * Gets the default displays for a given processing tab, dropping whichever of
- * Audio/Text can't apply to the given question type (they're mutually
- * exclusive, and the baked-in defaults above include both).
+ * Gets the default displays for a given processing tab, dropping whichever of Audio/Text/Image can't apply to the
+ * given question type (they're mutually exclusive, and the baked-in defaults above include all of them).
  *
  * @param tabName - The processing tab name
  * @param questionType - The current question's type, if known
@@ -440,11 +465,7 @@ export const getDefaultDisplaysForTab = (
   }
   const defaults = DefaultDisplays.get(tabName) || []
 
-  return defaults.filter((display) => {
-    if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
-    if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
-    return true
-  })
+  return defaults.filter((display) => isDisplayAvailable(display, questionType))
 }
 
 /**
