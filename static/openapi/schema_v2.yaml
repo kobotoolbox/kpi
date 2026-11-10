@@ -11705,7 +11705,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SocialAccountProvisioningResponse'
-          description: null
+          description: ''
   /api/v2/social-apps/{provider_id}/:
     get:
       operationId: api_v2_social_apps_retrieve
