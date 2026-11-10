@@ -260,7 +260,7 @@ class GoogleTranscriptionService(GoogleService):
         # If no operation reference exists, this is treated as the first request for
         # the given submission/language pair, and a new Google batch job is created
         if not operation_name:
-            self._before_new_operation()
+            self.before_new_operation()
             try:
                 converted_audio = self.get_converted_audio(
                     xpath,

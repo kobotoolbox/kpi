@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from concurrent.futures import TimeoutError
 from typing import Any
 
@@ -35,12 +36,20 @@ class GoogleService(ABC):
     API_VERSION = None
     API_RESOURCE = None
 
-    # Optional callable run right before starting a new Google operation.
-    # It may raise to refuse the start
-    on_new_operation = None
-
-    def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
+    def __init__(
+        self,
+        submission: dict,
+        asset: 'kpi.models.Asset',
+        *args,
+        before_new_operation: Callable[[], None],
+        **kwargs,
+    ):
+        """
+        `before_new_operation` runs right before a new Google operation starts,
+        and may raise to refuse the start
+        """
         super().__init__()
+        self.before_new_operation = before_new_operation
         self.submission = submission
         self.submission_root_uuid = remove_uuid_prefix(
             self.submission[SUBMISSION_UUID_FIELD]
@@ -157,13 +166,6 @@ class GoogleService(ABC):
             self.asset.owner_id,
             self.asset.id,
         )
-
-    def _before_new_operation(self) -> None:
-        """
-        Run the `on_new_operation` callable, if any
-        """
-        if self.on_new_operation:
-            self.on_new_operation()
 
     def _get_cache_key(
         self, xpath: str, source_lang: str, target_lang: str | None

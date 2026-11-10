@@ -58,13 +58,14 @@ class TestGoogleTranslate(TestCase):
                         return GoogleTranslationService(
                             self.submission,
                             self.asset,
+                            before_new_operation=MagicMock(),
                         )
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_on_new_operation_runs_only_when_a_job_would_start(self):
+    def test_before_new_operation_runs_only_when_a_job_would_start(self):
         short_text = 'Hello'
         long_text = 'a' * (GoogleTranslationService.MAX_SYNC_CHARS + 1)
         cases = [
@@ -75,7 +76,7 @@ class TestGoogleTranslate(TestCase):
         for content, operation_name, should_refuse in cases:
             with self.subTest(size=len(content), operation_name=operation_name):
                 service = self._build_service()
-                service.on_new_operation = MagicMock(
+                service.before_new_operation = MagicMock(
                     side_effect=UsageLimitExceededException
                 )
                 params = {
@@ -109,7 +110,7 @@ class TestGoogleTranslate(TestCase):
                 if should_refuse:
                     service.translate_client.translate_text.assert_not_called()
                 else:
-                    service.on_new_operation.assert_not_called()
+                    service.before_new_operation.assert_not_called()
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',

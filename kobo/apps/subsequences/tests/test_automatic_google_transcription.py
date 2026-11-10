@@ -1,4 +1,3 @@
-from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import dateutil
@@ -9,14 +8,11 @@ from ddt import data as ddt_data
 from ddt import ddt, unpack
 from django.conf import settings
 from django.test import TestCase
-from django.utils import timezone
 
 from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_transcription import AutomaticGoogleTranscriptionAction
-from ..constants import GOOGLE_CACHE_TIMEOUT
-from ..utils.time import utc_datetime_to_js_str
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT
 
 
@@ -583,137 +579,57 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
     @ddt_data(
-        ({'language': 'en', 'accepted': True}, False),
-        ({'language': 'en', 'accepted': False}, False),
-        ({'language': 'en', 'value': None}, False),
-        ({'language': 'en'}, True),
+        {'language': 'en', 'accepted': True},
+        {'language': 'en', 'value': None},
+        {'language': 'en'},
     )
-    @unpack
-    def test_check_limit(self, action_data, should_raise):
+    def test_check_limits_does_not_block_upfront(self, action_data):
+        # Polls of a job that already started go through `check_limits` too,
+        # so the limit is only checked when a new job starts
         u = User.objects.create(username='dummy')
-        xpath = 'group_name/question_name'  # irrelevant for this test
-        params = [{'language': 'fr'}, {'language': 'en'}]
-        action = AutomaticGoogleTranscriptionAction(xpath, params)
+        action = AutomaticGoogleTranscriptionAction('q1', [{'language': 'en'}])
         with patch(
             'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.ASR_SECONDS: {'exceeded': True}
             }
-            if should_raise:
-                with pytest.raises(UsageLimitExceededException):
-                    action.check_limits(u, action_data)
-            else:
-                action.check_limits(u, action_data)
+            action.check_limits(u, action_data)
 
-        if not should_raise:
-            patched_calculator.return_value.get_usage_balances.assert_not_called()
+        patched_calculator.return_value.get_usage_balances.assert_not_called()
 
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
-    @ddt_data(
-        # (stored status, stored version age in seconds, request, should raise)
-        ('in_progress', 0, {'language': 'en'}, False),
-        ('complete', 0, {'language': 'en'}, True),
-        ('failed', 0, {'language': 'en'}, True),
-        ('in_progress', 0, {'language': 'fr'}, True),
-        ('in_progress', 0, {'language': 'en', 'locale': 'en-GB'}, True),
-        ('in_progress', GOOGLE_CACHE_TIMEOUT + 3600, {'language': 'en'}, True),
-        # `None` stores a version without `_dateCreated`
-        ('in_progress', None, {'language': 'en'}, True),
-    )
+    @ddt_data((True, True), (False, False))
     @unpack
-    def test_check_limit_with_stored_status(
-        self, stored_status, age_seconds, action_data, should_raise
-    ):
-        u = User.objects.create(username='dummy')
-        xpath = 'group_name/question_name'  # irrelevant for this test
-        params = [{'language': 'fr'}, {'language': 'en'}]
-        stored_version = {'_data': {'status': stored_status, 'language': 'en'}}
-        if age_seconds is not None:
-            stored_version['_dateCreated'] = utc_datetime_to_js_str(
-                timezone.now() - timedelta(seconds=age_seconds)
-            )
-        prefetched_dependencies = {
-            'question_supplemental_data': {
-                AutomaticGoogleTranscriptionAction.ID: {'_versions': [stored_version]}
-            }
-        }
+    def test_new_operation_is_limit_checked(self, exceeded, should_raise):
         action = AutomaticGoogleTranscriptionAction(
-            xpath, params, prefetched_dependencies=prefetched_dependencies
-        )
-        with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
-        ) as patched_calculator:
-            patched_calculator.return_value.get_usage_balances.return_value = {
-                UsageType.ASR_SECONDS: {'exceeded': True}
-            }
-            if should_raise:
-                with pytest.raises(UsageLimitExceededException):
-                    action.check_limits(u, action_data)
-            else:
-                action.check_limits(u, action_data)
-
-        if not should_raise:
-            patched_calculator.return_value.get_usage_balances.assert_not_called()
-
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
-    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
-    def test_job_waiting_to_start_is_limit_checked_when_it_starts(self):
-        # A job waiting on Google quota is stored as `in_progress` with no
-        # operation and no usage counted yet
-        prefetched_dependencies = {
-            'question_supplemental_data': {
-                AutomaticGoogleTranscriptionAction.ID: {
-                    '_versions': [
-                        {
-                            '_dateCreated': utc_datetime_to_js_str(timezone.now()),
-                            '_data': {'status': 'in_progress', 'language': 'en'},
-                        }
-                    ]
-                }
-            }
-        }
-        action = AutomaticGoogleTranscriptionAction(
-            'q1',
-            [{'language': 'en'}],
-            asset=MagicMock(),
-            prefetched_dependencies=prefetched_dependencies,
-        )
-        mock_service = MagicMock()
-        mock_service.process_data.side_effect = (
-            lambda *args, **kwargs: mock_service.on_new_operation()
+            'q1', [{'language': 'en'}], asset=MagicMock()
         )
         with (
             patch(
                 'kobo.apps.subsequences.actions.automatic_google_transcription'
                 '.GoogleTranscriptionService',
-                return_value=mock_service,
-            ),
+            ) as patched_service_class,
             patch(
                 'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
             ) as patched_calculator,
         ):
-            patched_calculator.return_value.get_usage_balances.return_value = {
-                UsageType.ASR_SECONDS: {'exceeded': True}
+            patched_service_class.return_value.process_data.return_value = {
+                'status': 'complete',
+                'value': 'Hello',
             }
-            with pytest.raises(UsageLimitExceededException):
-                action.run_external_process(EMPTY_SUBMISSION, {}, {'language': 'en'})
-
-    def test_regular_start_is_not_limit_checked_twice(self):
-        action = AutomaticGoogleTranscriptionAction(
-            'q1', [{'language': 'en'}], asset=MagicMock()
-        )
-        mock_service = MagicMock(spec=['process_data'])
-        mock_service.process_data.return_value = {
-            'status': 'complete',
-            'value': 'Hello',
-        }
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_google_transcription'
-            '.GoogleTranscriptionService',
-            return_value=mock_service,
-        ):
+            patched_calculator.return_value.get_usage_balances.return_value = {
+                UsageType.ASR_SECONDS: {'exceeded': exceeded}
+            }
             action.run_external_process(EMPTY_SUBMISSION, {}, {'language': 'en'})
+            before_new_operation = patched_service_class.call_args.kwargs[
+                'before_new_operation'
+            ]
+            if should_raise:
+                with pytest.raises(UsageLimitExceededException):
+                    before_new_operation()
+            else:
+                before_new_operation()
 
-        assert not hasattr(mock_service, 'on_new_operation')
+        patched_calculator.assert_called_once_with(action.asset.owner)

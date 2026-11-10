@@ -40,6 +40,7 @@ def _get_service_for_process_data():
     service = object.__new__(GoogleTranscriptionService)
     service.submission_root_uuid = 'submission-1'
     service.asset = MagicMock()
+    service.before_new_operation = MagicMock()
     service._clear_operation_reference = MagicMock()
     return service
 
@@ -52,7 +53,7 @@ def _get_service_for_process_data():
     'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
     return_value=None,
 )
-def test_process_data_runs_on_new_operation_before_starting(
+def test_process_data_runs_before_new_operation_before_starting(
     _mock_location, _mock_overrides
 ):
     service = _get_service_for_process_data()
@@ -61,7 +62,7 @@ def test_process_data_runs_on_new_operation_before_starting(
     )
     service._get_operation_reference = MagicMock(return_value=None)
     service.get_converted_audio = MagicMock()
-    service.on_new_operation = MagicMock(side_effect=UsageLimitExceededException)
+    service.before_new_operation = MagicMock(side_effect=UsageLimitExceededException)
 
     with pytest.raises(UsageLimitExceededException):
         service.process_data('audio', {'language': 'en'})
@@ -77,7 +78,7 @@ def test_process_data_runs_on_new_operation_before_starting(
     'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
     return_value=None,
 )
-def test_process_data_skips_on_new_operation_when_resuming(
+def test_process_data_skips_before_new_operation_when_resuming(
     _mock_location, _mock_overrides
 ):
     service = _get_service_for_process_data()
@@ -86,12 +87,12 @@ def test_process_data_skips_on_new_operation_when_resuming(
     )
     service._get_operation_reference = MagicMock(return_value='operations/1')
     service._get_operation_payload = MagicMock(return_value={'done': False})
-    service.on_new_operation = MagicMock(side_effect=UsageLimitExceededException)
+    service.before_new_operation = MagicMock(side_effect=UsageLimitExceededException)
 
     result = service.process_data('audio', {'language': 'en'})
 
     assert result == {'status': 'in_progress'}
-    service.on_new_operation.assert_not_called()
+    service.before_new_operation.assert_not_called()
 
 
 def test_adapt_response_handles_nested_batch_result_payloads():

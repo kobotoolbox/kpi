@@ -1,7 +1,6 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from typing import Optional
 
@@ -22,7 +21,6 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
-from ..constants import GOOGLE_CACHE_TIMEOUT
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
     NLPExternalServiceClass,
@@ -223,20 +221,7 @@ class BaseAction:
         pass
 
     def check_limits(self, user: User, action_data: dict):
-
-        if (
-            not settings.STRIPE_ENABLED
-            or not self._is_usage_limited
-            or not config.USAGE_LIMIT_ENFORCEMENT
-        ):
-            return
-
-        calculator = ServiceUsageCalculator(user)
-        balances = calculator.get_usage_balances()
-
-        balance = balances[self._limit_identifier]
-        if balance and balance['exceeded']:
-            raise UsageLimitExceededException()
+        self._check_usage_limits(user)
 
     @property
     def external_data_schema(self):
@@ -594,6 +579,25 @@ class BaseAction:
             else:
                 destination_schema[key] = schema_to_inject[key]
 
+    def _check_usage_limits(self, user: User) -> None:
+        """
+        Raise `UsageLimitExceededException` if `user` has exceeded the usage
+        limit of this action
+        """
+        if (
+            not settings.STRIPE_ENABLED
+            or not self._is_usage_limited
+            or not config.USAGE_LIMIT_ENFORCEMENT
+        ):
+            return
+
+        calculator = ServiceUsageCalculator(user)
+        balances = calculator.get_usage_balances()
+
+        balance = balances[self._limit_identifier]
+        if balance and balance['exceeded']:
+            raise UsageLimitExceededException()
+
     @property
     def _is_usage_limited(self):
         """
@@ -759,16 +763,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     """
 
     def check_limits(self, user: User, action_data: dict):
-        accepted = action_data.get('accepted', None)
-        if accepted is not None:
-            return
-        if 'value' in action_data and action_data['value'] is None:
-            return
-        if self._has_operation_in_progress(action_data):
-            # The external operation already started and its usage was already
-            # counted; blocking the poll would strand results the owner paid for
-            return
-        super().check_limits(user, action_data)
+        """
+        Skip the upfront check: usage is counted when an external operation
+        starts, so the limit is checked right before that, see
+        `_check_owner_usage_limits()`
+        """
+        return
 
     @property
     def chunk_hard_limit_seconds(self) -> float:
@@ -997,16 +997,13 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         NLPService = self.get_nlp_service_class()  # noqa
         try:
-            service = NLPService(submission, asset=self.asset)
+            service = NLPService(
+                submission,
+                asset=self.asset,
+                before_new_operation=self._check_owner_usage_limits,
+            )
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
-
-        if self._has_operation_in_progress(action_data):
-            # `check_limits` trusted the stored status, but a job waiting on
-            # Google quota is `in_progress` too and has not been charged yet
-            service.on_new_operation = lambda: super(
-                BaseAutomaticNLPAction, self
-            ).check_limits(self.asset.owner, action_data)
 
         quota_poll_scheduled = False
         try:
@@ -1075,41 +1072,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         # Normal case: return the processed transcription data.
         return service_data
 
-    def _has_operation_in_progress(self, action_data: dict) -> bool:
+    def _check_owner_usage_limits(self) -> None:
         """
-        Return whether `action_data` targets an external operation that already
-        started and is still running (started less than GOOGLE_CACHE_TIMEOUT
-        ago) with the same language and locale
+        Check the asset owner's usage limit before a new external operation
+        starts
         """
-
-        question_supplemental_data = (
-            self._action_dependencies.get('question_supplemental_data') or {}
-        )
-        action_supplemental_data = question_supplemental_data.get(self.ID) or {}
-        if self.action_class_config.allow_multiple:
-            # check_limits runs before schema validation, so a malformed payload
-            # can reach this point without the key; the regular limit check then
-            # applies and validation rejects the payload afterwards
-            needle = action_data.get(self.action_class_config.action_data_key)
-            action_supplemental_data = action_supplemental_data.get(needle) or {}
-        versions = action_supplemental_data.get(self.VERSION_FIELD) or []
-        if not versions:
-            return False
-        current_version_data = versions[0].get(self.VERSION_DATA_FIELD, {})
-        if current_version_data.get('status') != 'in_progress':
-            return False
-        # Polls give up after GOOGLE_CACHE_TIMEOUT (see `poll_run_external_process`),
-        # so an older in-progress version is stale and a request starts a new
-        # operation
-        date_created = versions[0].get(self.DATE_CREATED_FIELD)
-        if not date_created:
-            return False
-        age = timezone.now() - datetime.fromisoformat(date_created)
-        if age.total_seconds() > GOOGLE_CACHE_TIMEOUT:
-            return False
-        # The operation is identified by its language and locale, so a request
-        # for another one starts a new operation and must be limit-checked
-        return all(
-            current_version_data.get(key) == action_data.get(key)
-            for key in ('language', 'locale')
-        )
+        self._check_usage_limits(self.asset.owner)
