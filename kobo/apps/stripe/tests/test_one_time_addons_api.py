@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from ddt import data, ddt
 from django.urls import reverse
 from djstripe.models import Customer, Subscription
@@ -9,6 +11,7 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.tests.utils import _create_one_time_addon_product, _create_payment
+from kobo.apps.trackers.utils import handle_usage_deduction
 from kpi.tests.kpi_test_case import BaseTestCase
 
 
@@ -187,3 +190,57 @@ class OneTimeAddOnAPITestCase(BaseTestCase):
             results[second_organization.id][f'total_{UsageType.MT_CHARACTERS}_limit']
             == 2000
         )
+
+    def test_deduct_add_on_with_float_limit_remaining(self):
+        self._create_product(
+            metadata={
+                'product_type': 'addon_onetime',
+                f'{UsageType.ASR_SECONDS}_limit': 20000,
+                'valid_tags': 'all',
+            }
+        )
+        self._create_payment()
+        add_on = PlanAddOn.objects.get(organization=self.organization)
+        # Legacy rows hold floats written by earlier deductions
+        PlanAddOn.objects.filter(pk=add_on.pk).update(
+            limits_remaining={f'{UsageType.ASR_SECONDS}_limit': 17935.0}
+        )
+
+        remaining = PlanAddOn.deduct_add_ons_for_organization(
+            self.organization, UsageType.ASR_SECONDS, 100
+        )
+
+        assert remaining == 0
+        add_on.refresh_from_db()
+        limit_remaining = add_on.limits_remaining[f'{UsageType.ASR_SECONDS}_limit']
+        assert limit_remaining == 17835
+        assert isinstance(limit_remaining, int)
+
+    @patch(
+        'kobo.apps.trackers.utils.get_organization_usage',
+        return_value=580,
+    )
+    @patch(
+        'kobo.apps.trackers.utils.get_organization_subscription_limit',
+        return_value=600.0,
+    )
+    def test_usage_deduction_over_float_plan_limit_stays_integral(
+        self, mock_get_limit, mock_get_usage
+    ):
+        self._create_product(
+            metadata={
+                'product_type': 'addon_onetime',
+                f'{UsageType.ASR_SECONDS}_limit': 2000,
+                'valid_tags': 'all',
+            }
+        )
+        self._create_payment()
+
+        handle_usage_deduction(self.organization, UsageType.ASR_SECONDS, 50)
+
+        assert mock_get_limit.called
+        assert mock_get_usage.called
+        add_on = PlanAddOn.objects.get(organization=self.organization)
+        limit_remaining = add_on.limits_remaining[f'{UsageType.ASR_SECONDS}_limit']
+        assert limit_remaining == 1970
+        assert isinstance(limit_remaining, int)

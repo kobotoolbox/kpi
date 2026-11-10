@@ -7,8 +7,10 @@ import { submissionWithAttachmentsWithUnicode } from '#/components/submissions/s
 import { QUESTION_TYPES } from '#/constants'
 import { ProcessingTab } from '../routes.utils'
 import {
+  StaticDisplays,
   getAvailableTabsForQuestionType,
   getBlockedTargetLanguages,
+  getDefaultDisplaysForTab,
   getSuggestedLanguages,
   getTranslationSourceLanguages,
   hasAnalysisSource,
@@ -326,6 +328,24 @@ describe('isNlpSupported', () => {
     chai.expect(isNlpSupported(QUESTION_TYPES.file.id)).to.equal(false)
     chai.expect(isNlpSupported(QUESTION_TYPES.select_one.id)).to.equal(false)
     chai.expect(isNlpSupported(undefined)).to.equal(false)
+  })
+})
+
+describe('getDefaultDisplaysForTab', () => {
+  it('only keeps the response display of the question type', () => {
+    chai
+      .expect(getDefaultDisplaysForTab(ProcessingTab.Analysis, QUESTION_TYPES.audio.id))
+      .to.deep.equal([StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript])
+    chai
+      .expect(getDefaultDisplaysForTab(ProcessingTab.Analysis, QUESTION_TYPES.text.id))
+      .to.deep.equal([StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript])
+    chai
+      .expect(getDefaultDisplaysForTab(ProcessingTab.Analysis, QUESTION_TYPES.image.id))
+      .to.deep.equal([StaticDisplays.Image, StaticDisplays.Data, StaticDisplays.Transcript])
+  })
+
+  it('is empty without a tab', () => {
+    chai.expect(getDefaultDisplaysForTab(undefined, QUESTION_TYPES.image.id)).to.deep.equal([])
   })
 })
 
