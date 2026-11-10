@@ -1,4 +1,3 @@
-import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
 import { useEffect, useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
@@ -170,6 +169,7 @@ export default function EmailSection() {
             onChange={(evt) => onTextFieldChange(evt.currentTarget.value)}
             type='email'
             w='100%'
+            error={email.fieldErrors.join(' ')}
             disabled={isSSO}
           />
         ) : (
@@ -216,13 +216,9 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <Group gap='sm'>
-              <Text c='red'>{email.fieldErrors}</Text>
-
-              <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO}>
-                {t('Change')}
-              </ButtonNew>
-            </Group>
+            <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO}>
+              {t('Change')}
+            </ButtonNew>
           </form>
         </div>
       )}

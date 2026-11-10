@@ -44,7 +44,7 @@ async function expectNoRawErrorToast() {
 }
 
 const meta: Meta<typeof EmailSection> = {
-  title: 'Features/Account/EmailSection',
+  title: 'Features/EmailSection',
   component: EmailSection,
   tags: ['!autodocs'],
   parameters: {
