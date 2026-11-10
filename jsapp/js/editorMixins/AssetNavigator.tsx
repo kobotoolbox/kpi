@@ -3,6 +3,7 @@ import { useDebouncedValue } from '@mantine/hooks'
 import * as Sentry from '@sentry/react'
 import React, { useState, useRef, useEffect } from 'react'
 import type { Asset } from '#/api/models/asset'
+import type { PaginatedAssetListCount } from '#/api/models/paginatedAssetListCount'
 import type { TagListResponse } from '#/api/models/tagListResponse'
 import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
 import MultiSelect from '#/components/common/MultiSelect'
@@ -30,6 +31,20 @@ const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 // Past this the `q` search rejects the query; mirrors the back end's
 // `QUERY_PARSER_MAX_TO_MANY_FILTERS`
 const MAX_SELECTED_TAGS = 10
+
+// `count` is 'many' past the server's row limit and 'unknown' when counting timed out, so only numbers get a number
+function getAssetsFoundLabel(count: PaginatedAssetListCount) {
+  if (count === 'many') {
+    return t('Many assets found')
+  }
+  if (count === 'unknown') {
+    return t('Asset count unavailable')
+  }
+  if (count === 1) {
+    return t('1 asset found')
+  }
+  return t('##count## assets found').replace('##count##', String(count))
+}
 
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -201,9 +216,7 @@ export default function AssetNavigator() {
       {/* Total count & toggle expanded info */}
       <Group justify='space-between' align='center'>
         <Text size='sm' fw={500}>
-          {assetsFoundCount === 1
-            ? t('1 asset found')
-            : t('##count## assets found').replace('##count##', String(assetsFoundCount))}
+          {getAssetsFoundLabel(assetsFoundCount)}
         </Text>
 
         <Checkbox
