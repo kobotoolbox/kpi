@@ -27,8 +27,8 @@
     if (timeoutEl) timeoutEl.style.display = 'block'
   }
 
-  // Browser-side deadline ensures timeout triggers even on lost connection or repeated failures
-  deadlineTimer = setTimeout(showTimeout, timeoutMs)
+  // Add a 5s buffer so the 60s poll completes before the browser-side fallback fires
+  deadlineTimer = setTimeout(showTimeout, timeoutMs + 5000)
 
   pollTimer = setInterval(() => {
     fetch(pollUrl, {

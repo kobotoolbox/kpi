@@ -80,20 +80,6 @@ class SocialAccountProvisioningView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        # Check timeout / expiration
-        now = timezone.now().timestamp()
-        if now - start_time > SCIM_PROVISIONING_TIMEOUT:
-            clear_pending_signup(request)
-            request.session.pop('scim_provisioning_start', None)
-            return Response(
-                {
-                    'ready': False,
-                    'expired': True,
-                    'redirect_url': None,
-                },
-                status=status.HTTP_200_OK,
-            )
-
         sociallogin = SocialLogin.deserialize(data)
         sociallogin.lookup()
 
@@ -114,6 +100,20 @@ class SocialAccountProvisioningView(APIView):
                     'ready': True,
                     'expired': False,
                     'redirect_url': redirect_url,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # Check timeout / expiration after verifying the account is still not provisioned
+        now = timezone.now().timestamp()
+        if now - start_time > SCIM_PROVISIONING_TIMEOUT:
+            clear_pending_signup(request)
+            request.session.pop('scim_provisioning_start', None)
+            return Response(
+                {
+                    'ready': False,
+                    'expired': True,
+                    'redirect_url': None,
                 },
                 status=status.HTTP_200_OK,
             )

@@ -59,7 +59,7 @@ class ScimUserSerializer(serializers.ModelSerializer):
         location = ''
         if request and 'idp_slug' in request.parser_context.get('kwargs', {}):
             location = reverse(
-                'kobo_scim:scim-users-detail',
+                'api_v2:kobo_scim:scim-users-detail',
                 kwargs={
                     'idp_slug': request.parser_context['kwargs']['idp_slug'],
                     'pk': obj.id,
@@ -118,7 +118,7 @@ class ScimGroupSerializer(serializers.ModelSerializer):
         location = ''
         if request and 'idp_slug' in request.parser_context.get('kwargs', {}):
             location = reverse(
-                'kobo_scim:scim-groups-detail',
+                'api_v2:kobo_scim:scim-groups-detail',
                 kwargs={
                     'idp_slug': request.parser_context['kwargs']['idp_slug'],
                     'pk': obj.id,
