@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query'
+import { getAssetsRetrieveQueryKey } from '#/api/react-query/manage-projects-and-library-content'
 import {
   type assetsDataSupplementRetrieveResponse,
   getAssetsAdvancedFeaturesCreateMutationOptions,
@@ -142,6 +143,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
       mutation: {
         onSettled: (_data, _error, { uidAsset }) => {
           invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset), client)
+          invalidateItem(getAssetsRetrieveQueryKey(uidAsset), client)
         },
       },
     }),
@@ -154,6 +156,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
         onSettled: (_data, _error, { uidAsset, uidAdvancedFeature }) => {
           invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset), client)
           invalidateItem(getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset, uidAdvancedFeature), client)
+          invalidateItem(getAssetsRetrieveQueryKey(uidAsset), client)
         },
       },
     }),
