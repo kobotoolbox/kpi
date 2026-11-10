@@ -41,12 +41,13 @@ class GoogleService(ABC):
         submission: dict,
         asset: 'kpi.models.Asset',
         *args,
-        before_new_operation: Callable[[], None],
+        before_new_operation: Callable[[], None] | None = None,
         **kwargs,
     ):
         """
         `before_new_operation` runs right before a new Google operation starts,
-        and may raise to refuse the start
+        and may raise to refuse the start. Callers that never start one (e.g.
+        cancellation) leave it out
         """
         super().__init__()
         self.before_new_operation = before_new_operation
@@ -166,6 +167,13 @@ class GoogleService(ABC):
             self.asset.owner_id,
             self.asset.id,
         )
+
+    def _before_new_operation(self) -> None:
+        """
+        Run the `before_new_operation` callable, if any
+        """
+        if self.before_new_operation:
+            self.before_new_operation()
 
     def _get_cache_key(
         self, xpath: str, source_lang: str, target_lang: str | None

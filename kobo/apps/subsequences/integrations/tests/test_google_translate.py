@@ -58,7 +58,6 @@ class TestGoogleTranslate(TestCase):
                         return GoogleTranslationService(
                             self.submission,
                             self.asset,
-                            before_new_operation=MagicMock(),
                         )
 
     @override_config(
