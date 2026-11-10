@@ -10,7 +10,7 @@ import Icon from '#/components/common/icon'
 import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
-import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
+import { deleteUnverifiedUserEmails, getUserEmails, handleSetUserEmailFail, setUserEmail } from './emailSection.api'
 import type { EmailResponse } from './emailSection.api'
 import styles from './emailSection.module.scss'
 
@@ -76,15 +76,9 @@ export default function EmailSection() {
         }
       },
       (err: FailResponse) => {
-        let errMessages: string[] = []
-        if (err.responseJSON?.email && typeof err.responseJSON.email === 'string') {
-          errMessages.push(err.responseJSON.email)
-        } else if (Array.isArray(err.responseJSON?.email)) {
-          errMessages = err.responseJSON.email
-        }
         setEmail({
           ...email,
-          fieldErrors: errMessages,
+          fieldErrors: handleSetUserEmailFail(err),
         })
       },
     )
@@ -110,13 +104,27 @@ export default function EmailSection() {
     })
 
     deleteUnverifiedUserEmails().then(() => {
-      setUserEmail(unverfiedEmail).then(() => {
-        setEmail({
-          ...email,
-          refreshedEmail: true,
-          refreshedEmailDate: formatTime(new Date().toUTCString()),
-        })
-      })
+      setUserEmail(unverfiedEmail).then(
+        () => {
+          setEmail({
+            ...email,
+            refreshedEmail: true,
+            refreshedEmailDate: formatTime(new Date().toUTCString()),
+          })
+        },
+        (err: FailResponse) => {
+          // The pending email is already deleted, so refresh the list to drop it from view.
+          const fieldErrors = handleSetUserEmailFail(err)
+          getUserEmails().then((data) => {
+            setEmail({
+              ...email,
+              emails: data.results,
+              refreshedEmail: false,
+              fieldErrors,
+            })
+          })
+        },
+      )
     })
   }
 
