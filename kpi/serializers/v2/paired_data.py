@@ -1,9 +1,7 @@
-# coding: utf-8
 import os
 import re
 
 from django.utils.translation import gettext as t
-from django_request_cache import cache_for_request
 from drf_spectacular.utils import extend_schema_field
 from formpack.constants import FUZZY_VERSION_RE
 from rest_framework import serializers
@@ -17,6 +15,7 @@ from kpi.constants import (
 )
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset, AssetFile, PairedData
+from kpi.models.paired_data import SOURCE_ASSET_FIELDS
 from kpi.schema_extensions.v2.paired_data.fields import (
     FieldFields,
     SourceNameField,
@@ -29,7 +28,9 @@ class PairedDataSerializer(serializers.Serializer):
     source = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
         lookup_url_kwarg='uid_asset',
-        queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
+        queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).only(
+            *SOURCE_ASSET_FIELDS
+        ),
         view_name='asset-detail',
         required=True,
         style={'base_template': 'input.html'}  # Render as a simple text box
@@ -42,9 +43,6 @@ class PairedDataSerializer(serializers.Serializer):
         return self.__save(validated_data)
 
     def get_source__name(self, paired_data):
-        if self._source_is_deleted(paired_data):
-            return None
-
         # To avoid multiple calls to DB, try to retrieve source names from
         # the context.
         source__name = None
@@ -60,15 +58,18 @@ class PairedDataSerializer(serializers.Serializer):
                 )
             except Asset.DoesNotExist:
                 pass
-            else:
-                source__name = source.name
 
         return source__name
 
     def to_representation(self, instance):
+        source_is_deleted = self._source_is_deleted(instance)
         return {
-            'source': self.__get_source_asset_url(instance),
-            'source__name': self.get_source__name(instance),
+            'source': (
+                None if source_is_deleted else self.__get_source_asset_url(instance)
+            ),
+            'source__name': (
+                None if source_is_deleted else self.get_source__name(instance)
+            ),
             'fields': instance.fields,
             'filename': instance.filename,
             'url': self.__get_download_url(instance),
@@ -82,7 +83,9 @@ class PairedDataSerializer(serializers.Serializer):
         try:
             attrs['source']
         except KeyError:
-            attrs['source'] = Asset.objects.get(uid=self.instance.source_uid)
+            attrs['source'] = Asset.objects.only(*SOURCE_ASSET_FIELDS).get(
+                uid=self.instance.source_uid
+            )
 
         self._validate_filename(attrs)
         self._validate_fields(attrs)
@@ -124,7 +127,6 @@ class PairedDataSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         return self.__save(validated_data)
 
-    @cache_for_request
     def _source_is_deleted(self, instance) -> bool:
         """
         Return whether the source (parent) asset no longer exists.
@@ -134,8 +136,7 @@ class PairedDataSerializer(serializers.Serializer):
         keeps appearing here. Reuse the `source__names` mapping the viewset
         already built (uid absent means the row does not exist) to avoid an
         extra query per row on the list endpoint; fall back to a direct
-        existence check when the context is not populated. Cached per request
-        so `get_source__name()` and `__get_source_asset_url()` share one lookup.
+        existence check when the context is not populated.
         """
         source__names = self.context.get('source__names')
         if source__names is not None:
@@ -259,9 +260,7 @@ class PairedDataSerializer(serializers.Serializer):
             request=request,
         )
 
-    def __get_source_asset_url(self, instance: 'kpi.models.PairedData') -> str | None:
-        if self._source_is_deleted(instance):
-            return None
+    def __get_source_asset_url(self, instance: 'kpi.models.PairedData') -> str:
         request = self.context['request']
         return reverse('asset-detail',
                        args=[instance.source_uid],
