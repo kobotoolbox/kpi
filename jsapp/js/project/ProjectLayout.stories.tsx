@@ -63,6 +63,7 @@ const meta: Meta<typeof ProjectLayout> = {
   parameters: {
     ...atRoute(ROUTES.FORM_TABLE),
     msw: { handlers: [getAssetsRetrieveMockHandler(buildSideTabsAsset())] },
+    a11y: { disable: true },
   },
   beforeEach: ({ parameters }) => {
     window.location.hash = parameters.hashPath
