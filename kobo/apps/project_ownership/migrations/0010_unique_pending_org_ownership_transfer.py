@@ -9,7 +9,7 @@ def manually_create_indexes_instructions(apps, schema_editor):
 
         CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
         "unique_pending_org_ownership_transfer" ON
-        "project_ownership_invite" ("organization_id")
+        "project_ownership_invite" ("sender_id")
         WHERE "invite_type" = 'org-ownership-transfer' AND "status" = 'pending';
     """)
 
@@ -32,7 +32,7 @@ def get_conditional_operations():
                     ('invite_type', 'org-ownership-transfer'),
                     ('status', 'pending'),
                 ),
-                fields=('organization',),
+                fields=('sender',),
                 name='unique_pending_org_ownership_transfer',
             ),
         ),
@@ -57,7 +57,7 @@ def get_conditional_operations():
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project_ownership', '0009_add_invite_metadata_and_organization'),
+        ('project_ownership', '0009_add_invite_metadata'),
     ]
 
     operations = get_conditional_operations()

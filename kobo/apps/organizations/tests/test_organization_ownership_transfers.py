@@ -2,17 +2,20 @@ from unittest.mock import patch
 
 from constance import config
 from ddt import data, ddt, unpack
+from django.contrib.admin.sites import AdminSite
 from django.core import mail
 from django.db import IntegrityError
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.organizations.admin.organization_owner import OrgOwnerAdmin
 from kobo.apps.organizations.constants import (
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
 )
+from kobo.apps.organizations.models import OrganizationOwner
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
@@ -234,24 +237,32 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         response3 = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response3.status_code, status.HTTP_201_CREATED)
 
-    def test_pending_transfer_uniqueness_enforced_when_owner_changes(self):
+    def test_reassigning_owner_cancels_pending_transfer(self):
         """
-        If an owner initiates a transfer and then the organization owner is
-        reassigned, the new owner still cannot initiate another pending
-        transfer for that same team.
+        When the organization owner is changed in OrgOwnerAdmin, any pending
+        ownership transfer initiated by the old owner is automatically cancelled,
+        and the new owner is able to initiate a new transfer.
         """
         response1 = self._create_transfer(self.owner_user, self.admin_user.username)
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+        old_transfer = OrgOwnershipTransferInvite.objects.first()
+        self.assertEqual(old_transfer.status, InviteStatusChoices.PENDING)
 
-        # Reassign owner to admin_user
+        # Simulate OrgOwnerAdmin saving the new owner
+        owner_admin = OrgOwnerAdmin(OrganizationOwner, AdminSite())
         owner_record = self.organization.owner
         new_owner_org_user = self.organization.organization_users.get(
             user=self.admin_user
         )
         owner_record.organization_user = new_owner_org_user
-        owner_record.save(update_fields=['organization_user'])
 
-        # Create a second admin to be recipient
+        request = self.client.request().wsgi_request
+        owner_admin.save_model(request, owner_record, form=None, change=True)
+
+        old_transfer.refresh_from_db()
+        self.assertEqual(old_transfer.status, InviteStatusChoices.CANCELLED)
+
+        # Create a second admin to be recipient for the new owner
         second_admin = User.objects.create(
             username='second_admin',
             email='second_admin@example.com',
@@ -259,14 +270,13 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
         self.organization.add_user(second_admin, is_admin=True)
 
-        # New owner attempts to initiate transfer while previous is still pending
-        response2 = self._create_transfer(self.admin_user, second_admin.username)
-        self.assertEqual(response2.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('detail', response2.data)
-        self.assertEqual(
-            str(response2.data['detail'][0]),
-            str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
+        # New owner can now initiate transfer
+        self.client.force_login(self.admin_user)
+        response2 = self.client.post(
+            self.list_url,
+            data={'recipient': second_admin.username},
         )
+        self.assertEqual(response2.status_code, status.HTTP_201_CREATED)
 
     def test_billing_review_requested_flag(self):
         """
@@ -371,3 +381,16 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 str(response.data['detail'][0]),
                 str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
             )
+
+    def test_unrelated_integrity_error_is_reraised(self):
+        """
+        IntegrityErrors other than the unique pending transfer constraint
+        are re-raised rather than converted to validation errors.
+        """
+        with patch.object(
+            OrgOwnershipTransferInvite.objects,
+            'create',
+            side_effect=IntegrityError('some_other_constraint_violation'),
+        ):
+            with self.assertRaises(IntegrityError):
+                self._create_transfer(self.owner_user, self.admin_user.username)

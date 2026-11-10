@@ -734,20 +734,18 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
 
     def validate(self, attrs):
-        organization = self._get_organization()
         request_user = get_database_user(self.context['request'].user)
 
         # Enforces the business rule that only one ownership transfer can
         # be pending per team
         if OrgOwnershipTransferInvite.objects.filter(
-            organization=organization,
+            sender=request_user,
             status=InviteStatusChoices.PENDING,
         ).exists():
             raise serializers.ValidationError(
                 {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
             )
 
-        attrs['organization'] = organization
         attrs['sender'] = request_user
         return attrs
 
@@ -755,7 +753,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         try:
             with transaction.atomic():
                 transfer = OrgOwnershipTransferInvite.objects.create(
-                    organization=validated_data['organization'],
                     sender=validated_data['sender'],
                     recipient=validated_data['recipient'],
                     billing_review_requested=validated_data.get(
