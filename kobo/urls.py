@@ -12,12 +12,15 @@ from markdownx.views import MarkdownifyView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kobo.apps.accounts.views import (
+from kobo.apps.accounts.mfa.views import (
     HeadlessManageRecoveryCodesView,
     HeadlessManageTOTPView,
     HeadlessMfaAuthenticateView,
     HeadlessMfaReauthenticateView,
+    MfaAuthenticateView,
+    MfaReauthenticateView,
 )
+from kobo.apps.accounts.views import HeadlessLoginView, LoginView
 from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
@@ -41,7 +44,7 @@ ALLAUTH_PAGE_REDIRECTS = {
 
 # allauth's headless routes, without the ones bypassing the rules above, and
 # with KPI's views where KPI adds rules of its own
-HEADLESS_URLPATTERNS = replace_route_views(
+ALLAUTH_HEADLESS_URL_PATTERNS = replace_route_views(
     exclude_routes(
         headless_urls.urlpatterns, {'manage_email', 'account:change_password'}
     ),
@@ -50,6 +53,16 @@ HEADLESS_URLPATTERNS = replace_route_views(
         'mfa:reauthenticate': HeadlessMfaReauthenticateView,
         'mfa:manage_totp': HeadlessManageTOTPView,
         'mfa:manage_recovery_codes': HeadlessManageRecoveryCodesView,
+        'account:login': HeadlessLoginView,
+    },
+)
+
+ALLAUTH_URL_PATTERNS = replace_route_views(
+    exclude_routes(allauth_urls.urlpatterns, set(ALLAUTH_PAGE_REDIRECTS)),
+    {
+        'account_login': LoginView,
+        'mfa_authenticate': MfaAuthenticateView,
+        'mfa_reauthenticate': MfaReauthenticateView,
     },
 )
 
@@ -135,13 +148,11 @@ urlpatterns = [
         SocialAccountProvisioningHTMLView.as_view(),
         name='socialaccount_provisioning',
     ),
-    # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
-    # from allauth's
     path(
         'accounts/',
-        include(exclude_routes(allauth_urls.urlpatterns, set(ALLAUTH_PAGE_REDIRECTS))),
+        include(ALLAUTH_URL_PATTERNS),
     ),
-    path('api/v2/allauth/', include((HEADLESS_URLPATTERNS, 'headless'))),
+    path('api/v2/allauth/', include((ALLAUTH_HEADLESS_URL_PATTERNS, 'headless'))),
     re_path(
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),

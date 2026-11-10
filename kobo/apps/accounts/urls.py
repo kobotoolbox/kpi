@@ -2,7 +2,7 @@ from django.urls import include, path, re_path
 from rest_framework import routers
 
 from .tos import TOSView
-from .views import EmailAddressViewSet, SocialAccountViewSet
+from .views import EmailAddressViewSet, SocialAccountViewSet, LoginView
 
 router = routers.SimpleRouter()
 router.register(r'emails', EmailAddressViewSet)
@@ -21,4 +21,5 @@ urlpatterns = [
         name='socialaccount-detail',
     ),
     path('me/tos/', TOSView.as_view(), name='tos'),
+    path('accounts/login/', LoginView.as_view(), name='kobo_login'),
 ]

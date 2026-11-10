@@ -3,14 +3,12 @@ from django.urls import path
 
 from .views import (
     MfaListUserMethodsView,
-    MfaLoginView,
     MfaMethodActivationView,
     MfaMethodConfirmView,
     MfaMethodRegenerateCodesView,
 )
 
 urlpatterns = [
-    path('accounts/login/', MfaLoginView.as_view(), name='kobo_login'),
     path(
         'api/v2/auth/mfa/user-methods/',
         MfaListUserMethodsView.as_view(),

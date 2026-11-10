@@ -1,28 +1,16 @@
-from http import HTTPStatus
+from typing import Any
 
 from allauth.account.models import EmailAddress
-from allauth.core.exceptions import ReauthenticationRequired
-from allauth.headless.internal.restkit.response import ErrorResponse
-from allauth.headless.mfa.response import (
-    RecoveryCodesNotFoundResponse,
-    RecoveryCodesResponse,
-)
-from allauth.headless.mfa.views import (
-    AuthenticateView as BaseHeadlessMfaAuthenticateView,
-)
-from allauth.headless.mfa.views import (
-    ManageRecoveryCodesView as BaseHeadlessManageRecoveryCodesView,
-)
-from allauth.headless.mfa.views import ManageTOTPView as BaseHeadlessManageTOTPView
-from allauth.headless.mfa.views import (
-    ReauthenticateView as BaseHeadlessMfaReauthenticateView,
-)
-from allauth.mfa.adapter import get_adapter as get_mfa_adapter
-from allauth.mfa.recovery_codes.internal.flows import view_recovery_codes
+from allauth.account.views import LoginView as BaseLoginView
+from allauth.headless.account.views import LoginView as BaseHeadlessLoginView
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.conf import settings
+from django.contrib.auth import logout
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import Http404
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.shortcuts import resolve_url
+from django.urls import reverse
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -30,6 +18,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import generics, mixins, status, viewsets
+from rest_framework.exceptions import Throttled
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -56,12 +45,10 @@ from .extend_schemas.api.v2.email.serializers import (
     EmailReauthenticationRequiredResponse,
     EmailRequestPayload,
 )
-from .mfa.inputs import MfaAuthenticateInput, MfaReauthenticateInput
-from .mfa.utils import has_hashed_migrated_codes
+from .forms import LoginForm
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
-    did_recently_reauthenticate_with_mfa,
     is_session_authenticated,
     reauthentication_required,
     reauthentication_required_response,
@@ -73,7 +60,8 @@ from .serializers import (
     SocialAccountSerializer,
     SocialAppDetailSerializer,
 )
-from .throttling import EmailConfirmationRequestEmailThrottle
+from .throttling import EmailConfirmationRequestEmailThrottle, auth_success, rate_limit
+from .utils import throttled_json_response, throttled_template_response
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -439,66 +427,75 @@ class SocialAppView(generics.RetrieveAPIView):
         return social_app
 
 
-class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
-    """
-    Adds two rules to turning MFA off:
+# HeadlessMfaLoginView and MfaLoginView replace the default allauth views in
+# kobo/urls.py
 
-    - Refused when the MFA adapter forbids it (superusers while
-      `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
-      `can_delete_authenticator()` in its templated form, not in headless mode
-    - Needs a recent re-authentication with a 2FA code, but not the password.
-      The request has no body: the code the frontend asks for only reaches the
-      backend through `mfa:reauthenticate`, and allauth accepts any recent
-      re-authentication, including one with the password alone. allauth's own
-      check still runs afterwards
-    """
 
-    def delete(self, request, *args, **kwargs):
-        authenticator = self._get_authenticator()
-        adapter = get_mfa_adapter()
-        if authenticator and not adapter.can_delete_authenticator(authenticator):
-            return ErrorResponse(
-                request,
-                exception=adapter.validation_error('cannot_delete_authenticator'),
-                status=HTTPStatus.FORBIDDEN,
+class HeadlessLoginView(BaseHeadlessLoginView):
+
+    def dispatch(self, request, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        request_data = self._parse_json(request)
+        username = request_data['username']
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().dispatch(request, *args, **kwargs)
+        except Throttled:
+            return throttled_json_response(request)
+
+
+class LoginView(BaseLoginView):
+    form_class = LoginForm
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        form = self.get_form()
+        username = form.data['login']
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().post(request, *args, **kwargs)
+        except Throttled:
+            return throttled_template_response(self, form, '__all__')
+
+    def form_valid(self, form) -> HttpResponse:
+        """
+        Overload parent method to drop a stale session before logging in.
+        """
+        # `form.user` is the account being authenticated. Remember it before
+        # anything else: allauth calls `get_success_url()` before the login`
+        # completes, and the `logout()` below clears `request.user`, so
+        # `request.user` is not a reliable reference to the target user there.
+        self._login_user = form.user
+
+        user = self.request.user
+        if user.is_authenticated and user.pk != form.user.pk:
+            logout(self.request)
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        """
+        Overload parent method to validate `next` url
+        """
+        redirect_to = super().get_success_url()
+
+        if not redirect_to:
+            redirect_to = self.request.POST.get(
+                self.redirect_field_name,
+                self.request.GET.get(self.redirect_field_name, ''),
             )
-        if authenticator and not did_recently_reauthenticate_with_mfa(request):
-            # Answered by allauth's 401 listing the flows to go through
-            raise ReauthenticationRequired
-        return super().delete(request, *args, **kwargs)
 
+        # We do not want to redirect a regular user to `/admin/` if they
+        # are not a superuser. Otherwise, they are successfully authenticated,
+        # redirected to the admin platform, then disconnected because of the
+        # lack of permissions. Check the account being authenticated
+        # (`self._login_user`), not `request.user`: this runs before the login
+        # completes, and a stale session may have just been logged out.
+        user = getattr(self, '_login_user', self.request.user)
+        if (
+            user.is_authenticated
+            and self.redirect_field_name in self.request.POST
+            and not user.is_superuser
+            and redirect_to.startswith(reverse('admin:index'))
+        ):
+            return resolve_url(settings.LOGIN_REDIRECT_URL)
 
-class HeadlessManageRecoveryCodesView(BaseHeadlessManageRecoveryCodesView):
-    """
-    Shows how many recovery codes migrated from the former 2FA system are left,
-    but not the codes: only their hashes are stored, which allauth would show
-    as if they were the codes
-    """
-
-    def get(self, request, *args, **kwargs):
-        recovery_codes, can_view = view_recovery_codes(request)
-        if not recovery_codes:
-            return RecoveryCodesNotFoundResponse(request)
-        return RecoveryCodesResponse(
-            request,
-            recovery_codes.instance,
-            can_view=can_view and not has_hashed_migrated_codes(recovery_codes),
-        )
-
-
-class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
-    """
-    The 2FA step of the login, accepting legacy recovery codes like the
-    templated page does
-    """
-
-    input_class = MfaAuthenticateInput
-
-
-class HeadlessMfaReauthenticateView(BaseHeadlessMfaReauthenticateView):
-    """
-    Re-authentication with a 2FA code, accepting legacy recovery codes like the
-    templated page does
-    """
-
-    input_class = MfaReauthenticateInput
+        return redirect_to
