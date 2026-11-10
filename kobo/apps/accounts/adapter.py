@@ -25,6 +25,7 @@ from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
+
     def is_open_for_signup(self, request):
         return config.REGISTRATION_OPEN
 

@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
+    OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
@@ -28,7 +29,7 @@ from kpi.exceptions import (
 )
 from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.models.asset import Asset
-from kpi.paginators import NoCountPagination
+from kpi.paginators import AssetPagination, NoCountPagination
 from kpi.schema_extensions.v2.invites.schema import (
     INVITE_ROLE_SCHEMA,
     INVITE_STATUS_SCHEMA,
@@ -61,12 +62,15 @@ from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.utils import mfa_is_active_expression
+from .constants import OWNER_REMOVAL_ERROR
+from .exceptions import InvalidMembershipRequest
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -311,7 +315,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     search_default_field_lookups = ['name__icontains']
 
     @action(
-        detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdminPermission],
+        pagination_class=AssetPagination,
     )
     def assets(self, request: Request, *args, **kwargs):
 
@@ -435,10 +442,23 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('organizations', 'members/delete.md'),
-        responses=open_api_204_empty_response(
-            require_auth=False,
-            validate_payload=False,
-        ),
+        responses={
+            **open_api_204_empty_response(
+                require_auth=False,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Bad request',
+                        value={'detail': 'Invalid request'},
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='username',
@@ -781,6 +801,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         member = instance
+        if member.organization.is_owner(member.user):
+            raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
+
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)

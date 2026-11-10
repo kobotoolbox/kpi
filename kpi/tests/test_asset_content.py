@@ -9,8 +9,10 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
+from formpack.constants import INFERRED_VERSION_ID_KEY
 from model_bakery import baker
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
 from kpi.models.asset_version import AssetVersion
@@ -852,6 +854,25 @@ def test_populates_xpath_correctly():
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
+def _content_with_choices() -> dict:
+    return {
+        'survey': [
+            {'type': 'image', 'label': ['Photo'], 'name': 'photo'},
+            {
+                'type': 'select_one',
+                'select_from_list_name': 'yn',
+                'label': ['Yes or no?'],
+                'name': 'yes_no',
+            },
+        ],
+        'choices': [
+            {'list_name': 'yn', 'label': ['Yes'], 'name': 'yes'},
+            {'list_name': 'yn', 'label': ['No'], 'name': 'no'},
+        ],
+        'settings': {},
+    }
+
+
 class TestAssetContent(TestCase):
 
     def setUp(self):
@@ -991,6 +1012,43 @@ class TestAssetContent(TestCase):
             'Image_renamed',
         ]
 
+    def test_get_all_attachment_xpaths_rebuild_loads_no_version_content(self):
+        """
+        Rebuilding the merged entry from warm per-version entries must not load
+        any version content. Each one weighs megabytes on a form with long
+        choice lists, and an asset can have dozens of deployed versions.
+        """
+
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+
+        # Fill every per-version entry, then drop only the merged one
+        self.asset.get_all_attachment_xpaths()
+        merged_cache_key = (
+            f'all_attachment_xpaths:{self.asset.uid}:'
+            f'{self.asset.latest_deployed_version_uid}'
+        )
+        cache.delete(merged_cache_key)
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        with patch.object(
+            asset,
+            'get_attachment_xpaths_from_version',
+            wraps=asset.get_attachment_xpaths_from_version,
+        ) as mock_get_xpaths_from_version:
+            # One query for the newest deployed version, and one for the rows of
+            # the deployed versions
+            with self.assertNumQueries(2):
+                assert sorted(asset.get_all_attachment_xpaths()) == [
+                    'Image',
+                    'Image_renamed',
+                ]
+
+        self._assert_content_stayed_deferred(mock_get_xpaths_from_version)
+        # The merged entry is back, so the rebuild did run
+        assert cache.get(merged_cache_key) is not None
+
     def test_get_attachment_xpaths_from_version_uids_merges_versions(self):
         """
         A question renamed between two versions lives at both xpaths, and a
@@ -1037,6 +1095,152 @@ class TestAssetContent(TestCase):
         assert draft is not None
         assert self.asset.get_attachment_xpaths_from_version_uids([draft.uid]) == []
 
+    def test_get_attachment_xpaths_from_version_uids_loads_no_version_content(self):
+        """
+        Versions whose xpaths are already cached must not load their content,
+        which weighs megabytes on a form with long choice lists.
+        """
+
+        first_version_uid = self.asset.latest_deployed_version_uid
+        self.asset.content['survey'][0]['name'] = 'Image_renamed'
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        version_uids = [first_version_uid, self.asset.latest_deployed_version_uid]
+
+        # Fill the per-version entries
+        self.asset.get_attachment_xpaths_from_version_uids(version_uids)
+
+        with patch.object(
+            self.asset,
+            'get_attachment_xpaths_from_version',
+            wraps=self.asset.get_attachment_xpaths_from_version,
+        ) as mock_get_xpaths_from_version:
+            # One query for the rows of the versions
+            with self.assertNumQueries(1):
+                assert sorted(
+                    self.asset.get_attachment_xpaths_from_version_uids(version_uids)
+                ) == ['Image', 'Image_renamed']
+
+        self._assert_content_stayed_deferred(mock_get_xpaths_from_version)
+
+    def test_to_formpack_schema_includes_choices_by_default(self):
+        version = self._deploy_content(_content_with_choices())
+
+        choices = version.to_formpack_schema()['content']['choices']
+
+        assert [choice['name'] for choice in choices] == ['yes', 'no']
+
+    def test_to_formpack_schema_without_choices_reads_no_choices(self):
+        """
+        On a deferred version, the database strips the choices, so that they
+        never reach this process. The instance stays deferred, and the questions
+        come out the same.
+        """
+
+        version = self._deploy_content(_content_with_choices())
+        deferred_version = self._deferred_version(version)
+
+        # One query for the content without its choices
+        with self.assertNumQueries(1):
+            schema = deferred_version.to_formpack_schema(include_choices=False)
+
+        assert 'version_content' in deferred_version.get_deferred_fields()
+        assert not schema['content'].get('choices')
+        assert (
+            schema['content']['survey']
+            == version.to_formpack_schema()['content']['survey']
+        )
+
+    def test_to_formpack_schema_without_choices_leaves_loaded_choices(self):
+        version = self._deploy_content(_content_with_choices())
+        choices = deepcopy(version.version_content['choices'])
+
+        schema = version.to_formpack_schema(include_choices=False)
+
+        assert not schema['content'].get('choices')
+        assert version.version_content['choices'] == choices
+
+    def test_to_formpack_schema_without_choices_keeps_rank_and_score_questions(self):
+        for content in (rank_asset_content(), score_asset_content()):
+            with self.subTest(content=content):
+                version = self._deploy_content(content)
+                deferred_version = self._deferred_version(version)
+
+                schema = deferred_version.to_formpack_schema(include_choices=False)
+
+                assert (
+                    schema['content']['survey']
+                    == version.to_formpack_schema()['content']['survey']
+                )
+
+    def test_get_attachment_xpaths_from_version_reads_no_choices(self):
+        version = self._deploy_content(_content_with_choices())
+        deferred_version = self._deferred_version(version)
+        cache.delete(f'attachment_xpaths:{self.asset.uid}:{version.uid}')
+
+        # One query for the content without its choices
+        with self.assertNumQueries(1):
+            xpaths = self.asset.get_attachment_xpaths_from_version(deferred_version)
+
+        assert xpaths == ['photo']
+        assert 'version_content' in deferred_version.get_deferred_fields()
+
+    def test_get_attachment_xpaths_from_version_expands_matrix_rows(self):
+        """
+        A matrix question builds one row per item of its choice list, so its
+        attachment xpaths exist only once the choices are read.
+        """
+
+        content = kobomatrix_content()
+        content['survey'].insert(
+            -1, {'type': 'image', 'label': 'Photo', 'name': 'photo'}
+        )
+        version = self._deploy_content(content)
+        deferred_version = self._deferred_version(version)
+        cache.delete(f'attachment_xpaths:{self.asset.uid}:{version.uid}')
+
+        # One query for the content without its choices, and one more than a form
+        # without a matrix, for the whole content
+        with self.assertNumQueries(2):
+            xpaths = self.asset.get_attachment_xpaths_from_version(deferred_version)
+
+        assert sorted(xpaths) == [
+            'm1_bike/m1_bike_photo',
+            'm1_car/m1_car_photo',
+            'm1_tv/m1_tv_photo',
+        ]
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_loads_each_version_content_on_its_own(self, _repair):
+        """
+        A `version_content` weighs megabytes on a form with long choice lists, so
+        the contents of several versions must never come from a single query.
+        """
+
+        self._deploy_content(_content_with_choices())
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        # One query for the rows of the two versions, and one more per version for
+        # its content
+        with self.assertNumQueries(3):
+            pack, _ = build_formpack(asset, submission_stream=[])
+
+        assert len(pack.versions) == 2
+
+    def test_build_formpack_resolves_deprecated_reversion_ids(self):
+        first_version = self.asset.latest_deployed_version
+        self._deploy_content(_content_with_choices())
+        AssetVersion.objects.filter(pk=first_version.pk).update(
+            _reversion_version=12345
+        )
+        asset = Asset.objects.get(pk=self.asset.pk)
+
+        _, submission_stream = build_formpack(
+            asset, submission_stream=[{'__version__': '12345'}]
+        )
+
+        assert next(submission_stream)[INFERRED_VERSION_ID_KEY] == first_version.uid
+
     @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
     def test_xpath_method_called_once_for_single_version(
         self, mock_get_xpaths_from_version
@@ -1080,3 +1284,17 @@ class TestAssetContent(TestCase):
 
         # Confirm it was called twice, once for each version
         self.assertEqual(mock_get_xpaths_from_version.call_count, 2)
+
+    def _assert_content_stayed_deferred(self, mock_get_xpaths_from_version):
+        assert mock_get_xpaths_from_version.call_count == 2
+        for call in mock_get_xpaths_from_version.call_args_list:
+            assert 'version_content' in call.args[0].get_deferred_fields()
+
+    def _deferred_version(self, version: AssetVersion) -> AssetVersion:
+        return AssetVersion.objects.defer('version_content').get(pk=version.pk)
+
+    def _deploy_content(self, content: dict) -> AssetVersion:
+        self.asset.content = content
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        return self.asset.latest_deployed_version

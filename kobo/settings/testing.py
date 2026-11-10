@@ -59,6 +59,7 @@ OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS
 MASS_EMAILS_CONDENSE_SEND = False
 
 ATTACHMENT_XPATHS_CACHE_TTL = 60
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 60
 
 GS_BUCKET_NAME = 'test_bucket'
 
@@ -87,6 +88,11 @@ if STORAGES['default']['BACKEND'].endswith('S3Boto3Storage'):  # noqa F405
 OPENAPI_VALIDATION = True
 OPENAPI_VALIDATION_STRICT = True
 OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
+
+ACCOUNT_ADAPTER = 'kpi.tests.adapter.TestAdapter'
+# Many tests fire logins in rapid succession, including failed ones, so turn off
+# rate-limiting
+ACCOUNT_RATE_LIMITS = False
 
 # Give each pytest-xdist worker (`gw0`, `gw1`, ...) its own Redis database, so
 # locks and cached values do not leak between tests running in parallel. A key

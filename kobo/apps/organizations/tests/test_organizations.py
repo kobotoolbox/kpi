@@ -41,6 +41,14 @@ class OrganizationTestCase(TestCase):
         assert self.organization.get_user_role(alice) == ORG_MEMBER_ROLE
         assert self.organization.get_user_role(external) == ORG_EXTERNAL_ROLE
 
+    def test_owner_is_always_admin(self):
+        self.organization.organization_users.filter(user=self.someuser).update(
+            is_admin=False
+        )
+        assert self.organization.is_admin(self.someuser) is True
+        assert self.organization.is_admin_only(self.someuser) is False
+        assert self.organization.get_user_role(self.someuser) == ORG_OWNER_ROLE
+
     def test_get_from_user_id(self):
         org = Organization.get_from_user_id(self.someuser.pk)
         assert org.pk == self.organization.pk

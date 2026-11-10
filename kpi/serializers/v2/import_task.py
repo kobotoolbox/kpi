@@ -25,7 +25,8 @@ class ImportTaskSerializer(serializers.HyperlinkedModelSerializer):
 class ImportTaskListSerializer(ImportTaskSerializer):
     url = serializers.HyperlinkedIdentityField(
         lookup_field='uid',
-        view_name='importtask-detail'
+        lookup_url_kwarg='uid_import',
+        view_name='importtask-detail',
     )
     messages = ReadOnlyJSONField(required=False)
 

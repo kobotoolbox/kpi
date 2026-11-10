@@ -10,7 +10,6 @@ import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import ButtonNew from '#/components/common/ButtonNew'
-import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import NewPasswordForm, { type NewPasswordOutcome } from './NewPasswordForm'
@@ -32,26 +31,6 @@ function PasswordChangedPanel() {
   )
 }
 
-/** The same success on a server with `ACCOUNT_LOGIN_ON_PASSWORD_RESET` on: there is nothing left to log into */
-function PasswordChangedAndSignedInPanel() {
-  return (
-    <Stack gap='md' ta='center'>
-      <Image src={emailEnvelopeIllustration} alt='' maw={190} mx='auto' />
-
-      <Title order={1} size='h3'>
-        {t('Password has been successfully changed')}
-      </Title>
-
-      <Text>{t('You are signed in and ready to go')}</Text>
-
-      {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-      <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
-        {t('Continue to KoboToolbox')}
-      </ButtonNew>
-    </Stack>
-  )
-}
-
 /** Missing, expired or already used key */
 function ResetFailedPanel() {
   return (
@@ -64,21 +43,6 @@ function ResetFailedPanel() {
 
       <ButtonNew component={Link} to={AUTH_ROUTES.LOGIN} size='lg' fullWidth>
         {t('Go back to Login')}
-      </ButtonNew>
-    </Stack>
-  )
-}
-
-/** allauth refuses to reset a password from a link while a session is in place */
-function AlreadyLoggedInPanel() {
-  return (
-    <Stack gap='md' ta='center'>
-      <Title order={1} size='h3'>
-        {t('You are already logged in')}
-      </Title>
-      <Text>{t('Log out first to reset your password from this link, or change it in your account settings.')}</Text>
-      <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
-        {t('Continue to KoboToolbox')}
       </ButtonNew>
     </Stack>
   )
@@ -108,7 +72,7 @@ function LinkCheckErrorPanel({ onRetry, isRetrying }: LinkCheckErrorPanelProps) 
 function CheckingLinkPanel() {
   return (
     <Stack gap='md'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Create new password')}
       </Title>
       <Text>{t('Checking your password reset link…')}</Text>
@@ -135,9 +99,9 @@ function NewPasswordPanels({ resetKey }: { resetKey: string }) {
       queryKey: [...getAllauthBrowserV1AuthPasswordResetGetQueryKey(), resetKey],
       enabled: Boolean(resetKey),
       retry: false,
-      // A rejected key arrives as data, not an error, so the verdict is reached here. 409 is about the session rather
-      // than the key, and earns its own panel.
-      select: (response) => (response.status === 409 ? 'conflict' : response.status === 200 ? 'valid' : 'invalid'),
+      // A rejected key arrives as data, not an error, so the verdict is reached here. Note: no 409 case, allauth only
+      // sends one with `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED`, which KPI leaves off.
+      select: (response) => (response.status === 200 ? 'valid' : 'invalid'),
     },
   })
 
@@ -146,20 +110,6 @@ function NewPasswordPanels({ resetKey }: { resetKey: string }) {
       return (
         <AuthCard>
           <PasswordChangedPanel />
-        </AuthCard>
-      )
-    }
-    if (outcome?.kind === 'changedAndSignedIn') {
-      return (
-        <AuthCard>
-          <PasswordChangedAndSignedInPanel />
-        </AuthCard>
-      )
-    }
-    if (outcome?.kind === 'alreadyAuthenticated' || keyCheck.data === 'conflict') {
-      return (
-        <AuthCard>
-          <AlreadyLoggedInPanel />
         </AuthCard>
       )
     }

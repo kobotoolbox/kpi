@@ -66,9 +66,14 @@ class InvalidAction(Exception):
     pass
 
 
-class InvalidItem(Exception):
+class InvalidImageFile(Exception):
+    pass
+
+
+class InvalidImageDimensions(Exception):
     """
-    The referenced action does not contain a list of items
+    Raised when an image cannot be rescaled to below the maximum size while
+    preserving the aspect ratio
     """
 
     pass
@@ -116,10 +121,6 @@ class TranscriptionNotFound(DependencyNotFound):
         )
     ):
         super().__init__(message)
-
-
-class TranslationAsyncResultAvailable(Exception):
-    pass
 
 
 class TranscriptionResultNotFound(Exception):

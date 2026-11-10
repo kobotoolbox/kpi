@@ -33,9 +33,9 @@ export default function ResetPasswordForm({ onRequested }: ResetPasswordFormProp
     mutation: {
       // Rejections land here too, not in `onError`: `fetchAllauth` hands back everything below 500 as data.
       onSuccess: (response) => {
-        // 200 is the request being taken. A 401 carries no error to show either, so it reads as the same
-        // "check your inbox" rather than leaving the form looking like nothing happened.
-        if (response.status === 200 || response.status === 401) {
+        // 200 is the request being taken. Note: no 401 case, allauth only answers one with
+        // `ACCOUNT_PASSWORD_RESET_BY_CODE_ENABLED`, which KPI leaves off.
+        if (response.status === 200) {
           onRequested()
           return
         }
@@ -56,7 +56,7 @@ export default function ResetPasswordForm({ onRequested }: ResetPasswordFormProp
   return (
     <Stack gap='xl'>
       <Stack gap='md'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {t('Reset your password')}
         </Title>
         <Text>

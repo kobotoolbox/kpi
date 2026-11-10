@@ -15,5 +15,7 @@ def skip_login_access_log():
     logs produced in a test.
     """
     user_logged_in.disconnect(create_access_log)
-    yield
-    user_logged_in.connect(create_access_log)
+    try:
+        yield
+    finally:
+        user_logged_in.connect(create_access_log)
