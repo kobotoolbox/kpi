@@ -1015,4 +1015,3 @@ class OrganizationOwnershipTransferViewSet(
                 sender=organization.owner_user_object
             ).select_related('sender', 'recipient')
         return OrgOwnershipTransferInvite.objects.none()
-
