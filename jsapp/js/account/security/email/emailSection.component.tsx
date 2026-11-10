@@ -1,4 +1,3 @@
-import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
 import { useEffect, useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
@@ -10,7 +9,7 @@ import Icon from '#/components/common/icon'
 import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
-import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
+import { deleteUnverifiedUserEmails, getUserEmails, handleSetUserEmailFail, setUserEmail } from './emailSection.api'
 import type { EmailResponse } from './emailSection.api'
 import styles from './emailSection.module.scss'
 
@@ -76,15 +75,9 @@ export default function EmailSection() {
         }
       },
       (err: FailResponse) => {
-        let errMessages: string[] = []
-        if (err.responseJSON?.email && typeof err.responseJSON.email === 'string') {
-          errMessages.push(err.responseJSON.email)
-        } else if (Array.isArray(err.responseJSON?.email)) {
-          errMessages = err.responseJSON.email
-        }
         setEmail({
           ...email,
-          fieldErrors: errMessages,
+          fieldErrors: handleSetUserEmailFail(err),
         })
       },
     )
@@ -110,13 +103,24 @@ export default function EmailSection() {
     })
 
     deleteUnverifiedUserEmails().then(() => {
-      setUserEmail(unverfiedEmail).then(() => {
-        setEmail({
-          ...email,
-          refreshedEmail: true,
-          refreshedEmailDate: formatTime(new Date().toUTCString()),
-        })
-      })
+      setUserEmail(unverfiedEmail).then(
+        () => {
+          setEmail({
+            ...email,
+            refreshedEmail: true,
+            refreshedEmailDate: formatTime(new Date().toUTCString()),
+          })
+        },
+        (err: FailResponse) => {
+          // The delete above went through, so drop the pending email here too.
+          setEmail({
+            ...email,
+            emails: email.emails.filter((userEmail) => userEmail.primary || userEmail.verified),
+            refreshedEmail: false,
+            fieldErrors: handleSetUserEmailFail(err),
+          })
+        },
+      )
     })
   }
 
@@ -162,6 +166,7 @@ export default function EmailSection() {
             onChange={(evt) => onTextFieldChange(evt.currentTarget.value)}
             type='email'
             w='100%'
+            error={email.fieldErrors.join(' ')}
             disabled={isSSO}
           />
         ) : (
@@ -208,13 +213,9 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <Group gap='sm'>
-              <Text c='red'>{email.fieldErrors}</Text>
-
-              <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO}>
-                {t('Change')}
-              </ButtonNew>
-            </Group>
+            <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO}>
+              {t('Change')}
+            </ButtonNew>
           </form>
         </div>
       )}
