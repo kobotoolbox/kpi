@@ -1,6 +1,12 @@
 from http import HTTPStatus
+from typing import Any
 
+from allauth.account.adapter import get_adapter as get_account_adapter
+from allauth.account.internal.stagekit import unstash_login
 from allauth.account.models import EmailAddress
+from allauth.account.views import LoginView
+from allauth.headless.account.views import LoginView as HeadlessLoginView
+from allauth.headless.base.response import UnauthorizedResponse
 from allauth.headless.internal.restkit.response import ErrorResponse
 from allauth.headless.mfa.response import (
     RecoveryCodesNotFoundResponse,
@@ -12,16 +18,22 @@ from allauth.headless.mfa.views import (
 from allauth.headless.mfa.views import (
     ManageRecoveryCodesView as BaseHeadlessManageRecoveryCodesView,
 )
+
 from allauth.headless.mfa.views import ManageTOTPView as BaseHeadlessManageTOTPView
 from allauth.headless.mfa.views import (
     ReauthenticateView as BaseHeadlessMfaReauthenticateView,
 )
 from allauth.mfa.adapter import get_adapter as get_mfa_adapter
 from allauth.mfa.recovery_codes.internal.flows import view_recovery_codes
+from allauth.mfa.base.views import AuthenticateView
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.conf import settings
+from django.contrib.auth import logout
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import Http404
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.shortcuts import resolve_url
+from django.urls import reverse
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -29,6 +41,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import generics, mixins, status, viewsets
+from rest_framework.exceptions import Throttled
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -57,6 +70,7 @@ from .extend_schemas.api.v2.email.serializers import (
 )
 from .mfa.inputs import MfaAuthenticateInput, MfaReauthenticateInput
 from .mfa.utils import has_hashed_migrated_codes
+from .forms import LoginForm
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
@@ -71,7 +85,7 @@ from .serializers import (
     SocialAccountSerializer,
     SocialAppDetailSerializer,
 )
-from .throttling import EmailConfirmationRequestEmailThrottle
+from .throttling import EmailConfirmationRequestEmailThrottle, auth_success, rate_limit
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -490,3 +504,119 @@ class HeadlessMfaReauthenticateView(BaseHeadlessMfaReauthenticateView):
     """
 
     input_class = MfaReauthenticateInput
+# HeadlessMfaAuthenticateView, HeadlessMfaLoginView, MfaAuthenticateView,
+# and MfaLoginView all replace the default allauth views in urls.py
+
+class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if request.method in ['GET', 'HEAD']:
+            return super().dispatch(request, *args, **kwargs)
+        # at this point the user is only present in the session
+        login = unstash_login(request, peek=True)
+        if not login or not login.user:
+            return UnauthorizedResponse(request)
+        username = login.user.username
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().dispatch(request, *args, **kwargs)
+        except Throttled:
+            return ErrorResponse(
+                request,
+                exception=get_account_adapter().validation_error(
+                    'too_many_login_attempts'
+                ),
+            )
+
+
+class HeadlessMfaLoginView(HeadlessLoginView):
+
+    def dispatch(self, request, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        request_data = self._parse_json(request)
+        username = request_data['username']
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().dispatch(request, *args, **kwargs)
+        except Throttled:
+            return ErrorResponse(
+                request,
+                exception=get_account_adapter().validation_error(
+                    'too_many_login_attempts'
+                ),
+            )
+
+
+class MfaAuthenticateView(AuthenticateView):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        username = self.form.user.username
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().post(request, *args, **kwargs)
+        except Throttled:
+            exception = get_account_adapter().validation_error(
+                'too_many_login_attempts'
+            )
+            self.form.add_error(field=None, error=exception)
+            return self.form_invalid(self.form)
+
+
+class MfaLoginView(LoginView):
+    form_class = LoginForm
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        form = self.get_form()
+        username = self.get_form().data['login']
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().post(request, *args, **kwargs)
+        except Throttled:
+            exception = get_account_adapter().validation_error(
+                'too_many_login_attempts'
+            )
+            form.add_error(field=None, error=exception)
+            return self.form_invalid(form)
+
+    def form_valid(self, form) -> HttpResponse:
+        """
+        Overload parent method to drop a stale session before logging in.
+        """
+        # `form.user` is the account being authenticated. Remember it before
+        # anything else: allauth calls `get_success_url()` before the login
+        # completes, and the `logout()` below clears `request.user`, so
+        # `request.user` is not a reliable reference to the target user there.
+        self._login_user = form.user
+
+        user = self.request.user
+        if user.is_authenticated and user.pk != form.user.pk:
+            logout(self.request)
+
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        """
+        Overload parent method to validate `next` url
+        """
+        redirect_to = super().get_success_url()
+
+        if not redirect_to:
+            redirect_to = self.request.POST.get(
+                self.redirect_field_name,
+                self.request.GET.get(self.redirect_field_name, ''),
+            )
+
+        # We do not want to redirect a regular user to `/admin/` if they
+        # are not a superuser. Otherwise, they are successfully authenticated,
+        # redirected to the admin platform, then disconnected because of the
+        # lack of permissions. Check the account being authenticated
+        # (`self._login_user`), not `request.user`: this runs before the login
+        # completes, and a stale session may have just been logged out.
+        user = getattr(self, '_login_user', self.request.user)
+        if (
+            user.is_authenticated
+            and self.redirect_field_name in self.request.POST
+            and not user.is_superuser
+            and redirect_to.startswith(reverse('admin:index'))
+        ):
+            return resolve_url(settings.LOGIN_REDIRECT_URL)
+
+        return redirect_to

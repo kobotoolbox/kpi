@@ -1,8 +1,10 @@
-from allauth.mfa.base.internal.flows import check_rate_limit
+
+from allauth.mfa.models import Authenticator
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, ValidationError
 
-from .utils import MFA_METHOD_NAME, user_has_active_mfa, validate_mfa_code
+from .utils import MFA_METHOD_NAME, user_has_active_mfa
+
 
 
 class UserMfaMethodSerializer(serializers.Serializer):
@@ -47,10 +49,13 @@ class MfaCodeSerializer(serializers.Serializer):
             raise NotFound
 
     def validate_code(self, code):
-        clear_rl = check_rate_limit(self.user)
-        if authenticator := validate_mfa_code(self.user, code):
-            self.authenticator = authenticator
-            clear_rl()
-            return code
-
+        for auth in self.authenticators:
+            if auth.wrap().validate_code(code):
+                self.authenticator = auth
+                return code
+            if auth.type == Authenticator.Type.RECOVERY_CODES:
+                hashed_code = self.validate_migrated_codes(code, auth.wrap())
+                if hashed_code is not None:
+                    self.authenticator = auth
+                    return code
         raise ValidationError('Invalid code')

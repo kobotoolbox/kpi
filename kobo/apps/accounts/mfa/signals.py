@@ -1,10 +1,12 @@
 from functools import partial
 
 from allauth.mfa.models import Authenticator
+from allauth.mfa.signals import authenticator_used
 from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
+from kobo.apps.accounts.throttling import auth_success
 from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
@@ -47,3 +49,8 @@ def sync_profile_on_totp_added(sender, instance, created, **kwargs):
 def sync_profile_on_totp_removed(sender, instance, **kwargs):
     if instance.type == Authenticator.Type.TOTP:
         _sync_after_commit(instance.user_id)
+
+
+@receiver(authenticator_used)
+def emit_authentication_success(sender, authenticator, **kwargs):
+    auth_success.send(sender=sender)

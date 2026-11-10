@@ -1,7 +1,10 @@
 import datetime
 import itertools
+from unittest.mock import patch
 
+from allauth.account.adapter import get_adapter
 from allauth.account.models import EmailAddress
+from allauth.mfa.totp.internal.auth import TOTP
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.cache import cache
@@ -67,16 +70,15 @@ class RateLimitTestCase(TestCase):
             )
         return self._full_login_process_no_mfa(headless, username, password, ip)
 
-    def _assert_login_failed(self, response, headless, expected_allauth_error_code):
+    def _assert_login_failed(self, response, headless, expected_error_field, expected_error_code):
         if headless:
             assert response.status_code == 400
-            if expected_allauth_error_code:
-                assert (
-                    response.json()['errors'][0]['code'] == expected_allauth_error_code
-                )
+            assert response.json()['errors'][0]['code'] == expected_error_code
+            assert response.json()['errors'][0].get('param') == expected_error_field
         else:
             form = response.context_data['form']
             assert not form.is_valid()
+            assert form.errors[expected_error_field] == [get_adapter().error_messages[expected_error_code]]
 
     def _assert_login_succeeded(self, response, headless):
         if headless:
@@ -84,16 +86,16 @@ class RateLimitTestCase(TestCase):
         else:
             self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
 
-    @override_settings(ACCOUNT_RATE_LIMITS={'login_failed': '1/2m/ip,1/2m/key'})
+    @override_settings(LOGIN_FAILED_RATE_LIMIT='1/1m/key,1/1m/ip')
     @data(
-        # headless?, use mfa?
-        (True, True),
-        (True, False),
-        (False, True),
-        (False, False),
+        # headless?, use mfa?, field_for_bad_credential, field_for_rate_limit
+        (True, True, 'code', None),
+        (True, False, 'password', None),
+        (False, True, 'code', '__all__'),
+        (False, False, '__all__', '__all__'),
     )
     @unpack
-    def test_login_restricted_after_too_many_failures(self, headless, use_mfa):
+    def test_login_restricted_after_too_many_failures(self, headless, use_mfa, field_for_bad_credential, field_for_rate_limit):
         now = timezone.now()
         one_second_later = now + datetime.timedelta(seconds=1)
         three_minutes_later = now + datetime.timedelta(minutes=3)
@@ -103,66 +105,60 @@ class RateLimitTestCase(TestCase):
         with freeze_time(now):
             # bad identifier (password or token), should lock the user and ip
             password = PASSWORD if use_mfa else f'{PASSWORD}bad'
-            code = get_mfa_code_for_user(self.u1) if use_mfa else None
-            if code:
-                code = int(code) + 1
-                code = str(code)
+            mfa_code = get_mfa_code_for_user(self.u1) if use_mfa else None
+            if mfa_code:
+                mfa_code = str(int(mfa_code) + 1)
             response = self._full_login_process(
                 headless=headless,
                 username=self.u1.username,
                 password=password,
                 ip='1.2.3.4',
-                mfa_code=code,
+                mfa_code=mfa_code,
             )
-            expected_error_code = None if use_mfa else 'username_password_mismatch'
-            self._assert_login_failed(response, headless, expected_error_code)
+            if use_mfa:
+                error_code = 'incorrect_code'
+            else:
+                error_code = 'username_password_mismatch'
+            self._assert_login_failed(response, headless, field_for_bad_credential, error_code)
 
         with freeze_time(one_second_later):
-            # different user, same ip, correct identifier, should still be blocked
-            code = get_mfa_code_for_user(self.u2) if use_mfa else None
-            if code:
-                code = int(code) + 1
-                code = str(code)
+            # different user, same ip, correct identifier, should be blocked
+            # at the first (password) request
             response = self._full_login_process(
                 headless=headless,
                 username=self.u2.username,
                 password=PASSWORD,
                 ip='1.2.3.4',
-                mfa_code=code,
             )
-            expected_error_code = None if use_mfa else 'too_many_login_attempts'
-            self._assert_login_failed(response, headless, expected_error_code)
+            self._assert_login_failed(response, headless, field_for_rate_limit, 'too_many_login_attempts')
+
 
             # same user, different ip, correct identifier, still blocked
-            code = get_mfa_code_for_user(self.u1) if use_mfa else None
-            if code:
-                code = int(code) + 1
-                code = str(code)
             response = self._full_login_process(
                 headless=headless,
                 username=self.u1.username,
                 password=PASSWORD,
                 ip='5.6.7.8',
-                mfa_code=code,
             )
-            expected_error_code = None if use_mfa else 'too_many_login_attempts'
-            self._assert_login_failed(response, headless, expected_error_code)
+            self._assert_login_failed(response, headless, field_for_rate_limit, 'too_many_login_attempts')
+
 
         # time travel to after the limit has expired
         with freeze_time(three_minutes_later):
             # should be able to log in as either user at either ip
-            for user, ip in itertools.product(
+            for i, (user, ip) in enumerate(itertools.product(
                 [self.u1, self.u2], ['1.2.3.4', '5.6.7.8']
-            ):
+            )):
                 self.client.logout()
-                code = get_mfa_code_for_user(user) if use_mfa else None
-                response = self._full_login_process(
-                    headless=headless,
-                    username=user.username,
-                    password=PASSWORD,
-                    ip=ip,
-                    mfa_code=code,
-                )
-                self._assert_login_succeeded(response, headless)
-                # clear the cache so we can re-use mfa tokens
-                cache.clear()
+                mfa_code = get_mfa_code_for_user(user) if use_mfa else None
+                # cheat so we can re-use mfa_codes since we're generating them under
+                # the same timestamp
+                with patch.object(TOTP, '_mark_code_used', return_value=True):
+                    response = self._full_login_process(
+                        headless=headless,
+                        username=user.username,
+                        password=PASSWORD,
+                        ip=ip,
+                        mfa_code=mfa_code,
+                    )
+                    self._assert_login_succeeded(response, headless)
