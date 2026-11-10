@@ -13207,7 +13207,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/": {
             "post": {
                 "operationId": "api_v2_organizations_ownership_transfers_create",
-                "description": "ViewSet for initiating organization ownership transfers.\n\nAvailable actions:\n- create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/",
+                "description": "## Initiate Organization Ownership Transfer\n\n* Initiate a request to transfer organization ownership to another administrator.\n* Only the current organization owner can initiate an ownership transfer.\n* The recipient must be an active administrator within the same organization.\n* The recipient can be identified by username or email.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -13256,6 +13256,44 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "field_name": [
+                                                "Error message"
+                                            ]
+                                        },
+                                        "summary": "Bad request"
+                                    }
                                 }
                             }
                         },

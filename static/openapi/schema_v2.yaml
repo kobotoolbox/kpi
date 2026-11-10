@@ -9673,11 +9673,13 @@ paths:
   /api/v2/organizations/{uid_organization}/ownership-transfers/:
     post:
       operationId: api_v2_organizations_ownership_transfers_create
-      description: |-
-        ViewSet for initiating organization ownership transfers.
+      description: |
+        ## Initiate Organization Ownership Transfer
 
-        Available actions:
-        - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+        * Initiate a request to transfer organization ownership to another administrator.
+        * Only the current organization owner can initiate an ownership transfer.
+        * The recipient must be an active administrator within the same organization.
+        * The recipient can be identified by username or email.
       parameters:
       - in: path
         name: uid_organization
@@ -9708,6 +9710,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorValidation'
+              examples:
+                BadRequest:
+                  value:
+                    field_name:
+                    - Error message
+                  summary: Bad request
           description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:

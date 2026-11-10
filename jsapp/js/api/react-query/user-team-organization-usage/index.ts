@@ -2238,21 +2238,41 @@ export type organizationsOwnershipTransfersCreateResponse201 = {
   status: 201
 }
 
+export type organizationsOwnershipTransfersCreateResponse400 = {
+  data: ErrorValidation
+  status: 400
+}
+
+export type organizationsOwnershipTransfersCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type organizationsOwnershipTransfersCreateResponseSuccess = organizationsOwnershipTransfersCreateResponse201 & {
   headers: Headers
 }
+export type organizationsOwnershipTransfersCreateResponseError = (
+  | organizationsOwnershipTransfersCreateResponse400
+  | organizationsOwnershipTransfersCreateResponse404
+) & {
+  headers: Headers
+}
 
-export type organizationsOwnershipTransfersCreateResponse = organizationsOwnershipTransfersCreateResponseSuccess
+export type organizationsOwnershipTransfersCreateResponse =
+  | organizationsOwnershipTransfersCreateResponseSuccess
+  | organizationsOwnershipTransfersCreateResponseError
 
 export const getOrganizationsOwnershipTransfersCreateUrl = (uidOrganization: string) => {
   return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/`
 }
 
 /**
- * ViewSet for initiating organization ownership transfers.
+ * ## Initiate Organization Ownership Transfer
  *
- * Available actions:
- * - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+ * * Initiate a request to transfer organization ownership to another administrator.
+ * * Only the current organization owner can initiate an ownership transfer.
+ * * The recipient must be an active administrator within the same organization.
+ * * The recipient can be identified by username or email.
  */
 export const organizationsOwnershipTransfersCreate = async (
   uidOrganization: string,
@@ -2288,7 +2308,7 @@ export const getOrganizationsOwnershipTransfersCreateMutationKey = () =>
   ['organizationsOwnershipTransfersCreate'] as const
 
 export const getOrganizationsOwnershipTransfersCreateMutationOptions = <
-  TError = unknown,
+  TError = ErrorValidation | ErrorDetail,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -2327,13 +2347,16 @@ export type OrganizationsOwnershipTransfersCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>
 >
 export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer>
-export type OrganizationsOwnershipTransfersCreateMutationError = unknown
+export type OrganizationsOwnershipTransfersCreateMutationError = ErrorValidation | ErrorDetail
 export type OrganizationsOwnershipTransfersCreateMutationVariables = {
   uidOrganization: string
   data: NonReadonly<OrganizationOwnershipTransfer>
 }
 
-export const useOrganizationsOwnershipTransfersCreate = <TError = unknown, TContext = unknown>(options?: {
+export const useOrganizationsOwnershipTransfersCreate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
     TError,
