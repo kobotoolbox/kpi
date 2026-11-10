@@ -3,8 +3,7 @@ from django.db import migrations, models
 
 
 def manually_create_indexes_instructions(apps, schema_editor):
-    print(
-        """
+    print("""
         ⚠️ ATTENTION ⚠️
         Run the SQL query below in PostgreSQL directly:
 
@@ -12,8 +11,7 @@ def manually_create_indexes_instructions(apps, schema_editor):
         "unique_pending_org_ownership_transfer" ON
         "project_ownership_invite" ("sender_id")
         WHERE "invite_type" = 'org-ownership-transfer' AND "status" = 'pending';
-    """
-    )
+    """)
 
 
 def manually_drop_indexes_instructions(apps, schema_editor):
