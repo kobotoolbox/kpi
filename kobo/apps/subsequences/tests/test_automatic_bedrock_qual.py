@@ -1055,7 +1055,7 @@ class AutomaticBedrockQualLimitTestCase(BaseAutomaticBedrockQualTestCase):
 
         user = self.asset.owner
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.LLM_REQUESTS: {'exceeded': True}

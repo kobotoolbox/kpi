@@ -5,7 +5,6 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
-from constance.test import override_config
 from django.db import IntegrityError
 from django.test import TestCase
 from freezegun import freeze_time
@@ -910,51 +909,6 @@ class SubsequenceBulkActionModelTestCase(TestCase):
         item.refresh_from_db()
         assert parent.status == BulkActionItemStatus.PENDING
         assert item.status == BulkActionItemStatus.PENDING
-
-    @override_config(ASR_MT_GOOGLE_REGION='global')
-    def test_cancel_external_operation_builds_the_google_service(self):
-        # Cancelling builds the service only to cancel, so it must not need
-        # what starting a job needs. The base `__init__` keeps its real
-        # signature (autospec) and the subclasses' own `__init__` runs
-        google = 'kobo.apps.subsequences.integrations.google'
-        services = {
-            'automatic_google_transcription': (
-                f'{google}.google_transcribe.GoogleTranscriptionService'
-            ),
-            'automatic_google_translation': (
-                f'{google}.google_translate.GoogleTranslationService'
-            ),
-        }
-        for action_id, service_path in services.items():
-            with self.subTest(action_id=action_id):
-                parent = SubsequenceBulkAction.create_with_items(
-                    asset=self.asset,
-                    action_id=action_id,
-                    question_xpath='q1',
-                    params={'language': 'en'},
-                    created_by=self.owner.username,
-                    submission_root_uuids=[f'uuid-{action_id}'],
-                )
-                item = parent.items.get()
-                item.service_id = 'operations/1'
-                with (
-                    patch(
-                        f'{google}.base.GoogleService.__init__',
-                        autospec=True,
-                        return_value=None,
-                    ),
-                    patch(f'{google}.google_translate.translate'),
-                    patch(
-                        f'{google}.google_translate'
-                        '.google_credentials_from_constance_config'
-                    ),
-                    patch(
-                        f'{service_path}.cancel_google_operation', autospec=True
-                    ) as cancel_google_operation,
-                ):
-                    item.cancel_external_operation()
-
-                assert cancel_google_operation.call_args.args[1] == 'operations/1'
 
 
 class SubsequenceBulkActionConstraintTestCase(TestCase):

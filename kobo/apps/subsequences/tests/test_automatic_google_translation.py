@@ -790,7 +790,7 @@ class AutomaticGoogleTranslationLimitTestCase(TestCase):
         params = [{'language': 'fr'}, {'language': 'en'}]
         action = AutomaticGoogleTranslationAction('q1', params)
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.MT_CHARACTERS: {'exceeded': True}

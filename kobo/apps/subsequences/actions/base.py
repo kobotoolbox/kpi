@@ -5,11 +5,10 @@ from enum import Enum
 from typing import Optional
 
 import jsonschema
-from constance import config
-from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.stripe.utils.limit_enforcement import raise_if_usage_limit_exceeded
 from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
     GoogleQuotaExceededError,
@@ -18,9 +17,7 @@ from kobo.apps.subsequences.exceptions import (
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
-from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.log import logging
-from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
     NLPExternalServiceClass,
@@ -221,7 +218,8 @@ class BaseAction:
         pass
 
     def check_limits(self, user: User, action_data: dict):
-        self._check_usage_limits(user)
+        if self._is_usage_limited:
+            raise_if_usage_limit_exceeded(user, self._limit_identifier)
 
     @property
     def external_data_schema(self):
@@ -579,25 +577,6 @@ class BaseAction:
             else:
                 destination_schema[key] = schema_to_inject[key]
 
-    def _check_usage_limits(self, user: User) -> None:
-        """
-        Raise `UsageLimitExceededException` if `user` has exceeded the usage
-        limit of this action
-        """
-        if (
-            not settings.STRIPE_ENABLED
-            or not self._is_usage_limited
-            or not config.USAGE_LIMIT_ENFORCEMENT
-        ):
-            return
-
-        calculator = ServiceUsageCalculator(user)
-        balances = calculator.get_usage_balances()
-
-        balance = balances[self._limit_identifier]
-        if balance and balance['exceeded']:
-            raise UsageLimitExceededException()
-
     @property
     def _is_usage_limited(self):
         """
@@ -766,7 +745,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         """
         Skip the upfront check: usage is counted when an external operation
         starts, so the limit is checked right before that, see
-        `_check_owner_usage_limits()`
+        `GoogleService._before_new_operation()`
         """
         return
 
@@ -997,11 +976,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         NLPService = self.get_nlp_service_class()  # noqa
         try:
-            service = NLPService(
-                submission,
-                asset=self.asset,
-                before_new_operation=self._check_owner_usage_limits,
-            )
+            service = NLPService(submission, asset=self.asset)
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
@@ -1071,10 +1046,3 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         # Normal case: return the processed transcription data.
         return service_data
-
-    def _check_owner_usage_limits(self) -> None:
-        """
-        Check the asset owner's usage limit before a new external operation
-        starts
-        """
-        self._check_usage_limits(self.asset.owner)

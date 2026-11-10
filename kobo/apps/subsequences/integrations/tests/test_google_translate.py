@@ -8,6 +8,7 @@ from django.test import TestCase
 from google.api_core.exceptions import GoogleAPIError, InvalidArgument
 
 from kobo.apps.languages.exceptions import LanguageNotSupported
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationService,
 )
@@ -64,7 +65,7 @@ class TestGoogleTranslate(TestCase):
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_before_new_operation_runs_only_when_a_job_would_start(self):
+    def test_usage_limit_is_checked_only_when_a_job_would_start(self):
         short_text = 'Hello'
         long_text = 'a' * (GoogleTranslationService.MAX_SYNC_CHARS + 1)
         cases = [
@@ -75,9 +76,6 @@ class TestGoogleTranslate(TestCase):
         for content, operation_name, should_refuse in cases:
             with self.subTest(size=len(content), operation_name=operation_name):
                 service = self._build_service()
-                service.before_new_operation = MagicMock(
-                    side_effect=UsageLimitExceededException
-                )
                 params = {
                     'language': 'fr',
                     '_dependency': {'language': 'en', 'value': content},
@@ -99,6 +97,11 @@ class TestGoogleTranslate(TestCase):
                         '_poll_async_translation',
                         return_value={'status': 'in_progress'},
                     ),
+                    patch(
+                        'kobo.apps.subsequences.integrations.google.base'
+                        '.raise_if_usage_limit_exceeded',
+                        side_effect=UsageLimitExceededException,
+                    ) as mock_raise_if_exceeded,
                 ):
                     if should_refuse:
                         with pytest.raises(UsageLimitExceededException):
@@ -107,9 +110,12 @@ class TestGoogleTranslate(TestCase):
                         service.process_data('q1', params)
 
                 if should_refuse:
+                    mock_raise_if_exceeded.assert_called_once_with(
+                        self.asset.owner, UsageType.MT_CHARACTERS
+                    )
                     service.translate_client.translate_text.assert_not_called()
                 else:
-                    service.before_new_operation.assert_not_called()
+                    mock_raise_if_exceeded.assert_not_called()
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
@@ -363,7 +369,13 @@ class TestGoogleTranslate(TestCase):
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_bulk_action_uid_falls_back_to_cache_when_model_is_unavailable(self):
+    @patch(
+        'kobo.apps.subsequences.integrations.google.base'
+        '.raise_if_usage_limit_exceeded'
+    )
+    def test_bulk_action_uid_falls_back_to_cache_when_model_is_unavailable(
+        self, _mock_raise_if_exceeded
+    ):
         """
         When bulk_action_uid is provided before SubsequenceBulkActionItem exists,
         fall back to cache-based operation tracking instead of failing

@@ -5,11 +5,10 @@ import jsonschema
 import pytest
 from constance.test import override_config
 from ddt import data as ddt_data
-from ddt import ddt, unpack
+from ddt import ddt
 from django.conf import settings
 from django.test import TestCase
 
-from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_transcription import AutomaticGoogleTranscriptionAction
@@ -589,7 +588,7 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
         u = User.objects.create(username='dummy')
         action = AutomaticGoogleTranscriptionAction('q1', [{'language': 'en'}])
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.ASR_SECONDS: {'exceeded': True}
@@ -597,39 +596,3 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
             action.check_limits(u, action_data)
 
         patched_calculator.return_value.get_usage_balances.assert_not_called()
-
-    @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
-    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
-    @ddt_data((True, True), (False, False))
-    @unpack
-    def test_new_operation_is_limit_checked(self, exceeded, should_raise):
-        action = AutomaticGoogleTranscriptionAction(
-            'q1', [{'language': 'en'}], asset=MagicMock()
-        )
-        with (
-            patch(
-                'kobo.apps.subsequences.actions.automatic_google_transcription'
-                '.GoogleTranscriptionService',
-            ) as patched_service_class,
-            patch(
-                'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
-            ) as patched_calculator,
-        ):
-            patched_service_class.return_value.process_data.return_value = {
-                'status': 'complete',
-                'value': 'Hello',
-            }
-            patched_calculator.return_value.get_usage_balances.return_value = {
-                UsageType.ASR_SECONDS: {'exceeded': exceeded}
-            }
-            action.run_external_process(EMPTY_SUBMISSION, {}, {'language': 'en'})
-            before_new_operation = patched_service_class.call_args.kwargs[
-                'before_new_operation'
-            ]
-            if should_raise:
-                with pytest.raises(UsageLimitExceededException):
-                    before_new_operation()
-            else:
-                before_new_operation()
-
-        patched_calculator.assert_called_once_with(action.asset.owner)

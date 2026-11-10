@@ -16,6 +16,9 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.subsequences.integrations.google.google_transcribe import (
+    GoogleTranscriptionService,
+)
 from kobo.apps.subsequences.models import (
     QATagTracker,
     QuestionAdvancedFeature,
@@ -1237,23 +1240,32 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
             UsageType.MT_CHARACTERS: {'exceeded': True},
         }
 
-        def start_google_job(submission, asset, before_new_operation):
-            # A new job always starts here, so the limit check runs first
-            service = MagicMock()
-            service.process_data.side_effect = lambda *args, **kwargs: (
-                before_new_operation() or {'status': 'complete', 'value': 'Hello'}
-            )
-            return service
+        def build_service(service, submission, asset, *args, **kwargs):
+            service.asset = asset
+
+        def start_google_job(service, *args, **kwargs):
+            # No operation exists yet, so a new one starts
+            service._before_new_operation()
+            return {'status': 'complete', 'value': 'Hello'}
 
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             with override_config(USAGE_LIMIT_ENFORCEMENT=usage_limit_enforcement):
-                with patch(
-                    'kobo.apps.subsequences.actions.automatic_google_transcription'
-                    '.GoogleTranscriptionService',
-                    side_effect=start_google_job,
+                with (
+                    patch.object(
+                        GoogleTranscriptionService,
+                        '__init__',
+                        autospec=True,
+                        side_effect=build_service,
+                    ),
+                    patch.object(
+                        GoogleTranscriptionService,
+                        'process_data',
+                        autospec=True,
+                        side_effect=start_google_job,
+                    ),
                 ):
                     response = self.client.patch(
                         self.supplement_details_url, data=payload, format='json'
