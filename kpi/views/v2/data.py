@@ -637,7 +637,7 @@ class DataViewSet(
                 {'detail': 'Image cannot be rescaled for LLM analysis'}
             )
         except InvalidImageFile:
-            raise serializers.ValidationError({'detail': 'Image data corrupted'})
+            raise serializers.ValidationError({'detail': 'Corrupted image file'})
 
         return Response(supplemental_data)
 
