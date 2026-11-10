@@ -38,6 +38,11 @@ function getErrorItems(response: AllauthResponse): ErrorResponseErrorsItem[] {
   return body.errors.filter((item) => typeof item?.message === 'string')
 }
 
+/** The `code` allauth tagged a refusal with */
+export function getFirstAllauthErrorCode(response: AllauthResponse): string | undefined {
+  return getErrorItems(response).find((item) => typeof item.code === 'string')?.code
+}
+
 /** Statuses allauth answers with an empty body, so the copy has to come from us. */
 function getMessagelessStatusMessage(status: number): string {
   if (status === 403) {

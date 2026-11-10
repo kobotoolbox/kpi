@@ -32,7 +32,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:35+0000\n"
+"POT-Creation-Date: 2026-11-05 19:56+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Salomé Garnier, 2026\n"
 "Language-Team: French (http://app.transifex.com/kobotoolbox/kobotoolbox/language/fr/)\n"
@@ -910,36 +910,36 @@ msgstr "Il doit y avoir un seul id-string."
 msgid "There should be a single title."
 msgstr "Il doit y avoir un seul titre."
 
-#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/apps/logger/views.py:63
 #: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "Soumission validée."
 
-#: kobo/apps/openrosa/apps/logger/views.py:94
+#: kobo/apps/openrosa/apps/logger/views.py:102
 msgid ""
 "There was a problem receiving your ODK submission. [Error: IO Error reading "
 "data]"
 msgstr "Une erreur est survenue lors de la réception de votre soumission ODK. [Error: IO Error reading data]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:98
+#: kobo/apps/openrosa/apps/logger/views.py:110
 msgid ""
 "There was a problem receiving your ODK submission. [Error: multiple "
 "submission files (?)]"
 msgstr "Une erreur s'est produite lors de la réception de votre soumission ODK. [Erreur : IO Error reading data]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:120
+#: kobo/apps/openrosa/apps/logger/views.py:136
 #, python-format
 msgid ""
 "Submission complete. Out of %(total)d survey instances, %(success)d were "
 "imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
 msgstr "Soumission complète. Sur %(total)d instances d'enquête, %(success)d ont été importées, (%(rejected)d ont été rejetées en raison de doublons, de formulaires manquants, etc.)"
 
-#: kobo/apps/openrosa/apps/logger/views.py:190
+#: kobo/apps/openrosa/apps/logger/views.py:210
 #, python-format
 msgid "No XLS file for your form %(id)s"
 msgstr "Aucun fichier XLS pour votre formulaire %(id)s"
 
-#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/logger/views.py:228
 #: kobo/apps/openrosa/apps/viewer/views.py:42
 #: kobo/apps/openrosa/apps/viewer/views.py:95
 #: kobo/apps/openrosa/apps/viewer/views.py:114
@@ -2192,7 +2192,7 @@ msgstr "Le fichier demandé est introuvable."
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:248 kpi/exceptions.py:93
+#: kobo/apps/openrosa/libs/utils/middleware.py:253 kpi/exceptions.py:93
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
@@ -2269,15 +2269,15 @@ msgstr ""
 msgid "Invalid request"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:445
+#: kobo/apps/organizations/models.py:471
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -3074,140 +3074,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "L'authentification multi-facteur est activée pour ce compte. "
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:331
 msgid "Can view asset"
 msgstr "Peut afficher la ressource"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:332
 msgid "Can discover asset in public lists"
 msgstr "Peut découvrir des ressources dans des listes publiques"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:333
 msgid "Can manage all aspects of asset"
 msgstr "Peut gérer tous les aspects de la ressource"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:335
 msgid "Can submit data to asset"
 msgstr "Peut envoyer des données à la ressource"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:336
 msgid "Can view submitted data for asset"
 msgstr "Peut afficher les données envoyées pour la ressource"
 
-#: kpi/models/asset.py:314
+#: kpi/models/asset.py:337
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Peut effectuer des actions partielles sur les données envoyées pour une ressource pour des utilisateurs spécifiques"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:340
 msgid "Can modify submitted data for asset"
 msgstr "Peut modifier les données envoyées pour la ressource"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:341
 msgid "Can delete submitted data for asset"
 msgstr "Peut supprimer les données envoyées pour la ressource"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:342
 msgid "Can validate submitted data asset"
 msgstr "Peut valider la ressource des données envoyées"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "project"
 msgstr "projet"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "form"
 msgstr "formulaire"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:363
 msgid "template"
 msgstr "modèle"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:364
 msgid "block"
 msgstr "bloc"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:365
 msgid "question"
 msgstr "question"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:366
 msgid "text"
 msgstr "texte"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:367
 msgid "empty"
 msgstr "vide"
 
-#: kpi/models/asset.py:345
+#: kpi/models/asset.py:368
 msgid "collection"
 msgstr "collection"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:375
 msgid "View ##asset_type_label##"
 msgstr "Afficher ##asset_type_label##"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:376
 msgid "Edit ##asset_type_label##"
 msgstr "Modifier ##asset_type_label##"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:377
 msgid "Discover ##asset_type_label##"
 msgstr "Découvrir ##asset_type_label##"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:378
 msgid "Manage ##asset_type_label##"
 msgstr "Gérer ##asset_type_label##"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:379
 msgid "Add submissions"
 msgstr "Ajouter des soumissions"
 
-#: kpi/models/asset.py:357
+#: kpi/models/asset.py:380
 msgid "View submissions"
 msgstr "Afficher les soumissions"
 
-#: kpi/models/asset.py:360
+#: kpi/models/asset.py:383
 msgid "Act on submissions only from specific users"
 msgstr "Agir uniquement sur les soumissions d’utilisateurs spécifiques"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:386
 msgid "View submissions only from specific users"
 msgstr "Afficher uniquement les soumissions d’utilisateurs spécifiques"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:389
 msgid "Edit submissions only from specific users"
 msgstr "Modifier uniquement les soumissions d’utilisateurs spécifiques"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:392
 msgid "Delete submissions only from specific users"
 msgstr "Supprimer uniquement les soumissions d’utilisateurs spécifiques"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:395
 msgid "Validate submissions only from specific users"
 msgstr "Valider uniquement les soumissions d’utilisateurs spécifiques"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:398
 msgid "Edit submissions"
 msgstr "Modifier les soumissions"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:399
 msgid "Delete submissions"
 msgstr "Supprimer les soumissions"
 
-#: kpi/models/asset.py:377
+#: kpi/models/asset.py:400
 msgid "Validate submissions"
 msgstr "Valider les soumissions"
 
-#: kpi/models/asset.py:734
+#: kpi/models/asset.py:768
 msgid "Only partial permissions for submissions are supported"
 msgstr "Seules les autorisations partielles pour les soumissions sont prises en charge"
 
-#: kpi/models/asset.py:1463
+#: kpi/models/asset.py:1497
 msgid "Can not assign '{}' permission to owner"
 msgstr "Impossible d’attribuer l’autorisation '{}' au propriétaire"
 
-#: kpi/models/asset.py:1467
+#: kpi/models/asset.py:1501
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Impossible d’attribuer l’autorisation '{}'. Des autorisations partielles sont manquantes."
 

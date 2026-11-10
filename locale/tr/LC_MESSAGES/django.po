@@ -22,7 +22,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 14:35+0000\n"
+"POT-Creation-Date: 2026-11-05 19:56+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: zeeshan azmi <zishan.azmi@webaccessglobal.com>, 2017\n"
 "Language-Team: Turkish (http://app.transifex.com/kobotoolbox/kobotoolbox/language/tr/)\n"
@@ -900,36 +900,36 @@ msgstr "Tek bir kimlik dizesi olmalıdır."
 msgid "There should be a single title."
 msgstr "Tek bir başlık olmalıdır."
 
-#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/apps/logger/views.py:63
 #: kobo/apps/openrosa/libs/serializers/data_serializer.py:15
 msgid "Successful submission."
 msgstr "Başarılı gönderim."
 
-#: kobo/apps/openrosa/apps/logger/views.py:94
+#: kobo/apps/openrosa/apps/logger/views.py:102
 msgid ""
 "There was a problem receiving your ODK submission. [Error: IO Error reading "
 "data]"
 msgstr "ODK gönderiminizi alırken bir sorun oluştu. [Hata: IO Veri okuma hatası]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:98
+#: kobo/apps/openrosa/apps/logger/views.py:110
 msgid ""
 "There was a problem receiving your ODK submission. [Error: multiple "
 "submission files (?)]"
 msgstr "ODK gönderiminizi alırken bir sorun oluştu. [Hata: birden fazla gönderim dosyası (?)]"
 
-#: kobo/apps/openrosa/apps/logger/views.py:120
+#: kobo/apps/openrosa/apps/logger/views.py:136
 #, python-format
 msgid ""
 "Submission complete. Out of %(total)d survey instances, %(success)d were "
 "imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
 msgstr "Gönderim tamamlandı. %(total)d anket örneğinden %(success)d tanesi içe aktarıldı, (%(rejected)d tanesi mükerrer, eksik form vb. nedenlerle reddedildi)"
 
-#: kobo/apps/openrosa/apps/logger/views.py:190
+#: kobo/apps/openrosa/apps/logger/views.py:210
 #, python-format
 msgid "No XLS file for your form %(id)s"
 msgstr "Formunuz %(id)s için XLS dosyası yok"
 
-#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/logger/views.py:228
 #: kobo/apps/openrosa/apps/viewer/views.py:42
 #: kobo/apps/openrosa/apps/viewer/views.py:95
 #: kobo/apps/openrosa/apps/viewer/views.py:114
@@ -2182,7 +2182,7 @@ msgstr "Talep edilen dosya bulunamadı."
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:248 kpi/exceptions.py:93
+#: kobo/apps/openrosa/libs/utils/middleware.py:253 kpi/exceptions.py:93
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
@@ -2259,15 +2259,15 @@ msgstr ""
 msgid "Invalid request"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:404
+#: kobo/apps/organizations/models.py:430
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:445
+#: kobo/apps/organizations/models.py:471
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -3063,140 +3063,140 @@ msgstr ""
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "Bu hesap için çok faktörlü kimlik doğrulama etkinleştirildi. "
 
-#: kpi/models/asset.py:308
+#: kpi/models/asset.py:331
 msgid "Can view asset"
 msgstr "Varlığı görüntüleyebilir"
 
-#: kpi/models/asset.py:309
+#: kpi/models/asset.py:332
 msgid "Can discover asset in public lists"
 msgstr "Herkese açık listelerdeki varlığı keşfedebilir"
 
-#: kpi/models/asset.py:310
+#: kpi/models/asset.py:333
 msgid "Can manage all aspects of asset"
 msgstr "Varlığın tüm yönlerini yönetebilir"
 
-#: kpi/models/asset.py:312
+#: kpi/models/asset.py:335
 msgid "Can submit data to asset"
 msgstr "Varlığa veri gönderebilir"
 
-#: kpi/models/asset.py:313
+#: kpi/models/asset.py:336
 msgid "Can view submitted data for asset"
 msgstr "Varlık için gönderilen verileri görüntüleyebilir"
 
-#: kpi/models/asset.py:314
+#: kpi/models/asset.py:337
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Belirli kullanıcılar için varlığa gönderilen veriler üzerinde kısmi işlemler yapabilir"
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:340
 msgid "Can modify submitted data for asset"
 msgstr "Varlık için gönderilen verileri değiştirebilir"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:341
 msgid "Can delete submitted data for asset"
 msgstr "Varlık için gönderilen verileri silebilir"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:342
 msgid "Can validate submitted data asset"
 msgstr "Gönderilen veri varlığını doğrulayabilir"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "project"
 msgstr "proje"
 
-#: kpi/models/asset.py:338
+#: kpi/models/asset.py:361
 msgid "form"
 msgstr "form"
 
-#: kpi/models/asset.py:340
+#: kpi/models/asset.py:363
 msgid "template"
 msgstr "şablon"
 
-#: kpi/models/asset.py:341
+#: kpi/models/asset.py:364
 msgid "block"
 msgstr "blok"
 
-#: kpi/models/asset.py:342
+#: kpi/models/asset.py:365
 msgid "question"
 msgstr "soru"
 
-#: kpi/models/asset.py:343
+#: kpi/models/asset.py:366
 msgid "text"
 msgstr "metin"
 
-#: kpi/models/asset.py:344
+#: kpi/models/asset.py:367
 msgid "empty"
 msgstr "boş"
 
-#: kpi/models/asset.py:345
+#: kpi/models/asset.py:368
 msgid "collection"
 msgstr "koleksiyon"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:375
 msgid "View ##asset_type_label##"
 msgstr "##asset_type_label## öğesini görüntüleyin"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:376
 msgid "Edit ##asset_type_label##"
 msgstr "##asset_type_label## öğesini düzenleyin"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:377
 msgid "Discover ##asset_type_label##"
 msgstr "##asset_type_label## öğesini keşfedin"
 
-#: kpi/models/asset.py:355
+#: kpi/models/asset.py:378
 msgid "Manage ##asset_type_label##"
 msgstr "##asset_type_label## öğesini yönetin"
 
-#: kpi/models/asset.py:356
+#: kpi/models/asset.py:379
 msgid "Add submissions"
 msgstr "Gönderim ekleyin"
 
-#: kpi/models/asset.py:357
+#: kpi/models/asset.py:380
 msgid "View submissions"
 msgstr "Gönderimleri görüntüleyin"
 
-#: kpi/models/asset.py:360
+#: kpi/models/asset.py:383
 msgid "Act on submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimler üzerinde işlem yapın"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:386
 msgid "View submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri görüntüleyin"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:389
 msgid "Edit submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri düzenleyin"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:392
 msgid "Delete submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri silin"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:395
 msgid "Validate submissions only from specific users"
 msgstr "Yalnızca belirli kullanıcılardan gelen gönderimleri doğrulayın"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:398
 msgid "Edit submissions"
 msgstr "Gönderimleri düzenleyin"
 
-#: kpi/models/asset.py:376
+#: kpi/models/asset.py:399
 msgid "Delete submissions"
 msgstr "Gönderimleri silin"
 
-#: kpi/models/asset.py:377
+#: kpi/models/asset.py:400
 msgid "Validate submissions"
 msgstr "Gönderimleri doğrulayın"
 
-#: kpi/models/asset.py:734
+#: kpi/models/asset.py:768
 msgid "Only partial permissions for submissions are supported"
 msgstr "Gönderimler için yalnızca kısmi izinler desteklenmektedir"
 
-#: kpi/models/asset.py:1463
+#: kpi/models/asset.py:1497
 msgid "Can not assign '{}' permission to owner"
 msgstr "Bu kişiye '{}' izni atanamaz"
 
-#: kpi/models/asset.py:1467
+#: kpi/models/asset.py:1501
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Bu kişiye '{}' izni atanamaz. Kısmi izinler eksik."
 

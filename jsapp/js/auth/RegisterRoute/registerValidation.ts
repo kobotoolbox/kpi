@@ -1,5 +1,5 @@
 import type { SocialApp } from '#/api/models/socialApp'
-import { getRequiredFieldMessage, validateEmailFormat, validateRequiredField } from '#/auth/authValidation'
+import { getRequiredFieldMessage, validateEmailFormat } from '#/auth/authValidation'
 
 /**
  * Client side validation for the registration form. The backend is authoritative, so this only saves a
@@ -9,9 +9,6 @@ import { getRequiredFieldMessage, validateEmailFormat, validateRequiredField } f
 /** Same as in `kobo/apps/accounts/validators.py` */
 const USERNAME_PATTERN = /^[a-z][a-z0-9_]+$/
 const USERNAME_MAX_LENGTH = 30
-
-/** Nothing to check past it being filled in: names are free form, and deliberately so. */
-export const validateFullName = validateRequiredField
 
 export function validateUsername(value: string): string | null {
   if (!value.trim()) {
@@ -25,7 +22,8 @@ export function validateUsername(value: string): string | null {
   return null
 }
 
-export function validateTermsOfService(value: boolean): string | null {
+/** For the checkboxes that have to be ticked: the legal agreement, and a newsletter opt in made mandatory. */
+export function validateRequiredCheckbox(value: boolean): string | null {
   return value ? null : getRequiredFieldMessage()
 }
 

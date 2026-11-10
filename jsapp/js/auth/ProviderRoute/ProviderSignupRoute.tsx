@@ -334,6 +334,7 @@ export default function ProviderSignupRoute({ onAuthenticated = goToPage }: Prov
             email: email.find((address) => address.primary)?.email ?? email[0]?.email ?? '',
             username: user.username,
           }}
+          isTermsOfServiceRequired={environment?.termsOfServiceRequired}
           termsOfServiceUrl={environment?.termsOfServiceUrl}
           privacyPolicyUrl={environment?.privacyPolicyUrl}
           isConfigurationPending={isEnvironmentPending}

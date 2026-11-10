@@ -1,5 +1,10 @@
 import chai from 'chai'
-import { getPendingFlowIds, isPendingEmailVerification, splitAllauthErrors } from './allauthErrors'
+import {
+  getFirstAllauthErrorCode,
+  getPendingFlowIds,
+  isPendingEmailVerification,
+  splitAllauthErrors,
+} from './allauthErrors'
 
 /** Mirrors what `fetchAllauth` hands to react-query: the parsed body, plus the status it came with. */
 function allauthResponse(status: number, data: unknown) {
@@ -91,6 +96,30 @@ describe('splitAllauthErrors', () => {
 
     chai.expect(fieldErrors).to.deep.equal({})
     chai.expect(formErrors).to.deep.equal(['Something went wrong. Please try again later.'])
+  })
+})
+
+describe('getFirstAllauthErrorCode', () => {
+  it('reads the code of a refusal', () => {
+    const response = allauthResponse(400, {
+      status: 400,
+      errors: [{ code: 'no_password', message: 'Your account has no password set up.' }],
+    })
+
+    chai.expect(getFirstAllauthErrorCode(response)).to.equal('no_password')
+  })
+
+  it('skips an entry with no code', () => {
+    const response = allauthResponse(400, {
+      status: 400,
+      errors: [{ message: 'Nope.' }, { code: 'no_verified_email', message: 'No verified address.' }],
+    })
+
+    chai.expect(getFirstAllauthErrorCode(response)).to.equal('no_verified_email')
+  })
+
+  it('returns undefined for a body with no errors, such as a 409', () => {
+    chai.expect(getFirstAllauthErrorCode(allauthResponse(409, { status: 409 }))).to.equal(undefined)
   })
 })
 

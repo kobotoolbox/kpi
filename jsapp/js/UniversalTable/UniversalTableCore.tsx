@@ -10,7 +10,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import cx from 'classnames'
-import { type CSSProperties, type default as React, useCallback, useEffect, useRef, useState } from 'react'
+import { type CSSProperties, type default as React, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -172,20 +172,24 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
     }
   }
 
-  const columns = props.columns.map((columnDef) => {
-    return {
-      accessorKey: columnDef.key,
-      header: () => columnDef.label,
-      cell: (cellProps: CellContext<DataItem, string>) => {
-        if (columnDef.cellFormatter) {
-          return columnDef.cellFormatter(cellProps.row.original, cellProps.row.index)
-        } else {
-          return cellProps.renderValue()
-        }
-      },
-      size: columnDef.size || DEFAULT_COLUMN_SIZE.size,
-    }
-  })
+  // `flexRender` treats `header` and `cell` as component types, so fresh functions on every
+  // render would remount every cell (and drop focus from any input inside one).
+  const columns = useMemo(
+    () =>
+      props.columns.map((columnDef) => ({
+        accessorKey: columnDef.key,
+        header: () => columnDef.label,
+        cell: (cellProps: CellContext<DataItem, string>) => {
+          if (columnDef.cellFormatter) {
+            return columnDef.cellFormatter(cellProps.row.original, cellProps.row.index)
+          } else {
+            return cellProps.renderValue()
+          }
+        },
+        size: columnDef.size || DEFAULT_COLUMN_SIZE.size,
+      })),
+    [props.columns],
+  )
 
   // Lookup of which columns flex, keyed by column id (i.e. the user-facing
   // `key` we pass through as `accessorKey`).

@@ -4,6 +4,7 @@ import type { AssetContent } from '#/dataInterface'
 import type { KoboMatrixPlainData } from '#/formbuild/containers/KoboMatrix'
 import { recordKeys } from '#/utils'
 import type { FlatChoice, FlatRow, FlatSurvey, Survey } from '../../../xlform/src/model.survey'
+import { getFormLanguages } from './importLanguages'
 
 /**
  * Asset type could be either the loaded asset type (editing an existing form)
@@ -94,6 +95,10 @@ export function unnullifyTranslations(surveyDataJSON: string, surveyInitialParam
         })
       })
     }
+
+    // Without a list in the JSON the backend keeps its stored one, which is `[null]` for a form that had no language.
+    // That stale null returns as an unnamed language beside the ones we just named, and then won't reopen.
+    surveyData.translations = [defaultLang, ...(surveyInitialParams.translations ?? []).slice(1)]
   }
 
   return JSON.stringify(surveyData)
@@ -116,9 +121,8 @@ interface NullifiedTranslations {
 /**
  * Applies `rewrite` to every translated value of every row, in place.
  *
- * Both `survey` and `choices` index translated values by the form's `translations`, so any change to that list has to
- * be mirrored in both sheets or choice labels end up under the wrong language. Assets with a single language store a
- * plain string, which is normalized to an array first.
+ * Both sheets index their values by the same `translations` list, so a change to it has to reach both or choice
+ * labels end up under the wrong language. A single-language asset's plain string is normalized to an array first.
  */
 function rewriteTranslatedValues(
   sheets: Array<Array<FlatRow | FlatChoice>>,
@@ -134,6 +138,20 @@ function rewriteTranslatedValues(
         }
         row[translatedProp] = rewrite(Array.isArray(value) ? value : [value], row)
       }
+    }
+  }
+}
+
+/**
+ * Copies the backend's generated name into `name` for rows that don't have one.
+ *
+ * `Row.finalize()` builds a missing name out of the default language's label, and an import can legitimately leave
+ * that slot blank. It throws on a blank one, halfway through `insertSurvey()`, so the rest of the block never lands.
+ */
+function preserveGeneratedNames(survey: FlatRow[]) {
+  for (const row of survey) {
+    if (!row.name && typeof row.$autoname === 'string' && row.$autoname !== '') {
+      row.name = row.$autoname
     }
   }
 }
@@ -181,54 +199,41 @@ export function nullifyTranslations(
 
   /*
   TRANSLATIONS HACK (Part 1/2):
-  all the coffee code assumes first language to be null, and we don't want
-  to introduce potential code-breaking refactor in old code, so we store
-  first language, then replace with null and reverse this just before saving
-  NOTE: when importing assets from Library into form, we need to make sure
-  the default language is the same (or force baseSurvey default language)
+  all the coffee code assumes first language to be null, and we don't want to introduce potential code-breaking refactor
+  in old code, so we store first language, then replace with null and reverse this just before saving
+  NOTE: `baseSurvey` means this is a Library import, so its values also have to be lined up against the form languages
   */
   if (baseSurvey) {
-    const formDefaultLang = baseSurvey._initialParams.translations_0 || null
-    const hasOwnLanguage = data.translations.length > 1 || data.translations[0] !== null
+    const formLanguages = getFormLanguages(baseSurvey._initialParams)
+    const assetNamesALanguage = data.translations.length > 1 || data.translations[0] !== null
+    const formNamesALanguage = formLanguages.some((language) => language !== null)
 
-    if (!hasOwnLanguage) {
-      // case 1: imported asset has no language of its own, so its values
-      // already sit in the single slot the form's default language uses
-    } else if (formDefaultLang === null) {
-      // case 2: the form has no named language, so there is nowhere to put one
-      // (mixing unnamed with named is what the throw above rejects). Keep the
-      // asset's default language values and drop its other translations.
-      // TODO: adopt the asset's languages instead of dropping them, once we settle
-      // on how the form's default language gets named.
+    // An asset that names no language is left alone: its one value already sits in the form's default slot.
+    if (assetNamesALanguage && !formNamesALanguage) {
+      // Nothing to line the asset's names up against, so its default values share the form's unnamed slot and the
+      // names are dropped. A multi-language asset never gets here - `resolveImportLanguages` blocks it.
       data.translations = [null]
       rewriteTranslatedValues(sheets, props, (values) => [values[0]])
-    } else if (data.translations[0] === formDefaultLang) {
-      // case 3: nothing to do - same default language in both
-    } else if (data.translations.includes(formDefaultLang)) {
-      // case 4: imported asset has form default language but not as first, so
-      // we need to reorder things
-      const defaultLangIndex = data.translations.indexOf(formDefaultLang)
+    } else if (assetNamesALanguage) {
+      // Missing languages go at the end, as the "add these languages" prompt promised. A discard answer strips them
+      // from the content earlier.
+      const targetLanguages = [...formLanguages]
+      for (const language of data.translations) {
+        if (language && !targetLanguages.includes(language)) {
+          targetLanguages.push(language)
+        }
+      }
 
-      // Remove default lang, then place it at the beginning
-      data.translations.splice(defaultLangIndex, 1)
-      data.translations.unshift(formDefaultLang)
+      // Where each target slot's value sits in the asset's list (`-1` = nothing there). Read before the replacement.
+      const assetIndexes = targetLanguages.map((language) => data.translations.indexOf(language))
 
-      rewriteTranslatedValues(sheets, props, (values) => {
-        // Pick the default lang translation, then place it at the beginning
-        const defaultLangTranslation = values.splice(defaultLangIndex, 1)[0]
-        values.unshift(defaultLangTranslation)
-        return values
-      })
-    } else {
-      // case 5: imported asset doesn't have form default language, so we force
-      // it onto the asset as the first language. Formbuilder renders that first
-      // slot, so it gets the asset's own default label - the question name only
-      // stands in when there is no label at all.
-      data.translations.unshift(formDefaultLang)
-      rewriteTranslatedValues(sheets, props, (values, row) => {
-        values.unshift(values[0] || row.name || row.$autoname || null)
-        return values
-      })
+      data.translations = targetLanguages
+      // Done before the rewrite, which is what can leave the label a row would be named after blank
+      preserveGeneratedNames(data.survey)
+      // An empty slot beats a copy of another language, which would read like a real translation
+      rewriteTranslatedValues(sheets, props, (values) =>
+        assetIndexes.map((assetIndex) => (assetIndex === -1 ? null : (values[assetIndex] ?? null))),
+      )
     }
   }
 

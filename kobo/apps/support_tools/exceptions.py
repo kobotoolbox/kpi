@@ -1,0 +1,2 @@
+class ProjectAlreadyBeingRestoredError(Exception):
+    pass

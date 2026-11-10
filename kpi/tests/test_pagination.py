@@ -1,6 +1,8 @@
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.db import OperationalError, connection, models
+from django.db.models import Count
 from django.db.models.expressions import RawSQL
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
@@ -11,12 +13,43 @@ from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import LIMITED_COUNT_MANY, LIMITED_COUNT_UNKNOWN
-from kpi.paginators import DefaultPagination, LimitedCountPagination, NoCountPagination
+from kpi.paginators import (
+    DataPagination,
+    DefaultPagination,
+    LimitedCountPagination,
+    NoCountPagination,
+)
 
 
 class PassThroughSerializer(serializers.BaseSerializer):
     def to_representation(self, item):
         return item
+
+
+class TestDataPagination(TestCase):
+
+    def test_paginate_queryset_peeks_one_row_past_the_page(self):
+        """
+        Test that the extra row fetched past the page sets `next` without being
+        returned, and that the count comes from the view's deployment
+        """
+        deployment = SimpleNamespace(current_submission_count=LIMITED_COUNT_MANY)
+        view = SimpleNamespace(asset=SimpleNamespace(deployment=deployment))
+        request = Request(APIRequestFactory().get('/', {'start': 4, 'limit': 2}))
+        paginator = DataPagination()
+
+        page = paginator.paginate_queryset(
+            iter([{'_id': 5}, {'_id': 6}, {'_id': 7}]), request, view
+        )
+
+        assert page == [{'_id': 5}, {'_id': 6}]
+        assert paginator.count == LIMITED_COUNT_MANY
+        assert 'start=6' in paginator.get_next_link()
+
+        page = paginator.paginate_queryset(iter([{'_id': 5}]), request, view)
+
+        assert page == [{'_id': 5}]
+        assert paginator.get_next_link() is None
 
 
 class TestDefaultPagination(TestCase):
@@ -212,6 +245,39 @@ class TestLimitedCountPagination(TestCase):
         assert paginator.get_next_link() is None
         # The exact count already proves the page is empty: no page query
         assert len(ctx.captured_queries) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=100)
+    def test_grouped_values_queryset_counts_groups(self):
+        self._make_users(4)
+        queryset = self._queryset().values('is_active').annotate(n=Count('pk'))
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=1)
+    def test_grouped_values_queryset_capped_by_groups_not_rows(self):
+        # Three rows but one group: the cap applies to the groups listed
+        self._make_users(3)
+        queryset = self._queryset().values('is_active').annotate(n=Count('pk'))
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_MAX=100)
+    def test_distinct_values_queryset_counts_distinct_values(self):
+        # Two users share a first name: narrowing to `pk` would count 2
+        baker.make(User, username='lcp_a', first_name='Ada')
+        baker.make(User, username='lcp_b', first_name='Ada')
+        queryset = self._queryset().values('first_name').distinct()
+        paginator = LimitedCountPagination()
+        assert paginator.get_count(queryset) == 1
+
+    @override_settings(API_LIMITED_COUNT_TIMEOUT=0, API_LIMITED_COUNT_MAX=100)
+    def test_distinct_model_queryset_is_narrowed_to_pk(self):
+        self._make_users(2)
+        paginator = LimitedCountPagination()
+        with CaptureQueriesContext(connection) as ctx:
+            assert paginator.get_count(self._queryset().distinct()) == 2
+        # DISTINCT runs on `id` alone, not on every column
+        assert '"email"' not in ctx.captured_queries[-1]['sql']
 
     def _make_users(self, count):
         for i in range(count):

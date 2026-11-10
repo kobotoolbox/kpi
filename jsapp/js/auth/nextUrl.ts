@@ -1,6 +1,5 @@
 import { ROOT_URL } from '#/constants'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
-import { isReauthenticationRoutePath } from './flowRoutes'
 
 // Reading and writing `?next=` - the route to go to once authentication is out of the way.
 //
@@ -54,26 +53,22 @@ export function resolveNextRoute(rawNext: string | null, origin: Origin): string
 }
 
 /** Screens that exist only to send you onward, which is why `next` must never point at one */
-function isAuthenticationScreen(routePath: string): boolean {
-  return routePath.startsWith(ROUTES.AUTH_ROOT) || isReauthenticationRoutePath(routePath)
+export function isAuthenticationScreen(routePath: string): boolean {
+  return routePath.startsWith(ROUTES.AUTH_ROOT)
 }
 
-/** An authentication screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */
-export function getRouteWithNext(routePath: string, currentRoute: string | null): string {
+/** The login screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */
+export function getLoginRouteWithNext(currentRoute: string | null): string {
   if (!currentRoute) {
-    return routePath
+    return AUTH_ROUTES.LOGIN
   }
-  // The checks want the path alone, but the parameter keeps the query string: that is half of what made it the page.
+  // The check wants the path alone, but the parameter keeps the query string: that is half of what made it the page.
   const [currentPath] = currentRoute.split('?')
-  if (currentPath === routePath || isAuthenticationScreen(currentPath)) {
-    return routePath
+  if (isAuthenticationScreen(currentPath)) {
+    return AUTH_ROUTES.LOGIN
   }
   const params = new URLSearchParams({ next: `/#${currentRoute}` })
-  return `${routePath}?${params}`
-}
-
-export function getLoginRouteWithNext(currentRoute: string | null): string {
-  return getRouteWithNext(AUTH_ROUTES.LOGIN, currentRoute)
+  return `${AUTH_ROUTES.LOGIN}?${params}`
 }
 
 /**
@@ -90,8 +85,11 @@ export function getUrlForNextRoute(routePath: string | null, appRootUrl = ROOT_U
   return routePath === null ? `${appRootUrl}/` : `${appRootUrl}/#${routePath}`
 }
 
-/** Just the bits of `window.location` leaving a page needs */
-type Navigable = Pick<Location, 'href' | 'assign' | 'reload'>
+/** Just the bits of `window` leaving a page needs */
+interface Navigable {
+  location: Pick<Location, 'href' | 'assign' | 'reload'>
+  history: Pick<History, 'pushState'>
+}
 
 /** The document an address names - everything in it but the fragment */
 const documentUrl = (url: URL) => `${url.origin}${url.pathname}${url.search}`
@@ -102,9 +100,9 @@ const documentUrl = (url: URL) => `${url.origin}${url.pathname}${url.search}`
  * The load is the whole point - see {@link getUrlForNextRoute} - and a destination differing only by its fragment is
  * one the browser moves the address for without loading anything, hence asking for the load outright.
  *
- * @param location for testing
+ * @param browser for testing
  */
-export function goToPage(url: string | null, location: Navigable = window.location): void {
+export function goToPage(url: string | null, { location, history }: Navigable = window): void {
   if (url === null) {
     location.reload()
     return
@@ -114,9 +112,12 @@ export function goToPage(url: string | null, location: Navigable = window.locati
   const there = new URL(url, here)
   const isMoveWithinPage = there.hash !== '' && documentUrl(there) === documentUrl(here)
 
-  location.assign(url)
-  // The address has moved already, so this loads the destination rather than where we came from
   if (isMoveWithinPage) {
+    // Not `assign`: its `hashchange` would make the router render the destination with stale data before the reload
+    history.pushState(null, '', url)
     location.reload()
+    return
   }
+
+  location.assign(url)
 }

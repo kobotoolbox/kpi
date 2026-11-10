@@ -1,12 +1,12 @@
-import { Checkbox, Stack, Text, Title } from '@mantine/core'
+import { Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useAllauthBrowserV1AuthProviderSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
-import { validateTermsOfService, validateUsername } from '#/auth/RegisterRoute/registerValidation'
+import { validateRequiredCheckbox, validateUsername } from '#/auth/RegisterRoute/registerValidation'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateEmailFormat } from '#/auth/authValidation'
-import { legalSentence } from '#/auth/legalAgreement'
+import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
 import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
@@ -41,6 +41,8 @@ export interface ProviderSignupFormProps {
   providerName: string
   /** Blank where the provider told us nothing, which is what this form exists to fill in. */
   initialValues: ProviderSignupPrefill
+  /** Whether the server requires the legal agreement, and so whether there is a checkbox at all. */
+  isTermsOfServiceRequired: boolean | undefined
   termsOfServiceUrl: string | null | undefined
   privacyPolicyUrl: string | null | undefined
   /** Blocks submitting until `/environment` loads, since the legal agreement comes from it */
@@ -57,12 +59,14 @@ export interface ProviderSignupFormProps {
 export default function ProviderSignupForm({
   providerName,
   initialValues,
+  isTermsOfServiceRequired,
   termsOfServiceUrl,
   privacyPolicyUrl,
   isConfigurationPending,
   onOutcome,
 }: ProviderSignupFormProps) {
-  const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
+  // The server rejects any address but the provider's, so only a missing one can be typed in.
+  const isEmailLocked = initialValues.email !== ''
 
   const form = useForm<ProviderSignupFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
@@ -74,9 +78,9 @@ export default function ProviderSignupForm({
       // told to use SSO while using SSO. Needs the backend fix DEV-3004.
       email: validateEmailFormat,
       username: validateUsername,
-      // No checkbox to tick when there is no legal document. Mantine reads these rules fresh on every render,
-      // so this follows the label once `/environment` lands.
-      termsOfService: legalLabel ? validateTermsOfService : undefined,
+      // No checkbox to tick where the server asks for no agreement. Mantine reads these rules fresh on every
+      // render, so this follows the checkbox once `/environment` lands.
+      termsOfService: isTermsOfServiceRequired ? validateRequiredCheckbox : undefined,
     },
   })
 
@@ -171,6 +175,8 @@ export default function ProviderSignupForm({
               autoComplete='email'
               key={form.key('email')}
               {...withAuthFieldError(form.getInputProps('email'))}
+              // Not `disabled`, so it stays focusable, copyable and read out by screen readers.
+              readOnly={isEmailLocked}
               required
             />
             <TextInput
@@ -182,13 +188,13 @@ export default function ProviderSignupForm({
             />
           </Stack>
 
-          {legalLabel && (
-            <Checkbox
-              label={legalLabel}
-              key={form.key('termsOfService')}
-              {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
-            />
-          )}
+          <TermsOfServiceCheckbox
+            isRequired={isTermsOfServiceRequired}
+            termsOfServiceUrl={termsOfServiceUrl}
+            privacyPolicyUrl={privacyPolicyUrl}
+            key={form.key('termsOfService')}
+            {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
+          />
 
           <ButtonNew
             type='submit'

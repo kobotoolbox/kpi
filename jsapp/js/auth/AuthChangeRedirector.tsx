@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { isNewestReadingFromOwnCall } from './authChangeWatcher'
 import { type RedirectContext, redirectForAuthChange } from './authRedirects'
 import { type AuthStatus, determineAuthChangeEvent } from './authStatus'
 import { goToPage } from './nextUrl'
@@ -7,8 +8,12 @@ import { useAuthStatus } from './useAuthStatus'
 import { useNextRoute } from './useNextRoute'
 
 /**
- * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing
- * on a route with an already dead session is `RequireAuth`'s job. Where each change leads is `#/auth/authRedirects`.
+ * Redirects when the session changes underneath the page (acts only on a difference between two readings). Landing on
+ * a route with an already dead session is `RequireAuth`'s job, and arriving at a sign-in screen with a live one is
+ * `RequireAnonymous`'s. Where each change leads is `#/auth/authRedirects`.
+ *
+ * Readings come from every allauth answer, not just the session poll (see `#/auth/authChangeWatcher`).
+ *
  * Renders nothing. Mount it inside a router and a `QueryClientProvider`.
  */
 export default function AuthChangeRedirector() {
@@ -47,7 +52,9 @@ export default function AuthChangeRedirector() {
 
     const event = determineAuthChangeEvent(previousStatus, authStatus)
     if (event) {
-      redirectForAuthChange(event, authStatus, contextRef.current)
+      // Provenance read here, not during render: it belongs to the reading being acted on, not to whatever lands later.
+      const change = { event, isReadingFromOwnCall: isNewestReadingFromOwnCall() }
+      redirectForAuthChange(change, contextRef.current)
     }
   }, [authStatus])
 

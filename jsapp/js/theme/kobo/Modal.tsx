@@ -16,6 +16,7 @@ export const KOBO_MODAL_SHARED_PROPS = {
   overlayProps: KOBO_MODAL_OVERLAY_PROPS,
   closeButtonProps: {
     icon: <KoboIcon icon={IconX} />,
+    'aria-label': t('Close'),
   },
   padding: 'lg',
   centered: true,

@@ -1,23 +1,23 @@
-import json
+import base64
 from copy import deepcopy
-from dataclasses import dataclass
-from json import JSONDecodeError
+from io import BytesIO
+from math import floor, sqrt
 from typing import Optional
 from xml.sax.saxutils import escape
 
-import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
-from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
+from openai import OpenAIError
+from PIL import Image, ImageOps, UnidentifiedImageError
+from pillow_heif import register_heif_opener
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
-from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
+from kobo.apps.subsequences.actions.mixins import RequiresAdditionalSource
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
-    DEPENDENCY_SOURCE_SUBMISSION,
+    IMAGE_SOURCE_TYPE,
     QUAL_SOURCE_TYPES,
     QUESTION_TYPE_INTEGER,
     QUESTION_TYPE_NOTE,
@@ -25,10 +25,13 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
     SOURCE_TYPE_AUTOMATIC,
+    TEXT_SOURCE_TYPE,
 )
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
+    InvalidImageDimensions,
+    InvalidImageFile,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.prompts import (
@@ -50,49 +53,23 @@ from kobo.apps.subsequences.prompts import (
     response_placeholder,
 )
 from kobo.apps.trackers.utils import update_nlp_counter
+from kpi.deployment_backends.kc_access.storage import (
+    default_kobocat_storage as default_storage,
+)
+from kpi.exceptions import AttachmentNotFoundException
 from kpi.utils.log import logging
-
-
-@dataclass
-class LLModel:
-    model_arn: str
-    model_id: str
-    path_to_response: str
-    supports_reasoning: bool
-
-    def __repr__(self):
-        return self.model_id
-
-    @staticmethod
-    def traverse_path(path_str: str, response_dict: dict) -> str:
-        path = path_str.split('.')
-        current_level = response_dict
-        for path_component in path:
-            if path_component.isdigit():
-                current_level = current_level[int(path_component)]
-            else:
-                current_level = current_level[path_component]
-        return current_level
-
-    def get_response_text(self, response_dict):
-        return self.traverse_path(self.path_to_response, response_dict)
-
-
-ClaudeSonnet = LLModel(
-    model_arn=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
-    model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-    path_to_response='content.0.text',
-    supports_reasoning=False,
-)
-OSS120 = LLModel(
-    model_id='openai.gpt-oss-120b-1:0',
-    model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
-    path_to_response='choices.0.message.content',
-    supports_reasoning=True,
+from .automatic_bedrock_qual_utils import (
+    CLIENTS_BY_NAME,
+    OSS120,
+    ClaudeSonnet,
+    Gemma4,
+    LLModel,
 )
 
+MAX_IMAGE_PIXELS = 645120  # pixel area of Gemma 4's default budget of 280 tokens
 
-class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
+
+class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
 
     ID = 'automatic_bedrock_qual'
     allowed_source_types = QUAL_SOURCE_TYPES
@@ -140,15 +117,45 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
         super().check_limits(user, action_data)
 
-    def create_bedrock_client(self):
-        return boto3.client(
-            service_name='bedrock-runtime',
-            region_name=settings.AWS_BEDROCK_REGION_NAME,
-            config=Config(
-                read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
-                connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
-            ),
-        )
+    def construct_external_request(self, action_data, submission):
+        survey_question_type = action_data['_dependency'].get('_question_type')
+        prompt = self.generate_llm_text_prompt(action_data, submission)
+        if survey_question_type == IMAGE_SOURCE_TYPE:
+            attachments = submission.get('_attachments', [])
+            try:
+                attachment = next(
+                    a
+                    for a in attachments
+                    if a.get('question_xpath') == self.source_question_xpath
+                )
+                image_bytes = self.format_image_for_llm(attachment)
+                return self.construct_image_request(prompt, image_bytes)
+            except (FileNotFoundError, StopIteration):
+                raise AttachmentNotFoundException()
+        else:
+            return self.construct_text_request(prompt)
+
+    def construct_image_request(self, prompt, image_bytes):
+        return {
+            'role': 'user',
+            'content': [
+                {'type': 'input_text', 'text': prompt},
+                {
+                    'type': 'input_image',
+                    'image_url': f'data:image/jpeg;base64,{image_bytes}',
+                },
+            ],
+        }
+
+    def construct_text_request(self, prompt):
+        return {
+            'anthropic_version': 'bedrock-2023-05-31',
+            'max_tokens': MAX_TOKENS,
+            'temperature': MODEL_TEMPERATURE,  # keep model from getting too creative
+            'messages': [
+                {'role': 'user', 'content': prompt},
+            ],
+        }
 
     @property
     def data_schema(self):
@@ -250,42 +257,77 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             except QuestionAdvancedFeature.DoesNotExist:
                 raise ManualQualNotFound
 
+    def format_image_for_llm(self, attachment_dict: dict) -> str:
+        """
+        Return b64-encoded image, converted to jpg and resized if necessary
+        to fit maximum size limits
+        """
+        filename = attachment_dict.get('filename')
+        register_heif_opener()
+
+        with default_storage.open(filename) as fp:
+            raw_bytes = fp.read()
+            in_buffer = BytesIO(raw_bytes)
+            out_buffer = BytesIO()
+            try:
+                with Image.open(in_buffer) as image:
+                    width, height = image.size
+                    total_pixels = width * height
+                    if total_pixels > MAX_IMAGE_PIXELS:
+                        max_height = floor(
+                            height * sqrt(MAX_IMAGE_PIXELS / total_pixels)
+                        )
+                        max_width = floor(width * sqrt(MAX_IMAGE_PIXELS / total_pixels))
+                        if max_height == 0 or max_width == 0:
+                            raise InvalidImageDimensions
+                        image.thumbnail((max_width, max_height), Image.LANCZOS)
+                    ImageOps.exif_transpose(image, in_place=True)
+                    if image.has_transparency_data:
+                        # put transparent images on a white background
+                        white_bg = Image.new('RGBA', image.size, 'WHITE')
+                        image = Image.alpha_composite(white_bg, image.convert('RGBA'))
+                    image = image.convert('RGB')
+                    image.save(out_buffer, format='JPEG', quality=90)
+            except (
+                Image.DecompressionBombWarning,
+                UnidentifiedImageError,
+                OSError,  # PIL raises an OSError if the image file is truncated
+            ) as e:
+                raise InvalidImageFile() from e
+        return base64.b64encode(out_buffer.getvalue()).decode()
+
     def get_output_fields(self) -> list[dict]:
         return []
 
-    def generate_llm_prompt(self, action_data: dict, submission: dict) -> str:
+    def generate_llm_text_prompt(self, action_data: dict, submission: dict) -> str:
         """
         Generate the prompt that will be sent to the llm
         """
-        # The source text is either the transcript from a dependency or, for a
-        # direct-text source question, read straight from the submission.
-        if action_data['_dependency'].get(self.ACTION_ID_FIELD) == (
-            DEPENDENCY_SOURCE_SUBMISSION
-        ):
-            source_text = escape(str(submission.get(self.source_question_xpath) or ''))
-        else:
-            source_text = escape(action_data['_dependency']['value'])
+        # get the correct template based on the source and QA question types
         question_uuid = action_data['uuid']
         qa_question = self._get_question(question_uuid)
         question_text = escape(qa_question['labels']['_default'])
         question_type = qa_question['type']
+        source_question_type = action_data['_dependency'].get('_question_type')
+        prompt_template = get_prompt_template(source_question_type, question_type)
+        if source_question_type == TEXT_SOURCE_TYPE:
+            # source text is survey answer, stored on the submission
+            source_text = escape(str(submission.get(self.source_question_xpath) or ''))
+            prompt_template = prompt_template.replace(response_placeholder, source_text)
+        elif source_question_type != IMAGE_SOURCE_TYPE:
+            # source text is transcript, stored in the dependency
+            source_text = escape(action_data['_dependency']['value'])
+            prompt_template = prompt_template.replace(response_placeholder, source_text)
+
         raw_hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
         hint = raw_hint and escape(raw_hint)
         hint = f' {format_hint(hint)}' if hint else ''
-
-        # get the correct template based on the source and QA question types
-        prompt_template = get_prompt_template(
-            self.get_source_question_type(), question_type
-        )
-
         # if it's not a select question, we only need the source text and the
         # question text to fill out the prompt
         if question_type not in SELECT_QUESTIONS:
-            return (
-                prompt_template.replace(response_placeholder, source_text)
-                .replace(analysis_question_placeholder, question_text)
-                .replace(hint_placeholder, hint)
-            )
+            return prompt_template.replace(
+                analysis_question_placeholder, question_text
+            ).replace(hint_placeholder, hint)
         else:
             # for select questions, need to get all the choices
             visible_choices = self._get_visible_choices(qa_question)
@@ -302,13 +344,17 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
             return (
-                prompt_template.replace(response_placeholder, source_text)
-                .replace(analysis_question_placeholder, question_text)
+                prompt_template.replace(analysis_question_placeholder, question_text)
                 .replace(num_choice_placeholder, str(choices_count))
                 .replace(example_format_placeholder, example_format)
                 .replace(choices_list_placeholder, choices_text)
                 .replace(hint_placeholder, hint)
             )
+
+    # separated out for easier testing
+    def get_clients_for_models(self, models):
+        client_ids = set([model.client_id for model in models])
+        return {client_id: CLIENTS_BY_NAME[client_id]() for client_id in client_ids}
 
     def get_question_params(self):
         from kobo.apps.subsequences.actions import ManualQualAction
@@ -319,42 +365,11 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
         ]
 
-    def get_response_from_llm(self, prompt: str, model: LLModel) -> str:
-        request = {
-            'anthropic_version': 'bedrock-2023-05-31',
-            'max_tokens': MAX_TOKENS,
-            'temperature': MODEL_TEMPERATURE,  # keep model from getting too creative
-            'messages': [
-                {'role': 'user', 'content': prompt},
-            ],
-        }
-
-        if model.supports_reasoning:
-            # invoke_model raises an error if you try to disable reasoning
-            # on a model that doesn't support it in the first place
-            request['include_reasoning'] = False
-
-        response = self.client.invoke_model(
-            modelId=model.model_arn,
-            body=json.dumps(request),
-        )
-        try:
-            response_body = json.loads(response['body'].read())
-            if request := get_current_request():
-                request.llm_response = {
-                    'request_id': response['ResponseMetadata']['RequestId'],
-                    'model': model.model_id,
-                }
-            return model.get_response_text(response_body)
-        except (JSONDecodeError, IndexError, KeyError) as e:
-            # the response isn't in the form we expected
-            if request := get_current_request():
-                request.llm_response = {
-                    'error': 'Unable to extract answer from LLM response object',
-                }
-            raise InvalidResponseFromLLMException(
-                'Unable to extract answer from LLM response object'
-            ) from e
+    def get_response_from_llm(
+        self, clients_by_type, request_data: dict, model: LLModel
+    ) -> str:
+        client = clients_by_type[model.client_id]
+        return client.get_response_from_llm(request_data, model)
 
     @classproperty
     def params_schema(cls):
@@ -449,20 +464,37 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question_uuid = action_data['uuid']
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']
-        prompt = self.generate_llm_prompt(action_data, submission)
+        survey_question_type = action_data['_dependency'].get('_question_type')
         error = ''
-        self.client = self.create_bedrock_client()
+
+        request = self.construct_external_request(action_data, submission)
+
+        # For now, hardcode models for each question type. Eventually this will be
+        # configurable
+        if survey_question_type == IMAGE_SOURCE_TYPE:
+            models = [Gemma4]
+        else:
+            models = [OSS120, ClaudeSonnet]
+
+        try:
+            clients_by_type = self.get_clients_for_models(models)
+        except (ClientError, OpenAIError, ConnectTimeoutError) as e:
+            if current_request := get_current_request():
+                current_request.llm_response = {'error': f'{e}'}
+            return {'status': 'failed', 'error': f'{e}'}
+
         update_nlp_counter(
             'bedrock_llm_requests',
             1,
             self.asset.owner_id,
             self.asset.id,
         )
-        # for now, hardcode OSS to be primary and Claude to be backup
-        # eventually this will be configurable
-        for index, model in enumerate([OSS120, ClaudeSonnet]):
+
+        for index, model in enumerate(models):
             try:
-                full_response_text = self.get_response_from_llm(prompt, model)
+                full_response_text = self.get_response_from_llm(
+                    clients_by_type, request, model
+                )
                 # edge case: sometimes the LLM returns None
                 if full_response_text is None:
                     raise InvalidResponseFromLLMException('LLM returned empty response')
@@ -502,8 +534,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 ClientError,
                 ReadTimeoutError,
                 ConnectTimeoutError,
+                OpenAIError,
             ) as e:
-                if index == 0:
+                if index < len(models) - 1:
                     logging.warning(
                         f'Invalid response or timeout from primary llm {model}: {e}.'
                         ' Defaulting to backup.'

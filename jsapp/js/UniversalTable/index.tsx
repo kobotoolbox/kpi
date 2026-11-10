@@ -13,7 +13,7 @@ export interface Pagination {
 }
 
 export interface PaginatedListResponseData<Datum = never> {
-  count: number
+  count: number | 'many' | 'unknown'
   /** @nullable */
   next?: string | null
   /** @nullable */
@@ -114,10 +114,11 @@ export default function UniversalTable<Datum, TError = Error>({
   bottomContent,
   spinnerVisibility = 'fetching',
 }: UniversalTableProps<Datum, TError>) {
-  const availablePages = useMemo(
-    () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
-    [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>)?.count],
-  )
+  const availablePages = useMemo(() => {
+    const count = queryResult.data?.status === 200 ? queryResult.data?.data?.count : undefined
+    // 'many'/'unknown' counts get a page count in DEV-2630
+    return typeof count === 'number' ? Math.ceil(count / pagination.limit) : 0
+  }, [pagination.limit, queryResult.data?.status, (queryResult.data?.data as PaginatedListResponseData<Datum>)?.count])
 
   const currentPageIndex = useMemo(() => Math.ceil(pagination.start / pagination.limit), [pagination])
 

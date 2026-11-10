@@ -1,35 +1,5 @@
-@use 'scss/colors';
-
-.root {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.message {
-  margin-bottom: 24px;
-}
-
+// The announcement's own `h1` is the card title, so it gets the size other auth card titles have.
 .message :global h1 {
-  font-weight: 600;
-  font-size: 18px;
-  margin-bottom: 16px;
-}
-
-.message :global p {
-  &:not(:last-child) {
-    margin-bottom: 16px;
-  }
-}
-
-.message :global a {
-  text-decoration: underline;
-  color: colors.$kobo-dark-blue;
-}
-
-.footer :global button:not(:last-child) {
-  margin-bottom: 6px;
-}
-
-.footer :global button[type='submit'] {
-  text-transform: uppercase;
+  font-size: var(--mantine-h3-font-size);
+  line-height: var(--mantine-h3-line-height);
 }

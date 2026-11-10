@@ -6,25 +6,24 @@ from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    get_lock_cache_key,
-    get_project_xform,
-)
 from kobo.apps.support_tools.models import (
     AttachmentRestoreJob,
-    AttachmentRestoreJobStatus,
+    FormVersionsRestoreJob,
+    RestoreJobStatus,
 )
-from kobo.apps.support_tools.tasks import run_attachment_restore_job
+from kobo.apps.support_tools.tasks import (
+    run_attachment_restore_job,
+    run_form_versions_restore_job,
+)
+from kobo.apps.support_tools.utils.helpers import get_project_xform
 
 
-class AttachmentRestoreJobForm(forms.ModelForm):
+class RestoreJobForm(forms.ModelForm):
     """
     Refuse a run before it is queued rather than let it fail out of sight.
-    """
 
-    class Meta:
-        model = AttachmentRestoreJob
-        fields = ('asset_uid', 'dry_run', 'resume')
+    The admin builds it for its own model, which says which lock to ask.
+    """
 
     def clean_asset_uid(self):
         asset_uid = self.cleaned_data['asset_uid'].strip()
@@ -34,7 +33,8 @@ class AttachmentRestoreJobForm(forms.ModelForm):
         except ValueError as e:
             raise forms.ValidationError(str(e))
 
-        if cache.has_key(get_lock_cache_key(asset_uid)):
+        restorer_class = self._meta.model.restorer_class
+        if cache.has_key(restorer_class.get_lock_cache_key(asset_uid)):
             raise forms.ValidationError(
                 'A run already has this project. Wait for it to report, then'
                 ' launch another one to pick up where it stopped.'
@@ -43,27 +43,22 @@ class AttachmentRestoreJobForm(forms.ModelForm):
         return asset_uid
 
 
-@admin.register(AttachmentRestoreJob)
-class AttachmentRestoreJobAdmin(admin.ModelAdmin):
+class RestoreJobAdmin(admin.ModelAdmin):
     """
-    Launch the attachment restore on one project, and keep what each run did.
+    Launch a restore on one project, and keep what each run did.
 
     Adding a row is what queues a run, so a row is never edited afterwards: it
     holds what was asked, who asked for it, and the log the run wrote back. A
     row that stopped short is run again as it is, rather than typed in anew.
+
+    Subclasses name the Celery `task` that serves a row, the `add_fields`
+    support fills in, and what the run does to the project in `action_label`.
     """
 
+    action_label = None
+    add_fields = ('asset_uid', 'dry_run', 'resume')
     actions = ['run_again']
-    form = AttachmentRestoreJobForm
-    list_display = (
-        'asset_uid',
-        'mode',
-        'state',
-        'scanned',
-        'restored',
-        'created_by',
-        'date_created',
-    )
+    form = RestoreJobForm
     list_filter = ('status', 'dry_run')
     search_fields = ('asset_uid',)
     ordering = ('-date_created',)
@@ -93,10 +88,10 @@ class AttachmentRestoreJobAdmin(admin.ModelAdmin):
             # served by a single task at a time, which is what lets that task
             # write the row back without rereading it
             claimed = (
-                AttachmentRestoreJob.objects.filter(pk=job.pk)
-                .exclude(status=AttachmentRestoreJobStatus.PENDING)
+                self.model.objects.filter(pk=job.pk)
+                .exclude(status=RestoreJobStatus.PENDING)
                 .update(
-                    status=AttachmentRestoreJobStatus.PENDING,
+                    status=RestoreJobStatus.PENDING,
                     date_modified=timezone.now(),
                 )
             )
@@ -112,12 +107,13 @@ class AttachmentRestoreJobAdmin(admin.ModelAdmin):
             # The changelist is wrapped in a transaction too, and `partial`
             # rather than a closure, which would hand every callback the last
             # row of the loop
-            transaction.on_commit(partial(run_attachment_restore_job.delay, job.pk))
+            transaction.on_commit(partial(self.task.delay, job.pk))
 
             self.message_user(
                 request,
-                f'"{job}" was queued again. It picks up where the project'
-                f' stopped, adding to its log.',
+                f'"{job}" was queued again, adding to its log. It picks up where'
+                f' the project stopped, unless the row asked to start over and'
+                f' never got to.',
                 level=messages.INFO,
             )
 
@@ -135,22 +131,27 @@ class AttachmentRestoreJobAdmin(admin.ModelAdmin):
         column alone.
         """
 
-        if obj.status == AttachmentRestoreJobStatus.IN_PROGRESS:
+        if obj.status == RestoreJobStatus.IN_PROGRESS:
             return 'in progress' if obj.is_running else 'interrupted'
 
         return obj.get_status_display()
 
     def get_fields(self, request, obj=None):
         if obj is None:
-            return ('asset_uid', 'dry_run', 'resume')
+            return self.add_fields
+
+        # `mode` stands for `dry_run`, read as words rather than as a checkbox
+        options = [
+            field for field in self.add_fields if field not in ('asset_uid', 'dry_run')
+        ]
 
         return (
             'asset_uid',
             'mode',
-            'resume',
+            *options,
             'state',
             'scanned',
-            'restored',
+            *self.model.counter_fields,
             'log',
             'created_by',
             'date_created',
@@ -173,12 +174,45 @@ class AttachmentRestoreJobAdmin(admin.ModelAdmin):
 
         # The admin wraps this in a transaction, so queueing here would race
         # the worker to the row it is about to read
-        transaction.on_commit(lambda: run_attachment_restore_job.delay(obj.pk))
+        transaction.on_commit(lambda: self.task.delay(obj.pk))
 
-        mode = 'report on' if obj.dry_run else 'restore the attachments of'
+        mode = 'report on' if obj.dry_run else self.action_label
         self.message_user(
             request,
             f'Queued. It will {mode} {obj.asset_uid} and write its log on this'
             f' row as it goes.',
             level=messages.INFO,
         )
+
+
+@admin.register(AttachmentRestoreJob)
+class AttachmentRestoreJobAdmin(RestoreJobAdmin):
+
+    action_label = 'restore the attachments of'
+    list_display = (
+        'asset_uid',
+        'mode',
+        'state',
+        'scanned',
+        'restored',
+        'created_by',
+        'date_created',
+    )
+    task = run_attachment_restore_job
+
+
+@admin.register(FormVersionsRestoreJob)
+class FormVersionsRestoreJobAdmin(RestoreJobAdmin):
+
+    action_label = 'record the form versions in the submissions of'
+    add_fields = ('asset_uid', 'dry_run', 'resume', 'restore_attachments')
+    list_display = (
+        'asset_uid',
+        'mode',
+        'state',
+        'scanned',
+        'updated',
+        'created_by',
+        'date_created',
+    )
+    task = run_form_versions_restore_job

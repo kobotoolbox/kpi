@@ -7,28 +7,27 @@ from allauth.mfa.totp.internal.auth import TOTP
 from django.db import transaction
 from rest_framework.exceptions import NotFound, ValidationError
 
-from .models import MfaMethodsWrapper
+from .utils import MFA_METHOD_NAME, deactivate_mfa, user_has_active_mfa
+
+
+def _validate_method(name):
+    if name != MFA_METHOD_NAME:
+        raise NotFound
 
 
 def activate_totp(request, name):
+    _validate_method(name)
     with transaction.atomic():
-        try:
-            mfa = MfaMethodsWrapper.objects.select_for_update().get(
-                user=request.user,
-                name=name,
-                is_active=False,
-            )
-        except MfaMethodsWrapper.DoesNotExist:
+        if user_has_active_mfa(request.user):
             raise NotFound
 
+        # Validates the code against the secret that the activation endpoint
+        # stored in the session
         form = ActivateTOTPInput(request.data, user=request.user)
         if not form.is_valid():
             raise ValidationError(detail=form.errors)
 
-        # Clean up any orphaned authenticators
-        Authenticator.objects.filter(
-            user=request.user, type=Authenticator.Type.TOTP
-        ).delete()
+        # Clean up any orphaned recovery codes
         Authenticator.objects.filter(
             user=request.user, type=Authenticator.Type.RECOVERY_CODES
         ).delete()
@@ -41,37 +40,26 @@ def activate_totp(request, name):
             authenticator=totp,
         )
         recovery_codes = auto_generate_recovery_codes(request)
-        mfa.totp = totp
-        mfa.recovery_codes = recovery_codes
-        mfa.is_active = True
-        mfa.save()
 
     return totp.wrap(), recovery_codes.wrap()
 
 
 def regenerate_codes(request, name):
-    try:
-        mfa = MfaMethodsWrapper.objects.get(
-            user=request.user,
-            name=name,
-            is_active=True,
-        )
-    except MfaMethodsWrapper.DoesNotExist:
+    _validate_method(name)
+    if not user_has_active_mfa(request.user):
         raise NotFound
-    mfa.recovery_codes.delete()
-    mfa.recovery_codes = RecoveryCodes.activate(request.user).instance
-    mfa.save()
 
-    return mfa.recovery_codes.wrap()
+    with transaction.atomic():
+        Authenticator.objects.filter(
+            user=request.user, type=Authenticator.Type.RECOVERY_CODES
+        ).delete()
+        recovery_codes = RecoveryCodes.activate(request.user).instance
+
+    return recovery_codes.wrap()
 
 
 def deactivate_totp(request, name):
-    try:
-        mfa = MfaMethodsWrapper.objects.get(
-            user=request.user,
-            name=name,
-            is_active=True,
-        )
-    except MfaMethodsWrapper.DoesNotExist:
+    _validate_method(name)
+    if not user_has_active_mfa(request.user):
         raise NotFound
-    mfa.deactivate(request=request)
+    deactivate_mfa(request.user, request=request)

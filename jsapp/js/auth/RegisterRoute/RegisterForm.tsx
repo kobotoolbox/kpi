@@ -2,22 +2,23 @@ import { Anchor, Checkbox, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { MetadataField } from '#/api/models/metadataField'
 import type { SignupBody } from '#/api/models/signupBody'
 import type { SocialApp } from '#/api/models/socialApp'
 import { useAllauthBrowserV1AuthSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import SsoProviderButtonList from '#/auth/ProviderRoute/SsoProviderButtonList'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
-import { legalSentence } from '#/auth/legalAgreement'
+import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { AUTH_ROUTES } from '#/router/routerConstants'
-import { validateEmail, validateFullName, validateTermsOfService, validateUsername } from './registerValidation'
+import { validateEmail, validateRequiredCheckbox, validateUsername } from './registerValidation'
 
 interface RegisterFormValues {
-  name: string
   email: string
   username: string
   password: string
@@ -33,8 +34,15 @@ interface RegisterFormValues {
 const SERVER_KNOWN_FIELDS: ReadonlyArray<keyof RegisterFormValues> = ['email', 'username', 'password']
 
 export interface RegisterFormProps {
-  /** From `/api/v2/environment/`. Used to spot an email domain that has to sign in through SSO. */
+  /** From `/api/v2/environment/`. SSO providers to offer, and the email domains that must use them. */
   socialApps: SocialApp[] | undefined
+  /**
+   * The newsletter entry of `USER_METADATA_FIELDS`, from `/api/v2/environment/`. Without one the server
+   * drops the field from signup, so there is no checkbox to show.
+   */
+  newsletterField: MetadataField | undefined
+  /** Whether the server requires the legal agreement, and so whether there is a checkbox at all. */
+  isTermsOfServiceRequired: boolean | undefined
   termsOfServiceUrl: string | null | undefined
   privacyPolicyUrl: string | null | undefined
   /** Blocks submitting until `/environment` loads */
@@ -48,23 +56,23 @@ export interface RegisterFormProps {
 /**
  * Signup asks for the least it can: the credentials, the newsletter opt in and the legal agreement. The
  * rest of the profile fields an instance configures through `USER_METADATA_FIELDS` are collected after
- * logging in, so nobody has to fill in a page of details before they have an account.
+ * logging in, so nobody has to fill in a page of details before they have an account. That includes the
+ * full name: the headless endpoint has no field for it, so asking here would only mean asking twice.
  */
 export default function RegisterForm({
   socialApps,
+  newsletterField,
+  isTermsOfServiceRequired,
   termsOfServiceUrl,
   privacyPolicyUrl,
   isConfigurationPending,
   onVerificationPending,
   onSignedIn,
 }: RegisterFormProps) {
-  const legalLabel = legalSentence(termsOfServiceUrl, privacyPolicyUrl)
-
   const form = useForm<RegisterFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
     initialValues: {
-      name: '',
       email: '',
       username: '',
       password: '',
@@ -73,14 +81,15 @@ export default function RegisterForm({
       termsOfService: false,
     },
     validate: {
-      name: validateFullName,
       email: (value) => validateEmail(value, socialApps),
       username: validateUsername,
       password: validatePassword,
       passwordConfirm: (value, values) => validatePasswordConfirm(value, values.password),
-      // No checkbox to tick when there is no legal document, so nothing to require. Mantine reads these
-      // rules fresh on every render, so this follows the label once `/environment` lands.
-      termsOfService: legalLabel ? validateTermsOfService : undefined,
+      // No checkbox to tick where the server asks for no agreement, so nothing to require. Mantine reads
+      // these rules fresh on every render, so this follows the checkbox once `/environment` lands.
+      termsOfService: isTermsOfServiceRequired ? validateRequiredCheckbox : undefined,
+      // An administrator can make the opt in mandatory, odd as that is, and the server then enforces it.
+      newsletterSubscription: newsletterField?.required ? validateRequiredCheckbox : undefined,
     },
   })
 
@@ -123,17 +132,13 @@ export default function RegisterForm({
 
     setFormErrors([])
 
-    // TODO: the headless signup endpoint only reads `{email, username, password}` - allauth's `SignupInput`
-    // never runs our `SignupForm`, so everything below it is accepted and quietly dropped, and the
-    // generated `SignupBody` has no room for it either. The cast goes with that fix, in DEV-2807.
-    const body = {
+    const body: SignupBody = {
       email: values.email.trim(),
       username: values.username.trim(),
       password: values.password,
-      name: values.name.trim(),
       newsletter_subscription: values.newsletterSubscription,
       terms_of_service: values.termsOfService,
-    } as SignupBody
+    }
 
     signup.mutate({ data: body })
   }
@@ -141,8 +146,10 @@ export default function RegisterForm({
   return (
     <Stack gap='xl'>
       <Title order={1} size='h3'>
-        {t('Create an account')}
+        {t('Create your account')}
       </Title>
+
+      <SsoProviderButtonList socialApps={socialApps} variant='light' />
 
       {formErrors.length > 0 && (
         <Alert type='error' iconName='alert'>
@@ -160,13 +167,6 @@ export default function RegisterForm({
       <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
         <Stack gap='xl'>
           <Stack gap='sm'>
-            <TextInput
-              label={t('Full name')}
-              autoComplete='name'
-              key={form.key('name')}
-              {...withAuthFieldError(form.getInputProps('name'))}
-              required
-            />
             <TextInput
               label={t('Email')}
               type='email'
@@ -199,18 +199,20 @@ export default function RegisterForm({
           </Stack>
 
           <Stack gap='sm'>
-            <Checkbox
-              label={t('I want to receive occasional updates about KoboToolbox')}
-              key={form.key('newsletterSubscription')}
-              {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
-            />
-            {legalLabel && (
+            {newsletterField && (
               <Checkbox
-                label={legalLabel}
-                key={form.key('termsOfService')}
-                {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
+                label={newsletterField.label}
+                key={form.key('newsletterSubscription')}
+                {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
               />
             )}
+            <TermsOfServiceCheckbox
+              isRequired={isTermsOfServiceRequired}
+              termsOfServiceUrl={termsOfServiceUrl}
+              privacyPolicyUrl={privacyPolicyUrl}
+              key={form.key('termsOfService')}
+              {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
+            />
           </Stack>
 
           <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || signup.isPending}>
