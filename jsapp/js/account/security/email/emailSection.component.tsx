@@ -112,15 +112,12 @@ export default function EmailSection() {
           })
         },
         (err: FailResponse) => {
-          // The pending email is already deleted, so refresh the list to drop it from view.
-          const fieldErrors = handleSetUserEmailFail(err)
-          getUserEmails().then((data) => {
-            setEmail({
-              ...email,
-              emails: data.results,
-              refreshedEmail: false,
-              fieldErrors,
-            })
+          // The delete above went through, so drop the pending email here too.
+          setEmail({
+            ...email,
+            emails: email.emails.filter((userEmail) => userEmail.primary || userEmail.verified),
+            refreshedEmail: false,
+            fieldErrors: handleSetUserEmailFail(err),
           })
         },
       )

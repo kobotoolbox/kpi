@@ -25,17 +25,9 @@ const reauthRequiredMock = http.post('*/me/emails{/}?', () =>
   ),
 )
 
-// Resend deletes the pending email first, so the list must drop it after a DELETE.
-let hasPending = true
 const pendingEmailMocks = [
-  getMeEmailsListMockHandler(() => {
-    const results = hasPending ? [PRIMARY, PENDING] : [PRIMARY]
-    return { count: results.length, next: null, previous: null, results }
-  }),
-  http.delete('*/me/emails{/}?', () => {
-    hasPending = false
-    return new HttpResponse(null, { status: 204 })
-  }),
+  getMeEmailsListMockHandler({ count: 2, next: null, previous: null, results: [PRIMARY, PENDING] }),
+  http.delete('*/me/emails{/}?', () => new HttpResponse(null, { status: 204 })),
 ]
 
 /** The raw 403 body used to show up as a toast. */
@@ -53,7 +45,6 @@ const meta: Meta<typeof EmailSection> = {
   },
   beforeEach: () => {
     toast.remove()
-    hasPending = true
   },
   decorators: [
     (Story) => (
