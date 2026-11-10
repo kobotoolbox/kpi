@@ -216,6 +216,9 @@ class Command(BaseCommand):
             # We are using the flag `submissions_suspended` to prevent
             # new submissions from coming in while the
             # counters are being calculated.
+            # FIXME `fix_stale_submissions_suspended_flag` releases every
+            #  suspended profile every 15 minutes, so this suspension can be
+            #  lifted before the user's counters are recalculated
             user_profile.submissions_suspended = True
             user_profile.save(update_fields=['submissions_suspended'])
 

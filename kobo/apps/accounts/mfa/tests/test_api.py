@@ -1,5 +1,8 @@
-from constance.test import override_config
+from unittest.mock import patch
+
 from allauth.mfa.models import Authenticator
+from allauth.mfa.totp.internal.auth import SECRET_SESSION_KEY
+from constance.test import override_config
 from django.test import override_settings
 from django.urls import reverse
 from freezegun import freeze_time
@@ -8,8 +11,12 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.tests.kpi_test_case import BaseTestCase
-from ..models import MfaMethodsWrapper
-from .utils import activate_mfa_for_user, get_mfa_code_for_user
+from ..utils import get_totp_authenticator
+from .utils import (
+    activate_mfa_for_user,
+    get_mfa_code_for_user,
+    get_pending_mfa_code,
+)
 
 METHOD = 'app'
 
@@ -38,27 +45,42 @@ class MfaApiTestCase(BaseTestCase):
         response = self.client.get(reverse('mfa_list_user_methods'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.json()
-        expected_fields = [
-            'date_created',
-            'date_modified',
-            'date_disabled'
+        totp = get_totp_authenticator(self.someuser)
+        assert results == [
+            {
+                'name': METHOD,
+                'is_active': True,
+                'date_created': '2026-01-01T12:00:00Z',
+                'date_modified': '2026-01-01T12:00:00Z',
+                'date_disabled': None,
+            }
         ]
-        for field in expected_fields:
-            self.assertTrue(field in results[0])
+        assert totp.created_at.isoformat() == '2026-01-01T12:00:00+00:00'
+
+    def test_user_methods_empty_once_deactivated(self):
+        code = get_mfa_code_for_user(self.someuser)
+        response = self.client.post(
+            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        response = self.client.get(reverse('mfa_list_user_methods'))
+        assert response.json() == []
+
+    @override_config(MFA_ENABLED=True)
+    def test_unknown_method_not_found(self):
+        response = self.client.post(reverse('mfa-activate', args=('sms',)))
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @override_config(MFA_ENABLED=True)
     def test_mfa_activation_always_creates_new_secret(self):
         self.client.login(username='anotheruser', password='anotheruser')
         first_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        first_secret = MfaMethodsWrapper.objects.get(
-            user__username='anotheruser', name=METHOD
-        ).secret
+        first_secret = self.client.session[SECRET_SESSION_KEY]
 
         # Since it was never confirmed, it will generate another secret
         second_response = self.client.post(reverse('mfa-activate', args=(METHOD,)))
-        second_secret = MfaMethodsWrapper.objects.get(
-            user__username='anotheruser', name=METHOD
-        ).secret
+        second_secret = self.client.session[SECRET_SESSION_KEY]
         assert first_secret != second_secret
         assert first_response.json() != second_response.json()
 
@@ -87,19 +109,13 @@ class MfaApiTestCase(BaseTestCase):
         )
 
         assert response.status_code == status.HTTP_200_OK
-        mfamethods = MfaMethodsWrapper.objects.get(user=self.someuser)
-        assert mfamethods.is_active is False
-        assert mfamethods.totp is None
-        assert mfamethods.recovery_codes is None
         assert Authenticator.objects.filter(user=self.someuser).count() == 0
 
     def test_reactivate_generates_different_secret(self):
         """
         Test that MFA can be deactivated and reactivated/confirmed with different secret
         """
-        first_secret = MfaMethodsWrapper.objects.get(
-            user=self.someuser, name=METHOD
-        ).secret
+        first_secret = get_totp_authenticator(self.someuser).data['secret']
         code = get_mfa_code_for_user(self.someuser)
         response = self.client.post(
             reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
@@ -107,14 +123,12 @@ class MfaApiTestCase(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         self.client.post(reverse('mfa-activate', kwargs={'method': METHOD}))
-        code = get_mfa_code_for_user(self.someuser)
+        code = get_pending_mfa_code(self.client)
         confirm_response = self.client.post(
             reverse('mfa-confirm', kwargs={'method': METHOD}), data={'code': str(code)}
         )
         assert confirm_response.status_code == status.HTTP_200_OK
-        second_secret = MfaMethodsWrapper.objects.get(
-            user=self.someuser, name=METHOD
-        ).secret
+        second_secret = get_totp_authenticator(self.someuser).data['secret']
         assert first_secret != second_secret
 
     def test_mfa_activation_syncs_user_profile(self):
@@ -134,13 +148,42 @@ class MfaApiTestCase(BaseTestCase):
         self.assertTrue(profile.is_mfa_active)
 
         code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+            )
         assert response.status_code == status.HTTP_200_OK
 
         profile.refresh_from_db()
         self.assertFalse(profile.is_mfa_active)
+
+    @override_config(MFA_ENABLED=True)
+    def test_failed_activation_does_not_sync_user_profile(self):
+        """
+        If activation fails after the TOTP authenticator was created, the KPI
+        transaction is rolled back and the KoboCAT profile must not be touched
+        (in production it lives in another database, which would keep the flag)
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        self.client.force_login(anotheruser)
+        self.client.post(reverse('mfa-activate', args=(METHOD,)))
+        code = get_pending_mfa_code(self.client)
+
+        with (
+            patch(
+                'kobo.apps.accounts.mfa.flows.auto_generate_recovery_codes',
+                side_effect=RuntimeError('boom'),
+            ),
+            patch.object(UserProfile, 'set_mfa_status') as set_mfa_status,
+            self.captureOnCommitCallbacks(execute=True),
+            self.assertRaises(RuntimeError),
+        ):
+            self.client.post(
+                reverse('mfa-confirm', args=(METHOD,)), data={'code': code}
+            )
+
+        assert get_totp_authenticator(anotheruser) is None
+        set_mfa_status.assert_not_called()
 
     @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
     def test_superuser_deactivation_prohibited_when_enforced(self):
@@ -166,5 +209,4 @@ class MfaApiTestCase(BaseTestCase):
             ' is active.',
         )
 
-        mfa_method = MfaMethodsWrapper.objects.get(user=superuser)
-        self.assertTrue(mfa_method.is_active)
+        self.assertIsNotNone(get_totp_authenticator(superuser))

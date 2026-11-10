@@ -43,11 +43,16 @@ def pre_delete_attachment(instance, **kwargs):
     attachment = instance
     file_size = attachment.media_file_size
     only_update_counters = kwargs.pop('only_update_counters', False)
-    xform_id = attachment.xform_id
-    user_id = attachment.user_id
 
+    # Safety net only. Bulk deletions count storage themselves:
+    # `delete_instances()` disconnects this signal, and when an XForm is
+    # deleted, its row goes away with the counter. This only counts a single
+    # `Attachment.delete()`. The update runs on the same connection as the
+    # `DELETE`, inside the transaction `Collector.delete()` opens, so both are
+    # rolled back together. `delete_status` is read from memory and may be stale
+    # if the attachment was trashed meanwhile.
     if file_size and attachment.delete_status is None:
-        update_storage_counters(xform_id, user_id, -file_size)
+        update_storage_counters({attachment.xform_id: -file_size})
 
     if only_update_counters or not (media_file_name := str(attachment.media_file)):
         return
@@ -81,8 +86,18 @@ def pre_delete_attachment(instance, **kwargs):
 @receiver(post_save, sender=Attachment)
 def post_save_attachment(instance, created, **kwargs):
     """
-    Update the attachment_storage_bytes field in the UserProfile model
-    when an attachment is added
+    Add the size of a new attachment to the storage counter of its XForm.
+
+    Safety net only. Every current path counts storage itself: submissions
+    create attachments with `bulk_create()`, which sends no signal, and update
+    the counter in `update_user_counters()`; `restore_deleted_attachments`
+    sets `defer_counting`. This only counts a single `Attachment.save()` that
+    creates a row.
+
+    The update runs on the same connection as the `INSERT`, so it is rolled back
+    with it only if the caller saves inside `kc_transaction_atomic()`. Otherwise
+    the `INSERT` is already committed when this runs, and a failure here leaves
+    the attachment uncounted.
     """
     from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
 
@@ -97,7 +112,7 @@ def post_save_attachment(instance, created, **kwargs):
     if not file_size:
         return
 
-    update_storage_counters(attachment.xform_id, attachment.user_id, file_size)
+    update_storage_counters({attachment.xform_id: file_size})
 
 
 @receiver(post_delete, sender=XForm, dispatch_uid='update_profile_num_submissions')

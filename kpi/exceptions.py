@@ -5,14 +5,6 @@ from rest_framework import exceptions, status
 from rest_framework.exceptions import APIException
 
 
-class AbstractMethodError(NotImplementedError):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            'This method should be implemented in subclasses', *args, **kwargs
-        )
-
-
 class AbstractPropertyError(NotImplementedError):
 
     def __init__(self, *args, **kwargs):
@@ -33,11 +25,16 @@ class AttachmentUidMismatchException(Exception):
     pass
 
 
-class BadAssetTypeException(Exception):
+class AudioDurationUnknownError(Exception):
+    """
+    Raised when the duration of an audio file cannot be determined, which
+    leaves no way to tell whether it needs chunking or where to cut it
+    """
+
     pass
 
 
-class BadContentTypeException(Exception):
+class BadAssetTypeException(Exception):
     pass
 
 
@@ -46,6 +43,10 @@ class BadFormatException(Exception):
 
 
 class BadPermissionsException(Exception):
+    pass
+
+
+class ChoicesSizeLimitError(ValueError):
     pass
 
 
@@ -83,10 +84,6 @@ class FFMpegException(Exception):
     pass
 
 
-class ImportAssetException(Exception):
-    pass
-
-
 class InvalidPasswordAPIException(exceptions.APIException):
     status_code = status.HTTP_403_FORBIDDEN
     default_detail = t(
@@ -112,40 +109,11 @@ class InvalidXPathException(Exception):
     pass
 
 
-class KobocatCommunicationError(Exception):
-
-    def __init__(
-        self, message='Could not communicate with KoBoCAT', *args, **kwargs
-    ):
-        super().__init__(message, *args, **kwargs)
-
-
 class KobocatDeploymentException(exceptions.APIException):
     def __init__(self, *args, **kwargs):
         if 'response' in kwargs:
             self.response = kwargs.pop('response')
         super().__init__(*args, **kwargs)
-
-    @property
-    def invalid_form_id(self):
-        # We recognize certain KC API responses as indications of an
-        # invalid form id:
-        invalid_form_id_responses = (
-            'Form with this id or SMS-keyword already exists.',
-            'In strict mode, the XForm ID must be a valid slug and '
-            'contain no spaces.',
-        )
-        return self.detail in invalid_form_id_responses
-
-
-class KobocatDuplicateSubmissionException(exceptions.APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = t('An error occurred trying to duplicate the submission')
-    default_code = 'submission_duplication_error'
-
-
-class KobocatProfileException(Exception):
-    pass
 
 
 class MailerError(Exception):

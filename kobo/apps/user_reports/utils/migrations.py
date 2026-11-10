@@ -12,7 +12,7 @@ POST_TERMINATE_SLEEP = 3
 # used by migrations to determine if they are responsible for running CREATE_MV_SQL
 # when updating the sql, add a new version to the end of the list and gate the migration
 # on `if <my_new_version> == CREATE_MV_SQL_VERSIONS[-1]`
-CREATE_MV_SQL_VERSIONS = ['initial', '20260807']
+CREATE_MV_SQL_VERSIONS = ['initial', '20260807', '20261021']
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -114,9 +114,9 @@ CREATE_MV_BASE_SQL = f"""
         ) AS validated_email,
         EXISTS (
             SELECT 1
-            FROM accounts_mfa_mfamethodswrapper mfa
+            FROM mfa_authenticator mfa
             WHERE mfa.user_id = au.id
-            AND mfa.is_active = true
+            AND mfa.type = 'totp'
         ) AS mfa_is_active,
         EXISTS (
             SELECT 1
@@ -553,11 +553,17 @@ def terminate_backends_touching_mv(cursor):
     user_reports_userreportsmv. The MV is about to be dropped so losing an
     in-flight refresh is harmless; killing the backend forces the Celery
     snapshot task to release its Redis lock via its `finally` block.
+
+    `pg_stat_activity` covers every database of the server, so only the
+    current one is targeted. Otherwise, parallel test runs, each migrating
+    its own database, kill each other's connections (this very query matches
+    its own `ILIKE` pattern).
     """
     cursor.execute("""
         SELECT pg_terminate_backend(pid)
         FROM pg_stat_activity
         WHERE pid <> pg_backend_pid()
+          AND datname = current_database()
           AND (
               query ILIKE '%%REFRESH MATERIALIZED VIEW%%user_reports_userreportsmv%%'
               OR pid IN (

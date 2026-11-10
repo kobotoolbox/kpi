@@ -3,7 +3,13 @@ import findIndex from 'lodash.findindex'
 import isEmpty from 'lodash.isempty'
 import map from 'lodash.map'
 import { assetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
+import { openImportLanguagesModal } from '#/components/formBuilder/ImportLanguagesModals/openImportLanguagesModal'
 import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
+import {
+  discardAssetLanguages,
+  getFormLanguages,
+  resolveImportLanguages,
+} from '#/components/formBuilder/importLanguages'
 import { ASSET_TYPES, type AssetTypeDefinition, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
 import { notify } from '#/utils'
@@ -19,11 +25,19 @@ class SurveyScope {
   // some code expects it to be here.
   rawSurvey?: AssetContent
   assetType: AssetTypeDefinition | null
+  /** Takes the user to where languages are edited. The Form Builder owns the router and the unsaved-changes guard. */
+  onManageLanguages?: () => void
 
-  constructor(params: { survey: Survey; rawSurvey?: AssetContent; assetType: AssetTypeDefinition | null }) {
+  constructor(params: {
+    survey: Survey
+    rawSurvey?: AssetContent
+    assetType: AssetTypeDefinition | null
+    onManageLanguages?: () => void
+  }) {
     this.survey = params.survey
     this.rawSurvey = params.rawSurvey
     this.assetType = params.assetType
+    this.onManageLanguages = params.onManageLanguages
   }
 
   addItemToLibrary(row: Row | Group, assetContent: AssetContent) {
@@ -121,32 +135,52 @@ class SurveyScope {
    * For select questions, insertSurvey() will call _ensure_row_list_is_copied()
    * to give each instance its own choice list.
    *
-   * We deep-clone the asset content before parsing because Survey.loadDict()
-   * mutates its argument.
+   * Languages are resolved here, before anything is inserted - the only place an import can still be called off.
+   *
+   * Never rejects: a failed fetch or a bad asset is reported as a notification.
    *
    * @param position - Where to insert (0-based)
    * @param uid - Library asset UID
    * @param groupId - Target group CID (omit for survey root)
-   * @throws Error if asset not found
    */
-  addExternalItemAtPosition(position: number, uid: string, groupId?: string): void {
-    assetsRetrieve(uid)
-      .then((response) => {
-        const data = response?.data
+  async addExternalItemAtPosition(position: number, uid: string, groupId?: string): Promise<void> {
+    try {
+      const response = await assetsRetrieve(uid)
+      const data = response?.data
 
-        if (data && 'content' in data && data.content) {
-          const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
-          // TODO: Race condition - if the survey changes before this async fetch completes,
-          // we might insert at the wrong position or into a group that no longer exists
-          this.survey.insertSurvey(newSurvey, position, groupId)
-        } else {
-          throw new Error(`Asset ${uid} not found or response missing content`)
+      if (!(data && 'content' in data && data.content)) {
+        throw new Error(`Asset ${uid} not found or response missing content`)
+      }
+
+      // Cloned up front because both `discardAssetLanguages` and `Survey.loadDict` mutate what they are given
+      const content = clonedeep(data.content) as AssetContent
+      const resolution = resolveImportLanguages(getFormLanguages(this.survey._initialParams), content.translations)
+
+      if (resolution.action !== 'merge') {
+        const choice = await openImportLanguagesModal(resolution)
+
+        if (choice === 'manage-languages') {
+          this.onManageLanguages?.()
+          return
         }
-      })
-      .catch((error) => {
-        console.error('Failed to insert external item into survey:', error)
-        notify(t('Failed to insert item from library'), 'error')
-      })
+
+        if (choice === 'cancel') {
+          return
+        }
+
+        if (choice === 'discard' && resolution.action === 'add-or-discard') {
+          discardAssetLanguages(content, resolution.languagesToAdd)
+        }
+      }
+
+      const newSurvey = dkobo_xlform.model.Survey.loadDict(content, this.survey)
+      // TODO: Race condition - the survey can change while we wait for the fetch or the user's answer, so this may
+      // insert at the wrong position or into a group that is gone
+      this.survey.insertSurvey(newSurvey, position, groupId)
+    } catch (error) {
+      console.error('Failed to insert external item into survey:', error)
+      notify(t('Failed to insert item from library'), 'error')
+    }
   }
 
   /**

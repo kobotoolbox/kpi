@@ -2,6 +2,7 @@ const BundleTracker = require('webpack-bundle-tracker')
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin')
 const fs = require('fs')
 const lodash = require('lodash')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const path = require('path')
 const webpack = require('webpack')
 
@@ -9,18 +10,25 @@ const outputPath = path.resolve(__dirname, '../jsapp/compiled/')
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
 fs.mkdirSync(outputPath, { recursive: true })
 
-// HACK: we needed to define this postcss-loader because of a problem with
-// including CSS files from node_modules directory, i.e. this build error:
-// `Error: No PostCSS Config found in: /srv/node_modules/…`
-const postCssLoader = {
-  loader: 'postcss-loader',
-  options: {
-    sourceMap: true,
-    postcssOptions: {
-      plugins: ['autoprefixer'],
+// Production extracts CSS into its own files; dev keeps `style-loader` for hot reloading.
+// `sourceMap` is set explicitly because loaders otherwise follow the JS source maps, which production keeps.
+const getStyleLoaders = (isProduction, { sass = false, modules } = {}) => [
+  isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
+  { loader: 'css-loader', options: { sourceMap: !isProduction, ...(modules && { modules }) } },
+  // HACK: we needed to define this postcss-loader because of a problem with
+  // including CSS files from node_modules directory, i.e. this build error:
+  // `Error: No PostCSS Config found in: /srv/node_modules/…`
+  {
+    loader: 'postcss-loader',
+    options: {
+      sourceMap: !isProduction,
+      postcssOptions: {
+        plugins: ['autoprefixer'],
+      },
     },
   },
-}
+  ...(sass ? [{ loader: 'sass-loader', options: { sourceMap: !isProduction } }] : []),
+]
 
 const swcLoader = {
   loader: require.resolve('swc-loader'),
@@ -35,7 +43,21 @@ const swcLoader = {
   },
 }
 
-const commonOptions = {
+const getCommonOptions = (isProduction) => ({
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          // Startup dependencies only, so lazy routes don't make every page load theirs.
+          // `errorApp` stays out so error pages work even if the main app fails to load
+          // (`scripts/check_error_bundle_isolation.js` checks this).
+          chunks: (chunk) => chunk.canBeInitial() && chunk.name !== 'errorApp',
+        },
+      },
+    },
+  },
   module: {
     rules: [
       {
@@ -52,29 +74,21 @@ const commonOptions = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', postCssLoader],
+        use: getStyleLoaders(isProduction),
       },
       {
         test: /\.scss$/,
         exclude: /\.module\.scss$/,
-        use: ['style-loader', 'css-loader', postCssLoader, 'sass-loader'],
+        use: getStyleLoaders(isProduction, { sass: true }),
       },
       {
         test: /\.module\.scss$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
-              },
-              sourceMap: true,
-            },
+        use: getStyleLoaders(isProduction, {
+          sass: true,
+          modules: {
+            localIdentName: '[name]__[local]--[hash:base64:5]',
           },
-          postCssLoader,
-          'sass-loader',
-        ],
+        }),
       },
       {
         test: /\.coffee$/,
@@ -134,10 +148,12 @@ const commonOptions = {
       output: path.join(outputPath, 'extracted-strings.json'),
     }),
     new webpack.ProvidePlugin({ $: ['jquery', 'default'] }),
+    ...(isProduction ? [new MiniCssExtractPlugin({ filename: '[name]-[contenthash].css' })] : []),
   ],
-}
+})
 
 module.exports = (options) => {
+  const commonOptions = getCommonOptions(options?.mode === 'production')
   options = lodash.mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
     if (lodash.isArray(objValue)) {
       return objValue.concat(srcValue)

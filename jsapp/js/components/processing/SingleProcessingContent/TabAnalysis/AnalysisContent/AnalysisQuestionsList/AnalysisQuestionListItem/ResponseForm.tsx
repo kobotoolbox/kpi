@@ -28,7 +28,7 @@ interface Props {
    */
   onGenerateWithAI?: () => Promise<unknown>
   isAnswerAIGenerated?: boolean
-  hasTranscript: boolean
+  hasAnalysisSource: boolean
 }
 
 /**
@@ -47,7 +47,7 @@ export default function ResponseForm({
   onDelete,
   onGenerateWithAI,
   isAnswerAIGenerated,
-  hasTranscript,
+  hasAnalysisSource,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
   const [verificationStatus, setVerificationStatus] = useState<boolean | undefined>(undefined)
@@ -76,10 +76,12 @@ export default function ResponseForm({
   /**
    * "Generate with AI" button will be displayed if there is no answer, or if answer is not AI generated empty value.
    *
-   * We also hide it if there is no transcript or if `onGenerateWithAI` callback is not provided.
+   * We also hide it if there is no source to analyze (transcript or text answer) or if `onGenerateWithAI` callback is not provided.
    */
   const shouldDisplayGenerateWithAIButton =
-    hasTranscript && onGenerateWithAI !== undefined && (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
+    hasAnalysisSource &&
+    onGenerateWithAI !== undefined &&
+    (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
 
   /** "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated */
   const shouldDisplayClearButton =

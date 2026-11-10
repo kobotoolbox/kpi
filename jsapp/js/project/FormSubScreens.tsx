@@ -1,12 +1,13 @@
 import { Box } from '@mantine/core'
 import React, { Suspense } from 'react'
 import DocumentTitle from 'react-document-title'
-import { useLocation, useParams } from 'react-router-dom'
+import { Outlet, matchPath, useLocation, useParams } from 'react-router-dom'
 import RESTServices from '#/components/RESTServices'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import FormMapWrapper from '#/components/map/formMapWrapper'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import TransferProjects from '#/components/permissions/transferProjects/transferProjects.component'
+import type { SubmissionRouteState } from '#/components/submissions/single/submissionRouting'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
@@ -30,7 +31,7 @@ const FormActivity = React.lazy(() => import(/* webpackPrefetch: true */ '#/comp
 interface FormSubScreensProps {
   /** Asset uid for the cases where it doesn't come from the route. */
   uid?: string
-  /** Asset loaded and authorized by PermProtectedRoute. */
+  /** Asset loaded and authorized by `PermProtectedRoute`, which also keeps it current after every save. */
   asset?: AssetResponse
 }
 
@@ -120,15 +121,34 @@ function FormSubScreens(props: FormSubScreensProps) {
   const hookUid = params.hookUid ?? ''
   const docTitle = asset.name || t('Untitled')
 
+  const isOnTable = location.pathname === ROUTES.FORM_TABLE.replace(':uid', asset.uid)
+  const isOnSubmission = matchPath(ROUTES.FORM_SUBMISSION, location.pathname) !== null
+
+  if (isOnTable || isOnSubmission) {
+    // A record opened from the table shows in a modal over it. Any other way in,
+    // it has the page to itself.
+    const isOverTable = isOnTable || Boolean((location.state as SubmissionRouteState | null)?.asModal)
+
+    // One element tree for the table with or without a record over it, so opening
+    // and closing records never remounts the table.
+    return (
+      <>
+        {isOverTable && (
+          <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Table')} | KoboToolbox`}>
+            <Suspense fallback={null}>
+              <DataTable asset={asset} />
+            </Suspense>
+          </DocumentTitle>
+        )}
+
+        <Suspense fallback={isOverTable ? null : <LoadingSpinner />}>
+          <Outlet />
+        </Suspense>
+      </>
+    )
+  }
+
   switch (location.pathname) {
-    case ROUTES.FORM_TABLE.replace(':uid', asset.uid):
-      return (
-        <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Table')} | KoboToolbox`}>
-          <Suspense fallback={null}>
-            <DataTable asset={asset} />
-          </Suspense>
-        </DocumentTitle>
-      )
     case ROUTES.FORM_GALLERY.replace(':uid', asset.uid):
       return (
         <DocumentTitle title={`${docTitle} | ${t('Data')} | ${t('Gallery')} | KoboToolbox`}>

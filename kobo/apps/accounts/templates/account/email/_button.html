@@ -1,0 +1,18 @@
+{% comment %}
+One call-to-action button. Expects `url` and `label`.
+
+The background sits on the `<td>`, not the `<a>`: Outlook drops padding and background on an inline anchor, leaving bare
+link text. The `button` class keeps the base template's dark-mode link colour off the label.
+{% endcomment %}
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px;">
+  <tr>
+    <td align="center" style="background:#2e78d4;border-radius:6px;">
+      <a
+        class="button"
+        href="{{ url }}"
+        target="_blank"
+        style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.2px;"
+      >{{ label }}</a>
+    </td>
+  </tr>
+</table>

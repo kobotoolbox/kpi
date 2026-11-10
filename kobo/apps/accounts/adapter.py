@@ -1,14 +1,18 @@
+import dataclasses
+
 from allauth.account import app_settings as allauth_account_settings
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.core.internal.httpkit import is_headless_request
+from allauth.headless.adapter import DefaultHeadlessAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import resolve_url
 from django.utils import timezone
@@ -19,6 +23,7 @@ from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
 
 class AccountAdapter(DefaultAccountAdapter):
+
     def is_open_for_signup(self, request):
         return config.REGISTRATION_OPEN
 
@@ -95,7 +100,10 @@ class AccountAdapter(DefaultAccountAdapter):
         its own version hardcodes the template prefix.
         """
         address = emailconfirmation.email_address
-        ctx = {'user': address.user}
+        ctx = {
+            'user': address.user,
+            'expire_hours': self.get_confirmation_expire_hours(),
+        }
         if allauth_account_settings.EMAIL_VERIFICATION_BY_CODE_ENABLED:
             ctx['code'] = emailconfirmation.key
         else:
@@ -125,6 +133,10 @@ class AccountAdapter(DefaultAccountAdapter):
             user_id=address.user_id, verified=True
         ).exists()
         return prefix if has_verified_address else f'{prefix}_resend'
+
+    def get_confirmation_expire_hours(self):
+        """In hours, so the default 1 day reads "24 hours" as designed"""
+        return allauth_account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS * 24
 
     def get_email_confirmation_url(self, request, emailconfirmation):
         url = super().get_email_confirmation_url(request, emailconfirmation)
@@ -193,3 +205,72 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 },
             )
         )
+
+
+class HeadlessAdapter(DefaultHeadlessAdapter):
+    """
+    Adds `has_validated_password` to the user payload returned by the allauth
+    session endpoint, so the frontend can read it there instead of `/me`
+    """
+
+    # allauth asks for the dataclass on every serialization, so build it once
+    # rather than on each authentication response
+    _user_dataclass = None
+
+    def get_user_dataclass(self):
+        # Override `get_user_dataclass()` and `user_as_dataclass()` rather than
+        # `serialize_user()`: allauth only reflects the extra field in the
+        # published OpenAPI schema when it is declared on the dataclass
+        if HeadlessAdapter._user_dataclass is None:
+            HeadlessAdapter._user_dataclass = dataclasses.make_dataclass(
+                'User',
+                [
+                    (
+                        'has_validated_password',
+                        bool,
+                        dataclasses.field(
+                            # A default is required: allauth's
+                            # `user_as_dataclass()` instantiates this class
+                            # without knowing about the field.
+                            # `user_as_dataclass()` below fills in the real value
+                            default=True,
+                            metadata={
+                                'description': (
+                                    'Whether the account password is valid. '
+                                    'An administrator can invalidate it, '
+                                    'setting this to false and restricting '
+                                    'the account.'
+                                ),
+                                'example': True,
+                            },
+                        ),
+                    )
+                ],
+                bases=(super().get_user_dataclass(),),
+            )
+
+        return HeadlessAdapter._user_dataclass
+
+    def user_as_dataclass(self, user):
+        user_dataclass = super().user_as_dataclass(user)
+        return dataclasses.replace(
+            user_dataclass,
+            has_validated_password=self._has_validated_password(user),
+        )
+
+    def _has_validated_password(self, user) -> bool:
+        """
+        `ExtraUserDetail.validated_password` is the source of truth; the KoboCAT
+        copy on `UserProfile` is synced from it. It defaults to True and only an
+        administrator sets it to False, so an account without `extra_details`
+        was never invalidated
+        """
+        if not user.pk:
+            return True
+
+        try:
+            extra_details = user.extra_details
+        except get_user_model().extra_details.RelatedObjectDoesNotExist:
+            return True
+
+        return extra_details.validated_password

@@ -4,7 +4,9 @@ from dateutil import parser
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from ..constants import (
+    DELETED_FIELD,
     DEPENDENCY_SOURCE_SUBMISSION,
+    IMAGE_SOURCE_TYPE,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
     TEXT_SOURCE_TYPE,
@@ -13,14 +15,28 @@ from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
-class RequiresTranscriptionMixin:
+def is_deleted_version_data(version_data: dict) -> bool:
+    """
+    Report whether a version's `_data` represents a deletion.
+
+    A version is a deletion when it has a null value and no status (manual
+    actions), or an explicit 'deleted' status (automatic actions).
+    In-progress/failed automatic versions carry a status and are therefore
+    not deletions.
+    """
+    return (
+        'status' not in version_data and version_data.get('value') is None
+    ) or version_data.get('status') == 'deleted'
+
+
+class RequiresAdditionalSource:
 
     def attach_action_dependency(self, action_data: dict, submission: dict):
         """
         Attach the source this action depends on.
 
-        For a `text` source question, attach a synthetic dependency pointing at
-        the submission itself; the source text is read straight from the
+        For a `text` or `image` source question, attach a synthetic dependency pointing
+        at the submission itself; the source text is read straight from the
         submission later. Otherwise, attach the latest *accepted* transcript.
 
         Transcript selection logic:
@@ -46,14 +62,17 @@ class RequiresTranscriptionMixin:
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        if self.get_source_question_type() == TEXT_SOURCE_TYPE:
+        if (source_question_type := self.get_source_question_type()) in [
+            TEXT_SOURCE_TYPE,
+            IMAGE_SOURCE_TYPE,
+        ]:
             # Direct-text source: point the dependency at the submission. The
             # `_question_type` key is in-flight only; the sanitizer in
             # `revise_data` strips it before persistence.
             action_data[self.DEPENDENCY_FIELD] = {
                 self.UUID_FIELD: remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD]),
                 self.ACTION_ID_FIELD: DEPENDENCY_SOURCE_SUBMISSION,
-                '_question_type': TEXT_SOURCE_TYPE,
+                '_question_type': source_question_type,
             }
             return action_data
 
@@ -72,11 +91,7 @@ class RequiresTranscriptionMixin:
             for version in versions:
                 version_data = version.get(self.VERSION_DATA_FIELD, {})
 
-                is_deleted = (
-                    'status' not in version_data and version_data.get('value') is None
-                ) or version_data.get('status') == 'deleted'
-
-                if is_deleted:
+                if is_deleted_version_data(version_data):
                     # Track the most recent deletion timestamp across all versions
                     created_raw = version.get(self.DATE_CREATED_FIELD)
                     created_dt = parser.parse(created_raw)
@@ -147,11 +162,22 @@ class TranscriptionActionMixin:
         latest = versions_sorted[0]
         version_data = latest.get(self.VERSION_DATA_FIELD, {})
 
-        # Skip results with a missing or None value, as they represent deleted
-        # or in-progress transcriptions. Google "no speech detected" results
-        # use an empty string and are returned normally
         if version_data.get('value') is None:
-            return {}
+            if not is_deleted_version_data(version_data):
+                # In-progress results have a None value and must be skipped.
+                # Google "no speech detected" results use an empty string and
+                # are returned normally
+                return {}
+            # A deletion must compete in the cross-action arbitration by date so
+            # it can suppress an older accepted result from a sibling action
+            # instead of resurrecting it. Dated by creation: deletions have no
+            # `_dateAccepted` (older ones have one equal to `_dateCreated`)
+            return {
+                self.col_type: {
+                    SORT_BY_DATE_FIELD: latest.get(self.DATE_CREATED_FIELD),
+                    DELETED_FIELD: True,
+                }
+            }
 
         date_accepted = latest.get(self.DATE_ACCEPTED_FIELD)
         pending_review = not bool(date_accepted)
@@ -223,7 +249,7 @@ class TranscriptionActionMixin:
         return schema
 
 
-class TranslationActionMixin(RequiresTranscriptionMixin):
+class TranslationActionMixin(RequiresAdditionalSource):
     """
     Provides common methods and properties used by all translation-related actions.
 
@@ -346,8 +372,19 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             latest = versions_sorted[0]
             version_data = latest.get(self.VERSION_DATA_FIELD, {})
 
-            # Skip deleted or in-progress versions
             if version_data.get('value') is None:
+                if not is_deleted_version_data(version_data):
+                    # Skip in-progress versions
+                    continue
+                # A deletion must compete in the cross-action arbitration by
+                # date so it can suppress an older accepted result from a
+                # sibling action instead of resurrecting it. Dated by creation:
+                # deletions have no `_dateAccepted` (older ones have one equal
+                # to `_dateCreated`)
+                result[(self.col_type, language)] = {
+                    SORT_BY_DATE_FIELD: latest.get(self.DATE_CREATED_FIELD),
+                    DELETED_FIELD: True,
+                }
                 continue
 
             date_accepted = latest.get(self.DATE_ACCEPTED_FIELD)

@@ -1,12 +1,15 @@
 # coding: utf-8
 import base64
 import unittest
+import zipfile
 from io import BytesIO
 
 import openpyxl
 import responses
 import xlwt
+from ddt import data, ddt, unpack
 from django.db import transaction
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -20,6 +23,7 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 
 
+@ddt
 class AssetImportTaskTest(BaseTestCase):
     fixtures = ['test_data']
 
@@ -1328,17 +1332,22 @@ class AssetImportTaskTest(BaseTestCase):
             == 'The `label` column is not translated'
         )
 
-    def test_import_xls_blocks_untranslated_column_in_choices_sheet(self):
+    @data(True, False)
+    def test_import_xls_blocks_untranslated_column_in_choices_sheet(
+        self, external_choices
+    ):
+        choices_sheet_name = 'external_choices' if external_choices else 'choices'
+        question_type = 'select_one_external' if external_choices else 'select_one'
         content = (
             (
                 'survey',
                 [
                     ['type', 'name', 'label::English (en)'],
-                    ['select_one gender', 'gender', 'Gender?'],
+                    [f'{question_type} gender', 'gender', 'Gender?'],
                 ],
             ),
             (
-                'choices',
+                choices_sheet_name,
                 [
                     ['list_name', 'name', 'label'],
                     ['gender', 'female', 'Female'],
@@ -1356,34 +1365,48 @@ class AssetImportTaskTest(BaseTestCase):
             == 'The `label` column is not translated'
         )
 
-    def test_import_xls_allows_fully_untranslated_form(self):
-        content = (
-            (
-                'survey',
-                [
-                    ['type', 'name', 'label', 'hint'],
-                    ['integer', 'age', 'Age?', 'in years'],
-                ],
-            ),
-        )
-        response = self._create_asset_from_xls(
-            content, 'No translations', excel_format='xlsx'
-        )
-        detail_response = self.client.get(response.data['url'])
-        assert detail_response.data['status'] == 'complete'
+    @data(
+        # include choices question, include external choices question, translate
+        (True, True, False),
+        (True, False, False),
+        (False, True, False),
+        (False, False, False),
+        (True, True, True),
+        (True, False, True),
+        (False, True, True),
+        (False, False, True),
+    )
+    @unpack
+    def test_import_xls_allows_fully_untranslated_or_fully_translated_form(
+        self, include_choices, include_external_choices, translate
+    ):
+        label_column = 'label::English (en)' if translate else 'label'
+        hint_column = 'hint::English (en)' if translate else 'hint'
+        survey_content = [
+            ['type', 'name', label_column, hint_column],
+            ['integer', 'age', 'Age?', 'in years'],
+        ]
+        content = []
+        if include_choices:
+            survey_content.append(['select_one color', 'color', 'Fav color?'])
+            choices = [
+                ['list_name', 'name', label_column],
+                ['color', 'blue', 'Blue'],
+                ['color', 'red', 'Red'],
+            ]
+            content.append(('choices', choices))
+        if include_external_choices:
+            survey_content.append(['select_one_external pizza', 'pizza', 'Fav pizza?'])
+            choices = [
+                ['list_name', 'name', label_column],
+                ['pizza', 'cheese', 'Cheese'],
+                ['pizza', 'pepperoni', 'Pepperoni'],
+            ]
+            content.append(('external_choices', choices))
+        content = (('survey', survey_content), *content)
 
-    def test_import_xls_allows_fully_translated_form(self):
-        content = (
-            (
-                'survey',
-                [
-                    ['type', 'name', 'label::English (en)', 'hint::English (en)'],
-                    ['integer', 'age', 'Age?', 'in years'],
-                ],
-            ),
-        )
         response = self._create_asset_from_xls(
-            content, 'Fully translated', excel_format='xlsx'
+            content, 'Consistent translations', excel_format='xlsx'
         )
         detail_response = self.client.get(response.data['url'])
         assert detail_response.data['status'] == 'complete'
@@ -1536,6 +1559,205 @@ class AssetImportTaskTest(BaseTestCase):
         assert result.status == ImportExportStatusChoices.ERROR
         error_message = result.messages['error']
         assert 'note_1' in error_message
+
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_raises_error_with_oversized_choices(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['select_one fruit', 'fruit', 'Pick a fruit'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            [
+                'fruit',
+                'apple',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'banana',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'cherry',
+                'long long long long long long long long long long label',
+            ],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        task_data = self._construct_xls_for_import(content, name='Oversized choices')
+        encoded_str = task_data['base64Encoded']
+        start_idx = encoded_str.index('base64') + 7
+        task_data['base64Encoded'] = encoded_str[start_idx:]
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+        assert result.status == ImportExportStatusChoices.ERROR
+        assert result.messages['error_type'] == 'ChoicesSizeLimitError'
+        assert 'The choices sheet is too large' in result.messages['error']
+        assert (
+            'https://support.kobotoolbox.org/external_file.html'
+            in result.messages['error']
+        )
+
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_raises_error_with_oversized_choices_via_api(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['select_one fruit', 'fruit', 'Pick a fruit'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            [
+                'fruit',
+                'apple',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'banana',
+                'long long long long long long long long long long label',
+            ],
+            [
+                'fruit',
+                'cherry',
+                'long long long long long long long long long long label',
+            ],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        response = self._create_asset_from_xls(
+            content, 'Oversized choices API', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'error'
+        assert detail_response.data['messages']['error_type'] == 'ChoicesSizeLimitError'
+        assert (
+            'The choices sheet is too large'
+            in detail_response.data['messages']['error']
+        )
+        assert (
+            'https://support.kobotoolbox.org/external_file.html'
+            in detail_response.data['messages']['error']
+        )
+
+    def test_import_with_normal_choices_succeeds(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)'],
+            ['select_one fruit', 'fruit', 'Pick a fruit'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            ['fruit', 'apple', 'Apple'],
+            ['fruit', 'banana', 'Banana'],
+        ]
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+        )
+
+        response = self._create_asset_from_xls(
+            content, 'Normal choices', excel_format='xlsx'
+        )
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.data['status'] == 'complete'
+        updated = detail_response.data['messages']['updated'][0]
+        created_asset = Asset.objects.get(uid=updated['uid'])
+        assert len(created_asset.content['choices']) == 2
+
+    @patch_ssrf_dns()
+    @responses.activate
+    @override_settings(MAX_CHOICES_SIZE_BYTES=200)
+    def test_import_url_zip_with_oversized_choices_does_not_save_earlier_assets(
+        self,
+    ):
+        def _build_xlsx_bytes(content):
+            wb = openpyxl.workbook.Workbook()
+            for sheet_name, sheet_content in content:
+                ws = wb.create_sheet(sheet_name)
+                for row_num, row_list in enumerate(sheet_content):
+                    for col_num, cell_value in enumerate(row_list):
+                        if cell_value is not None:
+                            ws.cell(row_num + 1, col_num + 1).value = cell_value
+            buf = BytesIO()
+            wb.save(buf)
+            return buf.getvalue()
+
+        form1_content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['text', 'name', 'Your name?'],
+                ],
+            ),
+        )
+        form2_content = (
+            (
+                'survey',
+                [
+                    ['type', 'name', 'label::English (en)'],
+                    ['select_one fruit', 'fruit', 'Pick a fruit'],
+                ],
+            ),
+            (
+                'choices',
+                [
+                    ['list_name', 'name', 'label::English (en)'],
+                    [
+                        'fruit',
+                        'apple',
+                        'long long long long long long long long long label',
+                    ],
+                    [
+                        'fruit',
+                        'banana',
+                        'long long long long long long long long long label',
+                    ],
+                ],
+            ),
+        )
+
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zf:
+            zf.writestr('form1.xlsx', _build_xlsx_bytes(form1_content))
+            zf.writestr('form2.xlsx', _build_xlsx_bytes(form2_content))
+
+        mock_zip_url = 'http://mock.kbtdev.org/bundle.zip'
+        responses.add(
+            responses.GET,
+            mock_zip_url,
+            content_type='application/zip',
+            body=zip_buffer.getvalue(),
+        )
+
+        asset_count_before = Asset.objects.count()
+        task_data = {
+            'url': mock_zip_url,
+            'name': 'Bundle with oversized form',
+        }
+        task = ImportTask.objects.create(user=self.asset.owner, data=task_data)
+        result = task.run()
+
+        assert result.status == ImportExportStatusChoices.ERROR
+        assert result.messages['error_type'] == 'ChoicesSizeLimitError'
+        assert Asset.objects.count() == asset_count_before
+
+    def test_list_links_each_import_to_its_detail(self):
+        task = ImportTask.objects.create(user=self.user, data='{}')
+        response = self.client.get(reverse(self._get_endpoint('importtask-list')))
+        assert response.status_code == status.HTTP_200_OK
+        detail_url = reverse(
+            self._get_endpoint('importtask-detail'), kwargs={'uid_import': task.uid}
+        )
+        assert response.data['results'][0]['uid'] == task.uid
+        assert response.data['results'][0]['url'].endswith(detail_url)
 
 
 class LibraryImportOwnershipTest(BaseTestCase):

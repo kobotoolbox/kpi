@@ -3,6 +3,7 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
+from allauth.mfa.models import Authenticator
 from allauth.socialaccount.models import SocialAccount
 from constance.test import override_config
 from django.conf import settings
@@ -15,8 +16,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
-from kobo.apps.openrosa.apps.main.models import UserProfile
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.trackers.models import NLPUsageCounter
 from kobo.apps.user_reports.models import BillingAndUsageSnapshot
@@ -31,6 +31,27 @@ from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 TASK_UTILS = 'kobo.apps.user_reports.utils.tasks.refresh_user_report_snapshots'
+
+
+def create_xform_with_storage(user: User, storage_bytes: int) -> XForm:
+    """
+    Create a bare project holding `storage_bytes`, since user storage is the
+    sum of the user's projects.
+
+    `bulk_create()` skips `XForm.save()`, which needs a real form to parse.
+    """
+
+    return XForm.objects.bulk_create(
+        [
+            XForm(
+                user=user,
+                id_string='storage_usage',
+                title='storage_usage',
+                xml='',
+                attachment_storage_bytes=storage_bytes,
+            )
+        ]
+    )[0]
 
 
 class UserReportsViewSetAPITestCase(BaseTestCase):
@@ -65,6 +86,21 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Make sure that all 3 users from the 'test_data' are included
         self.assertEqual(len(response.data['results']), 3)
+
+    def test_mfa_is_active_reflects_totp_authenticator(self):
+        def someuser_mfa_is_active():
+            refresh_user_reports_materialized_view(concurrently=False)
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            return next(
+                r for r in response.data['results'] if r['username'] == 'someuser'
+            )['mfa_is_active']
+
+        self.assertFalse(someuser_mfa_is_active())
+        Authenticator.objects.create(
+            user=self.someuser, type=Authenticator.Type.TOTP, data={'secret': 'x'}
+        )
+        self.assertTrue(someuser_mfa_is_active())
 
     def test_endpoint_returns_error_when_mv_is_missing(self):
         # Drop the materialized view before the test
@@ -201,9 +237,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             date=timezone.now().date() - timedelta(days=100),
             total_asr_seconds=80,
         )
-        UserProfile.objects.filter(user_id=self.someuser.id).update(
-            attachment_storage_bytes=200000000
-        )
+        create_xform_with_storage(self.someuser, 200000000)
 
         # Mock `get_organizations_effective_limits` to return test limits.
         mock_limits = {
@@ -552,9 +586,7 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
 
     def test_storage_bytes_gte_and_lte_filters(self):
         # Update someuser's storage to simulate storage usage
-        UserProfile.objects.filter(user_id=self.someuser.id).update(
-            attachment_storage_bytes=123456789
-        )
+        create_xform_with_storage(self.someuser, 123456789)
         refresh_user_report_snapshots()
 
         resp_gte = self._get_results(

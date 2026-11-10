@@ -1,15 +1,14 @@
 import { Tabs } from '@mantine/core'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import { findRowByXpath } from '#/assetUtils'
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
-import { getAvailableTabsForQuestionType } from '../common/utils'
+import { isPlainClick } from '#/utils'
 import { ProcessingTab, getTabRoutePath, goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 import TabAnalysis from './TabAnalysis'
 import TabTranscript from './TabTranscript'
@@ -19,6 +18,8 @@ import styles from './index.module.scss'
 interface Props {
   asset: AssetResponse
   questionXpath: string
+  /** Tabs the question type supports, see `getAvailableTabsForQuestionType`. */
+  availableTabs: ProcessingTab[]
   submission: DataResponse
   activeBulkActions: BulkActionResponse[]
   hasUnsavedWork: boolean
@@ -35,6 +36,7 @@ interface Props {
 export default function SingleProcessingContent({
   asset,
   questionXpath,
+  availableTabs,
   submission,
   activeBulkActions,
   hasUnsavedWork,
@@ -42,9 +44,8 @@ export default function SingleProcessingContent({
   supplement,
   advancedFeatures,
 }: Props) {
-  const questionType = findRowByXpath(asset.content ?? {}, questionXpath)?.type
-  const availableTabs = getAvailableTabsForQuestionType(questionType)
   const isTranscriptAvailable = availableTabs.includes(ProcessingTab.Transcript)
+  const isTranslationsAvailable = availableTabs.includes(ProcessingTab.Translations)
 
   /** DRY wrapper for protector function. */
   function safeExecute(callback: () => void) {
@@ -63,7 +64,7 @@ export default function SingleProcessingContent({
         {...props}
         to={getTabRoutePath(route)}
         onClick={(event) => {
-          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+          if (!isPlainClick(event)) return
           event.preventDefault()
           safeExecute(() => goToTabRoute(route))
         }}
@@ -81,14 +82,6 @@ export default function SingleProcessingContent({
     activeTab = PROCESSING_ROUTES.ANALYSIS
   }
 
-  // Guards against landing on Transcript for a question type that doesn't
-  // support it (e.g. a stale link, or switching questions while on that tab).
-  useEffect(() => {
-    if (!isTranscriptAvailable && isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-      goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS)
-    }
-  }, [isTranscriptAvailable])
-
   return (
     <section className={styles.root}>
       <Tabs variant={'folder'} value={activeTab} tt={'uppercase'} h={48}>
@@ -99,9 +92,11 @@ export default function SingleProcessingContent({
             </Tabs.Tab>
           )}
 
-          <Tabs.Tab value={PROCESSING_ROUTES.TRANSLATIONS} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSLATIONS)}>
-            {t('Translations')}
-          </Tabs.Tab>
+          {isTranslationsAvailable && (
+            <Tabs.Tab value={PROCESSING_ROUTES.TRANSLATIONS} renderRoot={renderTabLink(PROCESSING_ROUTES.TRANSLATIONS)}>
+              {t('Translations')}
+            </Tabs.Tab>
+          )}
 
           <Tabs.Tab value={PROCESSING_ROUTES.ANALYSIS} renderRoot={renderTabLink(PROCESSING_ROUTES.ANALYSIS)}>
             {t('Analysis')}
@@ -121,7 +116,7 @@ export default function SingleProcessingContent({
             advancedFeatures={advancedFeatures}
           />
         )}
-        {activeTab === PROCESSING_ROUTES.TRANSLATIONS && (
+        {isTranslationsAvailable && activeTab === PROCESSING_ROUTES.TRANSLATIONS && (
           <TabTranslations
             asset={asset}
             questionXpath={questionXpath}

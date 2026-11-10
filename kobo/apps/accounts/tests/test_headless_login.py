@@ -73,3 +73,27 @@ class UnverifiedLoginConfirmationEmailTestCase(TestCase):
         assert response.status_code == 401, response.content
         assert len(mail.outbox) == 1
         assert mail.outbox[0].to == ['newcomer@example.com']
+
+
+class AuthenticatedLoginTestCase(TestCase):
+    """
+    Switching accounts means logging out first, so a headless login while
+    authenticated is refused and the current session is kept
+    """
+
+    def setUp(self):
+        self.client = Client()
+        users = get_user_model().objects
+        self.current = users.create_user(username='current', password=PASSWORD)
+        users.create_user(username='other', password=PASSWORD)
+        self.client.force_login(self.current)
+
+    def test_login_as_another_user_is_refused(self):
+        response = self.client.post(
+            HEADLESS_LOGIN_URL,
+            {'username': 'other', 'password': PASSWORD},
+            content_type='application/json',
+        )
+
+        assert response.status_code == 409, response.content
+        assert int(self.client.session['_auth_user_id']) == self.current.pk

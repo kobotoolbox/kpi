@@ -8,6 +8,7 @@ export const PATHS = Object.freeze({
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ROOT: '',
+  /** Kept distinct from the server's own `/accounts/` prefix, so a URL says which side it means. */
   AUTH_ROOT: '/auth',
   ACCOUNT_ROOT: '/account',
   ORGANIZATION: '/account/organization',
@@ -36,6 +37,14 @@ export const ROUTES = Object.freeze({
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
+  /**
+   * A single submission record. Sits under the table, as that is the list it
+   * belongs to and where "Back" leads, wherever it was opened from.
+   *
+   * Has: :uid, :submissionId - where the latter is a submission root UUID
+   * (preferred, as it survives edits) or a numeric `_id`.
+   */
+  FORM_SUBMISSION: '/forms/:uid/data/table/submission/:submissionId',
   /** Has: :uid, :xpath, :submissionEditId */
   FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:xpath/:submissionEditId',
   FORM_SETTINGS: '/forms/:uid/settings',
@@ -48,17 +57,27 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 })
 
-/**
- * Sign-in, registration and password recovery screens. They live outside `<App />`, so none of the
- * logged in chrome (header, drawer, route blockers) applies to them - see `#/auth/routes`.
- */
+/** The screens you reach without a session. Leaf paths keep allauth's own names, under our `/auth` prefix. */
 export const AUTH_ROUTES: { readonly [key: string]: string } = {
-  REGISTER: ROUTES.AUTH_ROOT + '/register',
+  /** The redesigned sign-in screen. `PATHS.LOGIN` is the Django one it will eventually replace. */
+  LOGIN: ROUTES.AUTH_ROOT + '/login',
+  SIGNUP: ROUTES.AUTH_ROOT + '/signup',
   /**
-   * Where the activation link in the sign up email lands. Has: :key
-   * Not reachable yet: `HEADLESS_FRONTEND_URLS` is unset, so allauth still links to the Django view.
+   * Named after allauth's `account_confirm_email`, where the sign up email's link points. That link goes to
+   * the server rendered page, not here - aiming it at this screen is DEV-1860.
    */
-  ACTIVATE_ACCOUNT: ROUTES.AUTH_ROOT + '/activate/:key',
+  CONFIRM_EMAIL: ROUTES.AUTH_ROOT + '/confirm-email/:key',
+  /** Asks for an address to mail a password reset link to */
+  RESET_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset',
+  /** Where the link in the password reset email lands, to pick the new password */
+  NEW_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset/key/:key',
+  /**
+   * Where a single sign-on link lands, to confirm the provider before the handshake starts. This is the only
+   * way in for a provider kept off the login page.
+   */
+  PROVIDER_LOGIN: ROUTES.AUTH_ROOT + '/provider/:providerId/login',
+  /** Where an SSO sign-in lands when allauth still needs a username or an address */
+  PROVIDER_SIGNUP: ROUTES.AUTH_ROOT + '/provider/signup',
 }
 
 export const PROJECTS_ROUTES: { readonly [key: string]: string } = {

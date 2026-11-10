@@ -19,6 +19,14 @@ h2.headerText {
   margin: 0;
 }
 
+/**
+ * A column header label for a column that has no sorting menu, and so is not rendered by `SortableProjectColumnHeader`.
+ */
+.plainColumnHeader {
+  font-weight: 700;
+  font-size: 13px;
+}
+
 @include breakpoints.breakpoint(mediumAndUp) {
   .membersRouteRoot {
     padding: 50px;

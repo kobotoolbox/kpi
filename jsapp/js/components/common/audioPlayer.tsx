@@ -167,6 +167,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             type='text'
             startIcon={this.state.isPlaying ? 'pause' : 'caret-right'}
             size='l'
+            tooltip={this.state.isPlaying ? t('Pause audio') : t('Play audio')}
             onClick={this.onPlayStatusChange.bind(this)}
           />
         </bem.AudioPlayer__controls>

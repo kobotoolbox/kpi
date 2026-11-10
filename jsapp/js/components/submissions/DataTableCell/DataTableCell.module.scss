@@ -1,0 +1,13 @@
+.screenOnly {
+  @media print {
+    display: none;
+  }
+}
+
+.printOnly {
+  display: none;
+
+  @media print {
+    display: inline;
+  }
+}

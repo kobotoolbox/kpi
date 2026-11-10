@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
-import { findRowByXpathOrLeafName, getRowName } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
@@ -35,15 +34,17 @@ export default function SidebarSubmissionData({
 
   /** We want only the processing related data (the actual form questions) */
   const questionsToHide = useMemo(() => {
-    const foundRow = findRowByXpathOrLeafName(asset.content!, xpath)
+    // The processed question is already shown above this list. `hideQuestions` matches on
+    // names, and the last segment of an xpath is the name - no form lookup needed.
+    const processedQuestionName = xpath.split('/').at(-1) ?? ''
     const metaQuestions = [
-      foundRow ? getRowName(foundRow) : '',
+      processedQuestionName,
       ...recordKeys(ADDITIONAL_SUBMISSION_PROPS),
       ...recordKeys(META_QUESTION_TYPES),
     ]
 
     return metaQuestions.concat(hiddenQuestions)
-  }, [asset, xpath, hiddenQuestions])
+  }, [xpath, hiddenQuestions])
 
   return (
     <section className={styles.dataList} key='data-list'>

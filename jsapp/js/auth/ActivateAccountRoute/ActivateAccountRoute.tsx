@@ -1,7 +1,7 @@
 import { Box, Image, Stack, Text, Title } from '@mantine/core'
 import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   getAllauthBrowserV1AuthEmailVerifyGetQueryKey,
   useAllauthBrowserV1AuthEmailVerifyGet,
@@ -10,33 +10,35 @@ import {
 import AuthCard from '#/auth/AuthContainer/AuthCard'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import ButtonNew from '#/components/common/ButtonNew'
-import { PATHS } from '#/router/routerConstants'
+import { ROOT_URL } from '#/constants'
+import { AUTH_ROUTES } from '#/router/routerConstants'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 
 /**
- * The address is confirmed. Whether that also signed the account in is up to
- * `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION`, and it decides where we send people next.
+ * The address is confirmed. Whether that also signed the account in decides where we send people next. KPI turns
+ * `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` on, but allauth only signs in a session holding a pending login: the one that
+ * signed up, or one whose login stopped at email verification. A link opened anywhere else leaves nobody signed in.
  */
 function ConfirmedPanel({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <Stack gap='lg'>
       <Image src={emailEnvelopeIllustration} alt='' maw={190} mx='auto' />
 
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Email address confirmed')}
       </Title>
       {isSignedIn ? (
         <>
           <Text>{t('Your account is active. You are signed in and ready to go.')}</Text>
           {/* A plain link, not a router one: leaving `/auth` means loading the logged in app. */}
-          <ButtonNew component='a' href='/' size='lg' fullWidth>
+          <ButtonNew component='a' href={`${ROOT_URL}/`} size='lg' fullWidth>
             {t('Continue to KoboToolbox')}
           </ButtonNew>
         </>
       ) : (
         <>
           <Text>{t('Your account is active. Please log in to get started.')}</Text>
-          <ButtonNew component='a' href={PATHS.LOGIN} size='lg' fullWidth>
+          <ButtonNew component={Link} to={AUTH_ROUTES.LOGIN} size='lg' fullWidth>
             {t('Log in')}
           </ButtonNew>
         </>
@@ -73,8 +75,7 @@ function LinkRequestedPanel() {
           "If an account exists for this email address, a verification email has been sent. Be sure to check your spam folder if you don't see it within a few minutes.",
         )}
       </Text>
-      {/* TODO: switch from Django while doing login form DEV-1851 */}
-      <ButtonNew component='a' href={PATHS.LOGIN} variant='light' size='lg' fullWidth>
+      <ButtonNew component={Link} to={AUTH_ROUTES.LOGIN} variant='light' size='lg' fullWidth>
         {t('Back to sign in')}
       </ButtonNew>
     </Stack>
@@ -109,7 +110,7 @@ function LinkCheckErrorPanel({ onRetry, isRetrying }: LinkCheckErrorPanelProps) 
 function CheckingLinkPanel() {
   return (
     <Stack gap='lg'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Confirm E-mail Address')}
       </Title>
       <Text>{t('Checking your activation link…')}</Text>
@@ -137,7 +138,7 @@ function ConfirmPromptPanel({ email, displayName, isConfirming, onConfirm }: Con
 
   return (
     <Stack gap='lg'>
-      <Title order={1} size='h3'>
+      <Title order={1} size='h3' ta='center'>
         {t('Confirm E-mail Address')}
       </Title>
       <Text>
@@ -185,8 +186,8 @@ function ActivateAccountPanels({ activationKey }: { activationKey: string }) {
   const confirm = useAllauthBrowserV1AuthEmailVerifyPost()
 
   // From allauth's docs: "a status code of 401 does not imply failure. It indicates that the email
-  // verification was successful, yet, the user is still not signed in" - which is
-  // `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` turned off. Either way the address is now confirmed.
+  // verification was successful, yet, the user is still not signed in". When that happens is explained on
+  // `ConfirmedPanel`. Either way the address is now confirmed.
   const confirmStatus = confirm.data?.status
 
   function renderPanel() {

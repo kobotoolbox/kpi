@@ -1,4 +1,5 @@
 import { Loader } from '@mantine/core'
+import cx from 'classnames'
 import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
@@ -73,9 +74,11 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
     },
   })
 
+  // No data means no neighbor on that side. Counts can be 'many' or 'unknown'
+  // past the server's cap, in which case we can't tell the position.
   const prevCount = queryPrev.data?.count ?? 0
   const nextCount = queryNext.data?.count ?? 0
-  const count = prevCount + nextCount + 1
+  const hasExactCounts = typeof prevCount === 'number' && typeof nextCount === 'number'
 
   const goPrev = () => {
     if (!queryPrev.data) return
@@ -108,10 +111,9 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
   return (
     <section className={styles.column}>
       <nav className={styles.submissions}>
+        {/* Always rendered so the space stays reserved when the count can't be shown */}
         <div className={styles.countContainer}>
-          {isLoading ? (
-            <Loader />
-          ) : (
+          {!isLoading && hasExactCounts && (
             <div className={styles.count}>
               <strong>
                 {t('Item')}
@@ -119,26 +121,30 @@ export default function SelectSubmission({ assetUid, submission, xpath, hasUnsav
                 {prevCount + 1}
               </strong>
               &nbsp;
-              {t('of ##total_count##').replace('##total_count##', String(count))}
+              {t('of ##total_count##').replace('##total_count##', String(prevCount + nextCount + 1))}
             </div>
           )}
         </div>
 
-        <Button
-          type='text'
-          size='s'
-          startIcon='arrow-up'
-          onClick={goPrev}
-          isDisabled={!queryPrev.data?.submission || isLoading}
-        />
+        <div className={cx(styles.navButtons, { [styles.navButtonsLoading]: isLoading })}>
+          {isLoading && <Loader size='sm' className={styles.navButtonsLoader} />}
 
-        <Button
-          type='text'
-          size='s'
-          endIcon='arrow-down'
-          onClick={goNext}
-          isDisabled={!queryNext.data?.submission || isLoading}
-        />
+          <Button
+            type='text'
+            size='s'
+            startIcon='arrow-up'
+            onClick={goPrev}
+            isDisabled={!queryPrev.data?.submission || isLoading}
+          />
+
+          <Button
+            type='text'
+            size='s'
+            endIcon='arrow-down'
+            onClick={goNext}
+            isDisabled={!queryNext.data?.submission || isLoading}
+          />
+        </div>
       </nav>
     </section>
   )

@@ -13,18 +13,6 @@ const publicPath = 'http://' + publicDomain + ':3000/static/compiled/'
 
 let devConfig = WebpackCommon({
   mode: 'development',
-  optimization: {
-    splitChunks: {
-      cacheGroups: {
-        commons: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          // Keep `errorApp` out of the shared chunk; see prod.config.js.
-          chunks: (chunk) => chunk.name !== 'errorApp',
-        },
-      },
-    },
-  },
   entry: {
     // `library` lives on this entry rather than on `output`, so that it applies
     // only to the main app and not to every entry point.

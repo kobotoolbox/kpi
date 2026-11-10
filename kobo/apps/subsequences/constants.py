@@ -3,13 +3,17 @@ from django.db import models
 SUBMISSION_UUID_FIELD = 'meta/rootUuid'  # FIXME: import from elsewhere
 SUPPLEMENT_KEY = '_supplementalDetails'  # leave unchanged for backwards compatibility
 SORT_BY_DATE_FIELD = '_sortByDate'
+# Internal arbitration marker flagging a deletion candidate; always popped
+# before output
+DELETED_FIELD = '_deleted'
 
 # Could allow more types in the future? See
 # formpack.utils.replace_aliases.MEDIA_TYPES
 TEXT_SOURCE_TYPE = 'text'
+IMAGE_SOURCE_TYPE = 'image'
 TRANSCRIBABLE_SOURCE_TYPES = ['audio', 'video', 'background-audio']
 TRANSLATABLE_SOURCE_TYPES = TRANSCRIBABLE_SOURCE_TYPES + [TEXT_SOURCE_TYPE]
-QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES
+QUAL_SOURCE_TYPES = TRANSLATABLE_SOURCE_TYPES + [IMAGE_SOURCE_TYPE]
 
 # `_actionId` value of the synthetic dependency attached when the source is read
 # straight from a `text` survey question rather than from a transcript.
@@ -18,8 +22,6 @@ DEPENDENCY_SOURCE_SUBMISSION = 'submission'
 # Google integration can read it without importing the actions package (which
 # would create an import cycle: actions import integrations).
 DEPENDENCY_ACTION_ID_FIELD = '_actionId'
-
-ASYNC_TRANSLATION_DELAY_INTERVAL = 5
 
 SUBSEQUENCES_ASYNC_CACHE_KEY = 'subsequences'
 

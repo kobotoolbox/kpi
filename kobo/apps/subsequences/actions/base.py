@@ -480,11 +480,18 @@ class BaseAction:
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
+            # Popped only after run_external_process(): the async poll it may
+            # schedule copies `action_data` and must still carry the flag
+            auto_accept = action_data.pop('auto_accept', False)
+
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
             self.validate_external_data(action_data)
+            if auto_accept and action_data.get('status') == 'complete':
+                # accept the generated result in the same write that stores it
+                accepted = True
         else:
             # manual action
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -758,6 +765,23 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         super().check_limits(user, action_data)
 
     @property
+    def chunk_hard_limit_seconds(self) -> float:
+        """
+        Longest piece of audio, in seconds, this action's engine will accept
+
+        A recording longer than this is cut into chunks before it is sent (see
+        `kpi.utils.audio_chunking`). Engines disagree about the limit, so there
+        is no shared default to inherit: Google STT v2 takes an hour while
+        Gemini-Transcribe takes far less, and one number for both would chunk
+        every engine at the lowest limit in the fleet.
+
+        The value is fixed by the engine's API rather than tuned per
+        deployment, so each action states it outright.
+        """
+
+        raise NotImplementedError
+
+    @property
     def external_data_schema(self) -> dict:
         """
         Schema rules:
@@ -874,12 +898,16 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         - `value` is optional but, if present, it MUST be `null`
            (no other type allowed).
         - `accepted` is optional.
+        - `auto_accept` is optional; when true, the generated result is
+          accepted as soon as it completes.
         - `bulk_action_uid` is optional and identifies a SubsequenceBulkAction.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
           * If `accepted` is present, `value` must be absent.
+        - `auto_accept` cannot be combined with `accepted` or `value`.
         - No additional properties are allowed beyond:
-          `language`, `locale`, `value`, `accepted`, `bulk_action_uid`.
+          `language`, `locale`, `value`, `accepted`, `auto_accept`,
+          `bulk_action_uid`.
         """
 
         return {
@@ -891,17 +919,21 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'locale': {'$ref': '#/$defs/locale'},
                 'value': {'$ref': '#/$defs/value_null_only'},
                 'accepted': {'$ref': '#/$defs/accepted'},
+                'auto_accept': {'$ref': '#/$defs/auto_accept'},
                 'bulk_action_uid': {'$ref': '#/$defs/bulk_action_uid'},
             },
             'required': ['language'],
             'allOf': [
                 # Forbid having both `accepted` and `value` at the same time
                 {'not': {'required': ['accepted', 'value']}},
+                {'not': {'required': ['accepted', 'auto_accept']}},
+                {'not': {'required': ['value', 'auto_accept']}},
             ],
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
                 'locale': {'type': ['string', 'null']},
                 'accepted': {'const': True},
+                'auto_accept': {'type': 'boolean'},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
                 'bulk_action_uid': {'type': 'string'},

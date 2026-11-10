@@ -4,6 +4,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.models import Asset
+from kpi.utils.usage_calculator import get_storage_usage_by_user_id
 
 
 class AssetSubmissionTestMixin:
@@ -48,3 +49,11 @@ class AssetSubmissionTestMixin:
 
         user_profile, _ = UserProfile.objects.get_or_create(user=user)
         return asset, xform, instance, user_profile, attachment
+
+    def _get_user_storage(self, user: User) -> int:
+        """
+        Return the user's storage, summed from their projects like usage
+        limits do
+        """
+
+        return get_storage_usage_by_user_id([user.pk])[user.pk]

@@ -1,0 +1,123 @@
+import { ROOT_URL } from '#/constants'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
+
+// Reading and writing `?next=` - the route to go to once authentication is out of the way.
+//
+// `next` can come from anywhere, so only hash routes of this app are accepted and everything else falls back to
+// the site root. And reaching `/admin/` or the API docs is a matter of typing the address manually.
+
+/** Just the bits of `window.location` we use */
+type Origin = Pick<Location, 'origin' | 'pathname'>
+
+/**
+ * Django appends `next` with a plain URL parse, which leaves it outside the fragment, while KPI's own links put it
+ * inside. Hence both `window.location.search` and the matched route's search.
+ */
+export function readNextParam(windowSearch: string, routeSearch: string): string | null {
+  return new URLSearchParams(windowSearch).get('next') ?? new URLSearchParams(routeSearch).get('next')
+}
+
+/**
+ * Returns the `next` route name (preserving its original query string and excluding any `#` hash), or `null` if it
+ * doesn't match any of our routes.
+ */
+export function resolveNextRoute(rawNext: string | null, origin: Origin): string | null {
+  if (!rawNext) {
+    return null
+  }
+
+  let url: URL
+  try {
+    url = new URL(rawNext, origin.origin)
+  } catch {
+    return null
+  }
+
+  // Catches every scheme with no origin of its own too - `javascript:` and `data:` both report `"null"` here. Worth
+  // checking even though only the fragment is read below, since `https://evil.example/#/projects/home` carries one.
+  if (url.origin !== origin.origin) {
+    return null
+  }
+
+  // `pathname` is compared against `/` as well, so this keeps working wherever `KPI_PREFIX` puts the app
+  if (url.hash.startsWith('#/') && (url.pathname === origin.pathname || url.pathname === '/')) {
+    const routePath = url.hash.slice(1)
+    // Checked on the way in as well as out: `next` is attacker-writable, and one naming an authentication screen
+    // would bounce somebody back where they came from.
+    const [path] = routePath.split('?')
+    return isAuthenticationScreen(path) ? null : routePath
+  }
+
+  // Same origin, but a Django page rather than a route of ours
+  return null
+}
+
+/** Screens that exist only to send you onward, which is why `next` must never point at one */
+export function isAuthenticationScreen(routePath: string): boolean {
+  return routePath.startsWith(ROUTES.AUTH_ROOT)
+}
+
+/** The login screen carrying `currentRoute` as `next`, so getting back there afterwards is automatic */
+export function getLoginRouteWithNext(currentRoute: string | null): string {
+  if (!currentRoute) {
+    return AUTH_ROUTES.LOGIN
+  }
+  // The check wants the path alone, but the parameter keeps the query string: that is half of what made it the page.
+  const [currentPath] = currentRoute.split('?')
+  if (isAuthenticationScreen(currentPath)) {
+    return AUTH_ROUTES.LOGIN
+  }
+  const params = new URLSearchParams({ next: `/#${currentRoute}` })
+  return `${AUTH_ROUTES.LOGIN}?${params}`
+}
+
+/**
+ * A resolved `next` as something to hand {@link goToPage}, falling back to the app root.
+ *
+ * Signing in needs the page load even though the destination is always a route: `<App />` reads `/me/`, the permission
+ * config and `/environment` at boot, and a route change refetches none of it.
+ *
+ * Built from {@link ROOT_URL}, so an instance served under `KPI_PREFIX` lands in its own app, not the bare origin.
+ *
+ * @param appRootUrl for testing
+ */
+export function getUrlForNextRoute(routePath: string | null, appRootUrl = ROOT_URL): string {
+  return routePath === null ? `${appRootUrl}/` : `${appRootUrl}/#${routePath}`
+}
+
+/** Just the bits of `window` leaving a page needs */
+interface Navigable {
+  location: Pick<Location, 'href' | 'assign' | 'reload'>
+  history: Pick<History, 'pushState'>
+}
+
+/** The document an address names - everything in it but the fragment */
+const documentUrl = (url: URL) => `${url.origin}${url.pathname}${url.search}`
+
+/**
+ * Leaves for `url` as a page load, or loads this page again when handed `null`.
+ *
+ * The load is the whole point - see {@link getUrlForNextRoute} - and a destination differing only by its fragment is
+ * one the browser moves the address for without loading anything, hence asking for the load outright.
+ *
+ * @param browser for testing
+ */
+export function goToPage(url: string | null, { location, history }: Navigable = window): void {
+  if (url === null) {
+    location.reload()
+    return
+  }
+
+  const here = new URL(location.href)
+  const there = new URL(url, here)
+  const isMoveWithinPage = there.hash !== '' && documentUrl(there) === documentUrl(here)
+
+  if (isMoveWithinPage) {
+    // Not `assign`: its `hashchange` would make the router render the destination with stale data before the reload
+    history.pushState(null, '', url)
+    location.reload()
+    return
+  }
+
+  location.assign(url)
+}

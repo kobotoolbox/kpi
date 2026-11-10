@@ -1,0 +1,302 @@
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import type { RequestHandler } from 'msw'
+import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { AuthServerTagEnum } from '#/api/models/authServerTagEnum'
+import AuthContainer from '#/auth/AuthContainer/AuthContainer'
+import { type Canvas, field, findField, findProviderButtons } from '#/auth/authStoryHelpers'
+import { ROOT_URL } from '#/constants'
+import {
+  loginAlreadyAuthenticatedMock,
+  loginAuthenticatedMock,
+  loginEmailVerificationRequiredMock,
+  loginErrorsMock,
+  loginUnhandledStepMock,
+} from '#/endpoints/allauth.mocks'
+import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
+import { makeAuthConfigurationMock, makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
+import { queryClientDecorator } from '#/query/queryClient.mocks'
+import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
+import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
+// Stand-in for an uploaded organization logo, served offline.
+import logoUrl from '../../../img/kobologo_symbol.svg'
+import LoginRoute from './LoginRoute'
+
+const CREDENTIALS = {
+  username: 'caroline_herschel',
+  email: 'caroline.herschel@kbtdev.org',
+  password: 'correct horse battery staple',
+}
+
+const environmentMock = makeEnvironmentMock()
+
+/**
+ * Storybook replaces the handler array rather than merging it, so overriding one handler means restating
+ * the rest.
+ */
+const storyHandlers = (options?: {
+  environment?: RequestHandler
+  login?: RequestHandler
+}): RequestHandler[] =>
+  [options?.environment ?? environmentMock, options?.login].filter((handler): handler is RequestHandler =>
+    Boolean(handler),
+  )
+
+/**
+ * Stands in for the page load that a real success ends with. A navigation would take the test runner with
+ * it, and the spy also shows the difference between "signed in" and "the server said something else".
+ */
+const onAuthenticated = fn()
+
+/** Renders the story as `/auth/login`, so what you see is the routed screen inside its frame. */
+const loginRouting = reactRouterParameters({
+  location: { path: AUTH_ROUTES.LOGIN },
+  routing: reactRouterOutlet(
+    { path: ROUTES.AUTH_ROOT },
+    { path: 'login', element: <LoginRoute onAuthenticated={onAuthenticated} /> },
+  ),
+})
+
+const meta: Meta<typeof AuthContainer> = {
+  title: 'Features/LoginRoute',
+  component: AuthContainer,
+  // Docs view can't render a full page frame usefully
+  tags: ['!autodocs'],
+  parameters: {
+    layout: 'fullscreen',
+    msw: { handlers: storyHandlers() },
+    reactRouter: loginRouting,
+  },
+  // Nobody is logged in on a sign-in screen.
+  beforeEach: setAnonymousProfileForStories,
+  decorators: [withRouter, queryClientDecorator],
+}
+
+export default meta
+type Story = StoryObj<typeof AuthContainer>
+
+const submit = (canvas: Canvas) => userEvent.click(canvas.getByRole('button', { name: 'Log in' }))
+
+/** Fills both fields with something the client accepts */
+async function fillForm(canvas: Canvas) {
+  await userEvent.type(await findField(canvas, 'Username'), CREDENTIALS.username)
+  await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
+}
+
+/** A stock server: username and password, and the two ways out of the form. */
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    expect(await findField(canvas, 'Username')).toHaveAttribute('autocomplete', 'username')
+
+    // Both router links, so neither recovery nor signing up reloads the page.
+    expect(canvas.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', AUTH_ROUTES.RESET_PASSWORD)
+    expect(canvas.getByRole('link', { name: 'Create an account' })).toHaveAttribute('href', AUTH_ROUTES.SIGNUP)
+
+    // No `social_apps`, so no single sign-on section at all - not an empty divider with nothing under it.
+    expect(canvas.queryByText('or')).not.toBeInTheDocument()
+    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'filled')
+  },
+}
+
+let postedCredentials: unknown = null
+
+/** The happy path. allauth reads only `username` and `password`, and a stray space would fail the lookup. */
+export const LoggedIn: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        login: loginAuthenticatedMock((body) => {
+          postedCredentials = body
+        }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+    postedCredentials = null
+
+    await userEvent.type(await findField(canvas, 'Username'), `  ${CREDENTIALS.username}  `)
+    await userEvent.type(field(canvas, 'Password'), CREDENTIALS.password)
+    await submit(canvas)
+
+    await waitFor(() => expect(onAuthenticated).toHaveBeenCalled())
+    expect(postedCredentials).toEqual({ username: CREDENTIALS.username, password: CREDENTIALS.password })
+  },
+}
+
+/** A server with single sign-on configured: up to three provider buttons, above the credentials. */
+export const SingleSignOnProviders: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialAppsMock }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const gitlabButton = await findProviderButtons(canvas)
+
+    // Buttons, then the divider, then the form
+    const divider = canvas.getByText('or')
+    const heading = canvas.getByRole('heading', { level: 1, name: 'Log in or create an account' })
+    expect(gitlabButton.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(divider.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // SSO is primary here, so the form's button steps down
+    expect(gitlabButton).toHaveAttribute('data-variant', 'filled')
+    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'light')
+
+    // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
+    // `provider_id`, not its `provider` kind.
+    const form = gitlabButton.closest('form')
+    expect(form).toHaveAttribute('action', `${ROOT_URL}/api/v2/allauth/browser/v1/auth/provider/redirect`)
+    expect(form?.querySelector('input[name="provider"]')).toHaveValue('gitlab-dev')
+  },
+}
+
+const LOGO_SELECTOR = `img[src="${logoUrl}"]`
+
+/** Global server: a blue tag, and the logo stays hidden because the tag wins. */
+export const GlobalServerTag: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.global, logo_url: logoUrl }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const tag = await canvas.findByText('Global server')
+    expect(tag.closest('[data-variant]')).toHaveAttribute('data-variant', 'blue-light')
+    expect(canvasElement.querySelector(LOGO_SELECTOR)).not.toBeInTheDocument()
+  },
+}
+
+/** EU server: a teal tag. */
+export const EuServerTag: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.eu }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    const tag = await within(canvasElement).findByText('EU server')
+    expect(tag.closest('[data-variant]')).toHaveAttribute('data-variant', 'teal-light')
+  },
+}
+
+/** Private server: no tag, so the organization logo shows. */
+export const OrganizationLogo: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeAuthConfigurationMock({ logo_url: logoUrl }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelector(LOGO_SELECTOR)).toBeInTheDocument())
+  },
+}
+
+/** Nothing filled in, form submitted - both fields show errors and nothing is sent. */
+export const ClientValidation: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+
+    await findField(canvas, 'Username')
+    await submit(canvas)
+
+    // The rule itself is unit tested in `authValidation.tests`
+    expect(await canvas.findAllByText('Required field')).toHaveLength(2)
+    expect(onAuthenticated).not.toHaveBeenCalled()
+  },
+}
+
+/** Both kinds of rejection at once. What was typed stays, so a second attempt costs one field. */
+export const ServerErrors: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        login: loginErrorsMock([
+          { code: 'required', param: 'username', message: 'No account goes by that name.' },
+          { code: 'too_many_login_attempts', message: 'Too many failed login attempts. Try again later.' },
+        ]),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    // Field error - under the username input
+    await canvas.findByText('No account goes by that name.')
+    // General error - above the form
+    await canvas.findByText('Too many failed login attempts. Try again later.')
+
+    expect(field(canvas, 'Username')).toHaveValue(CREDENTIALS.username)
+    expect(onAuthenticated).not.toHaveBeenCalled()
+  },
+}
+
+/**
+ * Right password, unconfirmed address. allauth doesn't say which address the account uses, so the resend asks
+ * for one.
+ */
+export const EmailVerificationRequired: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({ login: loginEmailVerificationRequiredMock() }).concat(emailConfirmationRequestedMock()),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    onAuthenticated.mockClear()
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByRole('heading', { level: 1, name: 'Confirm your email address' })
+    await canvas.findByText(/the verification link we sent to the email address on your account/)
+    // Nothing here knows the address, and nothing pretends to.
+    expect(canvas.queryByText(CREDENTIALS.email)).not.toBeInTheDocument()
+
+    // So the resend asks for one.
+    await userEvent.type(canvas.getByLabelText('Email'), CREDENTIALS.email)
+    await userEvent.click(canvas.getByRole('button', { name: 'Request new link' }))
+
+    // Hedged on both counts, and the field keeps the address for a second attempt.
+    await canvas.findByText(/a new link has been requested for it/)
+    expect(canvas.getByLabelText('Email')).toHaveValue(CREDENTIALS.email)
+  },
+}
+
+/** Right password, then a step this screen has no form for. Says so, rather than blaming the password. */
+export const UnhandledLoginStep: Story = {
+  parameters: { msw: { handlers: storyHandlers({ login: loginUnhandledStepMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByText('Your account needs a login step that is not available here. Please contact support.')
+    expect(canvas.queryByText('Something went wrong. Please try again later.')).not.toBeInTheDocument()
+  },
+}
+
+/** A 409: a session was already in place, which is nobody's mistake and nothing to fix. */
+export const AlreadyLoggedIn: Story = {
+  parameters: { msw: { handlers: storyHandlers({ login: loginAlreadyAuthenticatedMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
+    // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
+    const appRoot = `${window.location.origin}/`
+    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute('href', appRoot)
+  },
+}

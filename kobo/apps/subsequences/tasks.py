@@ -165,6 +165,9 @@ def poll_run_external_process_failure(sender=None, **kwargs):
         # FIXME: raises KeyError if action results are further nested (eg translations)
         action_supplemental_data = supplemental_data[question_xpath][action_id]
         failed_action_data = dict(action_data)
+        # request-only keys are forbidden in persisted version `_data` by the
+        # result schema
+        failed_action_data.pop('auto_accept', None)
         failed_action_data.update(
             {
                 'error': error,
@@ -300,8 +303,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 _mark_bulk_item_failed(item, 'Submission not found')
                 return
 
-            request_action_data = deepcopy(bulk_action.params)
-            request_action_data['bulk_action_uid'] = bulk_action.uid
+            request_action_data = _build_bulk_item_request_data(bulk_action)
             poll_run_external_process.apply_async(
                 kwargs={
                     'submission': submission,
@@ -325,8 +327,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             _mark_bulk_item_failed(item, 'Submission not found')
             return
 
-        request_action_data = deepcopy(bulk_action.params)
-        request_action_data['bulk_action_uid'] = bulk_action.uid
+        request_action_data = _build_bulk_item_request_data(bulk_action)
         incoming_data = {
             '_version': SCHEMA_VERSIONS[0],
             bulk_action.question_xpath: {
@@ -407,10 +408,13 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             sync_bulk_action_history_log_by_uid(item.parent_id)
 
         if extracted_status == BulkActionItemStatus.IN_PROGRESS:
+            # revise_data() mutated request_action_data (it popped auto_accept
+            # and merged the service status in), so rebuild clean request data
+            # for the poll to keep carrying auto_accept through async completion
             poll_run_external_process.apply_async(
                 kwargs={
                     'submission': submission,
-                    'action_data': request_action_data,
+                    'action_data': _build_bulk_item_request_data(bulk_action),
                     'action_id': bulk_action.action_id,
                     'asset_id': asset.pk,
                     'question_xpath': bulk_action.question_xpath,
@@ -578,6 +582,17 @@ def _mark_bulk_item_failed(item, error: str | None = None) -> None:
 
     # 'failed' is terminal, so the batch progress just moved
     sync_bulk_action_history_log_by_uid(item.parent_id)
+
+
+def _build_bulk_item_request_data(bulk_action) -> dict:
+    """
+    Build the action request data a bulk item passes to revise_data()
+    """
+    request_action_data = deepcopy(bulk_action.params)
+    request_action_data['bulk_action_uid'] = bulk_action.uid
+    if bulk_action.auto_accept:
+        request_action_data['auto_accept'] = True
+    return request_action_data
 
 
 def _clear_pending_operation_marker(item) -> None:

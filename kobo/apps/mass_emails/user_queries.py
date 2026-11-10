@@ -12,12 +12,18 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
 )
+from kobo.apps.user_reports.models import BillingAndUsageSnapshot
 from kpi.utils.usage_calculator import (
     ServiceUsageCalculator,
     get_nlp_usage_for_current_billing_period_by_user_id,
     get_storage_usage_by_user_id,
     get_submissions_for_current_billing_period_by_user_id,
 )
+
+# Owners whose snapshot storage reaches this share of the lowest threshold are
+# checked again with fresh numbers, in case they stored more since the snapshot.
+# A wide margin barely adds to the time it takes, so it is set low to be safe.
+STORAGE_SNAPSHOT_MARGIN = 0.6
 
 
 def get_active_users(days: int = 365) -> QuerySet:
@@ -120,9 +126,49 @@ def get_users_within_range_of_usage_limit(
 
         return get_nlp_usage
 
+    def get_storage_usage():
+        # Summing project storage for every user would group the whole
+        # `logger_xform` table. The user reports snapshot already holds each
+        # owner's storage, so it narrows the list down to the owners close
+        # enough to their limit, and only their storage is summed again, fresh.
+        # `owner_by_org` and `limits_by_owner` are built below, before this gets
+        # called.
+        #
+        # Limits are the current ones, not the snapshot's: a plan or add-on may
+        # have changed since. Snapshots are matched by organization, not by
+        # their saved owner, which may have changed too. The margin covers
+        # storage added since the last snapshot. Owners without a snapshot yet
+        # (new organizations) are always checked.
+        storage_limit_key = f'{UsageType.STORAGE_BYTES}_limit'
+        storage_limits = {
+            owner_id: limit
+            for owner_id, limits in limits_by_owner.items()
+            if 0 < (limit := limits.get(storage_limit_key, inf)) < inf
+        }
+        snapshot_storage_by_org = dict(
+            BillingAndUsageSnapshot.objects.filter(total_storage_bytes__gt=0)
+            .values_list('organization_id', 'total_storage_bytes')
+            .iterator(chunk_size=settings.DEFAULT_BATCH_SIZE)
+        )
+        candidate_ids = {
+            owner_id
+            for org_id, owner_id in owner_by_org.items()
+            if owner_id in storage_limits
+            and snapshot_storage_by_org.get(org_id, 0)
+            >= storage_limits[owner_id] * minimum * STORAGE_SNAPSHOT_MARGIN
+        }
+        candidate_ids.update(
+            owner_id
+            for owner_id in Organization.objects.filter(
+                owner__isnull=False, billingandusagesnapshot__isnull=True
+            ).values_list('owner__organization_user__user__id', flat=True)
+            if owner_id in storage_limits
+        )
+        return get_storage_usage_by_user_id(list(candidate_ids))
+
     usage_method_by_type = {
         UsageType.SUBMISSION: get_submissions_for_current_billing_period_by_user_id,
-        UsageType.STORAGE_BYTES: get_storage_usage_by_user_id,
+        UsageType.STORAGE_BYTES: get_storage_usage,
         UsageType.ASR_SECONDS: get_nlp_usage_method(UsageType.ASR_SECONDS),
         UsageType.MT_CHARACTERS: get_nlp_usage_method(UsageType.MT_CHARACTERS),
         UsageType.LLM_REQUESTS: get_nlp_usage_method(UsageType.LLM_REQUESTS),

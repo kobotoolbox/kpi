@@ -13,7 +13,6 @@ import myLibraryStore from '#/components/library/myLibraryStore'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
-import { RequireOrg } from '#/router/RequireOrg'
 import { router, withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import {
@@ -150,14 +149,12 @@ const MainHeader = class MainHeader extends React.Component<MainHeaderProps> {
         )}
 
         {isLoggedIn && (
-          <RequireOrg>
-            <div className={styles.accountSection}>
-              <div className={styles.badgeWrapper}>
-                <OrganizationBadge color='dark-gray' />
-              </div>
-              <AccountMenu />
+          <div className={styles.accountSection}>
+            <div className={styles.badgeWrapper}>
+              <OrganizationBadge color='dark-gray' />
             </div>
-          </RequireOrg>
+            <AccountMenu />
+          </div>
         )}
 
         {!isLoggedIn && this.renderLoginButton()}

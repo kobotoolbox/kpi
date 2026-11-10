@@ -115,7 +115,7 @@ class EmailContentModelTestCase(TestCase):
         self.client.login(username=user.username, password=user.password)
         self.client.get(reverse('account_email_verification_sent'))
         assert len(mail.outbox) == 1
-        assert mail.outbox[0].subject == 'Activate your KoboToolbox Account'
+        assert mail.outbox[0].subject == 'Activate your KoboToolbox account'
         assert email_content.content in mail.outbox[0].body
         assert default not in mail.outbox[0].body
 
@@ -143,7 +143,7 @@ class EmailContentModelTestCase(TestCase):
             'password2': username,
             'username': username,
         }
-        default_subject = 'Activate your KoboToolbox Account'
+        default_subject = 'Activate your KoboToolbox account'
         default_greeting = 'Welcome to KoboToolbox!'
         default_body = (
             'To get started, please activate your account by clicking the link below:'

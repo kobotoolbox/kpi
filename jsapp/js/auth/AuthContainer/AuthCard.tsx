@@ -6,6 +6,8 @@ export interface AuthCardProps {
   children: React.ReactNode
   /** Optional second column: supporting content beside the form on a wide card, below it on a narrow one. */
   aside?: React.ReactNode
+  /** Server tag or logo. Atop the aside when there is one, atop the form otherwise. */
+  brand?: React.ReactNode
 }
 
 /**
@@ -16,7 +18,7 @@ export interface AuthCardProps {
  * (the Figma box-shadow, the flex row, and the container query that drives the responsive padding and
  * the stacking).
  */
-export default function AuthCard({ children, aside }: AuthCardProps) {
+export default function AuthCard({ children, aside, brand }: AuthCardProps) {
   return (
     // The container query in the stylesheet can't be written against the element that declares
     // `container-type`, so the card is a child of this wrapper rather than being the wrapper itself.
@@ -25,12 +27,18 @@ export default function AuthCard({ children, aside }: AuthCardProps) {
           `!important` needed. `p={0}` because the padding belongs to the columns, so the divider can
           run the card's full height - and because a container query can't override an inline style. */}
       <Paper component='section' radius={20} p={0} bd='none' className={styles.card}>
-        <Box className={styles.column}>{children}</Box>
+        <Box className={styles.column}>
+          {!aside && brand}
+          {children}
+        </Box>
 
         {aside && (
           <>
             <Divider orientation='vertical' className={styles.divider} />
-            <Box className={styles.column}>{aside}</Box>
+            <Box className={styles.column}>
+              {brand}
+              {aside}
+            </Box>
           </>
         )}
       </Paper>

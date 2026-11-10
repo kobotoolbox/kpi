@@ -1,21 +1,24 @@
 import './accountSettings.scss'
-
 import React, { useEffect, useState } from 'react'
-
 import { useBlocker } from 'react-router-dom'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import bem, { makeBem } from '#/bem'
 import Avatar from '#/components/common/avatar'
 import Button from '#/components/common/button'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
 import envStore from '#/envStore'
 import { notify, recordKeys } from '#/utils'
 import { dataInterface } from '../dataInterface'
 import { useProfile } from '../stores/useProfile'
 import DeleteAccountBanner from './DeleteAccountBanner'
 import type { AccountFieldsErrors, AccountFieldsValues } from './account.constants'
-import { getInitialAccountFieldsValues, getProfilePatchData } from './account.utils'
+import {
+  getEditableProfileFieldNames,
+  getInitialAccountFieldsValues,
+  getProfileFieldsValues,
+  getProfilePatchData,
+} from './account.utils'
 import AccountFieldsEditor from './accountFieldsEditor.component'
+import { useAccountFieldsConfig } from './useAccountFieldsConfig'
 
 bem.AccountSettings = makeBem(null, 'account-settings', 'form')
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left')
@@ -32,6 +35,9 @@ const AccountSettings = () => {
 
   const { currentLoggedAccount, refreshAccount } = useProfile()
 
+  /** Same field config the authentication screens read, so both ask for the same things. */
+  const { data: fieldsConfig } = useAccountFieldsConfig()
+
   const [displayedFields, setDisplayedFields] = useState<Array<keyof AccountFieldsValues>>([])
 
   const [organization] = useOrganizationAssumed()
@@ -39,33 +45,15 @@ const AccountSettings = () => {
   useEffect(() => {
     if (!currentLoggedAccount) return
 
-    const fields = {
-      name: currentLoggedAccount.extra_details.name,
-      organization_type: currentLoggedAccount.extra_details.organization_type,
-      organization: currentLoggedAccount.extra_details.organization,
-      organization_website: currentLoggedAccount.extra_details.organization_website,
-      sector: currentLoggedAccount.extra_details.sector,
-      gender: currentLoggedAccount.extra_details.gender,
-      bio: currentLoggedAccount.extra_details.bio,
-      city: currentLoggedAccount.extra_details.city,
-      country: currentLoggedAccount.extra_details.country,
-      require_auth: currentLoggedAccount.extra_details.require_auth,
-      twitter: currentLoggedAccount.extra_details.twitter,
-      linkedin: currentLoggedAccount.extra_details.linkedin,
-      instagram: currentLoggedAccount.extra_details.instagram,
-      newsletter_subscription: currentLoggedAccount.extra_details.newsletter_subscription,
-    }
+    const fieldsValues = getProfileFieldsValues(currentLoggedAccount.extra_details)
 
-    setFormFields(fields)
+    setFormFields(fieldsValues)
 
-    const fieldKeys = recordKeys(fields)
-
-    // We will not display organization fields if user is a member of an MMO,
-    // only displaying these fields in organization settings view
     setDisplayedFields(
-      organization?.is_mmo
-        ? fieldKeys.filter((key) => !['organization', 'organization_website', 'organization_type'].includes(key))
-        : fieldKeys,
+      getEditableProfileFieldNames({
+        configuredFieldNames: recordKeys(fieldsValues),
+        isMmoMember: Boolean(organization?.is_mmo),
+      }),
     )
   }, [currentLoggedAccount, organization])
 
@@ -122,11 +110,6 @@ const AccountSettings = () => {
 
   const accountName = currentLoggedAccount?.username || ''
 
-  const helpArticleUrl =
-    envStore.data.support_url && envStore.data.support_url.includes('support.kobotoolbox.org')
-      ? envStore.data.support_url + HELP_ARTICLE_ANON_SUBMISSIONS_URL
-      : envStore.data.support_url
-
   return (
     <bem.AccountSettings onSubmit={updateProfile}>
       <bem.AccountSettings__actions>
@@ -144,9 +127,11 @@ const AccountSettings = () => {
           <Avatar size='m' username={accountName} isUsernameVisible />
         </bem.AccountSettings__item>
 
-        {currentLoggedAccount && (
+        {/* No fields to render until `/environment` says which ones this instance asks for. */}
+        {currentLoggedAccount && fieldsConfig && (
           <bem.AccountSettings__item m='fields'>
             <AccountFieldsEditor
+              fieldsConfig={fieldsConfig}
               errors={fieldErrors}
               values={formFields}
               onFieldChange={onFieldChange}

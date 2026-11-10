@@ -3,6 +3,10 @@ DELETE_ATTACHMENT_STR_PREFIX = 'Delete attachment'
 DELETE_PROJECT_STR_PREFIX = 'Delete project'
 DELETE_USER_STR_PREFIX = 'Delete user’s'
 
+# Cache key of the last `ExceededLimitCounter.id` handled by
+# `schedule_auto_attachment_cleanup_for_users()`, the next run starts after it
+AUTO_DELETE_CURSOR_KEY = 'schedule_auto_attachment_cleanup_for_users:cursor'
+
 # Matches `SoftTimeLimitExceeded` too. The object is only too big to be deleted
 # in one run (every attempt deletes a bit more of it) so these failures do not
 # consume the automatic restart budget

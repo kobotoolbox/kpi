@@ -13,6 +13,7 @@ from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import (
+    DELETED_FIELD,
     QUESTION_TYPE_TAGS,
     SCHEMA_VERSIONS,
     SORT_BY_DATE_FIELD,
@@ -183,8 +184,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         `for_output = True` returns a flattened and simplified list of columns
         (field names) and values contributed by each enabled action, for use in
         exports and the like. Where multiple actions attempt to provide the
-        same column, the most recently accepted action result is used as the
-        value
+        same column, the most recent action result wins by date. Deletions
+        compete too: when the most recent result is a deletion, the column is
+        omitted instead of falling back to an older result from a sibling action
         """
 
         from .utils.versioning import migrate_submission_supplementals
@@ -233,6 +235,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             )
             output_data_for_question = {}
             max_sort_by_date_by_key = {}
+            winning_data_by_key = {}
 
             for action_id, action_data in data_for_this_question.items():
                 if not ACTION_IDS_TO_CLASSES.get(action_id):
@@ -254,14 +257,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 processed_data_for_this_question[action_id] = retrieved_data
                 if for_output:
                     # Arbitrate the output data so that each column is only
-                    # represented once, and that the most recently accepted
-                    # action result is used as the value
-
-                    # Columns may be represented by a string or a tuple of strings
-                    # for when the API expects something like
-                    # {'translation': {'lang1': {value...}, 'lang2': {value...}}}
-                    # where ('translation','lang1') would be one key and
-                    # ('translation', 'lang2') would be the other
+                    # represented once, and that the most recent action result
+                    # wins by date. A deletion competes here too, so it can
+                    # suppress an older accepted result from a sibling action
                     transformed_data = action.transform_data_for_output(retrieved_data)
                     for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
@@ -272,14 +270,27 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                         existing_max_date = max_sort_by_date_by_key.get(field_key, '')
                         if not existing_max_date or existing_max_date < sort_by_date:
                             max_sort_by_date_by_key[field_key] = sort_by_date
-                            if isinstance(field_key, str):
-                                output_data_for_question[field_key] = field_data
-                            else:
-                                # see https://stackoverflow.com/questions/13687924/setting-a-value-in-a-nested-python-dictionary-given-a-list-of-indices-and-value  # noqa
-                                current = output_data_for_question
-                                for key_str in field_key[:-1]:
-                                    current = current.setdefault(key_str, {})
-                                current[field_key[-1]] = field_data
+                            winning_data_by_key[field_key] = field_data
+
+            for field_key, field_data in winning_data_by_key.items():
+                if field_data.pop(DELETED_FIELD, False):
+                    # The most recent result for this column is a deletion: omit
+                    # the column instead of falling back to an older result from
+                    # a sibling action
+                    continue
+                # Columns may be represented by a string or a tuple of strings
+                # for when the API expects something like
+                # {'translation': {'lang1': {value...}, 'lang2': {value...}}}
+                # where ('translation','lang1') would be one key and
+                # ('translation', 'lang2') would be the other
+                if isinstance(field_key, str):
+                    output_data_for_question[field_key] = field_data
+                else:
+                    # see https://stackoverflow.com/questions/13687924/setting-a-value-in-a-nested-python-dictionary-given-a-list-of-indices-and-value  # noqa
+                    current = output_data_for_question
+                    for key_str in field_key[:-1]:
+                        current = current.setdefault(key_str, {})
+                    current[field_key[-1]] = field_data
             data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version
@@ -416,6 +427,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
     )
     question_xpath = models.CharField(max_length=2000)
     params = LazyDefaultJSONBField(default=dict)
+    auto_accept = models.BooleanField(default=False)
     # Uses a denormalized username string, similar to `Asset.created_by`,
     # instead of a foreign key so job records remain intact through user
     # lifecycle changes and are inexpensive to render.
@@ -458,6 +470,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         created_by: str,
         submission_root_uuids: list[str],
         status: str = BulkActionStatus.PENDING,
+        auto_accept: bool = False,
     ) -> 'SubsequenceBulkAction':
         """
         Orchestrates the atomic creation of a bulk action and its constituent items
@@ -480,6 +493,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
                 params=params,
                 created_by=created_by,
                 status=status,
+                auto_accept=auto_accept,
             )
             SubsequenceBulkActionItem.objects.bulk_create(
                 [
@@ -811,6 +825,77 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
             submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
             asset=self.parent.asset,
         )
+
+
+class TranscriptionChunkStatus(models.TextChoices):
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'
+
+
+class TranscriptionChunk(AbstractTimeStampedModel):
+    """
+    One slice of a long audio file going through transcription, for both single
+    and bulk processing
+
+    Rows are kept once the transcription completes: `started_at` and `ended_at`
+    are how real durations are measured
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    # `stc` stands for subsequence transcription chunk
+    uid = KpiUidField(uid_prefix='stc')
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='transcription_chunks',
+        on_delete=models.CASCADE,
+    )
+    submission_uuid = models.CharField(max_length=249)
+    question_xpath = models.CharField(max_length=2000)
+    # `_uuid` of the `in_progress` version this run belongs to, so a re-run after
+    # a delete never picks up the rows of a previous run
+    version_uuid = models.CharField(max_length=36)
+    index = models.PositiveSmallIntegerField()
+    # In seconds, into the original audio
+    start_offset = models.FloatField()
+    end_offset = models.FloatField()
+    # Empty until the chunk file is uploaded
+    file_path = models.CharField(max_length=2048, blank=True, default='')
+    service_id = models.CharField(max_length=2048, null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=TranscriptionChunkStatus.choices,
+        default=TranscriptionChunkStatus.PENDING,
+    )
+    # `None` until the chunk is transcribed: an empty string is a valid result
+    # for a chunk without speech
+    transcript = models.TextField(null=True, blank=True)
+    # All rows of a run share `date_created` and `date_modified` moves on every
+    # status change, so neither can measure how long a chunk actually took
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    failure_error = models.TextField(null=True, blank=True)
+    retry_count = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['index']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['version_uuid', 'index'],
+                name='unique_transcription_chunk_per_version',
+            ),
+        ]
+        indexes = [
+            # `question_xpath` is left out: a submission only has a handful of
+            # rows, so it adds index size without narrowing the search in any
+            # useful way
+            models.Index(
+                fields=['asset', 'submission_uuid'],
+                name='transcription_chunk_sub_idx',
+            ),
+        ]
 
 
 @lru_cache(maxsize=1024)

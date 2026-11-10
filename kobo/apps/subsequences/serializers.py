@@ -105,10 +105,6 @@ class QATagTrackerSerializer(serializers.ModelSerializer):
         fields = ['value']
 
 
-class BulkActionUserSerializer(serializers.Serializer):
-    username = serializers.CharField()
-
-
 class BulkActionSubmissionStatusSerializer(serializers.Serializer):
     uuid = serializers.CharField(source='submission_root_uuid')
     status = serializers.CharField()
@@ -131,6 +127,7 @@ class BulkActionResponseSerializer(serializers.ModelSerializer):
             'submission_uuids',
             'submission_statuses',
             'params',
+            'auto_accept',
             'progress',
             'created_by',
             'date_created',
@@ -174,6 +171,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
         allow_empty=False,
     )
     params = serializers.DictField()
+    auto_accept = serializers.BooleanField(default=False)
 
     def validate_submission_uuids(self, value):
         deduped = list(dict.fromkeys(value))
@@ -374,6 +372,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
                     params=validated_data['params'],
                     created_by=request.user.username,
                     submission_root_uuids=validated_data['submission_uuids'],
+                    auto_accept=validated_data['auto_accept'],
                 )
                 bulk_action.start_batch()
             bulk_action.skipped_uuids = validated_data.get('skipped_uuids', [])

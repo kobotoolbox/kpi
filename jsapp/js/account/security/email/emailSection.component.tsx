@@ -1,147 +1,107 @@
-import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { type OrvalFetchError, getFieldErrors, onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
+import { useMeEmailsCreate, useMeEmailsList } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
 import Icon from '#/components/common/icon'
-import type { FailResponse } from '#/dataInterface'
 import profileStore from '#/stores/profile'
-import { formatTime, notify } from '#/utils'
-import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
-import type { EmailResponse } from './emailSection.api'
+import { formatTime } from '#/utils'
 import styles from './emailSection.module.scss'
-
-interface EmailState {
-  emails: EmailResponse[]
-  newEmail: string
-  refreshedEmail: boolean
-  refreshedEmailDate: string
-  fieldErrors: string[]
-}
+import { useRemoveUnverifiedEmails } from './useRemoveUnverifiedEmails'
 
 export default function EmailSection() {
   const [profile] = useState(() => profileStore)
 
   const [organization] = useOrganizationAssumed()
 
-  let initialEmail = ''
-  if ('email' in profile.currentAccount) {
-    initialEmail = profile.currentAccount.email
-  }
+  const currentAccount = profile.currentAccount
+  const initialEmail = 'email' in currentAccount ? currentAccount.email : ''
 
-  const [email, setEmail] = useState<EmailState>({
-    emails: [],
-    newEmail: initialEmail,
-    refreshedEmail: false,
-    refreshedEmailDate: '',
-    fieldErrors: [],
+  /** The address to switch to, starting from the one on the account */
+  const [newEmail, setNewEmail] = useState(initialEmail)
+  const [fieldErrors, setFieldErrors] = useState<string[]>([])
+  /** When the confirmation link was last re-sent */
+  const [resentAt, setResentAt] = useState<string | null>(null)
+
+  const emailsQuery = useMeEmailsList()
+  const emails = emailsQuery.data?.status === 200 ? emailsQuery.data.data.results : []
+
+  // `fetchWithAuth` throws a `ServerError` wrapping the 400, 403 and 429 bodies, so that is what `onError` gets -
+  // not the generated `TError`.
+  const createEmail = useMeEmailsCreate<OrvalFetchError>({
+    mutation: {
+      onError: (error, variables, context) => {
+        // Both "Enter a valid email address" and the refusal for SSO accounts arrive under `email`.
+        const emailErrors = getFieldErrors(error, 'email')
+        if (emailErrors.length > 0) {
+          setFieldErrors(emailErrors)
+          return
+        }
+        // Nothing to pin to the field, so fall back to the toast every other Orval call uses.
+        // TODO: DEV-1971 catch `code: 'reauthentication_required'` here and walk the user through the listed flows.
+        onErrorDefaultHandler(error, variables, context)
+      },
+    },
   })
+  const removeUnverifiedEmails = useRemoveUnverifiedEmails()
 
-  useEffect(() => {
-    getUserEmails().then((data) => {
-      setEmail({
-        ...email,
-        emails: data.results,
-      })
-    })
-  }, [])
+  const isBusy = createEmail.isPending || removeUnverifiedEmails.isPending
 
-  function setNewUserEmail(newEmail: string) {
+  /** Replaces the pending address, which the backend then mails a confirmation link to. */
+  function changeEmail(address: string) {
     // Clear errors before making an API call
-    setEmail({
-      ...email,
-      fieldErrors: [],
-    })
+    setFieldErrors([])
 
-    setUserEmail(newEmail).then(
-      (response) => {
-        if ('primary' in response) {
-          getUserEmails().then((data) => {
-            setEmail({
-              ...email,
-              emails: data.results,
-              newEmail: '',
-            })
-          })
-        } else {
-          // If there is no primary email in response, we display an error. This can happen for example when user has
-          // been created through Django admin without email address.
-          setEmail({
-            ...email,
-            fieldErrors: ['Primary email missing'],
-          })
-        }
+    createEmail.mutate({ data: { email: address } })
+  }
+
+  function removePendingEmail() {
+    removeUnverifiedEmails.mutate(undefined, {
+      onSuccess: () => {
+        setNewEmail(initialEmail)
+        setResentAt(null)
       },
-      (err: FailResponse) => {
-        let errMessages: string[] = []
-        if (err.responseJSON?.email && typeof err.responseJSON.email === 'string') {
-          errMessages.push(err.responseJSON.email)
-        } else if (Array.isArray(err.responseJSON?.email)) {
-          errMessages = err.responseJSON.email
-        }
-        setEmail({
-          ...email,
-          fieldErrors: errMessages,
-        })
-      },
-    )
-  }
-
-  function deleteNewUserEmail() {
-    deleteUnverifiedUserEmails().then(() => {
-      getUserEmails().then((data) => {
-        setEmail({
-          ...email,
-          emails: data.results,
-          newEmail: '',
-          refreshedEmail: false,
-        })
-      })
     })
   }
 
-  function resendNewUserEmail(unverfiedEmail: string) {
-    setEmail({
-      ...email,
-      refreshedEmail: false,
-    })
+  /**
+   * Asks for another confirmation link.
+   *
+   * Removes the address first: the POST only mails a link when it creates the row, so re-posting on its own would
+   * look like it worked and mail nobody.
+   */
+  async function resendConfirmation(address: string) {
+    setResentAt(null)
 
-    deleteUnverifiedUserEmails().then(() => {
-      setUserEmail(unverfiedEmail).then(() => {
-        setEmail({
-          ...email,
-          refreshedEmail: true,
-          refreshedEmailDate: formatTime(new Date().toUTCString()),
-        })
-      })
-    })
-  }
-
-  function onTextFieldChange(value: string) {
-    setEmail({
-      ...email,
-      newEmail: value,
-    })
+    try {
+      await removeUnverifiedEmails.mutateAsync()
+      await createEmail.mutateAsync({ data: { email: address } })
+      setResentAt(formatTime(new Date().toUTCString()))
+    } catch {
+      // Both mutations report their own failures and invalidate the list, so there is nothing to add here.
+    }
   }
 
   function handleSubmit() {
     const emailPattern = /[^@]+@[^@]+\.[^@]+/
-    if (emailPattern.test(email.newEmail)) {
-      setNewUserEmail(email.newEmail)
+    if (emailPattern.test(newEmail)) {
+      changeEmail(newEmail)
     } else {
-      notify.error('Invalid email address')
+      setFieldErrors([t('Invalid email address')])
     }
   }
 
-  const currentAccount = profile.currentAccount
-  const unverifiedEmail = email.emails.find((userEmail) => !userEmail.verified && !userEmail.primary)
+  const unverifiedEmail = emails.find((userEmail) => !userEmail.verified && !userEmail.primary)
   const isReady = profile.isInitialLoadComplete && 'email' in currentAccount
   const isSSO =
     profile.isInitialLoadComplete && 'social_accounts' in currentAccount && currentAccount.social_accounts.length >= 1
   const userCanChangeEmail = organization.is_mmo ? organization.request_user_role !== MemberRoleEnum.member : true
+  // No editing while an address waits for confirmation.
+  const isEditable = isReady && userCanChangeEmail && !unverifiedEmail
 
   return (
     <section className={securityStyles.securitySection}>
@@ -155,17 +115,18 @@ export default function EmailSection() {
           userCanChangeEmail ? styles.body : styles.emailUpdateDisabled,
         ])}
       >
-        {isReady && userCanChangeEmail ? (
+        {isEditable ? (
           <TextInput
-            value={email.newEmail}
+            value={newEmail}
             placeholder={t('Type new email address')}
-            onChange={(evt) => onTextFieldChange(evt.currentTarget.value)}
+            onChange={(evt) => setNewEmail(evt.currentTarget.value)}
             type='email'
             w='100%'
             disabled={isSSO}
+            error={fieldErrors.join(' ')}
           />
         ) : (
-          <div className={styles.emailText}>{email.newEmail}</div>
+          <div className={styles.emailText}>{initialEmail}</div>
         )}
 
         {unverifiedEmail?.email && isReady && (
@@ -184,38 +145,31 @@ export default function EmailSection() {
             </div>
 
             <div className={styles.unverifiedEmailButtons}>
-              <ButtonNew variant='light' onClick={resendNewUserEmail.bind(resendNewUserEmail, unverifiedEmail.email)}>
+              <ButtonNew variant='light' disabled={isBusy} onClick={() => resendConfirmation(unverifiedEmail.email)}>
                 {t('Resend')}
               </ButtonNew>
-              <ButtonNew variant='danger-secondary' onClick={deleteNewUserEmail}>
+              <ButtonNew variant='danger-secondary' disabled={isBusy} onClick={removePendingEmail}>
                 {t('Remove')}
               </ButtonNew>
             </div>
 
-            {email.refreshedEmail && (
-              <label>
-                {t('Email was sent again: ##TIMESTAMP##').replace('##TIMESTAMP##', email.refreshedEmailDate)}
-              </label>
-            )}
+            {resentAt && <label>{t('Email was sent again: ##TIMESTAMP##').replace('##TIMESTAMP##', resentAt)}</label>}
           </>
         )}
       </div>
       {userCanChangeEmail && (
+        // Stays rendered when empty, to keep the layout.
         <div className={styles.options}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSubmit()
-            }}
-          >
-            <Group gap='sm'>
-              <Text c='red'>{email.fieldErrors}</Text>
-
-              <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO}>
-                {t('Change')}
-              </ButtonNew>
-            </Group>
-          </form>
+          {isEditable && (
+            <ButtonNew
+              variant='filled'
+              onClick={handleSubmit}
+              disabled={isSSO || newEmail === initialEmail}
+              loading={isBusy}
+            >
+              {t('Change')}
+            </ButtonNew>
+          )}
         </div>
       )}
     </section>

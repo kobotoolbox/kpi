@@ -12,6 +12,10 @@ from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_l
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.trash_bin.utils import move_to_trash
+from kobo.apps.user_reports.models import (
+    BillingAndUsageSnapshot,
+    BillingAndUsageSnapshotRun,
+)
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
@@ -101,6 +105,70 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         # infinite storage
         aslist = list(results)
         assert aslist == []
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_storage_usage_summed_only_for_snapshot_candidates(self):
+        """
+        Only owners close enough to their current limit in the snapshot, and
+        owners without a snapshot yet, get their storage summed again.
+        Snapshots are matched by organization, so the current owner is checked
+        even if the snapshot still names a former one.
+        """
+
+        near_limit = User.objects.get(username='someuser')
+        far_from_limit = User.objects.get(username='anotheruser')
+        unlimited = User.objects.get(username='adminuser')
+        without_snapshot = User.objects.create_user(
+            username='fred', password='fred', email='fred@fred.com'
+        )
+        former_owner = User.objects.create_user(
+            username='george', password='george', email='george@george.com'
+        )
+
+        limit = 1000
+        storage_limits = {
+            near_limit.organization.id: {'storage_bytes_limit': limit},
+            far_from_limit.organization.id: {'storage_bytes_limit': limit},
+            unlimited.organization.id: {'storage_bytes_limit': inf},
+            without_snapshot.organization.id: {'storage_bytes_limit': limit},
+        }
+
+        run = baker.make(BillingAndUsageSnapshotRun)
+        # Candidates start at 48% (0.8 * 0.6) of the current limit. The limit
+        # saved in the snapshot is ignored, the plan may have changed since.
+        # The organization close to its limit changed owners since its
+        # snapshot was taken.
+        for user, snapshot_owner, total_storage_bytes in (
+            (near_limit, former_owner, 500),
+            (far_from_limit, far_from_limit, 400),
+            (unlimited, unlimited, 10**12),
+        ):
+            baker.make(
+                BillingAndUsageSnapshot,
+                organization=user.organization,
+                last_snapshot_run=run,
+                effective_user_id=snapshot_owner.pk,
+                total_storage_bytes=total_storage_bytes,
+                storage_bytes_limit=10**12,
+            )
+
+        with patch(
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
+            return_value=storage_limits,
+        ):
+            with patch(
+                'kobo.apps.mass_emails.user_queries.get_storage_usage_by_user_id',
+                return_value={},
+            ) as patched_storage_usage:
+                get_users_within_range_of_usage_limit(
+                    usage_types=[UsageType.STORAGE_BYTES], minimum=0.8, maximum=0.9
+                )
+
+        patched_storage_usage.assert_called_once()
+        (candidate_ids,) = patched_storage_usage.call_args.args
+        assert sorted(candidate_ids) == sorted([near_limit.pk, without_snapshot.pk])
 
     @pytest.mark.skipif(
         not settings.STRIPE_ENABLED, reason='Requires stripe functionality'

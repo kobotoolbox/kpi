@@ -4,7 +4,11 @@ from unittest.mock import MagicMock, patch
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from django.core.management.base import CommandError
 from django.db import IntegrityError
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+
+from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Instance
+from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 
 job_0027 = importlib.import_module(
     'kobo.apps.long_running_migrations.jobs.0027_backfill_remaining_root_uuid'
@@ -167,6 +171,36 @@ class BackfillRemainRootUuidTestCase(SimpleTestCase):
         xform.pk = 1
         xform.id_string = 'a_form'
         return xform
+
+
+class BackfillRemainingRootUuidXFormWalkTestCase(TestCase, AssetSubmissionTestMixin):
+    """
+    The walk through the XForms still holding instances without `root_uuid`,
+    on real rows
+    """
+
+    def setUp(self):
+        user = User.objects.create(username='owner')
+        self.xform_ids = sorted(
+            self._create_test_asset_and_submission(user=user)[1].pk for _ in range(3)
+        )
+        first, _, third = self.xform_ids
+        Instance.objects.filter(xform_id__in=[first, third]).update(root_uuid=None)
+
+    def test_only_xforms_with_missing_root_uuid_are_walked(self):
+        first, _, third = self.xform_ids
+
+        assert job_0027._get_next_distinct_xform_ids(0) == [first, third]
+        assert job_0027._get_next_distinct_xform_ids(first) == [third]
+        assert job_0027._get_next_distinct_xform_ids(third) == []
+
+    def test_cursor_advances_to_the_last_xform_of_the_batch(self):
+        first, _, third = self.xform_ids
+
+        queryset, next_xform_id = job_0027.get_xforms_queryset(0)
+
+        assert [xform.pk for xform in queryset] == [first, third]
+        assert next_xform_id == third
 
 
 class SyncMongoRootUuidCursorTestCase(SimpleTestCase):

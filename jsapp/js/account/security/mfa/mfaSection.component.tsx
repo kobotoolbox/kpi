@@ -1,10 +1,7 @@
-import React from 'react'
-
 import { Switch } from '@mantine/core'
 import cx from 'classnames'
 import securityStyles from '#/account/security/securityRoute.module.scss'
-import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfaActions'
-import mfaActions from '#/actions/mfaActions'
+import type { MfaModalType } from '#/components/bigModal/mfaModals'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import Tooltip from '#/components/common/tooltip'
@@ -13,201 +10,116 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import profileStore from '#/stores/profile'
 import { formatTime } from '#/utils'
+import { useMfaActivate, useMfaStatus } from './mfa.api'
 import styles from './mfaSection.module.scss'
 
-interface SecurityState {
-  isMfaActive: boolean
-  dateDisabled?: string
-  dateModified?: string
+/** Shown above every step, since they share one title */
+function renderModalHeader() {
+  return (
+    <header className='table-media-preview-header'>
+      <div className='table-media-preview-header__title'>
+        <Icon name='lock' size='s' />
+        {t('Two-factor authentication')}
+      </div>
+    </header>
+  )
 }
 
-type EditModalTypes = 'reconfigure' | 'regenerate'
+/** Steps run in `BigModal`, so opening one writes to `pageState` */
+function showMfaModal(modalType: MfaModalType, qrCode?: string) {
+  pageState.showModal({
+    type: MODAL_TYPES.MFA_MODALS,
+    modalType,
+    qrCode,
+    customModalHeader: renderModalHeader(),
+    disableBackdropClose: true,
+    disableEscClose: true,
+  })
+}
 
-export default class SecurityRoute extends React.Component<{}, SecurityState> {
-  constructor(props: {}) {
-    super(props)
-    this.state = {
-      isMfaActive: false,
-      dateDisabled: undefined,
-      dateModified: undefined,
-    }
-  }
+export default function MfaSection() {
+  const { data: mfaStatus } = useMfaStatus()
+  const activate = useMfaActivate()
 
-  private unlisteners: Function[] = []
+  const isMfaActive = mfaStatus?.isActive ?? false
 
-  componentDidMount() {
-    this.unlisteners.push(
-      mfaActions.getUserMethods.completed.listen(this.onGetUserMethodsCompleted.bind(this)),
-      mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
-      mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
-    )
+  const isSuperuserMfaLocked =
+    envStore.data.superuser_auth_enforcement &&
+    'is_superuser' in profileStore.currentAccount &&
+    profileStore.currentAccount.is_superuser
 
-    mfaActions.getUserMethods()
-  }
+  const isDisabled = isSuperuserMfaLocked && isMfaActive
 
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
-  }
-
-  onGetUserMethodsCompleted(response: MfaUserMethodsResponse) {
-    if (response.length) {
-      this.setState({
-        isMfaActive: response[0].is_active,
-        dateDisabled: response[0].date_disabled,
-        dateModified: response[0].date_modified,
-      })
-    }
-  }
-
-  mfaActivating(response: MfaActivatedResponse) {
-    if (response && !response.inModal) {
-      pageState.showModal({
-        type: MODAL_TYPES.MFA_MODALS,
-        qrCode: response.details,
-        modalType: 'qr',
-        customModalHeader: this.renderCustomHeader(),
-        disableBackdropClose: true,
-        disableEscClose: true,
-      })
-    }
-  }
-
-  mfaActivated() {
-    this.setState({
-      isMfaActive: true,
-      dateDisabled: undefined,
-    })
-  }
-
-  mfaDeactivated() {
-    this.setState({ isMfaActive: false })
-    mfaActions.getUserMethods()
-  }
-
-  onToggleChange(isActive: boolean) {
+  function onToggleChange(isActive: boolean) {
     if (isActive) {
-      mfaActions.activate()
+      // The switch stays off until a token is confirmed, which is the modal's job
+      activate.mutate(undefined, { onSuccess: ({ qrCodeUrl }) => showMfaModal('qr', qrCodeUrl) })
     } else {
-      pageState.showModal({
-        type: MODAL_TYPES.MFA_MODALS,
-        modalType: 'deactivate',
-        customModalHeader: this.renderCustomHeader(),
-        disableBackdropClose: true,
-        disableEscClose: true,
-      })
+      showMfaModal('deactivate')
     }
   }
 
-  showEditModal(evt: React.ChangeEvent<HTMLInputElement>, type: EditModalTypes) {
-    evt.preventDefault()
+  const toggle = (
+    <div className={styles.options}>
+      <Switch
+        label={isMfaActive ? t('Enabled') : t('Disabled')}
+        checked={isMfaActive}
+        onChange={(event) => onToggleChange(event.currentTarget.checked)}
+        disabled={isDisabled}
+      />
+    </div>
+  )
 
-    pageState.showModal({
-      type: MODAL_TYPES.MFA_MODALS,
-      modalType: type,
-      customModalHeader: this.renderCustomHeader(),
-      disableBackdropClose: true,
-      disableEscClose: true,
-    })
+  if (!envStore.data.mfa_enabled) {
+    return null
   }
 
-  renderCustomHeader() {
-    return (
-      <header className='table-media-preview-header'>
-        <div className='table-media-preview-header__title'>
-          <Icon name='lock' size='s' />
-          {t('Two-factor authentication')}
-        </div>
-      </header>
-    )
-  }
-
-  render() {
-    const isSuperuserMfaLocked =
-      envStore.data.superuser_auth_enforcement &&
-      'is_superuser' in profileStore.currentAccount &&
-      profileStore.currentAccount.is_superuser
-
-    const isDisabled = isSuperuserMfaLocked && this.state.isMfaActive
-
-    const toggle = (
-      <div className={styles.options}>
-        <Switch
-          label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
-          checked={this.state.isMfaActive}
-          onChange={(event) => this.onToggleChange(event.currentTarget.checked)}
-          disabled={isDisabled}
-        />
+  return (
+    <section className={securityStyles.securitySection}>
+      <div className={securityStyles.securitySectionTitle}>
+        <h2 className={securityStyles.securitySectionTitleText}>{t('Two-factor authentication')}</h2>
       </div>
-    )
 
-    if (!envStore.data.mfa_enabled) {
-      return null
-    }
-
-    return (
-      <section className={securityStyles.securitySection}>
-        <div className={securityStyles.securitySectionTitle}>
-          <h2 className={securityStyles.securitySectionTitleText}>{t('Two-factor authentication')}</h2>
-        </div>
-
-        <div className={cx(securityStyles.securitySectionBody, styles.body)}>
-          <div>
-            <p className={styles.mfaDescription}>
-              {t(
-                'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
-                  'We recommend enabling two-factor authentication for an additional layer of protection.',
-              )}
-            </p>
-
-            {this.state.isMfaActive && (
-              <div className={styles.mfaOptions}>
-                <div className={styles.mfaOptionsRow}>
-                  <h3 className={styles.mfaOptionsLabel}>{t('Authenticator app')}</h3>
-
-                  {this.state.dateModified && <div>{formatTime(this.state.dateModified)}</div>}
-
-                  <Button
-                    type='primary'
-                    label={t('Reconfigure')}
-                    size='m'
-                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                      this.showEditModal(evt, 'reconfigure')
-                    }}
-                  />
-                </div>
-
-                <div className={styles.mfaOptionsRow}>
-                  <h3 className={styles.mfaOptionsLabel}>{t('Recovery codes')}</h3>
-
-                  <Button
-                    type='primary'
-                    label={t('Generate new')}
-                    size='m'
-                    onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                      this.showEditModal(evt, 'regenerate')
-                    }}
-                  />
-                </div>
-              </div>
+      <div className={cx(securityStyles.securitySectionBody, styles.body)}>
+        <div>
+          <p className={styles.mfaDescription}>
+            {t(
+              'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
+                'We recommend enabling two-factor authentication for an additional layer of protection.',
             )}
-          </div>
-        </div>
+          </p>
 
-        {isDisabled ? (
-          <Tooltip
-            text={t('Superusers cannot deactivate their MFA')}
-            ariaLabel={t('MFA restriction explanation')}
-            alignment='right'
-          >
-            {toggle}
-          </Tooltip>
-        ) : (
-          toggle
-        )}
-      </section>
-    )
-  }
+          {isMfaActive && (
+            <div className={styles.mfaOptions}>
+              <div className={styles.mfaOptionsRow}>
+                <h3 className={styles.mfaOptionsLabel}>{t('Authenticator app')}</h3>
+
+                {mfaStatus?.dateModified && <div>{formatTime(mfaStatus.dateModified)}</div>}
+
+                <Button type='primary' label={t('Reconfigure')} size='m' onClick={() => showMfaModal('reconfigure')} />
+              </div>
+
+              <div className={styles.mfaOptionsRow}>
+                <h3 className={styles.mfaOptionsLabel}>{t('Recovery codes')}</h3>
+
+                <Button type='primary' label={t('Generate new')} size='m' onClick={() => showMfaModal('regenerate')} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isDisabled ? (
+        <Tooltip
+          text={t('Superusers cannot deactivate their MFA')}
+          ariaLabel={t('MFA restriction explanation')}
+          alignment='right'
+        >
+          {toggle}
+        </Tooltip>
+      ) : (
+        toggle
+      )}
+    </section>
+  )
 }

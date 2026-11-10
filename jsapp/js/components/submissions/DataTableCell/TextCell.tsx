@@ -6,8 +6,8 @@ import ProcessingPromptModal from '#/components/common/ProcessingPromptModal'
 import Icon from '#/components/common/icon'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionResponse } from '#/dataInterface'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getSubmissionRootUuid } from '#/utils'
+import { getCellPreviewText } from '../tableUtils'
 import styles from './TextCell.module.scss'
 
 interface TextCellProps {
@@ -28,7 +28,6 @@ interface TextCellProps {
  */
 export default function TextCell(props: TextCellProps) {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const isNlpTextActionsEnabled = useFeatureFlag(FeatureFlag.nlpTextActionsEnabled)
 
   if (!props.text) {
     return (
@@ -40,7 +39,7 @@ export default function TextCell(props: TextCellProps) {
 
   // Some legacy asset versions lack `$xpath` on their survey rows, in which case
   // there is no reliable question path to open Processing with.
-  const canOpenProcessing = isNlpTextActionsEnabled && props.xpath !== undefined
+  const canOpenProcessing = props.xpath !== undefined
   const xpath = props.xpath
 
   const submissionEditId = getSubmissionRootUuid(props.submissionData)
@@ -54,7 +53,7 @@ export default function TextCell(props: TextCellProps) {
 
   return (
     <div className={styles.cell} dir='auto'>
-      <span className={styles.textContent}>{props.text}</span>
+      <span className={styles.textContent}>{getCellPreviewText(props.text)}</span>
 
       <Group ml='auto' gap={0} wrap='nowrap'>
         <ActionIcon

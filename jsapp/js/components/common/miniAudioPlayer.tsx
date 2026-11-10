@@ -169,6 +169,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
       <React.Fragment>
         <ActionIcon
           variant='transparent'
+          tooltip={this.state.isPlaying ? t('Stop audio') : t('Play audio')}
           icon={this.state.isPlaying ? IconPlayerStopFilled : IconPlayerPlayFilled}
           size='sm'
           onClick={this.onButtonClick.bind(this)}
@@ -188,7 +189,7 @@ class MiniAudioPlayer extends React.Component<MiniAudioPlayerProps, MiniAudioPla
   renderLoading() {
     return (
       <React.Fragment>
-        <ActionIcon variant='transparent' icon={IconPlayerPlayFilled} size='sm' disabled />
+        <ActionIcon variant='transparent' tooltip={t('Play audio')} icon={IconPlayerPlayFilled} size='sm' disabled />
 
         <bem.MiniAudioPlayer__time>{DURATION_PLACEHOLDER}</bem.MiniAudioPlayer__time>
       </React.Fragment>

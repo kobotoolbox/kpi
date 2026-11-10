@@ -48,8 +48,6 @@ ASSET_TYPES_WITH_CONTENT = [
 
 CLONE_ARG_NAME = 'clone_from'
 CLONE_FROM_VERSION_ID_ARG_NAME = 'clone_from_version_id'
-COLLECTION_CLONE_FIELDS = {'name'}
-
 # Types are declared in `kpi.models.assets.ASSET_TYPES`.
 # These values correspond to index 0 of each tuple of ASSET_TYPES
 CLONE_COMPATIBLE_TYPES = {
@@ -214,3 +212,31 @@ AUTH_THEME_CHOICES = [
     (AUTH_THEME_DEFAULT, 'Default'),
     (AUTH_THEME_CUSTOM, 'Customizable'),
 ]
+
+# Server name tag at the top of the sign-in and account creation cards. Only
+# Global and EU carry one; private servers show their uploaded logo instead
+AUTH_SERVER_TAG_GLOBAL = 'global'
+AUTH_SERVER_TAG_EU = 'eu'
+AUTH_SERVER_TAG_CHOICES = [
+    (AUTH_SERVER_TAG_GLOBAL, 'Global'),
+    (AUTH_SERVER_TAG_EU, 'EU'),
+]
+
+ENKETO_URL_FORMATS = {
+    'url': '#enketo_id#',
+    'single_url': 'single/#enketo_id#',
+    'single_once_url': 'single/#encoded_enketo_id#',
+    'offline_url': 'x/#enketo_id#',
+    'preview_url': 'preview/#enketo_id#',
+    'iframe_url': 'i/#enketo_id#',
+    'single_iframe_url': 'single/i/#enketo_id#',
+    'single_once_iframe_url': 'single/i/#encoded_enketo_id#',
+    'preview_iframe_url': 'preview/i/#enketo_id#',
+}
+
+ENKETO_INTERNAL_URL_FLAG = 'internal_url_in_use'
+
+# Sentinel `count` values reported by `LimitedCountPagination` (DEV-2626
+# contract): 'many' past the configured row limit, 'unknown' on count timeout
+LIMITED_COUNT_MANY = 'many'
+LIMITED_COUNT_UNKNOWN = 'unknown'

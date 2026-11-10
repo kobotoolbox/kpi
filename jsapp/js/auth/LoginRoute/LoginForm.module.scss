@@ -1,0 +1,11 @@
+.passwordField {
+  position: relative;
+}
+
+.forgotPasswordLink {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  // The label's own line box: `md` inputs label at `sm`, so matching it puts the two on one baseline.
+  line-height: var(--mantine-line-height);
+}

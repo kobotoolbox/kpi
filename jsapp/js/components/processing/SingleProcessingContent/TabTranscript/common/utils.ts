@@ -1,18 +1,4 @@
-import { findRowByXpathOrLeafName, getRowName } from '#/assetUtils'
 import { type AnyRowTypeName, QUESTION_TYPES } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
-
-export function getQuestionName(asset: AssetResponse, questionXpath: string) {
-  if (!asset?.content) return undefined
-  const foundRow = findRowByXpathOrLeafName(asset.content, questionXpath)
-  return foundRow ? getRowName(foundRow) : undefined
-}
-
-export function getQuestionType(asset: AssetResponse, questionXpath: string): AnyRowTypeName | undefined {
-  if (!asset?.content) return undefined
-  const foundRow = findRowByXpathOrLeafName(asset.content, questionXpath)
-  return foundRow?.type
-}
 
 /**
  * This is being used in few places to replace placeholder in UI translation text. Few places refers to this as "##type##",

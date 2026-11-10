@@ -29,6 +29,9 @@ class UserProfile(models.Model):
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
     num_of_submissions = models.IntegerField(default=0)
+    # Deprecated: user storage is now summed from the user's projects (see
+    # `get_storage_usage_by_user_id()`). No longer read, and no longer written
+    # once every counter update stops touching it. Drop it in a later release.
     attachment_storage_bytes = models.BigIntegerField(default=0)
     metadata = models.JSONField(default=dict, blank=True)
     is_mfa_active = LazyDefaultBooleanField(default=False)

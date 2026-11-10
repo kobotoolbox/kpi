@@ -16,6 +16,8 @@ from django.core.exceptions import PermissionDenied, SuspiciousFileOperation
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
+from redis import Redis
+from redis.client import Pipeline
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
@@ -25,7 +27,11 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
 )
-from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    META_INSTANCE_ID,
+    META_ROOT_UUID,
+    SUBMISSION_TIME,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
@@ -39,7 +45,9 @@ from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
 from kpi.exceptions import BulkUpdateSubmissionsClientException
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.django_orm_helper import (
+    UpdateJSONFieldAttributes,
+)
 from kpi.utils.files import normalize_nfc
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
@@ -449,17 +457,16 @@ class BaseDeploymentBackend(abc.ABC):
     def redeploy(self, active: bool = None):
         pass
 
-    def remove_enketo_survey_links_for_data_collectors(self, tokens):
-        for token in tokens:
-            self.remove_enketo_links_for_single_data_collector(token)
-
     @abc.abstractmethod
     def remove_enketo_links_for_single_data_collector(self, token):
         pass
 
     @abc.abstractmethod
     def rename_enketo_id_key(
-        self, previous_owner_username: str, project_identifier: str = None
+        self,
+        previous_owner_username: str,
+        project_identifier: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
         pass
 
@@ -503,12 +510,12 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def set_enketo_open_rosa_server(
-        self, require_auth: bool, enketo_id: str = None
+        self,
+        require_auth: bool,
+        enketo_id: str = None,
+        redis_client: Redis | Pipeline | None = None,
     ):
         pass
-
-    def set_status(self, status):
-        self.save_to_db({'status': status})
 
     @abc.abstractmethod
     def set_validation_status(
@@ -573,6 +580,12 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def transfer_counters_ownership(self, new_owner: 'kobo_auth.User'):
+        pass
+
+    @abc.abstractmethod
+    def transfer_enketo_links(
+        self, previous_owner_username: str, project_identifier: str
+    ):
         pass
 
     @abc.abstractmethod
@@ -879,6 +892,19 @@ class BaseDeploymentBackend(abc.ABC):
         submission['_validation_status'] = (
             submission.get('_validation_status', None) or {}
         )
+        submission_time = submission.get('_submission_time', None)
+        if submission_time:
+            try:
+                # submission_time should always be stored as UTC, check the tz anyway
+                as_date = datetime.datetime.fromisoformat(submission_time)
+            except ValueError:
+                pass
+            else:
+                if as_date.tzinfo is None:
+                    as_date = as_date.replace(tzinfo=datetime.timezone.utc)
+                submission[SUBMISSION_TIME] = as_date.astimezone(
+                    datetime.timezone.utc
+                ).isoformat()
         submission.pop('_tags', None)
         submission.pop('_notes', None)
         return submission

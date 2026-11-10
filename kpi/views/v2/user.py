@@ -104,7 +104,7 @@ class UserViewSet(
         return super().list(request, *args, **kwargs)
 
     def paginate_queryset(self, queryset):
-        if not (page := super().paginate_queryset(queryset)):
+        if (page := super().paginate_queryset(queryset)) is None:
             return None
 
         user_ids = (user.pk for user in page)

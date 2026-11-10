@@ -193,7 +193,7 @@ class EmailConfirmationRequestTestCase(APITestCase):
         self.post('shared@example.com')
         assert len(mail.outbox) == 2
         assert {m.subject.strip() for m in mail.outbox} == {
-            'Your new KoboToolbox activation link',
+            'New activation link for your KoboToolbox account',
             'KoboToolbox account email address verification',
         }
 

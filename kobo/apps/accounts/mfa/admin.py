@@ -1,87 +1,57 @@
 # coding: utf-8
-from constance import config
-from django import forms
+from allauth.mfa.models import Authenticator
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 
-from .models import MfaMethodsWrapper
+from .utils import deactivate_mfa, is_mfa_deactivation_blocked
 
 
-class MfaMethodsWrapperAdminForm(forms.ModelForm):
-    class Meta:
-        model = MfaMethodsWrapper
-        fields = '__all__'
+class MfaAuthenticatorAdmin(admin.ModelAdmin):
+    """
+    Lists users with MFA turned on, one row per TOTP authenticator. Deleting a
+    row turns MFA off for that user (TOTP and recovery codes)
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        is_active = cleaned_data.get('is_active')
-
-        if (
-            self.instance.pk
-            and 'is_active' in self.changed_data
-            and not is_active
-            and self.instance.user.is_superuser
-            and config.SUPERUSER_AUTH_ENFORCEMENT
-        ):
-            raise ValidationError(
-                'Cannot deactivate MFA for a superuser while '
-                'SUPERUSER_AUTH_ENFORCEMENT is active.'
-            )
-
-        return cleaned_data
-
-
-class MfaMethodsWrapperAdmin(admin.ModelAdmin):
-    form = MfaMethodsWrapperAdminForm
+    Registered from `MfaAppConfig.ready()`, in place of allauth's own admin,
+    which exposes secrets and would bypass the superuser enforcement.
+    """
 
     search_fields = ('user__username',)
-    autocomplete_fields = ('user',)
-    list_display = ('user', 'is_active', 'date_modified', 'date_disabled')
-    exclude = ('name', 'secret', 'totp', 'recovery_codes')
-    readonly_fields = ('user', 'date_created', 'date_modified', 'date_disabled')
-    fields = ('user', 'date_created', 'date_modified', 'date_disabled', 'is_active')
+    list_display = ('user', 'created_at', 'last_used_at')
+    fields = ('user', 'created_at', 'last_used_at')
+    readonly_fields = fields
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .filter(type=Authenticator.Type.TOTP)
+            .select_related('user')
+        )
 
     def has_add_permission(self, request, obj=None):
         return False
 
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = list(super().get_readonly_fields(request, obj))
-
-        if obj and obj.pk:
-            # Always lock if already inactive (prevent reactivation)
-            if not obj.is_active:
-                readonly_fields.append('is_active')
-
-            # Lock active MFA for superusers under enforcement
-            elif (
-                obj.user.is_superuser
-                and config.SUPERUSER_AUTH_ENFORCEMENT
-            ):
-                readonly_fields.append('is_active')
-
-        return readonly_fields
-
-    def save_model(self, request, obj, form, change):
-        changed_data = getattr(form, 'changed_data', [])
-        if change and 'is_active' in changed_data and not obj.is_active:
-            try:
-                obj.deactivate(request=request)
-            except ValidationError as e:
-                self.message_user(request, e.message, level=messages.ERROR)
-            return
-        super().save_model(request, obj, form, change)
+    def has_change_permission(self, request, obj=None):
+        return False
 
     def has_delete_permission(self, request, obj=None):
-        if obj and obj.user.is_superuser and config.SUPERUSER_AUTH_ENFORCEMENT:
+        if obj and is_mfa_deactivation_blocked(obj.user):
             return False
         return super().has_delete_permission(request, obj)
 
+    def delete_model(self, request, obj):
+        try:
+            deactivate_mfa(obj.user, request=request)
+        except ValidationError as e:
+            self.message_user(request, e.message, level=messages.ERROR)
+
     def delete_queryset(self, request, queryset):
+        # Go through `deactivate_mfa()` for each user instead of a bulk SQL
+        # delete, so recovery codes are removed too and superusers are skipped
         skipped = 0
         for obj in queryset:
             try:
-                obj.delete()
+                deactivate_mfa(obj.user, request=request)
             except ValidationError as e:
                 skipped += 1
                 self.message_user(request, e.message, level=messages.ERROR)
@@ -91,6 +61,3 @@ class MfaMethodsWrapperAdmin(admin.ModelAdmin):
                 f'{skipped} record(s) could not be deleted (see errors above).',
                 level=messages.WARNING,
             )
-
-
-admin.site.register(MfaMethodsWrapper, MfaMethodsWrapperAdmin)

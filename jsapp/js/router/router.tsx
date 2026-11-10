@@ -23,14 +23,13 @@ const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/pr
 const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formXform'))
 const FormJson = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formJson'))
 const SectionNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/sectionNotFound'))
+const SubmissionRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ '#/components/submissions/single/submissionRoute'),
+)
 const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formNotFound'))
 
 export const router = createHashRouter(
   createRoutesFromElements(
-    // Auth screens are siblings of `<App />`, not children: `App` renders the main header, the drawer
-    // and the TOS / invalidated password blockers, none of which belong on a sign-in page. The
-    // fragment is fine - `createRoutesFromElements` recurses into it - and `/auth/…` is a static path,
-    // so it still outranks `App`'s trailing `path='*'`.
     <>
       {authRoutes()}
       <Route path={ROUTES.ROOT} element={<App />}>
@@ -157,7 +156,10 @@ export const router = createHashRouter(
                     requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                   />
                 }
-              />
+              >
+                {/* Nested, so the table can stay mounted under a record opened from it */}
+                <Route path={ROUTES.FORM_SUBMISSION} element={<SubmissionRoute />} />
+              </Route>
               <Route
                 path={ROUTES.FORM_DOWNLOADS}
                 element={

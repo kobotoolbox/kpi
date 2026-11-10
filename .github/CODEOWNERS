@@ -6,99 +6,81 @@
 
 
 ## Default owner for all missed files by more specific matches below.
-*                                   @magicznyleszek @noliveleger
-
+*                                   @kobotoolbox/frontend @kobotoolbox/backend
 
 
 ################
 #### Global section.
-/.editorconfig                      @magicznyleszek
-/.git-blame-ignore-revs             @magicznyleszek
-/.gitattributes                     @magicznyleszek @noliveleger
-/.gitignore                         @magicznyleszek @noliveleger
-/dependabot.yml                     @magicznyleszek
-/kpi.code-workspace                 @p2edwards
+/.editorconfig                      @kobotoolbox/frontend
+/.git-blame-ignore-revs             @kobotoolbox/frontend
+/.gitattributes                     @kobotoolbox/frontend @kobotoolbox/backend
+/.gitignore                         @kobotoolbox/frontend @kobotoolbox/backend
+/dependabot.yml                     @kobotoolbox/frontend @kobotoolbox/backend
+/kpi.code-workspace                 @kobotoolbox/frontend
 /LICENSE                            @jnm @tinok
 
 ## Translations
-/.gitmodules                        @jamesrkiger
-/.tx/                               @jamesrkiger
-
-
+/.gitmodules                        @kobotoolbox/frontend
+/.tx/                               @kobotoolbox/frontend
 
 
 ################
 #### Frontend section.
 
 # Default owner
-/.storybook/                        @magicznyleszek
-/jsapp/                             @magicznyleszek
-/patches/                           @p2edwards
-/static/                            @magicznyleszek
-/static/js/                         @magicznyleszek @p2edwards
-/test/                              @magicznyleszek @p2edwards
-/webpack/                           @magicznyleszek @p2edwards
-/.babelrc.json                      @magicznyleszek @p2edwards
-/.browserslistrc                    @magicznyleszek @p2edwards
-/.node-version                      @magicznyleszek @p2edwards
-/.nvmrc                             @magicznyleszek @p2edwards
-/.stylelintrc.js                    @magicznyleszek @p2edwards
-/.swcrc                             @magicznyleszek @p2edwards
-/.coffeelint.json                   @magicznyleszek @p2edwards
-/biome.jsonc                        @jamesrkiger
-/eslint.config.mjs                  @jamesrkiger
-/package-lock.json                  @magicznyleszek @p2edwards
-/package.json                       @magicznyleszek @p2edwards
-/tsconfig.json                      @magicznyleszek @p2edwards
-
-# Billing
-/jsapp/js/account/                  @jamesrkiger
-/jsapp/js/components/usageLimits    @jamesrkiger
-
-
+/.storybook/                        @kobotoolbox/frontend
+/jsapp/                             @kobotoolbox/frontend
+/patches/                           @kobotoolbox/frontend
+/static/                            @kobotoolbox/frontend
+/test/                              @kobotoolbox/frontend
+/webpack/                           @kobotoolbox/frontend
+/.babelrc.json                      @kobotoolbox/frontend
+/.browserslistrc                    @kobotoolbox/frontend
+/.node-version                      @kobotoolbox/frontend
+/.nvmrc                             @kobotoolbox/frontend
+/.stylelintrc.js                    @kobotoolbox/frontend
+/.swcrc                             @kobotoolbox/frontend
+/.coffeelint.json                   @kobotoolbox/frontend
+/biome.jsonc                        @kobotoolbox/frontend
+/eslint.config.mjs                  @kobotoolbox/frontend
+/package-lock.json                  @kobotoolbox/frontend
+/package.json                       @kobotoolbox/frontend
+/tsconfig.json                      @kobotoolbox/frontend
 
 
 ################
 #### Backend section
 
 # Default owner
-/dependencies/                      @noliveleger
-/hub/                               @noliveleger
-/hub/tests/                         @noliveleger
-/kobo/                              @noliveleger
-/kobo/apps/audit_log/               @rgraber
-/kobo/apps/subsequences/            @Guitlle
-/kpi/                               @noliveleger
-/kpi/tests/                         @noliveleger
-/.coveragerc                        @p2edwards
-/.dockerignore                      @noliveleger
-/format-python.sh                   @noliveleger
-/manage.py                          @noliveleger
-/pip-compile.sh                     @noliveleger
-/pyproject.toml                     @noliveleger
+/dependencies/                      @kobotoolbox/backend
+/hub/                               @kobotoolbox/backend
+/kobo/                              @kobotoolbox/backend
+/kpi/                               @kobotoolbox/backend
+/.coveragerc                        @kobotoolbox/backend
+/.dockerignore                      @kobotoolbox/backend
+/format-python.sh                   @kobotoolbox/backend
+/manage.py                          @kobotoolbox/backend
+/pip-compile.sh                     @kobotoolbox/backend
+/pyproject.toml                     @kobotoolbox/backend
 
 # Django Static Templates, HTML, JS, CSS
-/kobo/apps/accounts/templates/      @magicznyleszek @p2edwards @noliveleger
-/kpi/templates/                     @magicznyleszek @p2edwards @noliveleger
-/kpi/static/css/                    @magicznyleszek @p2edwards
-_registration.scss                  @magicznyleszek @p2edwards
-
-
+/kobo/apps/accounts/templates/      @kobotoolbox/frontend @kobotoolbox/backend
+/kpi/templates/                     @kobotoolbox/frontend @kobotoolbox/backend
+/kpi/static/css/                    @kobotoolbox/frontend
+_registration.scss                  @kobotoolbox/frontend
 
 
 ################
 #### Infrastructure section
 
-/docker/                            @olive-KTB @noliveleger
-/scripts/                           @olive-KTB @noliveleger
-/scripts/eslintBiome.mjs            @jamesrkiger
-/scripts/*.js                       @magicznyleszek @p2edwards
-/.github/                           @olive-KTB @noliveleger @magicznyleszek
-/.github/workflows/npm-test.yml     @magicznyleszek @p2edwards
+/docker/                            @olive-KTB @kobotoolbox/backend
+/scripts/                           @olive-KTB @kobotoolbox/backend
+/scripts/eslintBiome.mjs            @kobotoolbox/frontend
+/scripts/*.js                       @kobotoolbox/frontend
+/.github/                           @olive-KTB @kobotoolbox/frontend @kobotoolbox/backend
+/.github/workflows/npm-test.yml     @kobotoolbox/frontend
 /.gitlab-ci.yml                     @olive-KTB
-/Dockerfile                         @olive-KTB @noliveleger
-
-
+/Dockerfile                         @olive-KTB @kobotoolbox/backend
 
 
 ################
@@ -111,5 +93,3 @@ _registration.scss                  @magicznyleszek @p2edwards
 /.github/FUNDING.yml                @jamesrkiger @jnm @noliveleger @magicznyleszek
 /.github/ISSUE_TEMPLATE.md          @jamesrkiger @jnm @noliveleger @magicznyleszek @Akuukis
 /.github/PULL_REQUEST_TEMPLATE.md   @jamesrkiger @jnm @noliveleger @magicznyleszek @Akuukis
-
-

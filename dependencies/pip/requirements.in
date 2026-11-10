@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
-git+https://github.com/kobotoolbox/formpack.git@f8cd2a19e2c39d85639004b5fcf85b8f69a48da4#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@a53e4db75d527796d1e017d3146d84695bdad9f7#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -21,6 +21,7 @@ Django>=5.2,<5.3
 Markdown
 Pygments
 amqp
+aws_bedrock_token_generator
 billiard
 celery
 celery[redis]
@@ -28,7 +29,7 @@ dict2xml
 dj-static
 dj-stripe>=2.9,<2.10
 stripe
-django-allauth>=65.11.2
+django-allauth>=65.21.0
 django-allauth[mfa]
 django-braces
 django-celery-beat
@@ -70,6 +71,7 @@ lxml
 more-itertools
 oauthlib
 objgraph
+openai
 openpyxl
 pillow-heif
 psycopg

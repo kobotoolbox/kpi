@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
 import { Box, Flex, Modal, ScrollArea, Stack, Switch, Text } from '@mantine/core'
-import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
+import type { DataResponse } from '#/api/models/dataResponse'
+import { getLanguageIndex } from '#/assetUtils'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import MultiCheckbox from '#/components/common/multiCheckbox'
@@ -10,12 +11,13 @@ import type { ComboboxItem } from '#/components/common/select.types'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
+import { getHideableQuestions } from '#/components/submissions/submissionDataListUtils'
 import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
-import { StaticDisplays, isAudioQuestionType, isTextQuestionType } from '../common/utils'
+import { StaticDisplays, isDisplayAvailable } from '../common/utils'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -29,6 +31,8 @@ interface SidebarDisplaySettingsProps {
   setQuestionLabelLanguage: (languageCode: LanguageCode | string) => void
   transcript: TranscriptVersionItem | undefined
   translations: TranslationVersionItem[]
+  /** Needed for the answers saved under paths the current form no longer has. */
+  submission?: DataResponse
 }
 
 export default function SidebarDisplaySettings({
@@ -42,6 +46,7 @@ export default function SidebarDisplaySettings({
   setQuestionLabelLanguage,
   transcript,
   translations,
+  submission,
 }: SidebarDisplaySettingsProps) {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
@@ -68,13 +73,7 @@ export default function SidebarDisplaySettings({
   const availableDisplays = useMemo<Array<LanguageCode | StaticDisplays>>(() => {
     let displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
 
-    // Audio and Text are mutually exclusive: only the one matching the current
-    // question's type makes sense to offer.
-    displays = displays.filter((display) => {
-      if (display === StaticDisplays.Audio) return isAudioQuestionType(questionType)
-      if (display === StaticDisplays.Text) return isTextQuestionType(questionType)
-      return true
-    })
+    displays = displays.filter((display) => isDisplayAvailable(display, questionType))
 
     // Filter out transcript if we are on the transcript tab or if it was deleted
     if (
@@ -131,6 +130,12 @@ export default function SidebarDisplaySettings({
           {t('Original response')}
         </Text>
       )
+    } else if (display === StaticDisplays.Image) {
+      return (
+        <Text fw={700} component='span'>
+          {t('Original file (Image)')}
+        </Text>
+      )
     } else {
       return (
         <Text fw={700} component='span'>
@@ -152,20 +157,16 @@ export default function SidebarDisplaySettings({
     return !hiddenQuestions.includes(questionName)
   }
 
-  function getCheckboxes() {
-    if (asset?.content?.survey) {
-      const questionsList = getFlatQuestionsList(
-        asset.content.survey,
-        getLanguageIndex(asset, questionLabelLanguage as LanguageCode),
-      ).map((question) => {
-        // We make an object to show the question label to the user but use the
-        // name internally so it works with duplicate question labels
-        return { name: question.name, label: question.label, checked: isFieldChecked(question.name) }
-      })
-      return questionsList
-    }
+  function getCheckboxes(): MultiCheckboxItem[] {
+    const languageIndex = getLanguageIndex(asset, questionLabelLanguage as LanguageCode)
 
-    return []
+    // We show the question label to the user but use the name internally, so this works
+    // with duplicate question labels.
+    return getHideableQuestions(asset, languageIndex, submission).map(({ name, label }) => ({
+      name,
+      label,
+      checked: isFieldChecked(name),
+    }))
   }
 
   function onCheckboxesChange(list: MultiCheckboxItem[]) {

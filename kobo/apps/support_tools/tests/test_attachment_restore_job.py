@@ -6,15 +6,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.utils.attachment_restore import (
-    ProjectAlreadyBeingRestoredError,
-    get_lock_cache_key,
-)
-from kobo.apps.support_tools.models import (
-    AttachmentRestoreJob,
-    AttachmentRestoreJobStatus,
-)
+from kobo.apps.support_tools.exceptions import ProjectAlreadyBeingRestoredError
+from kobo.apps.support_tools.models import AttachmentRestoreJob, RestoreJobStatus
 from kobo.apps.support_tools.tasks import run_attachment_restore_job
+from kobo.apps.support_tools.utils.restorers.attachment import AttachmentRestorer
 
 ASSET_UID = 'aGAcvhamUDuDTtbkyeikbD'
 
@@ -24,7 +19,7 @@ class AttachmentRestoreJobTestCase(TestCase):
     What launching the attachment restore from the admin records and queues.
 
     The rule deciding which files come back is covered where it lives, in
-    `kobo.apps.openrosa.apps.logger.tests.test_attachment_restore`. What is
+    `kobo.apps.support_tools.tests.test_attachment_restorer`. What is
     checked here is the row: what it asks for, and what the run writes back.
     """
 
@@ -33,7 +28,7 @@ class AttachmentRestoreJobTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='adminuser')
         self.client.force_login(self.user)
-        self.addCleanup(cache.delete, get_lock_cache_key(ASSET_UID))
+        self.addCleanup(cache.delete, AttachmentRestorer.get_lock_cache_key(ASSET_UID))
 
     def test_a_launch_records_what_was_asked_and_queues_it(self):
         with patch(
@@ -48,7 +43,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         assert job.asset_uid == ASSET_UID
         assert job.dry_run is False
         assert job.created_by == self.user
-        assert job.status == AttachmentRestoreJobStatus.PENDING
+        assert job.status == RestoreJobStatus.PENDING
         delay.assert_called_once_with(job.pk)
 
     def test_a_launch_reports_only_unless_it_is_asked_to_write(self):
@@ -83,7 +78,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         delay.assert_not_called()
 
     def test_a_project_a_run_already_has_is_refused(self):
-        cache.set(get_lock_cache_key(ASSET_UID), 'held', timeout=60)
+        cache.set(AttachmentRestorer.get_lock_cache_key(ASSET_UID), 'held', timeout=60)
 
         with patch(
             'kobo.apps.support_tools.admin.run_attachment_restore_job.delay'
@@ -100,7 +95,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         the project stopped, so relaunching it must not mean typing it in anew.
         """
 
-        job = self._job(status=AttachmentRestoreJobStatus.IN_PROGRESS)
+        job = self._job(status=RestoreJobStatus.IN_PROGRESS)
 
         with patch(
             'kobo.apps.support_tools.admin.run_attachment_restore_job.delay'
@@ -112,11 +107,11 @@ class AttachmentRestoreJobTestCase(TestCase):
         delay.assert_called_once_with(job.pk)
 
         job.refresh_from_db()
-        assert job.status == AttachmentRestoreJobStatus.PENDING
+        assert job.status == RestoreJobStatus.PENDING
 
     def test_a_row_whose_project_is_still_held_is_not_run_again(self):
-        job = self._job(status=AttachmentRestoreJobStatus.IN_PROGRESS)
-        cache.set(get_lock_cache_key(ASSET_UID), 'held', timeout=60)
+        job = self._job(status=RestoreJobStatus.IN_PROGRESS)
+        cache.set(AttachmentRestorer.get_lock_cache_key(ASSET_UID), 'held', timeout=60)
 
         with patch(
             'kobo.apps.support_tools.admin.run_attachment_restore_job.delay'
@@ -127,7 +122,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         delay.assert_not_called()
 
         job.refresh_from_db()
-        assert job.status == AttachmentRestoreJobStatus.IN_PROGRESS
+        assert job.status == RestoreJobStatus.IN_PROGRESS
 
     def test_a_row_already_waiting_is_not_queued_twice(self):
         """
@@ -136,7 +131,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         back over what the other one did.
         """
 
-        job = self._job(status=AttachmentRestoreJobStatus.PENDING)
+        job = self._job(status=RestoreJobStatus.PENDING)
 
         with patch(
             'kobo.apps.support_tools.admin.run_attachment_restore_job.delay'
@@ -152,7 +147,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         self._run(job, lines=['Done. 4 scanned, 2 restored.'], scanned=4, restored=2)
 
         job.refresh_from_db()
-        assert job.status == AttachmentRestoreJobStatus.COMPLETED
+        assert job.status == RestoreJobStatus.COMPLETED
         assert job.log == 'Done. 4 scanned, 2 restored.'
         assert (job.scanned, job.restored) == (4, 2)
 
@@ -177,9 +172,45 @@ class AttachmentRestoreJobTestCase(TestCase):
             self._run(job, lines=['First half'], raises=SoftTimeLimitExceeded)
 
         job.refresh_from_db()
-        assert job.status == AttachmentRestoreJobStatus.IN_PROGRESS
+        assert job.status == RestoreJobStatus.IN_PROGRESS
         assert 'has been re-queued' in job.log
         delay.assert_called_once_with(job.pk)
+
+    def test_a_row_starts_over_once_then_resumes(self):
+        """
+        A continuation that started over again would throw away the cursor of
+        the run that it continues, and never get past the part that the earlier
+        run walked.
+        """
+
+        job = self._job(resume=False)
+        resumes = []
+
+        self._run(job, resumes=resumes)
+        job.refresh_from_db()
+        self._run(job, resumes=resumes)
+
+        assert resumes == [False, True]
+        job.refresh_from_db()
+        assert job.resume is True
+        assert 'Started over as asked' in job.log
+
+    def test_a_row_turned_away_at_the_lock_still_starts_over(self):
+        """
+        That run never threw the old cursor away, so the next one still has
+        to, or it would skip what the row asked to walk again.
+        """
+
+        job = self._job(resume=False)
+
+        self._run(
+            job,
+            raises=ProjectAlreadyBeingRestoredError('Another run already has it'),
+            started=False,
+        )
+
+        job.refresh_from_db()
+        assert job.resume is False
 
     def test_the_replacement_is_queued_only_once_this_run_is_written_down(self):
         """
@@ -204,7 +235,7 @@ class AttachmentRestoreJobTestCase(TestCase):
                 job, lines=['First half'], scanned=7, raises=SoftTimeLimitExceeded
             )
 
-        assert seen['status'] == AttachmentRestoreJobStatus.IN_PROGRESS
+        assert seen['status'] == RestoreJobStatus.IN_PROGRESS
         assert 'First half' in seen['log']
         assert seen['scanned'] == 7
 
@@ -222,7 +253,7 @@ class AttachmentRestoreJobTestCase(TestCase):
         )
 
         job.refresh_from_db()
-        assert job.status == AttachmentRestoreJobStatus.IN_PROGRESS
+        assert job.status == RestoreJobStatus.IN_PROGRESS
         assert 'Another run already has it' in job.log
 
     def test_a_run_that_blew_up_says_so_on_the_row(self):
@@ -232,7 +263,7 @@ class AttachmentRestoreJobTestCase(TestCase):
             self._run(job, raises=OSError('mongo is down'))
 
         job.refresh_from_db()
-        assert job.status == AttachmentRestoreJobStatus.FAILED
+        assert job.status == RestoreJobStatus.FAILED
         assert 'FAILED. OSError: mongo is down' in job.log
 
     def test_a_run_killed_outright_is_shown_as_interrupted(self):
@@ -243,13 +274,13 @@ class AttachmentRestoreJobTestCase(TestCase):
 
         from kobo.apps.support_tools.admin import AttachmentRestoreJobAdmin
 
-        job = self._job(status=AttachmentRestoreJobStatus.IN_PROGRESS)
+        job = self._job(status=RestoreJobStatus.IN_PROGRESS)
         state = AttachmentRestoreJobAdmin.state
 
-        cache.set(get_lock_cache_key(ASSET_UID), 'held', timeout=60)
+        cache.set(AttachmentRestorer.get_lock_cache_key(ASSET_UID), 'held', timeout=60)
         assert state(None, job) == 'in progress'
 
-        cache.delete(get_lock_cache_key(ASSET_UID))
+        cache.delete(AttachmentRestorer.get_lock_cache_key(ASSET_UID))
         assert state(None, job) == 'interrupted'
 
     def _add(
@@ -300,6 +331,8 @@ class AttachmentRestoreJobTestCase(TestCase):
         scanned: int = 0,
         restored: int = 0,
         raises: Exception = None,
+        resumes: list = None,
+        started: bool = True,
     ):
         """
         Run the task against a restorer that reports what the test asks for,
@@ -307,7 +340,9 @@ class AttachmentRestoreJobTestCase(TestCase):
         """
 
         def restorer(xform, dry_run, resume, log):
-            fake = MagicMock(scanned=scanned, restored=restored)
+            if resumes is not None:
+                resumes.append(resume)
+            fake = MagicMock(scanned=scanned, restored=restored, started=started)
 
             def run():
                 for line in lines or []:

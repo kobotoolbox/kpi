@@ -1,0 +1,6 @@
+/* Mantine dims this with `--mantine-color-dimmed`, which is `gray-6` in our inverted scale - too faint to read. */
+.label {
+  color: var(--mantine-color-gray-3);
+  /* In CSS, so the `or` translation stays shared with other sentences */
+  text-transform: uppercase;
+}

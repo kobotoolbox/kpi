@@ -231,32 +231,6 @@ actions.reports.setCustom.listen((assetId, details, crid) => {
     .fail(actions.reports.setCustom.failed)
 })
 
-actions.table = Reflux.createActions({
-  updateSettings: { children: ['completed', 'failed'] },
-})
-
-/**
- * @param {string} assetUid
- * @param {object} settings
- * @param {string[]} [settings.selected-columns]
- * @param {string} [settings.frozen-column]
- * @param {boolean} [settings.show-group-name]
- * @param {number} [settings.translation-index]
- * @param {boolean} [settings.show-hxl-tags]
- * @param {object} [settings.sort-by]
- * @param {string} [settings.sort-by.fieldId]
- * @param {string} [settings.sort-by.sortValue]
- */
-actions.table.updateSettings.listen((assetUid, settings) => {
-  dataInterface
-    .patchAsset(assetUid, { settings: settings })
-    .done((asset) => {
-      actions.table.updateSettings.completed(asset)
-      actions.resources.updateAsset.completed(asset)
-    })
-    .fail(actions.table.updateSettings.failed)
-})
-
 actions.map = Reflux.createActions({
   setMapStyles: {
     children: ['started', 'completed', 'failed'],
@@ -393,6 +367,14 @@ actions.resources.loadAsset.listen((params, refresh = false) => {
   // the cache entry for this asset is currently loading, do nothing
 })
 
+// Without this, a cached `loadAsset` replays the asset as it was at the last GET, undoing any save made since. Every
+// asset mutation ends in this action, so it is the one place that can keep the cache current.
+actions.resources.updateAsset.completed.listen((asset) => {
+  if (asset?.uid) {
+    assetCache[asset.uid] = asset
+  }
+})
+
 actions.resources.updateSubmissionValidationStatus.listen((uid, sid, data) => {
   dataInterface
     .updateSubmissionValidationStatus(uid, sid, data)
@@ -422,7 +404,7 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
     .deleteSubmission(uid, sid)
     .done(() => {
       notify(t('submission deleted'))
-      actions.resources.deleteSubmission.completed()
+      actions.resources.deleteSubmission.completed(sid)
       actions.resources.loadAsset({ id: uid })
     })
     .fail(() => {

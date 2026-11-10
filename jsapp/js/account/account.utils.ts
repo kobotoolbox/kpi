@@ -1,6 +1,13 @@
-import type { AccountFieldsValues } from './account.constants'
+import type { EnvironmentResponse } from '#/api/models/environmentResponse'
+import { choicesFromTuples, recordKeys } from '#/utils'
+import type { AccountFieldsConfig, AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'
+import { MMO_MANAGED_FIELD_NAMES } from './account.constants'
 
-export function getInitialAccountFieldsValues(): AccountFieldsValues {
+/**
+ * A blank for every field Frontend knows about. `Required` on purpose: this is the list the other helpers here derive
+ * their keys from, so leaving a field out of it would quietly take that field out of play.
+ */
+export function getInitialAccountFieldsValues(): Required<AccountFieldsValues> {
   return {
     name: '',
     organization: '',
@@ -19,10 +26,99 @@ export function getInitialAccountFieldsValues(): AccountFieldsValues {
   }
 }
 
+/** Whether a name (for example from a server response) is a known field */
+export function isUserFieldName(name: string): name is UserFieldName {
+  return Object.hasOwn(getInitialAccountFieldsValues(), name)
+}
+
 /**
  * For given field values produces an object to use with the `/me` endpoint for
  * updating the `extra_details`.
  */
 export function getProfilePatchData(fields: Partial<AccountFieldsValues>) {
   return { extra_details: fields }
+}
+
+/**
+ * Picks the profile fields out of an account's `extra_details`, filling in a blank for anything absent.
+ */
+export function getProfileFieldsValues(extraDetails: Partial<AccountFieldsValues>): Required<AccountFieldsValues> {
+  const values = getInitialAccountFieldsValues()
+
+  for (const fieldName of recordKeys(values)) {
+    const given = extraDetails[fieldName]
+    if (given !== undefined && given !== null) {
+      // Assigned this way because the compiler cannot see that the key and the value came from the same field.
+      Object.assign(values, { [fieldName]: given })
+    }
+  }
+
+  return values
+}
+
+/**
+ * The profile fields a user is allowed to edit themselves: whatever was given, minus whatever their
+ * organization owns - see {@link MMO_MANAGED_FIELD_NAMES}.
+ */
+export function getEditableProfileFieldNames({
+  configuredFieldNames,
+  isMmoMember,
+}: {
+  configuredFieldNames: readonly UserFieldName[]
+  isMmoMember: boolean
+}): UserFieldName[] {
+  if (!isMmoMember) {
+    // Copied for safety
+    return [...configuredFieldNames]
+  }
+  return configuredFieldNames.filter((name) => !MMO_MANAGED_FIELD_NAMES.includes(name))
+}
+
+/** The profile fields configuration built from `/environment` response. */
+export function getAccountFieldsConfig(environment: EnvironmentResponse): AccountFieldsConfig {
+  // Keyed, because `USER_METADATA_FIELDS` accepts the same name twice - its uniqueness check compares whole entries,
+  // not names. The last label wins, matching the dict the editor reads, but required is kept if any entry asks for
+  // it: that is what the server enforces, so a later optional entry must not make the field look skippable.
+  const byName = new Map<UserFieldName, UserMetadataField>()
+  for (const field of environment.user_metadata_fields) {
+    if (isUserFieldName(field.name)) {
+      const name = field.name
+      byName.set(name, {
+        name,
+        required: Boolean(field.required) || Boolean(byName.get(name)?.required),
+        label: field.label,
+      })
+    }
+  }
+
+  return {
+    userMetadataFields: [...byName.values()],
+    countryChoices: choicesFromTuples(environment.country_choices),
+    sectorChoices: choicesFromTuples(environment.sector_choices),
+  }
+}
+
+export function getUserMetadataFieldsByName(
+  userMetadataFields: readonly UserMetadataField[],
+): Partial<Record<UserFieldName, UserMetadataField>> {
+  const byName: Partial<Record<UserFieldName, UserMetadataField>> = {}
+  for (const field of userMetadataFields) {
+    byName[field.name] = field
+  }
+  return byName
+}
+
+export function getUserMetadataFieldLabel(
+  userMetadataFields: readonly UserMetadataField[],
+  fieldName: UserFieldName,
+): string {
+  // Through the same dict the editor labels its inputs from, so the two can never name a field differently.
+  return getUserMetadataFieldsByName(userMetadataFields)[fieldName]?.label || fieldName
+}
+
+export function hasNoOrganizationAffiliation(
+  values: Pick<AccountFieldsValues, 'organization_type'>,
+  configuredFieldNames: readonly UserFieldName[],
+): boolean {
+  return configuredFieldNames.includes('organization_type') && values.organization_type === 'none'
 }

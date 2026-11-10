@@ -1,11 +1,17 @@
-import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
+import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
-import type { SubmissionResponse, SurveyChoice } from '#/dataInterface'
+import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import { SortValues } from './tableConstants'
 import {
+  CELL_PREVIEW_MAX_LENGTH,
+  buildColumnRowFinder,
   getAllDataColumns,
+  getAllDataColumnsWithAliases,
+  getCellPreviewText,
   getColumnLabel,
   getMetadataColumns,
   getSelectResponseLabel,
+  getTableSort,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
@@ -18,6 +24,25 @@ import {
 } from './tableUtils.mocks'
 
 describe('tableUtils', () => {
+  describe('getTableSort', () => {
+    it('lists newest first with no sort set', () => {
+      chai.expect(getTableSort(null)).to.deep.equal([{ id: '_id', desc: true }])
+    })
+
+    it('breaks ties on the sorted column newest first, so tied rows keep one order', () => {
+      chai.expect(getTableSort({ fieldId: 'Your_name', value: SortValues.ASCENDING })).to.deep.equal([
+        { id: 'Your_name', desc: false },
+        { id: '_id', desc: true },
+      ])
+    })
+
+    it('needs no tie-break when sorting by `_id`, which is unique', () => {
+      chai
+        .expect(getTableSort({ fieldId: '_id', value: SortValues.ASCENDING }))
+        .to.deep.equal([{ id: '_id', desc: false }])
+    })
+  })
+
   describe('getColumnLabel', () => {
     it('should return proper label for background-audio question', () => {
       const test = getColumnLabel(assetWithBgAudioAndNLP, 'background-audio', true)
@@ -158,6 +183,35 @@ describe('tableUtils', () => {
     })
   })
 
+  describe('getCellPreviewText', () => {
+    it('should leave a response that fits the cap untouched', () => {
+      const test = getCellPreviewText('Alors bonjour docteur')
+      chai.expect(test).to.equal('Alors bonjour docteur')
+    })
+
+    it('should cap a response at the preview length', () => {
+      // Safari renders nothing but the ellipsis past 10240 characters, so a long
+      // transcript must never reach the cell as-is.
+      const transcript = 'a'.repeat(30000)
+      const test = getCellPreviewText(transcript)
+      chai.expect(test).to.have.lengthOf(CELL_PREVIEW_MAX_LENGTH)
+      chai.expect(transcript.startsWith(test)).to.equal(true)
+    })
+
+    it('should not cut a surrogate pair in half', () => {
+      // The emoji straddles the cap, so keeping its first half would render `�`.
+      const test = getCellPreviewText(`${'a'.repeat(CELL_PREVIEW_MAX_LENGTH - 1)}👍${'a'.repeat(100)}`)
+      chai.expect(test).to.have.lengthOf(CELL_PREVIEW_MAX_LENGTH - 1)
+      chai.expect(test.endsWith('a')).to.equal(true)
+    })
+
+    it('should pass values that are not text through', () => {
+      chai.expect(getCellPreviewText(7)).to.equal(7)
+      chai.expect(getCellPreviewText(null)).to.equal(null)
+      chai.expect(getCellPreviewText(undefined)).to.equal(undefined)
+    })
+  })
+
   describe('isTableColumnFilterableByTextInput', () => {
     it('should return true for hidden question type', () => {
       const test = isTableColumnFilterableByTextInput(QuestionTypeName.hidden, 'my_hidden_question')
@@ -234,6 +288,35 @@ describe('tableUtils', () => {
       }
       return assetWithBgAudioAndNLP
     }
+
+    // Two questions named `photo`, a group each. `getSurveyFlatPaths` keeps one path per name,
+    // so the dedupe has to read `$xpath` to see that both of these paths are current.
+    const assetWithNamesakeImages = (() => {
+      const clonedAsset = JSON.parse(JSON.stringify(assetWithBgAudioAndNLP))
+      clonedAsset.content.survey.push(
+        { name: 'owner', type: 'begin_group', $kuid: 'owner-kuid', label: ['Owner'], $xpath: 'owner' },
+        {
+          name: 'photo',
+          type: 'image',
+          $kuid: 'owner-photo-kuid',
+          label: ['Photo'],
+          $xpath: 'owner/photo',
+          required: false,
+        },
+        { type: 'end_group', $kuid: '/owner-kuid' },
+        { name: 'pet', type: 'begin_group', $kuid: 'pet-kuid', label: ['Pet'], $xpath: 'pet' },
+        {
+          name: 'photo',
+          type: 'image',
+          $kuid: 'pet-photo-kuid',
+          label: ['Photo'],
+          $xpath: 'pet/photo',
+          required: false,
+        },
+        { type: 'end_group', $kuid: '/pet-kuid' },
+      )
+      return clonedAsset
+    })()
 
     attachmentCases.forEach(({ title, currentKey, legacyKey, mirroredValue, currentOnlyValue, legacyOnlyValue }) => {
       it(`should keep current ${title} key and drop legacy path duplicate`, () => {
@@ -393,6 +476,138 @@ describe('tableUtils', () => {
       const shouldDrop = shouldDropLegacyAttachmentColumn(submissions, legacyKey, currentPaths)
 
       chai.expect(shouldDrop).to.equal(false)
+    })
+
+    it('should drop the legacy column even when the stored file name differs from the response', () => {
+      const currentKey = 'Secret_password_as_an_audio_file'
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password_HkT3Qp.mp3',
+              is_deleted: false,
+            },
+          ],
+          [currentKey]: 'secret-password.mp3',
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include(currentKey)
+      chai.expect(columns).to.not.include(legacyKey)
+    })
+
+    // The file on the current path is that question's own. Nothing says the legacy response
+    // names it too, and two questions can hold files of the same name.
+    it('should keep the legacy column when only the current path has an attachment', () => {
+      const currentKey = 'Secret_password_as_an_audio_file'
+      const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: currentKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [currentKey]: 'secret-password.mp3',
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(columns).to.include(currentKey)
+      chai.expect(columns).to.include(legacyKey)
+    })
+
+    it('should keep both columns of two current questions sharing a leaf name', () => {
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: 'owner/photo',
+              media_file_basename: 'photo.jpg',
+              is_deleted: false,
+            },
+          ],
+          'owner/photo': 'photo.jpg',
+          'pet/photo': 'photo.jpg',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const columns = getAllDataColumns(assetWithNamesakeImages, submissions)
+
+      chai.expect(columns).to.include('owner/photo')
+      chai.expect(columns).to.include('pet/photo')
+    })
+  })
+
+  describe('getAllDataColumnsWithAliases', () => {
+    const currentKey = 'Secret_password_as_an_audio_file'
+    const legacyKey = 'old_group/Secret_password_as_an_audio_file'
+
+    it('should record a dropped legacy path against the column that replaces it', () => {
+      const submissions = [
+        {
+          _attachments: [
+            {
+              question_xpath: legacyKey,
+              media_file_basename: 'secret-password.mp3',
+              is_deleted: false,
+            },
+          ],
+          [currentKey]: 'secret-password.mp3',
+          [legacyKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const { columns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+        assetWithBgAudioAndNLP,
+        submissions,
+      )
+
+      chai.expect(columns).to.not.include(legacyKey)
+      chai.expect(legacyAttachmentPathsByColumn.get(currentKey)).to.deep.equal([legacyKey])
+    })
+
+    it('should record nothing for a column that kept its own legacy duplicate', () => {
+      const submissions = [
+        {
+          _attachments: [
+            { question_xpath: currentKey, media_file_basename: 'new-secret-password.mp3', is_deleted: false },
+            { question_xpath: legacyKey, media_file_basename: 'old-secret-password.mp3', is_deleted: false },
+          ],
+          [currentKey]: 'new-secret-password.mp3',
+          [legacyKey]: 'old-secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const { columns, legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(
+        assetWithBgAudioAndNLP,
+        submissions,
+      )
+
+      chai.expect(columns).to.include(legacyKey)
+      chai.expect(legacyAttachmentPathsByColumn.get(currentKey)).to.equal(undefined)
+    })
+
+    it('should record no aliases for a form whose submissions never moved a question', () => {
+      const submissions = [
+        {
+          _attachments: [{ question_xpath: currentKey, media_file_basename: 'secret-password.mp3', is_deleted: false }],
+          [currentKey]: 'secret-password.mp3',
+        },
+      ] as unknown as SubmissionResponse[]
+
+      const { legacyAttachmentPathsByColumn } = getAllDataColumnsWithAliases(assetWithBgAudioAndNLP, submissions)
+
+      chai.expect(legacyAttachmentPathsByColumn.size).to.equal(0)
     })
   })
 
@@ -674,6 +889,46 @@ describe('tableUtils', () => {
       const test = getMetadataColumns(assetWithNestedGroupsAndNLP, submissions)
 
       chai.expect(test).to.deep.equal(['_id', '_uuid', '_submission_time'])
+    })
+  })
+
+  describe('buildColumnRowFinder', () => {
+    /** Two questions named `name`, in a group each, plus a `transcript` one to trip up the lookup. */
+    const SURVEY = [
+      { $kuid: 'k1', type: GroupTypeBeginName.begin_group, name: 'owner', $xpath: 'owner' },
+      { $kuid: 'k2', type: QuestionTypeName.text, name: 'name', $xpath: 'owner/name' },
+      { $kuid: 'k3', type: GroupTypeEndName.end_group },
+      { $kuid: 'k4', type: GroupTypeBeginName.begin_group, name: 'pet', $xpath: 'pet' },
+      { $kuid: 'k5', type: QuestionTypeName.select_one, name: 'name', $xpath: 'pet/name' },
+      { $kuid: 'k6', type: QuestionTypeName.audio, name: 'recording', $xpath: 'recording' },
+      { $kuid: 'k7', type: QuestionTypeName.text, name: 'transcript', $xpath: 'transcript' },
+      { $kuid: 'k8', type: GroupTypeEndName.end_group },
+    ] as unknown as SurveyRow[]
+
+    it('should give each of two questions named alike its own row', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn('owner/name')?.type).to.equal(QuestionTypeName.text)
+      chai.expect(findRowForColumn('pet/name')?.type).to.equal(QuestionTypeName.select_one)
+    })
+
+    // Such a column is left from before the question moved, and only a row has its choice labels.
+    it('should find the one question of that name for a path the form no longer has', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn('old_group/recording')?.$kuid).to.equal('k6')
+    })
+
+    it('should find nothing for a path the form no longer has when several questions share the name', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn('old_group/name')).to.equal(undefined)
+    })
+
+    it('should find nothing for a supplemental column, whatever the form names its questions', () => {
+      const findRowForColumn = buildColumnRowFinder(SURVEY)
+
+      chai.expect(findRowForColumn(`${SUPPLEMENTAL_DETAILS_PROP}/recording/transcript`)).to.equal(undefined)
     })
   })
 })
