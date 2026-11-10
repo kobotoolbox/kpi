@@ -66,6 +66,10 @@ class InvalidAction(Exception):
     pass
 
 
+class InvalidImageFile(Exception):
+    pass
+
+
 class InvalidImageDimensions(Exception):
     """
     Raised when an image cannot be rescaled to below the maximum size while

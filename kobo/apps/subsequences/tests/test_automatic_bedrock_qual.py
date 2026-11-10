@@ -43,6 +43,7 @@ from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     InvalidImageDimensions,
+    InvalidImageFile,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
@@ -962,6 +963,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert 'Connect timeout' in result.get('error')
 
 
+@ddt
 class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
 
     def setUp(self):
@@ -1081,6 +1083,32 @@ class TestAutomaticBedrockQualForImages(BaseAutomaticBedrockQualTestCase):
         ):
             with self.assertRaises(InvalidImageDimensions):
                 self.action.format_image_for_llm(attachment)
+
+    @data('audio_conversion_test_clip.3gp', 'yellow_rectangle_truncated.png')
+    def test_bad_image_file(self, image_filename):
+        submission = {
+            '__version__': self.asset.latest_deployed_version.uid,
+            'q1': image_filename,
+            '_uuid': str(uuid.uuid4()),
+            '_attachments': [
+                {
+                    'id': 1,
+                    'filename': image_filename,
+                    # force an image mimetype
+                    'mimetype': 'image/png',
+                    'question_xpath': 'q1',
+                },
+            ],
+            '_submitted_by': 'someuser',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        submission = self.asset.deployment.get_submissions(
+            user=self.asset.owner, query={'_id': submission['_id']}
+        )[0]
+        action_data = {'uuid': BEDROCK_QUAL_TEXT_UUID}
+        with self.assertRaises(InvalidImageFile):
+            with self.assertRaises(AttachmentNotFoundException):
+                self.action.revise_data(submission, {}, action_data)
 
 
 @override_settings(CACHES={
