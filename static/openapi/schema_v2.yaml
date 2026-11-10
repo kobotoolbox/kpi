@@ -9719,8 +9719,13 @@ paths:
           description: ''
     post:
       operationId: api_v2_organizations_ownership_transfers_create
-      description: Initiate an organization ownership transfer request (outgoing owner
-        only).
+      description: |
+        ## Initiate Organization Ownership Transfer
+
+        * Initiate a request to transfer organization ownership to another administrator.
+        * Only the current organization owner can initiate an ownership transfer.
+        * The recipient must be an active administrator within the same organization.
+        * The recipient can be identified by username or email.
       parameters:
       - in: path
         name: uid_organization
@@ -9741,7 +9746,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/OrganizationOwnershipTransfer'
-        required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -20248,9 +20252,8 @@ components:
     OrganizationOwnershipTransfer:
       type: object
       properties:
-        guid:
+        uid:
           type: string
-          format: uuid
           readOnly: true
         organization_id:
           type: string
@@ -20268,18 +20271,16 @@ components:
           type: string
           format: email
           readOnly: true
-        recipient:
-          type: string
-          writeOnly: true
         recipient_username:
           type: string
           readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/InviteStatusChoicesEnum'
+          - $ref: '#/components/schemas/OrganizationOwnershipTransferStatusEnum'
           readOnly: true
         billing_review_requested:
           type: boolean
+          default: false
         created:
           type: string
           format: date-time
@@ -20290,16 +20291,35 @@ components:
           readOnly: true
       required:
       - created
-      - guid
       - modified
       - organization_id
       - organization_name
-      - recipient
       - recipient_username
       - sender
       - sender_email
       - sender_name
       - status
+      - uid
+    OrganizationOwnershipTransferStatusEnum:
+      enum:
+      - accepted
+      - cancelled
+      - complete
+      - declined
+      - expired
+      - failed
+      - in_progress
+      - pending
+      type: string
+      description: |-
+        * `accepted` - Accepted
+        * `cancelled` - Cancelled
+        * `complete` - Complete
+        * `declined` - Declined
+        * `expired` - Expired
+        * `failed` - Failed
+        * `in_progress` - In Progress
+        * `pending` - Pending
     OrganizationResponse:
       type: object
       properties:

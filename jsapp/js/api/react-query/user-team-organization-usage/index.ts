@@ -2376,11 +2376,16 @@ export const getOrganizationsOwnershipTransfersCreateUrl = (uidOrganization: str
 }
 
 /**
- * Initiate an organization ownership transfer request (outgoing owner only).
+ * ## Initiate Organization Ownership Transfer
+ *
+ * * Initiate a request to transfer organization ownership to another administrator.
+ * * Only the current organization owner can initiate an ownership transfer.
+ * * The recipient must be an active administrator within the same organization.
+ * * The recipient can be identified by username or email.
  */
 export const organizationsOwnershipTransfersCreate = async (
   uidOrganization: string,
-  organizationOwnershipTransfer: NonReadonly<OrganizationOwnershipTransfer>,
+  organizationOwnershipTransfer?: NonReadonly<OrganizationOwnershipTransfer>,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersCreateResponse> => {
   const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
@@ -2450,11 +2455,11 @@ export const getOrganizationsOwnershipTransfersCreateMutationOptions = <
 export type OrganizationsOwnershipTransfersCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>
 >
-export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer>
+export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer> | undefined
 export type OrganizationsOwnershipTransfersCreateMutationError = ErrorValidation | ErrorDetail
 export type OrganizationsOwnershipTransfersCreateMutationVariables = {
   uidOrganization: string
-  data: NonReadonly<OrganizationOwnershipTransfer>
+  data?: NonReadonly<OrganizationOwnershipTransfer>
 }
 
 export const useOrganizationsOwnershipTransfersCreate = <

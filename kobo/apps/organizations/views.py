@@ -24,6 +24,7 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.project_ownership.models import OrgOwnershipTransferInvite
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import (
@@ -88,7 +89,6 @@ from .models import (
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
     OrganizationOwner,
-    OrganizationOwnershipTransfer,
     OrganizationUser,
 )
 from .permissions import (
@@ -989,10 +989,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
 )
 @extend_schema_view(
     create=extend_schema(
-        description=(
-            'Initiate an organization ownership transfer request '
-            '(outgoing owner only).'
-        ),
+        description=read_md('organizations', 'ownership_transfers/create.md'),
         responses=open_api_201_created_response(
             OrganizationOwnershipTransferSerializer,
             require_auth=False,
@@ -1045,6 +1042,7 @@ class OrganizationOwnershipTransferViewSet(
     - resend (POST): resend transfer invitation email
     """
 
+    queryset = OrgOwnershipTransferInvite.objects.none()
     serializer_class = OrganizationOwnershipTransferSerializer
     permission_classes = [OrganizationOwnershipTransferPermission]
     http_method_names = ['get', 'post', 'patch']

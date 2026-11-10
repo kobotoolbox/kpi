@@ -9,18 +9,17 @@
  * **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { InviteStatusChoicesEnum } from './inviteStatusChoicesEnum'
+import type { OrganizationOwnershipTransferStatusEnum } from './organizationOwnershipTransferStatusEnum'
 
 export interface OrganizationOwnershipTransfer {
-  readonly guid: string
+  readonly uid: string
   readonly organization_id: string
   readonly organization_name: string
   readonly sender: string
   readonly sender_name: string
   readonly sender_email: string
-  recipient: string
   readonly recipient_username: string
-  readonly status: InviteStatusChoicesEnum
+  readonly status: OrganizationOwnershipTransferStatusEnum
   billing_review_requested?: boolean
   readonly created: string
   readonly modified: string
