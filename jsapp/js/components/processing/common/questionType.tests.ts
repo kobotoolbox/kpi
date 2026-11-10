@@ -57,6 +57,17 @@ describe('getProcessingQuestionType', () => {
     chai.expect(getProcessingQuestionType(asset, 'upload', submission)).to.equal(QuestionTypeName.file)
   })
 
+  it('reads the type off the form definition when the attachment has no mimetype', () => {
+    // Some clients (e.g. mockobo) send files without one.
+    const submission = buildSubmission({ 'audio_group/recording': 'clip.m4a' }, [
+      { question_xpath: 'audio_group/recording', mimetype: '' },
+    ])
+
+    chai
+      .expect(getProcessingQuestionType(ASSET_WITH_GROUPED_AUDIO, 'audio_group/recording', submission))
+      .to.equal(QuestionTypeName.audio)
+  })
+
   it('only matches the whole path, not a namesake question of another group', () => {
     // `recording` is the audio question's name, but its path is `audio_group/recording`.
     // Matching by name would hand out `audio` for a path this form has no question at.
