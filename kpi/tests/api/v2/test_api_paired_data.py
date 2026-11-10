@@ -340,6 +340,39 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         response = self.client.get(self.paired_data_detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_read_paired_data_num_queries(self):
+        with self.assertNumQueries(15):
+            response = self.client.get(self.paired_data_detail_url)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_paired_data_num_queries_does_not_grow_with_sources(self):
+        list_url = self.destination_asset_paired_data_url
+        with self.assertNumQueries(15):
+            response = self.client.get(list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 1
+
+        second_source = Asset.objects.create(
+            owner=self.someuser,
+            name='Second source project',
+            asset_type='survey',
+            content=self.source_asset.content,
+        )
+        second_source_url = reverse(
+            self._get_endpoint('asset-detail'), args=[second_source.uid]
+        )
+        self.toggle_source_sharing(enabled=True, source_url=second_source_url)
+        second_source.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        response = self.paired_data(
+            source_url=second_source_url, filename='second_paired_data.xml'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+        with self.assertNumQueries(15):
+            response = self.client.get(list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 2
+
     def test_read_paired_data_other_user(self):
         self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.paired_data_detail_url)
