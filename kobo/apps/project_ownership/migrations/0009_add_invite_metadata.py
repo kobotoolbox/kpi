@@ -8,6 +8,32 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='invite',
+            name='invite_type',
+            field=models.CharField(
+                choices=[
+                    ('org-membership', 'Org Membership'),
+                    ('org-ownership-transfer', 'Org Ownership Transfer'),
+                    ('user-ownership-transfer', 'User Ownership Transfer'),
+                ],
+                default='user-ownership-transfer',
+                max_length=30,
+            ),
+        ),
+        migrations.AlterField(
+            model_name='transfer',
+            name='invite_type',
+            field=models.CharField(
+                choices=[
+                    ('org-membership', 'Org Membership'),
+                    ('org-ownership-transfer', 'Org Ownership Transfer'),
+                    ('user-ownership-transfer', 'User Ownership Transfer'),
+                ],
+                default='user-ownership-transfer',
+                max_length=30,
+            ),
+        ),
         migrations.AddField(
             model_name='invite',
             name='metadata',

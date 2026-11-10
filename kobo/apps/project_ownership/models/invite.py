@@ -282,14 +282,10 @@ class OrgOwnershipTransferInvite(Invite):
 
     @property
     def billing_review_requested(self) -> bool:
-        if self.metadata is None:
-            return False
-        return self.metadata.get('billing_review_requested', False)
+        return self.metadata['billing_review_requested']
 
     @billing_review_requested.setter
     def billing_review_requested(self, value: bool):
-        if self.metadata is None:
-            self.metadata = {}
         self.metadata['billing_review_requested'] = bool(value)
 
     def send_invite_email(self):

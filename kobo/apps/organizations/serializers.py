@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as t
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
@@ -687,22 +686,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         return representation
 
     def _get_organization(self):
-        view = self.context.get('view')
-        if view and hasattr(view, 'organization') and view.organization:
-            return view.organization
-
-        organization_id = (
-            view.kwargs.get(view.parent_lookup_field)
-            if view and hasattr(view, 'parent_lookup_field')
-            else None
-        )
-        if organization_id:
-            try:
-                return Organization.objects.get(id=organization_id)
-            except Organization.DoesNotExist:
-                raise NotFound({'detail': t('Organization not found.')})
-
-        raise NotFound({'detail': t('Organization not found.')})
+        return self.context['view'].organization
 
     def validate_recipient(self, value):
         organization = self._get_organization()

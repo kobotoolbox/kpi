@@ -975,6 +975,16 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         )
     ],
 )
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/create.md'),
+        responses=open_api_201_created_response(
+            OrganizationOwnershipTransferSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+)
 class OrganizationOwnershipTransferViewSet(
     mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
@@ -1006,9 +1016,3 @@ class OrganizationOwnershipTransferViewSet(
             ).select_related('sender', 'recipient')
         return OrgOwnershipTransferInvite.objects.none()
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        transfer = serializer.save()
-        response_serializer = self.get_serializer(transfer)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
