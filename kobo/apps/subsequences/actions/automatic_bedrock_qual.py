@@ -281,7 +281,7 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                         if max_height == 0 or max_width == 0:
                             raise InvalidImageDimensions
                         image.thumbnail((max_width, max_height), Image.LANCZOS)
-                        ImageOps.exif_transpose(image, in_place=True)
+                    ImageOps.exif_transpose(image, in_place=True)
                     if image.has_transparency_data:
                         # put transparent images on a white background
                         white_bg = Image.new('RGBA', image.size, 'WHITE')
