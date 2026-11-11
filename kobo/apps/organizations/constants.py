@@ -61,3 +61,13 @@ USER_DOES_NOT_EXIST_ERROR = t(
 )
 INVITE_ALREADY_EXISTS_ERROR = t('An active invitation already exists for `##invitee##`')
 INVITEE_ALREADY_MEMBER_ERROR = t('User is already a member of this organization.')
+OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR = t(
+    'An ownership transfer is already pending for this organization.'
+)
+RECIPIENT_AMBIGUOUS_EMAIL_ERROR = t(
+    'Multiple administrators found with email `##email##`. '
+    'Please specify the recipient by username.'
+)
+RECIPIENT_MUST_BE_ADMIN_ERROR = t(
+    'The recipient must be an active administrator in this organization.'
+)

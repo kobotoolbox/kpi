@@ -44,6 +44,20 @@ const swcLoader = {
 }
 
 const getCommonOptions = (isProduction) => ({
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          // Startup dependencies only, so lazy routes don't make every page load theirs.
+          // `errorApp` stays out so error pages work even if the main app fails to load
+          // (`scripts/check_error_bundle_isolation.js` checks this).
+          chunks: (chunk) => chunk.canBeInitial() && chunk.name !== 'errorApp',
+        },
+      },
+    },
+  },
   module: {
     rules: [
       {
