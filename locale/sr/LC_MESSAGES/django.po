@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 19:56+0000\n"
+"POT-Creation-Date: 2026-11-10 16:58+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Serbian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/sr/)\n"
@@ -2227,16 +2227,24 @@ msgstr ""
 msgid "You do not have enough permissions to perform this action"
 msgstr ""
 
-#: kobo/apps/organizations/constants.py:58
+#: kobo/apps/organizations/constants.py:53
+msgid "The owner cannot be removed from the organization"
+msgstr ""
+
+#: kobo/apps/organizations/constants.py:54
+msgid "The role of the owner cannot be changed"
+msgstr ""
+
+#: kobo/apps/organizations/constants.py:60
 msgid ""
 "User with username or email `##invitee##` does not exist or is not active."
 msgstr ""
 
-#: kobo/apps/organizations/constants.py:60
+#: kobo/apps/organizations/constants.py:62
 msgid "An active invitation already exists for `##invitee##`"
 msgstr ""
 
-#: kobo/apps/organizations/constants.py:61
+#: kobo/apps/organizations/constants.py:63
 msgid "User is already a member of this organization."
 msgstr ""
 
@@ -2244,15 +2252,15 @@ msgstr ""
 msgid "Invalid request"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:430
+#: kobo/apps/organizations/models.py:433
 msgid "an admin"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:430
+#: kobo/apps/organizations/models.py:433
 msgid "a member"
 msgstr ""
 
-#: kobo/apps/organizations/models.py:471
+#: kobo/apps/organizations/models.py:474
 msgid "You're invited to join ##organization_name## organization"
 msgstr ""
 
@@ -2408,27 +2416,27 @@ msgid ""
 "%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
 msgstr ""
 
-#: kobo/apps/organizations/views.py:187 kobo/apps/organizations/views.py:254
+#: kobo/apps/organizations/views.py:191 kobo/apps/organizations/views.py:258
 msgid "Filter the results with search query"
 msgstr ""
 
-#: kobo/apps/organizations/views.py:194
+#: kobo/apps/organizations/views.py:198
 msgid "Paginate results with start parameter"
 msgstr ""
 
-#: kobo/apps/organizations/views.py:201
+#: kobo/apps/organizations/views.py:205
 msgid "Paginate results with limit parameter"
 msgstr ""
 
-#: kobo/apps/organizations/views.py:208
+#: kobo/apps/organizations/views.py:212
 msgid "Which field to use when ordering the results."
 msgstr ""
 
-#: kobo/apps/organizations/views.py:261
+#: kobo/apps/organizations/views.py:265
 msgid "Number of results to return per page."
 msgstr ""
 
-#: kobo/apps/organizations/views.py:268
+#: kobo/apps/organizations/views.py:272
 msgid "The initial index from which to return the results."
 msgstr ""
 
@@ -3174,15 +3182,15 @@ msgstr ""
 msgid "Validate submissions"
 msgstr ""
 
-#: kpi/models/asset.py:768
+#: kpi/models/asset.py:769
 msgid "Only partial permissions for submissions are supported"
 msgstr ""
 
-#: kpi/models/asset.py:1497
+#: kpi/models/asset.py:1498
 msgid "Can not assign '{}' permission to owner"
 msgstr ""
 
-#: kpi/models/asset.py:1501
+#: kpi/models/asset.py:1502
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr ""
 
