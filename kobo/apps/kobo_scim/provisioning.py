@@ -1,6 +1,6 @@
-from allauth.socialaccount.internal.flows.login import _login
+from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.internal.flows.signup import clear_pending_signup
-from allauth.socialaccount.models import SocialLogin
+from allauth.socialaccount.models import SocialAccount, SocialLogin
 from django.apps import apps
 from django.conf import settings
 from django.http import HttpResponseRedirect
@@ -95,13 +95,15 @@ class SocialAccountProvisioningView(APIView):
             )
 
         sociallogin = SocialLogin.deserialize(data)
-        sociallogin.lookup()
+        account_exists = SocialAccount.objects.filter(
+            provider=sociallogin.account.provider,
+            uid=sociallogin.account.uid,
+        ).exists()
 
-        if sociallogin.is_existing:
-            # SCIM created the account! Clear provisioning state and log in.
-            clear_pending_signup(request)
+        if account_exists:
+            # SCIM created the account! Clear provisioning state and complete login.
             request.session.pop('scim_provisioning_start', None)
-            login_response = _login(request, sociallogin)
+            login_response = complete_social_login(request, sociallogin)
             redirect_url = getattr(login_response, 'url', None)
             if not redirect_url and login_response.has_header('Location'):
                 redirect_url = login_response['Location']
