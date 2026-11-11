@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as t
 from django.views import View
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -40,7 +41,8 @@ class SocialAccountProvisioningResponseSerializer(serializers.Serializer):
 
 @extend_schema(tags=['Authentication'])
 @extend_schema_view(
-    get=extend_schema(
+    post=extend_schema(
+        request=None,
         description=(
             read_md('kobo_scim', 'social_accounts/provisioning.md')
             if apps.is_installed('kobo.apps.kobo_scim')
@@ -65,7 +67,9 @@ class SocialAccountProvisioningView(APIView):
     versioning_class = APIV2Versioning
     serializer_class = SocialAccountProvisioningResponseSerializer
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        SessionAuthentication().enforce_csrf(request)
+
         data = request.session.get('socialaccount_sociallogin')
         start_time = request.session.get('scim_provisioning_start')
 

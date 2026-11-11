@@ -6,7 +6,7 @@ from allauth.socialaccount.providers.base.constants import AuthProcess
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -114,7 +114,7 @@ class ScimProvisioningTestCase(TestCase):
         self.assertIn('/accounts/login/', response.url)
 
     def test_provisioning_view_without_session_returns_expired(self):
-        response = self.client.get(self.provisioning_url)
+        response = self.client.post(self.provisioning_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.json(),
@@ -128,7 +128,7 @@ class ScimProvisioningTestCase(TestCase):
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
-        response = self.client.get(self.provisioning_url)
+        response = self.client.post(self.provisioning_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.json(),
@@ -146,7 +146,7 @@ class ScimProvisioningTestCase(TestCase):
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
-        response = self.client.get(self.provisioning_url)
+        response = self.client.post(self.provisioning_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertTrue(data['ready'])
@@ -172,7 +172,7 @@ class ScimProvisioningTestCase(TestCase):
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
-        response = self.client.get(self.provisioning_url)
+        response = self.client.post(self.provisioning_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertTrue(data['ready'])
@@ -196,7 +196,7 @@ class ScimProvisioningTestCase(TestCase):
         session['scim_provisioning_start'] = timezone.now().timestamp() - 70
         session.save()
 
-        response = self.client.get(self.provisioning_url)
+        response = self.client.post(self.provisioning_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.json(),

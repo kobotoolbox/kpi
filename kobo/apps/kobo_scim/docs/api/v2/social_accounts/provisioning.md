@@ -12,8 +12,9 @@ The pending provisioning state expires after 60 seconds (`SCIM_PROVISIONING_TIME
 
 Examples:
 ```shell
-  curl -X GET https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \
-       -H "Cookie: sessionid=..."
+  curl -X POST https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \
+       -H "Cookie: sessionid=...; csrftoken=..." \
+       -H "X-CSRFToken: ..."
 ```
 
 > Response 200 (Waiting for SCIM)

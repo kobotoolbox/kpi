@@ -5,6 +5,7 @@
 {% block content %}
 <section class="registration registration--provisioning"
      data-poll-url="{% url 'api_v2:social-account-provisioning' %}"
+     data-csrf-token="{{ csrf_token }}"
      data-poll-interval="{{ poll_interval }}"
      data-poll-timeout="{{ timeout }}"
      data-expired="{% if expired %}true{% else %}false{% endif %}">

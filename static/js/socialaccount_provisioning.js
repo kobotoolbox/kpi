@@ -8,7 +8,9 @@
   const pollUrl = container.getAttribute('data-poll-url')
   if (!pollUrl) return
 
-  const pollIntervalSec = parseInt(container.getAttribute('data-poll-interval'), 10) || 10
+  const csrfToken = container.getAttribute('data-csrf-token') || ''
+
+  const pollIntervalSec = parseInt(container.getAttribute('data-poll-interval'), 10) || 3
   const pollIntervalMs = pollIntervalSec * 1000
 
   const timeoutSec = parseInt(container.getAttribute('data-poll-timeout'), 10) || 60
@@ -32,7 +34,12 @@
 
   pollTimer = setInterval(() => {
     fetch(pollUrl, {
-      headers: { Accept: 'application/json' },
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
     })
       .then((response) => {
         if (!response.ok) {
