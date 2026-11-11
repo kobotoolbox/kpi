@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from kobo.apps.accounts.constants import MAX_DISPLAYED_SSO_PROVIDERS
 from kobo.apps.accounts.models import (
     EmailAddressAdmin,
     EmailContent,
@@ -25,7 +26,6 @@ from kobo.apps.accounts.tasks import update_users
 from kobo.apps.accounts.utils import (
     DEFAULT_IN_APP_MESSAGE_BODY,
     DEFAULT_IN_APP_MESSAGE_FIELDS,
-    MAX_DISPLAYED_SSO_PROVIDERS,
     SOCIAL_APP_IDENTIFIER,
     get_hidden_public_social_app_names,
     user_is_managed_by_sso,

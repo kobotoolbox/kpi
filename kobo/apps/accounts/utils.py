@@ -9,6 +9,7 @@ from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
+from kobo.apps.accounts.constants import MAX_DISPLAYED_SSO_PROVIDERS
 from kobo.apps.accounts.models import SocialAppManagedDomain, get_normalized_domain
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
@@ -33,9 +34,6 @@ DEFAULT_IN_APP_MESSAGE_FIELDS = {
     'message_type': MessageType.MANAGED_SSO_REMINDER,
     'published': True,
 }
-
-# The login and registration screens show at most this many SSO buttons
-MAX_DISPLAYED_SSO_PROVIDERS = 3
 
 
 def get_public_social_apps():

@@ -3,11 +3,9 @@ from django.contrib.messages import WARNING
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from kobo.apps.accounts.constants import MAX_DISPLAYED_SSO_PROVIDERS
 from kobo.apps.accounts.models import SocialAppCustomData
-from kobo.apps.accounts.utils import (
-    MAX_DISPLAYED_SSO_PROVIDERS,
-    get_hidden_public_social_app_names,
-)
+from kobo.apps.accounts.utils import get_hidden_public_social_app_names
 from kobo.apps.kobo_auth.shortcuts import User
 
 
