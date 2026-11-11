@@ -1001,7 +1001,13 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         ),
     ),
     retrieve=extend_schema(
-        description='Retrieve an organization ownership transfer by UID.',
+        description=read_md('organizations', 'ownership_transfers/retrieve.md'),
+        responses=open_api_200_ok_response(
+            OrganizationOwnershipTransferSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
         parameters=[
             OpenApiParameter(
                 name='uid',
@@ -1013,7 +1019,13 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         ],
     ),
     list=extend_schema(
-        description='List organization ownership transfers for the current user.',
+        description=read_md('organizations', 'ownership_transfers/list.md'),
+        responses=open_api_200_ok_response(
+            OrganizationOwnershipTransferSerializer(many=True),
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
         parameters=[
             OpenApiParameter(
                 name='status',
@@ -1026,6 +1038,123 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
             )
         ],
     ),
+    accept=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/accept.md'),
+        request=None,
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Transfer is not pending.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the ownership transfer',
+            ),
+        ],
+    ),
+    decline=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/decline.md'),
+        request=None,
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Transfer is not pending.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the ownership transfer',
+            ),
+        ],
+    ),
+    cancel=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/cancel.md'),
+        request=None,
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Transfer is not pending.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the ownership transfer',
+            ),
+        ],
+    ),
+    resend=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/resend.md'),
+        request=None,
+        responses={
+            **open_api_200_ok_response(
+                OrganizationOwnershipTransferSerializer,
+                validate_payload=False,
+                raise_throttled=True,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer,
+                examples=[
+                    OpenApiExample(
+                        name='Bad Request',
+                        value={'detail': 'Invitation cannot be resent.'},
+                        response_only=True,
+                    )
+                ],
+            ),
+        },
+        parameters=[
+            OpenApiParameter(
+                name='uid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='UID of the ownership transfer',
+            ),
+        ],
+    ),
 )
 class OrganizationOwnershipTransferViewSet(
     mixins.CreateModelMixin,
@@ -1034,16 +1163,25 @@ class OrganizationOwnershipTransferViewSet(
     viewsets.GenericViewSet,
 ):
     """
-    ViewSet for managing organization ownership transfers.
+    Viewset for managing organization ownership transfers.
 
     Available actions:
-    - create (POST): initiate transfer request
-    - list (GET): list transfers for user/org
-    - retrieve (GET): retrieve transfer by UID
-    - accept (PATCH): accept transfer
-    - decline (PATCH): decline transfer
-    - cancel (PATCH): cancel transfer
-    - resend (POST): resend transfer invitation email
+    - create            → POST      /api/v2/organizations/{uid_organization}/ownership-transfers/
+    - list              → GET       /api/v2/organizations/{uid_organization}/ownership-transfers/
+    - retrieve          → GET       /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/
+    - accept            → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/
+    - decline           → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/
+    - cancel            → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/
+    - resend            → POST      /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/
+
+    Documentation:
+    - docs/api/v2/ownership_transfers/create.md
+    - docs/api/v2/ownership_transfers/list.md
+    - docs/api/v2/ownership_transfers/retrieve.md
+    - docs/api/v2/ownership_transfers/accept.md
+    - docs/api/v2/ownership_transfers/decline.md
+    - docs/api/v2/ownership_transfers/cancel.md
+    - docs/api/v2/ownership_transfers/resend.md
     """
 
     queryset = OrgOwnershipTransferInvite.objects.none()
@@ -1079,35 +1217,6 @@ class OrganizationOwnershipTransferViewSet(
         response_serializer = self.get_serializer(transfer)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
-    @extend_schema(
-        description='Accept an organization ownership transfer request (invitee only).',
-        request=None,
-        responses={
-            **open_api_200_ok_response(
-                OrganizationOwnershipTransferSerializer,
-                validate_payload=False,
-            ),
-            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
-                response=ErrorDetailSerializer,
-                examples=[
-                    OpenApiExample(
-                        name='Bad Request',
-                        value={'detail': 'Transfer is not pending.'},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-        parameters=[
-            OpenApiParameter(
-                name='uid',
-                type=str,
-                location=OpenApiParameter.PATH,
-                required=True,
-                description='UID of the ownership transfer',
-            ),
-        ],
-    )
     @action(detail=True, methods=['patch'])
     def accept(self, request, *args, **kwargs):
         transfer = self.get_object()
@@ -1146,37 +1255,6 @@ class OrganizationOwnershipTransferViewSet(
         transfer.send_acceptance_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        description=(
-            'Decline an organization ownership transfer request (invitee only).'
-        ),
-        request=None,
-        responses={
-            **open_api_200_ok_response(
-                OrganizationOwnershipTransferSerializer,
-                validate_payload=False,
-            ),
-            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
-                response=ErrorDetailSerializer,
-                examples=[
-                    OpenApiExample(
-                        name='Bad Request',
-                        value={'detail': 'Transfer is not pending.'},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-        parameters=[
-            OpenApiParameter(
-                name='uid',
-                type=str,
-                location=OpenApiParameter.PATH,
-                required=True,
-                description='UID of the ownership transfer',
-            ),
-        ],
-    )
     @action(detail=True, methods=['patch'])
     def decline(self, request, *args, **kwargs):
         transfer = self.get_object()
@@ -1200,38 +1278,6 @@ class OrganizationOwnershipTransferViewSet(
         transfer.send_refusal_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        description=(
-            'Cancel a pending organization ownership transfer request '
-            '(outgoing owner only).'
-        ),
-        request=None,
-        responses={
-            **open_api_200_ok_response(
-                OrganizationOwnershipTransferSerializer,
-                validate_payload=False,
-            ),
-            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
-                response=ErrorDetailSerializer,
-                examples=[
-                    OpenApiExample(
-                        name='Bad Request',
-                        value={'detail': 'Transfer is not pending.'},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-        parameters=[
-            OpenApiParameter(
-                name='uid',
-                type=str,
-                location=OpenApiParameter.PATH,
-                required=True,
-                description='UID of the ownership transfer',
-            ),
-        ],
-    )
     @action(detail=True, methods=['patch'])
     def cancel(self, request, *args, **kwargs):
         transfer = self.get_object()
@@ -1255,39 +1301,6 @@ class OrganizationOwnershipTransferViewSet(
         transfer.send_cancellation_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        description=(
-            'Resend the invitation email for a pending organization ownership '
-            'transfer (outgoing owner only).'
-        ),
-        request=None,
-        responses={
-            **open_api_200_ok_response(
-                OrganizationOwnershipTransferSerializer,
-                validate_payload=False,
-                raise_throttled=True,
-            ),
-            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
-                response=ErrorDetailSerializer,
-                examples=[
-                    OpenApiExample(
-                        name='Bad Request',
-                        value={'detail': 'Invitation cannot be resent.'},
-                        response_only=True,
-                    )
-                ],
-            ),
-        },
-        parameters=[
-            OpenApiParameter(
-                name='uid',
-                type=str,
-                location=OpenApiParameter.PATH,
-                required=True,
-                description='UID of the ownership transfer',
-            ),
-        ],
-    )
     @action(detail=True, methods=['post'])
     def resend(self, request, *args, **kwargs):
         transfer = self.get_object()
