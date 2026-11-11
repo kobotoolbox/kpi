@@ -15,11 +15,12 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.project_ownership.models import OrgOwnershipTransferInvite
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import (
@@ -81,11 +82,13 @@ from .models import (
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
+    IsOrgOwnerPermission,
     OrganizationNestedHasOrgRolePermission,
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
 from .serializers import (
+    OrganizationOwnershipTransferSerializer,
     OrganizationResponseSerializer,
     OrganizationSerializer,
     OrganizationUserSerializer,
@@ -958,3 +961,42 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
             return [OrgMembershipCreateOrDeleteInvitePermission()]
 
         return [OrgMembershipInvitePermission()]
+
+
+@extend_schema(
+    tags=['User / team / organization / usage'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_organization',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the organization',
+        )
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/create.md'),
+        responses=open_api_201_created_response(
+            OrganizationOwnershipTransferSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+)
+class OrganizationOwnershipTransferViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    ViewSet for initiating organization ownership transfers.
+
+    Available actions:
+    - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+    """
+
+    queryset = OrgOwnershipTransferInvite.objects.none()
+    serializer_class = OrganizationOwnershipTransferSerializer
+    permission_classes = [IsOrgOwnerPermission]
+    http_method_names = ['post']
+    parent_lookup_field = 'uid_organization'

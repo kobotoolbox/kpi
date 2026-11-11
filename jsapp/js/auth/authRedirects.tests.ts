@@ -98,11 +98,17 @@ describe('redirectForAuthChange', () => {
     chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/`]])
   })
 
-  it('does not navigate to the route it is already on, which is how a redirect loop starts', () => {
-    const context = contextAt({ routePath: AUTH_ROUTES.LOGIN })
+  // Otherwise login would navigate to itself, and a password reset would hide its success panel.
+  it('leaves a session that ended alone on the authentication screens', () => {
+    const paths = [AUTH_ROUTES.LOGIN, AUTH_ROUTES.NEW_PASSWORD.replace(':key', 'a-reset-key')]
 
-    redirectForAuthChange(change(AuthChangeEvent.loggedOut), context)
+    for (const routePath of paths) {
+      const context = contextAt({ routePath })
 
-    chai.expect(context.navigate.mock.calls).to.deep.equal([])
+      redirectForAuthChange(change(AuthChangeEvent.loggedOut), context)
+
+      chai.expect(context.navigate.mock.calls, routePath).to.deep.equal([])
+      chai.expect(context.goToPage.mock.calls, routePath).to.deep.equal([])
+    }
   })
 })

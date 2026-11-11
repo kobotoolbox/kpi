@@ -5,10 +5,10 @@ import { when } from 'mobx'
 import { useMfaStatus } from '#/account/security/mfa/mfa.api'
 import { fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import LazyPasswordStrength from '#/components/LazyPasswordStrength'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
-import PasswordStrength from '#/components/passwordStrength.component'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -168,7 +168,7 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
         />
 
         {envStore.isReady && envStore.data.enable_password_entropy_meter && newPassword !== '' && (
-          <PasswordStrength password={newPassword} />
+          <LazyPasswordStrength password={newPassword} />
         )}
       </div>
 
