@@ -22,14 +22,8 @@ from kobo.apps.organizations.constants import (
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
-from kobo.apps.organizations.models import (
-    Organization,
-    OrganizationOwner,
-    OrganizationUser,
-)
-from kobo.apps.organizations.permissions import (
-    OrganizationOwnershipTransferPermission,
-)
+from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
+from kobo.apps.organizations.permissions import OrganizationOwnershipTransferPermission
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
@@ -628,13 +622,9 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             email='team_b_owner@example.com',
             is_active=True,
         )
-        team_b = Organization.objects.create(name='Team B', mmo_override=True)
-        team_b.add_user(team_b_owner, is_admin=True)
-        owner_record = OrganizationOwner(organization=team_b)
-        owner_record.organization_user = team_b.organization_users.get(
-            user=team_b_owner
-        )
-        owner_record.save()
+        team_b = team_b_owner.organization
+        team_b.mmo_override = True
+        team_b.save(update_fields=['mmo_override'])
         team_b.add_user(self.admin_user, is_admin=True)
 
         # 1. Attempt to accept team A's transfer through team B's URL -> 404
@@ -646,7 +636,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         res_b = self.client.patch(team_b_accept_url)
         self.assertEqual(res_b.status_code, status.HTTP_404_NOT_FOUND)
 
-        # 2. Attempt to accept through team A's URL -> 404 (no longer a member of team A)
+        # 2. Attempt to accept through team A's URL -> 404 (no longer a member of A)
         team_a_accept_url = self._get_action_url('accept', transfer.uid)
         res_a = self.client.patch(team_a_accept_url)
         self.assertEqual(res_a.status_code, status.HTTP_404_NOT_FOUND)

@@ -1166,13 +1166,13 @@ class OrganizationOwnershipTransferViewSet(
     Viewset for managing organization ownership transfers.
 
     Available actions:
-    - create            → POST      /api/v2/organizations/{uid_organization}/ownership-transfers/
-    - list              → GET       /api/v2/organizations/{uid_organization}/ownership-transfers/
-    - retrieve          → GET       /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/
-    - accept            → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/
-    - decline           → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/
-    - cancel            → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/
-    - resend            → POST      /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/
+    - create   → POST      /api/v2/organizations/{uid_organization}/ownership-transfers/  # noqa
+    - list     → GET       /api/v2/organizations/{uid_organization}/ownership-transfers/  # noqa
+    - retrieve → GET       /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/  # noqa
+    - accept   → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/  # noqa
+    - decline  → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/  # noqa
+    - cancel   → PATCH     /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/  # noqa
+    - resend   → POST      /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/  # noqa
 
     Documentation:
     - docs/api/v2/ownership_transfers/create.md
