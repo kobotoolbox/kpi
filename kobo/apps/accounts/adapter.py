@@ -179,6 +179,10 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
+        """providers
+        Redirect first-time logins for SCIM-enabled IdPs to the provisioning wait
+        screen, and allow only one linked SSO account per user during the connect flow.
+        """
         # Handle SCIM provisioning race condition for first-time login
         if sociallogin.state.get('process') != AuthProcess.CONNECT:
             if not sociallogin.is_existing and self.is_scim_enabled(
@@ -195,7 +199,6 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 )
             return
 
-        """Allow only one linked SSO account per user."""
         # Only the connect flow links a new provider; login/signup are exempt.
         user = request.user
         if not user.is_authenticated:
