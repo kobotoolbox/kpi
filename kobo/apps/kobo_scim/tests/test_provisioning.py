@@ -84,6 +84,24 @@ class ScimProvisioningTestCase(TestCase):
         self.assertNotIn('scim_pending_sociallogin', request.session)
         self.assertNotIn('scim_provisioning_start', request.session)
 
+    def test_first_time_login_when_scim_commits_after_initial_lookup_completes_login(
+        self,
+    ):
+        user = User.objects.create_user(username='provisioned', email='user@example.com')
+        SocialAccount.objects.create(
+            user=user, provider='keycloak', uid='incoming-uid'
+        )
+        # Simulate sociallogin built before SCIM committed (is_existing is False)
+        sociallogin = self._build_login(uid='incoming-uid', email='user@example.com')
+        request = self._build_request()
+
+        result = self.adapter.pre_social_login(request, sociallogin)
+        self.assertIsNone(result)
+        self.assertTrue(sociallogin.is_existing)
+        self.assertEqual(sociallogin.user, user)
+        self.assertNotIn('scim_pending_sociallogin', request.session)
+        self.assertNotIn('scim_provisioning_start', request.session)
+
     def test_first_time_login_with_non_scim_provider_does_not_redirect(self):
         # Inactive IDP
         self.idp.is_active = False

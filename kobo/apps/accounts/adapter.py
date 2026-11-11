@@ -195,6 +195,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     email
                     and get_user_model().objects.filter(email__iexact=email).exists()
                 ):
+                    sociallogin.lookup()
+                    if sociallogin.is_existing:
+                        return
                     raise ImmediateHttpResponse(
                         render_authentication_error(
                             request,
