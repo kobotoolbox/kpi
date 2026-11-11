@@ -46,3 +46,16 @@ export const userEmailsRemovedMock = (emails: EmailAddress[]) =>
 
 export const userEmailInvalidMock = () =>
   http.post(EMAILS_URL, () => HttpResponse.json({ email: ['Enter a valid email address.'] }, { status: 400 }))
+
+/** What backend answers without a recent login */
+export const userEmailReauthRequiredMock = () =>
+  http.post(EMAILS_URL, () =>
+    HttpResponse.json(
+      {
+        detail: 'Re-authentication is required for this action.',
+        code: 'reauthentication_required',
+        flows: [{ id: 'reauthenticate' }],
+      },
+      { status: 403 },
+    ),
+  )

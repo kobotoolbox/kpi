@@ -1,7 +1,7 @@
-import { Group, Text } from '@mantine/core'
 import cx from 'classnames'
 import { useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
+import { ServerError } from '#/api/ServerError'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { type OrvalFetchError, getFieldErrors, onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { useMeEmailsCreate, useMeEmailsList } from '#/api/react-query/user-team-organization-usage'
@@ -42,8 +42,16 @@ export default function EmailSection() {
           setFieldErrors(emailErrors)
           return
         }
+        // Email change needs a recent login, and there's no in-app re-authentication yet. Resend lands here too, after
+        // its delete went through, so the pending address is already gone from the list.
+        // TODO: DEV-1971 walk the user through the listed `flows` instead.
+        if (error instanceof ServerError && error.parsedResponse?.code === 'reauthentication_required') {
+          setFieldErrors([
+            t('For security, please log out and log back in, then change your email address right away.'),
+          ])
+          return
+        }
         // Nothing to pin to the field, so fall back to the toast every other Orval call uses.
-        // TODO: DEV-1971 catch `code: 'reauthentication_required'` here and walk the user through the listed flows.
         onErrorDefaultHandler(error, variables, context)
       },
     },
@@ -121,6 +129,7 @@ export default function EmailSection() {
             onChange={(evt) => setNewEmail(evt.currentTarget.value)}
             type='email'
             w='100%'
+            error={fieldErrors.join(' ')}
             disabled={isSSO}
           />
         ) : (
@@ -163,13 +172,9 @@ export default function EmailSection() {
               handleSubmit()
             }}
           >
-            <Group gap='sm'>
-              <Text c='red'>{fieldErrors.join(' ')}</Text>
-
-              <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO} loading={isBusy}>
-                {t('Change')}
-              </ButtonNew>
-            </Group>
+            <ButtonNew variant='filled' onClick={handleSubmit} disabled={isSSO} loading={isBusy}>
+              {t('Change')}
+            </ButtonNew>
           </form>
         </div>
       )}

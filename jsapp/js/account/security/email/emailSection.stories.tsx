@@ -9,6 +9,7 @@ import {
   VERIFIED_EMAIL,
   userEmailChangedMock,
   userEmailInvalidMock,
+  userEmailReauthRequiredMock,
   userEmailsListMock,
   userEmailsRemovedMock,
 } from '#/endpoints/userEmails.mocks'
@@ -17,6 +18,8 @@ import { RequireOrg } from '#/router/RequireOrg'
 import { hydrateProfileStoreForStories } from '#/stores/profile.mocks'
 import ToasterConfig from '#/toasterConfig'
 import EmailSection from './emailSection.component'
+
+const REAUTH_MESSAGE = /log out and log back in/i
 
 /**
  * Everything one story needs: its own copy of the rows, the organization the section is gated on, and any `refusals`
@@ -41,6 +44,11 @@ function withEmails(initial: EmailAddress[], ...refusals: HttpHandler[]) {
       emails.splice(0, emails.length, ...initial)
     },
   }
+}
+
+/** The backend's `detail` would otherwise end up in a toast, which tells the user nothing they can act on. */
+async function expectNoReauthToast() {
+  await expect(within(document.body).queryByText(/Re-authentication is required/)).not.toBeInTheDocument()
 }
 
 const meta: Meta<typeof EmailSection> = {
@@ -97,5 +105,37 @@ export const RejectedAddress: Story = {
     await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
 
     await canvas.findByText('Enter a valid email address.')
+  },
+}
+
+/** Without a recent login, "Change" explains what to do. */
+export const ChangeNeedsReauthentication: Story = {
+  ...withEmails([VERIFIED_EMAIL], userEmailReauthRequiredMock()),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const input = await canvas.findByRole('textbox')
+    await waitFor(() => expect(input).toHaveValue(VERIFIED_EMAIL.email))
+
+    await userEvent.clear(input)
+    await userEvent.type(input, 'other@example.com')
+    await userEvent.click(canvas.getByRole('button', { name: 'Change' }))
+
+    await canvas.findByText(REAUTH_MESSAGE)
+    await expectNoReauthToast()
+  },
+}
+
+/** Without a recent login, "Resend" loses the pending email, so it leaves the screen too. */
+export const ResendNeedsReauthentication: Story = {
+  ...withEmails([VERIFIED_EMAIL, PENDING_EMAIL], userEmailReauthRequiredMock()),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await userEvent.click(await canvas.findByRole('button', { name: 'Resend' }))
+
+    await canvas.findByText(REAUTH_MESSAGE)
+    await waitFor(() => expect(canvas.queryByRole('button', { name: 'Resend' })).not.toBeInTheDocument())
+    await expectNoReauthToast()
   },
 }
