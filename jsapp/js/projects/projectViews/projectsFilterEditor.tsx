@@ -1,5 +1,6 @@
 import React from 'react'
 
+import DatePickerInput from '#/components/common/DatePickerInput'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
@@ -21,6 +22,11 @@ interface ProjectsFilterEditorProps {
 }
 
 const COUNTRIES = envStore.data.country_choices
+
+const DATE_FIELDS: ProjectFieldName[] = ['dateModified', 'dateDeployed']
+
+/** Matches `YYYY-MM-DD`, the format the date picker uses. */
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
 /**
  * This component renders a single (editable) filter row. It has few dropdowns,
@@ -87,7 +93,9 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     })
   }
 
-  const isCountryFilterSelected = props.filter.fieldName && props.filter.fieldName === 'countries'
+  const isValueRequired = isFilterConditionValueRequired(props.filter.condition)
+  const isCountryFilterSelected = props.filter.fieldName === 'countries'
+  const isDateFilterSelected = !!props.filter.fieldName && DATE_FIELDS.includes(props.filter.fieldName)
 
   return (
     <div className={styles.root}>
@@ -123,8 +131,8 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       <div className={styles.column}>
         {!props.hideLabels && <span className={styles.label}>{t('Value')}</span>}
 
-        {!isFilterConditionValueRequired(props.filter.condition) && <div />}
-        {isFilterConditionValueRequired(props.filter.condition) && !isCountryFilterSelected && (
+        {!isValueRequired && <div />}
+        {isValueRequired && !isCountryFilterSelected && !isDateFilterSelected && (
           <TextInput
             value={props.filter.value || ''}
             onChange={(evt) => onFilterValueChange(evt.currentTarget.value)}
@@ -134,7 +142,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             size='sm'
           />
         )}
-        {isFilterConditionValueRequired(props.filter.condition) && isCountryFilterSelected && (
+        {isValueRequired && isCountryFilterSelected && (
           <Select
             size='sm'
             clearable
@@ -144,6 +152,16 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             onChange={(code) => {
               onFilterValueChange(code || '')
             }}
+          />
+        )}
+        {isValueRequired && isDateFilterSelected && (
+          <DatePickerInput
+            size='sm'
+            clearable
+            placeholder={t('Select date')}
+            // Filters saved before the picker may hold partial dates like `2026-11`.
+            value={props.filter.value && ISO_DATE_REGEX.test(props.filter.value) ? props.filter.value : null}
+            onChange={(date) => onFilterValueChange(date || '')}
           />
         )}
       </div>
