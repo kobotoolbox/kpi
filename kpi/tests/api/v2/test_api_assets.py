@@ -2433,6 +2433,40 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertIn('someuser', usernames)
         self.assertIn(self.thirduser.username, usernames)
 
+    def test_detail_access_types_org_admin_ends_when_mmo_lapses(self):
+        """
+        Catches the `org-admin` label surviving the MMO plan for an admin who
+        still has an explicit share
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        # `access_types` is only computed for collections
+        collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            owner=self.asset.owner,
+            name='org collection',
+        )
+        collection.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        collection_url = reverse(
+            self._get_endpoint('asset-detail'), args=(collection.uid,)
+        )
+        organization = self.asset.owner.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        organization.add_user(anotheruser, is_admin=True)
+        self.client.force_login(anotheruser)
+
+        response = self.client.get(collection_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert {'shared', 'org-admin'} <= set(response.data['access_types'])
+
+        organization.mmo_override = False
+        organization.save(update_fields=['mmo_override'])
+
+        response = self.client.get(collection_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert 'shared' in response.data['access_types']
+        assert 'org-admin' not in response.data['access_types']
+
     def test_detail_access_types_reuses_permission_fetch(self):
         """
         On the detail endpoint, get_access_types reuses the per-request
