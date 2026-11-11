@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import constance
 from django.conf import settings
@@ -54,26 +54,40 @@ class HookLog(AbstractTimeStampedModel):
         Return whether instance can be resent to external endpoint.
         Notice: even if False is returned, `self.retry()` can be triggered.
         """
-        if self.hook.active:
-            # If log is still pending after `constance.config.HOOK_MAX_RETRIES`
-            # times, there was an issue, we allow the retry.
-            threshold = timezone.now() - timedelta(
-                seconds=settings.HOOK_STALLED_PENDING_TIMEOUT
-            )
+        if not self.hook.active:
+            return False
 
-            return self.date_modified < threshold and (
-                self.status == HookLogStatus.FAILED
-                or (
-                    self.status == HookLogStatus.PENDING
-                    and self.tries >= constance.config.HOOK_MAX_RETRIES
-                )
-            )
+        if self.status == HookLogStatus.FAILED:
+            return True
 
-        return False
+        # A pending log that used all its automatic retries and is still
+        # pending after its last attempt was due is stalled, we allow the retry.
+        return (
+            self.status == HookLogStatus.PENDING
+            and self.tries >= constance.config.HOOK_MAX_RETRIES
+            and self.date_modified < self.get_stalled_retry_threshold()
+        )
+
+    @staticmethod
+    def get_stalled_retry_threshold() -> datetime:
+        """
+        Return the date before which a pending log that used all its automatic
+        retries is considered stalled.
+
+        Its last attempt runs at most `HOOK_RETRY_BACKOFF_MAX` seconds after the
+        previous one. The threshold doubles that delay to give a busy worker
+        time to start it.
+        """
+
+        return timezone.now() - timedelta(seconds=2 * settings.HOOK_RETRY_BACKOFF_MAX)
 
     def retry(self):
         """
-        Retries to send data to external service
+        Retries to send data to external service in a single attempt.
+
+        A retriable error marks the log as failed instead of scheduling
+        automatic retries.
+
         :return: boolean
         """
 
@@ -81,7 +95,7 @@ class HookLog(AbstractTimeStampedModel):
         service_definition = ServiceDefinition(self.hook, self.submission_id)
 
         try:
-            result = service_definition.send()
+            result = service_definition.send(allow_retry=False)
             self.refresh_from_db()
             return result
         except Exception:

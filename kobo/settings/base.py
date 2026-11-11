@@ -2500,6 +2500,11 @@ PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 HOOK_STALLED_PENDING_TIMEOUT = 120
 HOOK_STALLED_RETRY_TIMEOUT = 1440
 
+# Exponential backoff (in seconds) between automatic hook retries.
+# Retries wait 5, 10, 20, 20, ... minutes.
+HOOK_RETRY_BACKOFF = 300
+HOOK_RETRY_BACKOFF_MAX = 1200
+
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
 # Same, for the XPaths of a single form version. A version never changes, so

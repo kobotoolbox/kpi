@@ -264,8 +264,8 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
 
         With HOOK_MAX_RETRIES = 3, we expect:
         - Initial attempt (tries=0) + 3 retries = 4 total attempts
-        - Attempts 1-4 (tries 0-3): retriable error raises HookRemoteServerDownError
-        - Attempt 5 (tries=4): retriable error does NOT raise, becomes FAILED
+        - Attempts 1-3 (tries 0-2): retriable error raises HookRemoteServerDownError
+        - Attempt 4 (tries=3): retriable error does NOT raise, becomes FAILED
 
         This ensures manual retries don't trigger another 3 automatic retries.
         """
@@ -285,11 +285,11 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
 
         ServiceDefinition = self.hook.get_service_definition()
 
-        # Simulate attempts 1-4 (tries 0-3): should raise HookRemoteServerDownError
+        # Simulate attempts 1-3 (tries 0-2): should raise HookRemoteServerDownError
         log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
         service = ServiceDefinition(self.hook, self.submission_id)
 
-        for attempt in range(1, 5):
+        for attempt in range(1, 4):
             expected_tries = attempt - 1
             assert log.tries == expected_tries, (
                 f'Attempt {attempt}: Expected tries={expected_tries}, '
@@ -309,9 +309,9 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
                 log.tries == attempt
             ), f'Attempt {attempt}: Expected tries={attempt}, got tries={log.tries}'
 
-        # Attempt 5 (tries=4): should NOT raise, becomes FAILED
+        # Attempt 4 (tries=3): should NOT raise, becomes FAILED
         log.refresh_from_db()
-        assert log.tries == 4
+        assert log.tries == 3
 
         # Should NOT raise HookRemoteServerDownError
         with self.assertRaises(requests.exceptions.RequestException):
@@ -325,4 +325,44 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
             f'status should be FAILED, got {log.status.name}'
         )
         assert log.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
-        assert log.tries == 5
+        assert log.tries == 4
+
+    @patch(
+        'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+        new=MagicMock(return_value=ip_address('1.2.3.4')),
+    )
+    @patch('kpi.utils.ssrf.SSRFProtectedSession.post')
+    @override_config(HOOK_MAX_RETRIES=3)
+    def test_manual_retry_with_retriable_error_marks_log_as_failed(self, mock_post):
+        """
+        Test that a manual retry sends the data once and marks the log as FAILED
+        on a retriable error, even when the log has automatic retries left.
+        """
+
+        # Mock retriable error (503 Service Unavailable)
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        mock_response.text = 'Service temporarily unavailable'
+        mock_response.raise_for_status.side_effect = (
+            requests.exceptions.RequestException('HTTP 503')
+        )
+        mock_post.return_value = mock_response
+
+        # Create a log that failed once, below HOOK_MAX_RETRIES
+        with patch('kobo.apps.hook.utils.services.service_definition_task.delay'):
+            call_services(self.asset.uid, self.submission_id)
+
+        log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
+        log.status = HookLogStatus.FAILED
+        log.status_code = status.HTTP_404_NOT_FOUND
+        log.tries = 1
+        log.save()
+        assert log.can_retry
+
+        assert log.retry() is False
+
+        log.refresh_from_db()
+        assert mock_post.call_count == 1
+        assert log.status == HookLogStatus.FAILED
+        assert log.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert log.tries == 2
