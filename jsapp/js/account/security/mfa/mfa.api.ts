@@ -78,21 +78,16 @@ export function useMfaStatus() {
   })
 }
 
-/**
- * Whether allauth will want the password before 2FA goes on. Always, for accounts that have one: the backend timeout
- * is configurable, so we can't tell if an earlier reauthentication still counts.
- */
-export function useIsPasswordNeeded() {
-  const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
+/** Whether the account has a password. Undefined until the session has loaded. */
+export function useHasUsablePassword() {
+  const { data } = useAllauthBrowserV1AuthSessionGet<boolean | undefined>({
     query: {
       queryKey: getAuthStatusQueryKey(),
-      // SSO-only accounts have no password, and allauth doesn't ask them for one
-      select: (response) => getAuthStatus(response).user?.has_usable_password ?? true,
+      select: (response) => getAuthStatus(response).user?.has_usable_password,
       throwOnError: false,
     },
   })
-  // Ask until we know otherwise
-  return data ?? true
+  return data
 }
 
 /** Every write changes the status, so they all reread {@link useMfaStatus} */
@@ -141,7 +136,7 @@ export const useMfaActivate = () =>
   })
 
 interface MfaConfirmVariables extends MfaCode {
-  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
+  /** Leave out for accounts without a password, see {@link useHasUsablePassword} */
   password?: string
 }
 

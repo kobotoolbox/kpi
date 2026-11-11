@@ -6,7 +6,7 @@ import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
   MfaRejection,
-  useIsPasswordNeeded,
+  useHasUsablePassword,
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
@@ -88,7 +88,9 @@ function MFAModals(props: MFAModalsProps) {
   /** 2FA is on, but the codes may still need reading */
   const [isActivated, setIsActivated] = useState(false)
 
-  const isPasswordNeeded = useIsPasswordNeeded()
+  // allauth wants a recent password before 2FA goes on. Always asked: the backend timeout is configurable, so we can't
+  // tell if an earlier reauthentication still counts. SSO-only accounts have none, and allauth doesn't ask them
+  const isPasswordNeeded = useHasUsablePassword() !== false
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
