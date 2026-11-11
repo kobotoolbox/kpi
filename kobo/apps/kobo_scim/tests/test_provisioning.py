@@ -6,7 +6,7 @@ from allauth.socialaccount.providers.base.constants import AuthProcess
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import Client, RequestFactory, TestCase
+from django.test import RequestFactory, TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -66,7 +66,7 @@ class ScimProvisioningTestCase(TestCase):
         response = cm.exception.response
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         self.assertEqual(response.url, self.provisioning_html_url)
-        self.assertIn('socialaccount_sociallogin', request.session)
+        self.assertIn('scim_pending_sociallogin', request.session)
         self.assertIn('scim_provisioning_start', request.session)
 
     def test_first_time_login_with_non_scim_provider_does_not_redirect(self):
@@ -98,7 +98,7 @@ class ScimProvisioningTestCase(TestCase):
     def test_provisioning_html_view_renders_template_when_session_present(self):
         sociallogin = self._build_login()
         session = self.client.session
-        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_pending_sociallogin'] = sociallogin.serialize()
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
@@ -124,7 +124,7 @@ class ScimProvisioningTestCase(TestCase):
     def test_provisioning_view_pending_poll(self):
         sociallogin = self._build_login()
         session = self.client.session
-        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_pending_sociallogin'] = sociallogin.serialize()
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
@@ -142,7 +142,7 @@ class ScimProvisioningTestCase(TestCase):
         SocialAccount.objects.create(user=cleo, provider='keycloak', uid='cleo-uid')
 
         session = self.client.session
-        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_pending_sociallogin'] = sociallogin.serialize()
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
@@ -157,7 +157,7 @@ class ScimProvisioningTestCase(TestCase):
         self.assertEqual(int(self.client.session['_auth_user_id']), cleo.pk)
 
         # Pending session is cleared
-        self.assertNotIn('socialaccount_sociallogin', self.client.session)
+        self.assertNotIn('scim_pending_sociallogin', self.client.session)
         self.assertNotIn('scim_provisioning_start', self.client.session)
 
     @override_settings(SOCIALACCOUNT_EMAIL_VERIFICATION='mandatory')
@@ -168,7 +168,7 @@ class ScimProvisioningTestCase(TestCase):
         SocialAccount.objects.create(user=cleo, provider='keycloak', uid='cleo-uid')
 
         session = self.client.session
-        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_pending_sociallogin'] = sociallogin.serialize()
         session['scim_provisioning_start'] = timezone.now().timestamp()
         session.save()
 
@@ -185,13 +185,13 @@ class ScimProvisioningTestCase(TestCase):
         self.assertNotIn('_auth_user_id', self.client.session)
 
         # Pending session is cleared
-        self.assertNotIn('socialaccount_sociallogin', self.client.session)
+        self.assertNotIn('scim_pending_sociallogin', self.client.session)
         self.assertNotIn('scim_provisioning_start', self.client.session)
 
     def test_provisioning_view_expired_clears_session(self):
         sociallogin = self._build_login()
         session = self.client.session
-        session['socialaccount_sociallogin'] = sociallogin.serialize()
+        session['scim_pending_sociallogin'] = sociallogin.serialize()
         # Set start time to 70 seconds ago (> 60s timeout)
         session['scim_provisioning_start'] = timezone.now().timestamp() - 70
         session.save()
@@ -204,5 +204,5 @@ class ScimProvisioningTestCase(TestCase):
         )
 
         # Session data was cleared
-        self.assertNotIn('socialaccount_sociallogin', self.client.session)
+        self.assertNotIn('scim_pending_sociallogin', self.client.session)
         self.assertNotIn('scim_provisioning_start', self.client.session)

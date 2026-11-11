@@ -188,7 +188,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     sociallogin.provider = self.get_provider(
                         request, sociallogin.account.provider
                     )
-                request.session['socialaccount_sociallogin'] = sociallogin.serialize()
+                request.session['scim_pending_sociallogin'] = sociallogin.serialize()
                 request.session['scim_provisioning_start'] = timezone.now().timestamp()
                 raise ImmediateHttpResponse(
                     HttpResponseRedirect(resolve_url('socialaccount_provisioning'))

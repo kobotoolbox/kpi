@@ -1,5 +1,4 @@
 from allauth.socialaccount.helpers import complete_social_login
-from allauth.socialaccount.internal.flows.signup import clear_pending_signup
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 from django.apps import apps
 from django.conf import settings
@@ -70,7 +69,7 @@ class SocialAccountProvisioningView(APIView):
     def post(self, request, *args, **kwargs):
         SessionAuthentication().enforce_csrf(request)
 
-        data = request.session.get('socialaccount_sociallogin')
+        data = request.session.get('scim_pending_sociallogin')
         start_time = request.session.get('scim_provisioning_start')
 
         # If no active provisioning session, return expired without error
@@ -87,7 +86,7 @@ class SocialAccountProvisioningView(APIView):
         # Check timeout / expiration
         now = timezone.now().timestamp()
         if now - start_time > SCIM_PROVISIONING_TIMEOUT:
-            clear_pending_signup(request)
+            request.session.pop('scim_pending_sociallogin', None)
             request.session.pop('scim_provisioning_start', None)
             return Response(
                 {
@@ -106,6 +105,7 @@ class SocialAccountProvisioningView(APIView):
 
         if account_exists:
             # SCIM created the account! Clear provisioning state and complete login.
+            request.session.pop('scim_pending_sociallogin', None)
             request.session.pop('scim_provisioning_start', None)
             login_response = complete_social_login(request, sociallogin)
             redirect_url = getattr(login_response, 'url', None)
@@ -141,7 +141,7 @@ class SocialAccountProvisioningHTMLView(View):
     """
 
     def get(self, request, *args, **kwargs):
-        data = request.session.get('socialaccount_sociallogin')
+        data = request.session.get('scim_pending_sociallogin')
         start_time = request.session.get('scim_provisioning_start')
 
         if not data or not start_time:
