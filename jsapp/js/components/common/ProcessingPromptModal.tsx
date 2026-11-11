@@ -2,10 +2,8 @@ import type { ReactNode } from 'react'
 
 import type { ModalProps } from '@mantine/core'
 import { Group, Stack } from '@mantine/core'
-import { IconPencilStar } from '@tabler/icons-react'
-import ButtonNew from '#/components/common/ButtonNew'
-import KoboIcon from '#/components/common/KoboIcon'
 import ModalNew from '#/components/common/ModalNew'
+import ProcessingActionButton from '#/components/common/ProcessingActionButton'
 
 export interface ProcessingPromptModalProps extends Omit<ModalProps, 'title'> {
   /** Rendered as-is, so callers can combine an icon with the title text. */
@@ -33,9 +31,7 @@ export default function ProcessingPromptModal(props: ProcessingPromptModalProps)
 
         {onAction && (
           <Group justify='flex-end'>
-            <ButtonNew size='md' leftSection={<KoboIcon icon={IconPencilStar} size={16} />} onClick={onAction}>
-              {t('Translate & analyze')}
-            </ButtonNew>
+            <ProcessingActionButton label={t('Translate & analyze')} onClick={onAction} />
           </Group>
         )}
       </Stack>

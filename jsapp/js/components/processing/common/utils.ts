@@ -373,6 +373,10 @@ export const isImageQuestionType = (questionType: AnyRowTypeName | undefined): b
 export const isNlpSupported = (questionType: AnyRowTypeName | undefined): boolean =>
   isAudioQuestionType(questionType) || isTextQuestionType(questionType) || isImageQuestionType(questionType)
 
+/** The label of an action that opens Processing for a question: images can only be analyzed. */
+export const getProcessingActionLabel = (questionType: AnyRowTypeName | undefined): string =>
+  isImageQuestionType(questionType) ? t('Analyze image') : t('Translate & analyze')
+
 /**
  * Whether there is a source the automatic qualitative analysis can run on. Text
  * and image questions are analyzed straight from the submission (mirroring the

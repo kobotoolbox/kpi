@@ -5,11 +5,10 @@ from enum import Enum
 from typing import Optional
 
 import jsonschema
-from constance import config
-from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.stripe.utils.limit_enforcement import raise_if_usage_limit_exceeded
 from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
     GoogleQuotaExceededError,
@@ -18,9 +17,7 @@ from kobo.apps.subsequences.exceptions import (
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
-from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.log import logging
-from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..constants import SUBMISSION_UUID_FIELD
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -240,20 +237,8 @@ class BaseAction:
         return None
 
     def check_limits(self, user: User, action_data: dict):
-
-        if (
-            not settings.STRIPE_ENABLED
-            or not self._is_usage_limited
-            or not config.USAGE_LIMIT_ENFORCEMENT
-        ):
-            return
-
-        calculator = ServiceUsageCalculator(user)
-        balances = calculator.get_usage_balances()
-
-        balance = balances[self._limit_identifier]
-        if balance and balance['exceeded']:
-            raise UsageLimitExceededException()
+        if self._is_usage_limited:
+            raise_if_usage_limit_exceeded(user, self._limit_identifier)
 
     @property
     def external_data_schema(self):
@@ -787,12 +772,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
     """
 
     def check_limits(self, user: User, action_data: dict):
-        accepted = action_data.get('accepted', None)
-        if accepted is not None:
-            return
-        if 'value' in action_data and action_data['value'] is None:
-            return
-        super().check_limits(user, action_data)
+        """
+        Skip the upfront check: usage is counted when an external operation
+        starts, so the limit is checked right before that, see
+        `GoogleService._before_new_operation()`
+        """
+        return
 
     @property
     def chunk_hard_limit_seconds(self) -> float:
