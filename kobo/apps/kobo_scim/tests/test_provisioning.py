@@ -67,6 +67,23 @@ class ScimProvisioningTestCase(TestCase):
         self.assertIn('scim_pending_sociallogin', request.session)
         self.assertIn('scim_provisioning_start', request.session)
 
+    def test_first_time_login_with_existing_email_renders_error(self):
+        User.objects.create_user(username='existing', email='user@example.com')
+        sociallogin = self._build_login(email='user@example.com')
+        request = self._build_request()
+
+        with self.assertRaises(ImmediateHttpResponse) as cm:
+            self.adapter.pre_social_login(request, sociallogin)
+
+        response = cm.exception.response
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn(
+            'An account already exists with this email address.',
+            response.content.decode(),
+        )
+        self.assertNotIn('scim_pending_sociallogin', request.session)
+        self.assertNotIn('scim_provisioning_start', request.session)
+
     def test_first_time_login_with_non_scim_provider_does_not_redirect(self):
         # Inactive IDP
         self.idp.is_active = False

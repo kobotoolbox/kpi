@@ -177,7 +177,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
-        """providers
+        """
         Redirect first-time logins for SCIM-enabled IdPs to the provisioning wait
         screen, and allow only one linked SSO account per user during the connect flow.
         """
@@ -189,6 +189,25 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 if getattr(sociallogin, 'provider', None) is None:
                     sociallogin.provider = self.get_provider(
                         request, sociallogin.account.provider
+                    )
+                email = sociallogin.user.email
+                if (
+                    email
+                    and get_user_model().objects.filter(email__iexact=email).exists()
+                ):
+                    raise ImmediateHttpResponse(
+                        render_authentication_error(
+                            request,
+                            sociallogin.account.provider,
+                            error='email_taken',
+                            extra_context={
+                                'state': sociallogin.state,
+                                'error_message': (
+                                    self.error_messages['email_taken']
+                                    % sociallogin.provider.name
+                                ),
+                            },
+                        )
                     )
                 request.session['scim_pending_sociallogin'] = sociallogin.serialize()
                 request.session['scim_provisioning_start'] = timezone.now().timestamp()
