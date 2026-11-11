@@ -179,7 +179,7 @@ class OrganizationOwnershipTransferPermission(
         view.user_role = user_role
         view.organization = organization
 
-        if user_role == ORG_EXTERNAL_ROLE:
+        if user_role == ORG_EXTERNAL_ROLE or not organization.is_mmo:
             raise Http404
 
         if user_role not in (ORG_OWNER_ROLE, ORG_ADMIN_ROLE):

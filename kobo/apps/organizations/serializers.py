@@ -642,6 +642,7 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 
 
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
+    recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
     sender_name = serializers.SerializerMethodField()
     sender_email = serializers.EmailField(source='sender.email', read_only=True)
@@ -669,6 +670,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'sender',
             'sender_name',
             'sender_email',
+            'recipient',
             'recipient_username',
             'status',
             'billing_review_requested',

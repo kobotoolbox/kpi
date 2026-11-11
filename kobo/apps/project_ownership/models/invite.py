@@ -335,5 +335,8 @@ class OrgOwnershipTransferInvite(Invite):
     def send_acceptance_email(self):
         pass
 
+    def send_cancellation_email(self):
+        pass
+
     def send_refusal_email(self):
         pass

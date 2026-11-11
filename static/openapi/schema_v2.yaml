@@ -9746,6 +9746,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+        required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -9779,16 +9780,16 @@ paths:
                     - Error message
                   summary: Bad request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/:
     get:
       operationId: api_v2_organizations_ownership_transfers_retrieve
-      description: Retrieve an organization ownership transfer by GUID.
+      description: Retrieve an organization ownership transfer by UID.
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -9808,16 +9809,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrganizationOwnershipTransfer'
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/accept/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/:
     patch:
       operationId: api_v2_organizations_ownership_transfers_accept_partial_update
       description: Accept an organization ownership transfer request (invitee only).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -9881,17 +9882,17 @@ paths:
                     detail: Transfer is not pending.
                   summary: Bad Request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/cancel/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/:
     patch:
       operationId: api_v2_organizations_ownership_transfers_cancel_partial_update
       description: Cancel a pending organization ownership transfer request (outgoing
         owner only).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -9955,16 +9956,16 @@ paths:
                     detail: Transfer is not pending.
                   summary: Bad Request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/decline/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/:
     patch:
       operationId: api_v2_organizations_ownership_transfers_decline_partial_update
       description: Decline an organization ownership transfer request (invitee only).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -10028,17 +10029,17 @@ paths:
                     detail: Transfer is not pending.
                   summary: Bad Request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/resend/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/:
     post:
       operationId: api_v2_organizations_ownership_transfers_resend_create
       description: Resend the invitation email for a pending organization ownership
         transfer (outgoing owner only).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -20271,6 +20272,8 @@ components:
           type: string
           format: email
           readOnly: true
+        recipient:
+          type: string
         recipient_username:
           type: string
           readOnly: true
@@ -20294,6 +20297,7 @@ components:
       - modified
       - organization_id
       - organization_name
+      - recipient
       - recipient_username
       - sender
       - sender_email

@@ -2385,7 +2385,7 @@ export const getOrganizationsOwnershipTransfersCreateUrl = (uidOrganization: str
  */
 export const organizationsOwnershipTransfersCreate = async (
   uidOrganization: string,
-  organizationOwnershipTransfer?: NonReadonly<OrganizationOwnershipTransfer>,
+  organizationOwnershipTransfer: NonReadonly<OrganizationOwnershipTransfer>,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersCreateResponse> => {
   const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
@@ -2455,11 +2455,11 @@ export const getOrganizationsOwnershipTransfersCreateMutationOptions = <
 export type OrganizationsOwnershipTransfersCreateMutationResult = NonNullable<
   Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>
 >
-export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer> | undefined
+export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer>
 export type OrganizationsOwnershipTransfersCreateMutationError = ErrorValidation | ErrorDetail
 export type OrganizationsOwnershipTransfersCreateMutationVariables = {
   uidOrganization: string
-  data?: NonReadonly<OrganizationOwnershipTransfer>
+  data: NonReadonly<OrganizationOwnershipTransfer>
 }
 
 export const useOrganizationsOwnershipTransfersCreate = <
@@ -2493,20 +2493,20 @@ export type organizationsOwnershipTransfersRetrieveResponseSuccess =
 
 export type organizationsOwnershipTransfersRetrieveResponse = organizationsOwnershipTransfersRetrieveResponseSuccess
 
-export const getOrganizationsOwnershipTransfersRetrieveUrl = (uidOrganization: string, guid: string) => {
-  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(guid))}/`
+export const getOrganizationsOwnershipTransfersRetrieveUrl = (uidOrganization: string, uid: string) => {
+  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(uid))}/`
 }
 
 /**
- * Retrieve an organization ownership transfer by GUID.
+ * Retrieve an organization ownership transfer by UID.
  */
 export const organizationsOwnershipTransfersRetrieve = async (
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersRetrieveResponse> => {
   return fetchWithAuth<organizationsOwnershipTransfersRetrieveResponse>(
-    getOrganizationsOwnershipTransfersRetrieveUrl(uidOrganization, guid),
+    getOrganizationsOwnershipTransfersRetrieveUrl(uidOrganization, uid),
     {
       ...options,
       method: 'GET',
@@ -2514,8 +2514,8 @@ export const organizationsOwnershipTransfersRetrieve = async (
   )
 }
 
-export const getOrganizationsOwnershipTransfersRetrieveQueryKey = (uidOrganization: string, guid: string) => {
-  return ['api', 'v2', 'organizations', uidOrganization, 'ownership-transfers', guid] as const
+export const getOrganizationsOwnershipTransfersRetrieveQueryKey = (uidOrganization: string, uid: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'ownership-transfers', uid] as const
 }
 
 export const getOrganizationsOwnershipTransfersRetrieveQueryOptions = <
@@ -2523,7 +2523,7 @@ export const getOrganizationsOwnershipTransfersRetrieveQueryOptions = <
   TError = unknown,
 >(
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -2531,15 +2531,15 @@ export const getOrganizationsOwnershipTransfersRetrieveQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getOrganizationsOwnershipTransfersRetrieveQueryKey(uidOrganization, guid)
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsOwnershipTransfersRetrieveQueryKey(uidOrganization, uid)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>> = ({ signal }) =>
-    organizationsOwnershipTransfersRetrieve(uidOrganization, guid, { signal, ...requestOptions })
+    organizationsOwnershipTransfersRetrieve(uidOrganization, uid, { signal, ...requestOptions })
 
   return {
     queryKey,
     queryFn,
-    enabled: uidOrganization !== null && uidOrganization !== undefined && guid !== null && guid !== undefined,
+    enabled: uidOrganization !== null && uidOrganization !== undefined && uid !== null && uid !== undefined,
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>, TError, TData> & {
     queryKey: QueryKey
@@ -2556,13 +2556,13 @@ export function useOrganizationsOwnershipTransfersRetrieve<
   TError = unknown,
 >(
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getOrganizationsOwnershipTransfersRetrieveQueryOptions(uidOrganization, guid, options)
+  const queryOptions = getOrganizationsOwnershipTransfersRetrieveQueryOptions(uidOrganization, uid, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2611,8 +2611,8 @@ export type organizationsOwnershipTransfersAcceptPartialUpdateResponse =
   | organizationsOwnershipTransfersAcceptPartialUpdateResponseSuccess
   | organizationsOwnershipTransfersAcceptPartialUpdateResponseError
 
-export const getOrganizationsOwnershipTransfersAcceptPartialUpdateUrl = (uidOrganization: string, guid: string) => {
-  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(guid))}/accept/`
+export const getOrganizationsOwnershipTransfersAcceptPartialUpdateUrl = (uidOrganization: string, uid: string) => {
+  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(uid))}/accept/`
 }
 
 /**
@@ -2620,11 +2620,11 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateUrl = (uidOrga
  */
 export const organizationsOwnershipTransfersAcceptPartialUpdate = async (
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersAcceptPartialUpdateResponse> => {
   return fetchWithAuth<organizationsOwnershipTransfersAcceptPartialUpdateResponse>(
-    getOrganizationsOwnershipTransfersAcceptPartialUpdateUrl(uidOrganization, guid),
+    getOrganizationsOwnershipTransfersAcceptPartialUpdateUrl(uidOrganization, uid),
     {
       ...options,
       method: 'PATCH',
@@ -2663,9 +2663,9 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateMutationOption
     Awaited<ReturnType<typeof organizationsOwnershipTransfersAcceptPartialUpdate>>,
     OrganizationsOwnershipTransfersAcceptPartialUpdateMutationVariables
   > = (props) => {
-    const { uidOrganization, guid } = props ?? {}
+    const { uidOrganization, uid } = props ?? {}
 
-    return organizationsOwnershipTransfersAcceptPartialUpdate(uidOrganization, guid, requestOptions)
+    return organizationsOwnershipTransfersAcceptPartialUpdate(uidOrganization, uid, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2678,7 +2678,7 @@ export type OrganizationsOwnershipTransfersAcceptPartialUpdateMutationResult = N
 export type OrganizationsOwnershipTransfersAcceptPartialUpdateMutationError = ErrorDetail
 export type OrganizationsOwnershipTransfersAcceptPartialUpdateMutationVariables = {
   uidOrganization: string
-  guid: string
+  uid: string
 }
 
 export const useOrganizationsOwnershipTransfersAcceptPartialUpdate = <
@@ -2742,8 +2742,8 @@ export type organizationsOwnershipTransfersCancelPartialUpdateResponse =
   | organizationsOwnershipTransfersCancelPartialUpdateResponseSuccess
   | organizationsOwnershipTransfersCancelPartialUpdateResponseError
 
-export const getOrganizationsOwnershipTransfersCancelPartialUpdateUrl = (uidOrganization: string, guid: string) => {
-  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(guid))}/cancel/`
+export const getOrganizationsOwnershipTransfersCancelPartialUpdateUrl = (uidOrganization: string, uid: string) => {
+  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(uid))}/cancel/`
 }
 
 /**
@@ -2751,11 +2751,11 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateUrl = (uidOrga
  */
 export const organizationsOwnershipTransfersCancelPartialUpdate = async (
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersCancelPartialUpdateResponse> => {
   return fetchWithAuth<organizationsOwnershipTransfersCancelPartialUpdateResponse>(
-    getOrganizationsOwnershipTransfersCancelPartialUpdateUrl(uidOrganization, guid),
+    getOrganizationsOwnershipTransfersCancelPartialUpdateUrl(uidOrganization, uid),
     {
       ...options,
       method: 'PATCH',
@@ -2794,9 +2794,9 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateMutationOption
     Awaited<ReturnType<typeof organizationsOwnershipTransfersCancelPartialUpdate>>,
     OrganizationsOwnershipTransfersCancelPartialUpdateMutationVariables
   > = (props) => {
-    const { uidOrganization, guid } = props ?? {}
+    const { uidOrganization, uid } = props ?? {}
 
-    return organizationsOwnershipTransfersCancelPartialUpdate(uidOrganization, guid, requestOptions)
+    return organizationsOwnershipTransfersCancelPartialUpdate(uidOrganization, uid, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2809,7 +2809,7 @@ export type OrganizationsOwnershipTransfersCancelPartialUpdateMutationResult = N
 export type OrganizationsOwnershipTransfersCancelPartialUpdateMutationError = ErrorDetail
 export type OrganizationsOwnershipTransfersCancelPartialUpdateMutationVariables = {
   uidOrganization: string
-  guid: string
+  uid: string
 }
 
 export const useOrganizationsOwnershipTransfersCancelPartialUpdate = <
@@ -2873,8 +2873,8 @@ export type organizationsOwnershipTransfersDeclinePartialUpdateResponse =
   | organizationsOwnershipTransfersDeclinePartialUpdateResponseSuccess
   | organizationsOwnershipTransfersDeclinePartialUpdateResponseError
 
-export const getOrganizationsOwnershipTransfersDeclinePartialUpdateUrl = (uidOrganization: string, guid: string) => {
-  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(guid))}/decline/`
+export const getOrganizationsOwnershipTransfersDeclinePartialUpdateUrl = (uidOrganization: string, uid: string) => {
+  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(uid))}/decline/`
 }
 
 /**
@@ -2882,11 +2882,11 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateUrl = (uidOrg
  */
 export const organizationsOwnershipTransfersDeclinePartialUpdate = async (
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersDeclinePartialUpdateResponse> => {
   return fetchWithAuth<organizationsOwnershipTransfersDeclinePartialUpdateResponse>(
-    getOrganizationsOwnershipTransfersDeclinePartialUpdateUrl(uidOrganization, guid),
+    getOrganizationsOwnershipTransfersDeclinePartialUpdateUrl(uidOrganization, uid),
     {
       ...options,
       method: 'PATCH',
@@ -2925,9 +2925,9 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateMutationOptio
     Awaited<ReturnType<typeof organizationsOwnershipTransfersDeclinePartialUpdate>>,
     OrganizationsOwnershipTransfersDeclinePartialUpdateMutationVariables
   > = (props) => {
-    const { uidOrganization, guid } = props ?? {}
+    const { uidOrganization, uid } = props ?? {}
 
-    return organizationsOwnershipTransfersDeclinePartialUpdate(uidOrganization, guid, requestOptions)
+    return organizationsOwnershipTransfersDeclinePartialUpdate(uidOrganization, uid, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2940,7 +2940,7 @@ export type OrganizationsOwnershipTransfersDeclinePartialUpdateMutationResult = 
 export type OrganizationsOwnershipTransfersDeclinePartialUpdateMutationError = ErrorDetail
 export type OrganizationsOwnershipTransfersDeclinePartialUpdateMutationVariables = {
   uidOrganization: string
-  guid: string
+  uid: string
 }
 
 export const useOrganizationsOwnershipTransfersDeclinePartialUpdate = <
@@ -3010,8 +3010,8 @@ export type organizationsOwnershipTransfersResendCreateResponse =
   | organizationsOwnershipTransfersResendCreateResponseSuccess
   | organizationsOwnershipTransfersResendCreateResponseError
 
-export const getOrganizationsOwnershipTransfersResendCreateUrl = (uidOrganization: string, guid: string) => {
-  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(guid))}/resend/`
+export const getOrganizationsOwnershipTransfersResendCreateUrl = (uidOrganization: string, uid: string) => {
+  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(uid))}/resend/`
 }
 
 /**
@@ -3019,11 +3019,11 @@ export const getOrganizationsOwnershipTransfersResendCreateUrl = (uidOrganizatio
  */
 export const organizationsOwnershipTransfersResendCreate = async (
   uidOrganization: string,
-  guid: string,
+  uid: string,
   options?: Parameters<typeof fetchWithAuth>[1],
 ): Promise<organizationsOwnershipTransfersResendCreateResponse> => {
   return fetchWithAuth<organizationsOwnershipTransfersResendCreateResponse>(
-    getOrganizationsOwnershipTransfersResendCreateUrl(uidOrganization, guid),
+    getOrganizationsOwnershipTransfersResendCreateUrl(uidOrganization, uid),
     {
       ...options,
       method: 'POST',
@@ -3062,9 +3062,9 @@ export const getOrganizationsOwnershipTransfersResendCreateMutationOptions = <
     Awaited<ReturnType<typeof organizationsOwnershipTransfersResendCreate>>,
     OrganizationsOwnershipTransfersResendCreateMutationVariables
   > = (props) => {
-    const { uidOrganization, guid } = props ?? {}
+    const { uidOrganization, uid } = props ?? {}
 
-    return organizationsOwnershipTransfersResendCreate(uidOrganization, guid, requestOptions)
+    return organizationsOwnershipTransfersResendCreate(uidOrganization, uid, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -3075,7 +3075,7 @@ export type OrganizationsOwnershipTransfersResendCreateMutationResult = NonNulla
 >
 
 export type OrganizationsOwnershipTransfersResendCreateMutationError = ErrorDetail
-export type OrganizationsOwnershipTransfersResendCreateMutationVariables = { uidOrganization: string; guid: string }
+export type OrganizationsOwnershipTransfersResendCreateMutationVariables = { uidOrganization: string; uid: string }
 
 export const useOrganizationsOwnershipTransfersResendCreate = <TError = ErrorDetail, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<

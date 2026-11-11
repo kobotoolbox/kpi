@@ -24,7 +24,10 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from kobo.apps.project_ownership.models import OrgOwnershipTransferInvite
+from kobo.apps.project_ownership.models import (
+    InviteStatusChoices,
+    OrgOwnershipTransferInvite,
+)
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import (
@@ -81,6 +84,7 @@ from .constants import (
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
     OWNER_REMOVAL_ERROR,
+    TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
 from .exceptions import InvalidMembershipRequest
@@ -997,14 +1001,14 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         ),
     ),
     retrieve=extend_schema(
-        description='Retrieve an organization ownership transfer by GUID.',
+        description='Retrieve an organization ownership transfer by UID.',
         parameters=[
             OpenApiParameter(
-                name='guid',
+                name='uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='GUID of the ownership transfer',
+                description='UID of the ownership transfer',
             )
         ],
     ),
@@ -1035,7 +1039,7 @@ class OrganizationOwnershipTransferViewSet(
     Available actions:
     - create (POST): initiate transfer request
     - list (GET): list transfers for user/org
-    - retrieve (GET): retrieve transfer by GUID
+    - retrieve (GET): retrieve transfer by UID
     - accept (PATCH): accept transfer
     - decline (PATCH): decline transfer
     - cancel (PATCH): cancel transfer
@@ -1047,14 +1051,21 @@ class OrganizationOwnershipTransferViewSet(
     permission_classes = [OrganizationOwnershipTransferPermission]
     http_method_names = ['get', 'post', 'patch']
     parent_lookup_field = 'uid_organization'
-    lookup_field = 'guid'
+    lookup_field = 'uid'
 
     def get_queryset(self):
         organization_id = self.kwargs.get(self.parent_lookup_field)
         user = get_database_user(self.request.user)
-        queryset = OrganizationOwnershipTransfer.objects.filter(
-            organization_id=organization_id
-        ).select_related('sender__extra_details', 'recipient', 'organization')
+        queryset_filter = Q(
+            sender__organizations_organizationuser__organization_id=organization_id
+        ) | Q(
+            recipient__organizations_organizationuser__organization_id=organization_id  # noqa E501
+        )
+        queryset = (
+            OrgOwnershipTransferInvite.objects.filter(queryset_filter)
+            .select_related('sender__extra_details', 'recipient')
+            .distinct()
+        )
 
         if self.action == 'list':
             queryset = queryset.filter(Q(sender=user) | Q(recipient=user))
@@ -1092,11 +1103,11 @@ class OrganizationOwnershipTransferViewSet(
         },
         parameters=[
             OpenApiParameter(
-                name='guid',
+                name='uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='GUID of the ownership transfer',
+                description='UID of the ownership transfer',
             ),
         ],
     )
@@ -1106,12 +1117,12 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                OrgOwnershipTransferInvite.objects.select_for_update().get(
                     pk=transfer.pk
                 )
             )
-            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
-                if locked_transfer.status == OrganizationInviteStatusChoices.ACCEPTED:
+            if locked_transfer.status != InviteStatusChoices.PENDING:
+                if locked_transfer.status == InviteStatusChoices.ACCEPTED:
                     raise serializers.ValidationError(
                         {'detail': INVITE_ALREADY_ACCEPTED_ERROR}
                     )
@@ -1119,12 +1130,21 @@ class OrganizationOwnershipTransferViewSet(
                     {'detail': TRANSFER_NOT_PENDING_ERROR}
                 )
 
-            locked_transfer.status = OrganizationInviteStatusChoices.ACCEPTED
-            locked_transfer.save(update_fields=['status', 'modified'])
+            if (
+                not locked_transfer.organization
+                or locked_transfer.sender
+                != locked_transfer.organization.owner_user_object
+            ):
+                raise serializers.ValidationError(
+                    {'detail': TRANSFER_NO_LONGER_VALID_ERROR}
+                )
+
+            locked_transfer.status = InviteStatusChoices.ACCEPTED
+            locked_transfer.save(update_fields=['status', 'date_modified'])
             # Placeholder for async ownership and asset reassignment task (DEV-2896)
 
         transfer.status = locked_transfer.status
-        transfer.modified = locked_transfer.modified
+        transfer.date_modified = locked_transfer.date_modified
         transfer.send_acceptance_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
@@ -1151,11 +1171,11 @@ class OrganizationOwnershipTransferViewSet(
         },
         parameters=[
             OpenApiParameter(
-                name='guid',
+                name='uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='GUID of the ownership transfer',
+                description='UID of the ownership transfer',
             ),
         ],
     )
@@ -1165,20 +1185,20 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                OrgOwnershipTransferInvite.objects.select_for_update().get(
                     pk=transfer.pk
                 )
             )
-            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+            if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
                     {'detail': TRANSFER_NOT_PENDING_ERROR}
                 )
 
-            locked_transfer.status = OrganizationInviteStatusChoices.DECLINED
-            locked_transfer.save(update_fields=['status', 'modified'])
+            locked_transfer.status = InviteStatusChoices.DECLINED
+            locked_transfer.save(update_fields=['status', 'date_modified'])
 
         transfer.status = locked_transfer.status
-        transfer.modified = locked_transfer.modified
+        transfer.date_modified = locked_transfer.date_modified
         transfer.send_refusal_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
@@ -1206,11 +1226,11 @@ class OrganizationOwnershipTransferViewSet(
         },
         parameters=[
             OpenApiParameter(
-                name='guid',
+                name='uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='GUID of the ownership transfer',
+                description='UID of the ownership transfer',
             ),
         ],
     )
@@ -1220,20 +1240,20 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                OrgOwnershipTransferInvite.objects.select_for_update().get(
                     pk=transfer.pk
                 )
             )
-            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+            if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
                     {'detail': TRANSFER_NOT_PENDING_ERROR}
                 )
 
-            locked_transfer.status = OrganizationInviteStatusChoices.CANCELLED
-            locked_transfer.save(update_fields=['status', 'modified'])
+            locked_transfer.status = InviteStatusChoices.CANCELLED
+            locked_transfer.save(update_fields=['status', 'date_modified'])
 
         transfer.status = locked_transfer.status
-        transfer.modified = locked_transfer.modified
+        transfer.date_modified = locked_transfer.date_modified
         transfer.send_cancellation_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
 
@@ -1262,11 +1282,11 @@ class OrganizationOwnershipTransferViewSet(
         },
         parameters=[
             OpenApiParameter(
-                name='guid',
+                name='uid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='GUID of the ownership transfer',
+                description='UID of the ownership transfer',
             ),
         ],
     )
@@ -1276,16 +1296,16 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrganizationOwnershipTransfer.objects.select_for_update().get(
+                OrgOwnershipTransferInvite.objects.select_for_update().get(
                     pk=transfer.pk
                 )
             )
-            if locked_transfer.status != OrganizationInviteStatusChoices.PENDING:
+            if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
                     {'detail': INVITE_CANNOT_BE_RESENT_ERROR}
                 )
 
-            retry_after = locked_transfer.modified + timedelta(
+            retry_after = locked_transfer.date_modified + timedelta(
                 seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER
             )
             now = timezone.now()
@@ -1300,9 +1320,9 @@ class OrganizationOwnershipTransferViewSet(
                     retry_after=remaining_seconds,
                 )
 
-            locked_transfer.modified = now
-            locked_transfer.save(update_fields=['modified'])
+            locked_transfer.date_modified = now
+            locked_transfer.save(update_fields=['date_modified'])
 
-        transfer.modified = locked_transfer.modified
+        transfer.date_modified = locked_transfer.date_modified
         transfer.send_invite_email()
         return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)

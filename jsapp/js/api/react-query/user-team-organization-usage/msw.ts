@@ -997,6 +997,7 @@ export const getOrganizationsOwnershipTransfersListResponseMock = (
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
     recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
     status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
     billing_review_requested: faker.datatype.boolean(),
@@ -1015,6 +1016,7 @@ export const getOrganizationsOwnershipTransfersCreateResponseMock = (
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
   billing_review_requested: faker.datatype.boolean(),
@@ -1032,6 +1034,7 @@ export const getOrganizationsOwnershipTransfersRetrieveResponseMock = (
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
   billing_review_requested: faker.datatype.boolean(),
@@ -1049,6 +1052,7 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateResponseMock =
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
   billing_review_requested: faker.datatype.boolean(),
@@ -1066,6 +1070,7 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateResponseMock =
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
   billing_review_requested: faker.datatype.boolean(),
@@ -1083,6 +1088,7 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateResponseMock 
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
   billing_review_requested: faker.datatype.boolean(),
@@ -1100,6 +1106,7 @@ export const getOrganizationsOwnershipTransfersResendCreateResponseMock = (
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
   recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
   status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
   billing_review_requested: faker.datatype.boolean(),
@@ -2239,13 +2246,13 @@ export const getOrganizationsOwnershipTransfersRetrieveMockHandler = (
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.get<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.get<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2263,13 +2270,13 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateMockHandler = 
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.patch<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/accept{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.patch<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/accept{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2287,13 +2294,13 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateMockHandler = 
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.patch<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/cancel{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.patch<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/cancel{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2311,13 +2318,13 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateMockHandler =
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.patch<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/decline{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.patch<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/decline{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2335,13 +2342,13 @@ export const getOrganizationsOwnershipTransfersResendCreateMockHandler = (
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.post<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/resend{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.post<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/resend{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
