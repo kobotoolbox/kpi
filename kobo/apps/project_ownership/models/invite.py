@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import jsonschema
 from constance import config
+from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext as t
@@ -241,10 +242,14 @@ class OrgMembershipAutoInvite(Invite):
 class OrgOwnershipTransferInviteManager(models.Manager):
 
     def create(self, **kwargs):
+        organization = kwargs.pop('organization', None)
         billing_review_requested = kwargs.pop('billing_review_requested', False)
+
         metadata = kwargs.setdefault('metadata', {})
-        if 'billing_review_requested' not in metadata:
-            metadata['billing_review_requested'] = billing_review_requested
+        metadata.setdefault('billing_review_requested', billing_review_requested)
+        if organization:
+            metadata['organization_id'] = str(getattr(organization, 'id', organization))
+
         return super().create(invite_type=InviteType.ORG_OWNERSHIP_TRANSFER, **kwargs)
 
     def get_queryset(self):
@@ -256,8 +261,11 @@ class OrgOwnershipTransferInviteManager(models.Manager):
 class OrgOwnershipTransferInvite(Invite):
     METADATA_SCHEMA = {
         'type': 'object',
-        'properties': {'billing_review_requested': {'type': 'boolean'}},
-        'required': ['billing_review_requested'],
+        'properties': {
+            'billing_review_requested': {'type': 'boolean'},
+            'organization_id': {'type': 'string'},
+        },
+        'required': ['billing_review_requested', 'organization_id'],
         'additionalProperties': False,
     }
 
@@ -278,7 +286,10 @@ class OrgOwnershipTransferInvite(Invite):
 
     @property
     def organization(self):
-        return getattr(self.sender, 'organization', None)
+        if org_id := self.metadata.get('organization_id'):
+            Organization = apps.get_model('organizations', 'Organization')
+            return Organization.objects.filter(id=org_id).first()
+        return None
 
     @property
     def billing_review_requested(self) -> bool:

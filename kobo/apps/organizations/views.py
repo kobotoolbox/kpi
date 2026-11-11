@@ -1056,16 +1056,13 @@ class OrganizationOwnershipTransferViewSet(
     def get_queryset(self):
         organization_id = self.kwargs.get(self.parent_lookup_field)
         user = get_database_user(self.request.user)
-        queryset_filter = Q(
-            sender__organizations_organizationuser__organization_id=organization_id
-        ) | Q(
-            recipient__organizations_organizationuser__organization_id=organization_id  # noqa E501
-        )
-        queryset = (
-            OrgOwnershipTransferInvite.objects.filter(queryset_filter)
-            .select_related('sender__extra_details', 'recipient')
-            .distinct()
-        )
+
+        if not organization_id:
+            return OrgOwnershipTransferInvite.objects.none()
+
+        queryset = OrgOwnershipTransferInvite.objects.filter(
+            metadata__organization_id=str(organization_id)
+        ).select_related('sender__extra_details', 'recipient')
 
         if self.action == 'list':
             queryset = queryset.filter(Q(sender=user) | Q(recipient=user))
@@ -1130,10 +1127,11 @@ class OrganizationOwnershipTransferViewSet(
                     {'detail': TRANSFER_NOT_PENDING_ERROR}
                 )
 
+            org = locked_transfer.organization
             if (
-                not locked_transfer.organization
-                or locked_transfer.sender
-                != locked_transfer.organization.owner_user_object
+                not org
+                or locked_transfer.sender != org.owner_user_object
+                or not org.is_admin_only(locked_transfer.recipient)
             ):
                 raise serializers.ValidationError(
                     {'detail': TRANSFER_NO_LONGER_VALID_ERROR}

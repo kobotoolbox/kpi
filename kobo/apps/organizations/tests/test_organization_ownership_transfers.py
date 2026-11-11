@@ -22,7 +22,14 @@ from kobo.apps.organizations.constants import (
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
-from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
+from kobo.apps.organizations.models import (
+    Organization,
+    OrganizationOwner,
+    OrganizationUser,
+)
+from kobo.apps.organizations.permissions import (
+    OrganizationOwnershipTransferPermission,
+)
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
@@ -602,6 +609,73 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         res = self.client.patch(accept_url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(str(res.data['detail']), str(TRANSFER_NO_LONGER_VALID_ERROR))
+
+    def test_former_admin_cannot_accept_transfer_after_joining_another_team(self):
+        """
+        If an invitee leaves team A and joins team B as an admin, they cannot
+        accept team A's transfer through team B's endpoint (404), nor can they
+        accept it through team A's endpoint (404).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+
+        # admin_user is removed from team A
+        self.organization.organization_users.filter(user=self.admin_user).delete()
+
+        # admin_user joins team B as an admin
+        team_b_owner = User.objects.create(
+            username='team_b_owner',
+            email='team_b_owner@example.com',
+            is_active=True,
+        )
+        team_b = Organization.objects.create(name='Team B', mmo_override=True)
+        team_b.add_user(team_b_owner, is_admin=True)
+        owner_record = OrganizationOwner(organization=team_b)
+        owner_record.organization_user = team_b.organization_users.get(
+            user=team_b_owner
+        )
+        owner_record.save()
+        team_b.add_user(self.admin_user, is_admin=True)
+
+        # 1. Attempt to accept team A's transfer through team B's URL -> 404
+        team_b_accept_url = reverse(
+            self._get_endpoint('organization-ownership-transfers-accept'),
+            kwargs={'uid_organization': team_b.id, 'uid': transfer.uid},
+        )
+        self.client.force_login(self.admin_user)
+        res_b = self.client.patch(team_b_accept_url)
+        self.assertEqual(res_b.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 2. Attempt to accept through team A's URL -> 404 (no longer a member of team A)
+        team_a_accept_url = self._get_action_url('accept', transfer.uid)
+        res_a = self.client.patch(team_a_accept_url)
+        self.assertEqual(res_a.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_accept_fails_if_recipient_no_longer_admin_in_organization(self):
+        """
+        If recipient is no longer an active admin in the organization at accept time,
+        accept() rejects with 400 Validation Error.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        accept_url = self._get_action_url('accept', transfer.uid)
+
+        # Demote recipient to member
+        self.organization.organization_users.filter(user=self.admin_user).update(
+            is_admin=False
+        )
+
+        with patch.object(
+            OrganizationOwnershipTransferPermission,
+            'has_permission',
+            return_value=True,
+        ):
+            self.client.force_login(self.admin_user)
+            res = self.client.patch(accept_url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(
+                str(res.data['detail']), str(TRANSFER_NO_LONGER_VALID_ERROR)
+            )
 
     def test_decline_transfer(self):
         """

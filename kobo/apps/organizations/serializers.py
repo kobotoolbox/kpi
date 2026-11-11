@@ -757,6 +757,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                 transfer = OrgOwnershipTransferInvite.objects.create(
                     sender=validated_data['sender'],
                     recipient=validated_data['recipient'],
+                    organization=self._get_organization(),
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
