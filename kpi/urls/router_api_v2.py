@@ -11,6 +11,7 @@ from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningView
 from kobo.apps.languages.urls import router as language_router
 from kobo.apps.organizations.views import (
     OrganizationMemberViewSet,
+    OrganizationOwnershipTransferViewSet,
     OrganizationViewSet,
     OrgMembershipInviteViewSet,
 )
@@ -226,6 +227,11 @@ router_api_v2.register(
     r'organizations/(?P<uid_organization>[^/.]+)/invites',
     OrgMembershipInviteViewSet,
     basename='organization-invites',
+)
+router_api_v2.register(
+    r'organizations/(?P<uid_organization>[^/.]+)/ownership-transfers',
+    OrganizationOwnershipTransferViewSet,
+    basename='organization-ownership-transfers',
 )
 
 router_api_v2.register(r'permissions', PermissionViewSet)

@@ -9670,6 +9670,70 @@ paths:
                     detail: Invalid request
                   summary: Bad request
           description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/:
+    post:
+      operationId: api_v2_organizations_ownership_transfers_create
+      description: |
+        ## Initiate Organization Ownership Transfer
+
+        * Initiate a request to transfer organization ownership to another administrator.
+        * Only the current organization owner can initiate an ownership transfer.
+        * The recipient must be an active administrator within the same organization.
+        * The recipient can be identified by username or email.
+      parameters:
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorValidation'
+              examples:
+                BadRequest:
+                  value:
+                    field_name:
+                    - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:
       operationId: api_v2_organizations_service_usage_retrieve
@@ -19866,6 +19930,67 @@ components:
       - accept
       type: string
       description: '* `accept` - accept'
+    OrganizationOwnershipTransfer:
+      type: object
+      properties:
+        uid:
+          type: string
+          readOnly: true
+        organization_id:
+          type: string
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        sender:
+          type: string
+          readOnly: true
+        recipient:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/OrganizationOwnershipTransferStatusEnum'
+          readOnly: true
+        billing_review_requested:
+          type: boolean
+          default: false
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created
+      - modified
+      - organization_id
+      - organization_name
+      - recipient
+      - sender
+      - status
+      - uid
+    OrganizationOwnershipTransferStatusEnum:
+      enum:
+      - accepted
+      - cancelled
+      - complete
+      - declined
+      - expired
+      - failed
+      - in_progress
+      - pending
+      type: string
+      description: |-
+        * `accepted` - Accepted
+        * `cancelled` - Cancelled
+        * `complete` - Complete
+        * `declined` - Declined
+        * `expired` - Expired
+        * `failed` - Failed
+        * `in_progress` - In Progress
+        * `pending` - Pending
     OrganizationResponse:
       type: object
       properties:
