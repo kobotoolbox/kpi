@@ -195,7 +195,9 @@ class InProgressUpfrontTestCase(TestCase):
             AutomaticGoogleTranscriptionAction, 'validate_data'
         ), patch.object(
             AutomaticGoogleTranscriptionAction, 'validate_result'
-        ), self.assertRaisesRegex(Exception, 'leading underscore'):
+        ), self.assertRaisesRegex(
+            Exception, 'leading underscore'
+        ):
             self._revise({'language': 'en', '_sneaky': True})
 
         content = SubmissionSupplement.objects.get(
