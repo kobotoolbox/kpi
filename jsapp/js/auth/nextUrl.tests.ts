@@ -1,13 +1,7 @@
 import chai from 'chai'
-import { ACCOUNT_AUTH_ROUTES, AUTH_ROUTES } from '#/router/routerConstants'
-import {
-  getLoginRouteWithNext,
-  getRouteWithNext,
-  getUrlForNextRoute,
-  goToPage,
-  readNextParam,
-  resolveNextRoute,
-} from './nextUrl'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
+import { AUTH_ROUTES } from '#/router/routerConstants'
+import { getLoginRouteWithNext, getUrlForNextRoute, goToPage, readNextParam, resolveNextRoute } from './nextUrl'
 
 const origin = { origin: 'https://kf.kobotoolbox.org', pathname: '/' }
 
@@ -63,11 +57,11 @@ describe('resolveNextRoute', () => {
 
   it('refuses a destination that is an authentication screen itself', () => {
     chai.expect(resolveNextRoute(`/#${AUTH_ROUTES.LOGIN}`, origin)).to.equal(null)
-    chai.expect(resolveNextRoute(`/#${ACCOUNT_AUTH_ROUTES.REAUTHENTICATE}?next=%2F%23%2F`, origin)).to.equal(null)
+    chai.expect(resolveNextRoute(`/#${AUTH_ROUTES.SIGNUP}?next=%2F%23%2F`, origin)).to.equal(null)
   })
 
   it('reads an account settings page, which is not an authentication screen', () => {
-    chai.expect(resolveNextRoute(`/#${ACCOUNT_AUTH_ROUTES.MFA}`, origin)).to.equal(ACCOUNT_AUTH_ROUTES.MFA)
+    chai.expect(resolveNextRoute(`/#${ACCOUNT_ROUTES.SECURITY}`, origin)).to.equal(ACCOUNT_ROUTES.SECURITY)
   })
 
   it('refuses another origin, so the login screen cannot bounce anybody off it', () => {
@@ -162,50 +156,30 @@ describe('goToPage', () => {
   })
 })
 
-describe('getRouteWithNext', () => {
+describe('getLoginRouteWithNext', () => {
   it('carries where we are, written the way the server-rendered login page also understands', () => {
-    chai
-      .expect(getRouteWithNext(AUTH_ROUTES.LOGIN, '/projects/home'))
-      .to.equal(`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Fprojects%2Fhome`)
+    chai.expect(getLoginRouteWithNext('/projects/home')).to.equal(`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Fprojects%2Fhome`)
   })
 
   it('carries the query string too, since that is half of what made it that page', () => {
     chai
-      .expect(getRouteWithNext(ACCOUNT_AUTH_ROUTES.REAUTHENTICATE, '/forms/aXyZ/data/table?page=3'))
-      .to.equal(`${ACCOUNT_AUTH_ROUTES.REAUTHENTICATE}?next=%2F%23%2Fforms%2FaXyZ%2Fdata%2Ftable%3Fpage%3D3`)
+      .expect(getLoginRouteWithNext('/forms/aXyZ/data/table?page=3'))
+      .to.equal(`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Fforms%2FaXyZ%2Fdata%2Ftable%3Fpage%3D3`)
   })
 
   it('carries nothing when there is nowhere to come back to', () => {
-    chai.expect(getRouteWithNext(AUTH_ROUTES.LOGIN, null)).to.equal(AUTH_ROUTES.LOGIN)
-    chai.expect(getRouteWithNext(AUTH_ROUTES.LOGIN, '')).to.equal(AUTH_ROUTES.LOGIN)
+    chai.expect(getLoginRouteWithNext(null)).to.equal(AUTH_ROUTES.LOGIN)
+    chai.expect(getLoginRouteWithNext('')).to.equal(AUTH_ROUTES.LOGIN)
   })
 
-  it('never points back at the screen it is sending somebody to', () => {
-    chai.expect(getRouteWithNext(AUTH_ROUTES.LOGIN, AUTH_ROUTES.LOGIN)).to.equal(AUTH_ROUTES.LOGIN)
+  it('never points back at an authentication screen, the login screen included', () => {
+    chai.expect(getLoginRouteWithNext(AUTH_ROUTES.LOGIN)).to.equal(AUTH_ROUTES.LOGIN)
+    chai.expect(getLoginRouteWithNext(AUTH_ROUTES.SIGNUP)).to.equal(AUTH_ROUTES.LOGIN)
   })
 
-  it('never points back at another authentication screen either', () => {
-    chai.expect(getRouteWithNext(AUTH_ROUTES.LOGIN, AUTH_ROUTES.SIGNUP)).to.equal(AUTH_ROUTES.LOGIN)
-    chai
-      .expect(getRouteWithNext(AUTH_ROUTES.LOGIN, ACCOUNT_AUTH_ROUTES.REAUTHENTICATE_TOTP))
-      .to.equal(AUTH_ROUTES.LOGIN)
-  })
-
-  // Only the reauthentication screens under `/account` count as authentication screens; the settings pages around them
-  // are ordinary destinations.
   it('carries an account settings page, which is not an authentication screen', () => {
     chai
-      .expect(getRouteWithNext(ACCOUNT_AUTH_ROUTES.REAUTHENTICATE, ACCOUNT_AUTH_ROUTES.MFA))
-      .to.equal(`${ACCOUNT_AUTH_ROUTES.REAUTHENTICATE}?next=%2F%23%2Faccount%2F2fa`)
-  })
-})
-
-describe('getLoginRouteWithNext', () => {
-  it('is the login screen, with where we are attached', () => {
-    chai.expect(getLoginRouteWithNext('/projects/home')).to.equal(`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Fprojects%2Fhome`)
-  })
-
-  it('is the bare login screen when there is nothing worth coming back to', () => {
-    chai.expect(getLoginRouteWithNext(null)).to.equal(AUTH_ROUTES.LOGIN)
+      .expect(getLoginRouteWithNext(ACCOUNT_ROUTES.SECURITY))
+      .to.equal(`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Faccount%2Fsecurity`)
   })
 })
