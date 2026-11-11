@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
 import { fetchWithAuth } from '#/api/orval.mutator'
-import { ROOT_URL } from '#/constants'
 
 // On KPI's MFA endpoints, not the generated `useAllauthBrowserV1AccountAuthenticators*` hooks: KPI keeps an
 // `MfaMethodsWrapper` row that `is_mfa_enabled` gates on, so setting up through allauth alone would store a secret no
@@ -43,7 +42,7 @@ export function useMfaStatus() {
   return useQuery<MfaUserMethod[], OrvalFetchError, MfaStatus>({
     queryKey: getMfaStatusQueryKey(),
     queryFn: async () => {
-      const { data } = await fetchWithAuth<{ data: MfaUserMethod[] }>(`${ROOT_URL}/api/v2/auth/mfa/user-methods/`, {
+      const { data } = await fetchWithAuth<{ data: MfaUserMethod[] }>('/api/v2/auth/mfa/user-methods/', {
         method: 'GET',
       })
       return data
@@ -72,7 +71,7 @@ function useMfaMutation<TWire, TData, TVariables extends MfaCode | void = void>(
     mutationKey: [`mfa/${endpoint}`],
     mutationFn: async (variables) => {
       const { data } = await fetchWithAuth<{ data: TWire }>(
-        `${ROOT_URL}/api/v2/auth/${MFA_METHOD}/${endpoint}`,
+        `/api/v2/auth/${MFA_METHOD}/${endpoint}`,
         // `activate` is the one write with nothing to send
         { method: 'POST', body: variables ? JSON.stringify(variables) : undefined },
       )

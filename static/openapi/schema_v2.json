@@ -13280,7 +13280,7 @@
             },
             "post": {
                 "operationId": "api_v2_organizations_ownership_transfers_create",
-                "description": "Initiate an organization ownership transfer request (outgoing owner only).",
+                "description": "## Initiate Organization Ownership Transfer\n\n* Initiate a request to transfer organization ownership to another administrator.\n* Only the current organization owner can initiate an ownership transfer.\n* The recipient must be an active administrator within the same organization.\n* The recipient can be identified by username or email.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -13375,18 +13375,18 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/": {
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/": {
             "get": {
                 "operationId": "api_v2_organizations_ownership_transfers_retrieve",
-                "description": "Retrieve an organization ownership transfer by GUID.",
+                "description": "Retrieve an organization ownership transfer by UID.",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "guid",
+                        "name": "uid",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "GUID of the ownership transfer",
+                        "description": "UID of the ownership transfer",
                         "required": true
                     },
                     {
@@ -13424,18 +13424,18 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/accept/": {
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/": {
             "patch": {
                 "operationId": "api_v2_organizations_ownership_transfers_accept_partial_update",
                 "description": "Accept an organization ownership transfer request (invitee only).",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "guid",
+                        "name": "uid",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "GUID of the ownership transfer",
+                        "description": "UID of the ownership transfer",
                         "required": true
                     },
                     {
@@ -13545,18 +13545,18 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/cancel/": {
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/": {
             "patch": {
                 "operationId": "api_v2_organizations_ownership_transfers_cancel_partial_update",
                 "description": "Cancel a pending organization ownership transfer request (outgoing owner only).",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "guid",
+                        "name": "uid",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "GUID of the ownership transfer",
+                        "description": "UID of the ownership transfer",
                         "required": true
                     },
                     {
@@ -13666,18 +13666,18 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/decline/": {
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/": {
             "patch": {
                 "operationId": "api_v2_organizations_ownership_transfers_decline_partial_update",
                 "description": "Decline an organization ownership transfer request (invitee only).",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "guid",
+                        "name": "uid",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "GUID of the ownership transfer",
+                        "description": "UID of the ownership transfer",
                         "required": true
                     },
                     {
@@ -13787,18 +13787,18 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/resend/": {
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/": {
             "post": {
                 "operationId": "api_v2_organizations_ownership_transfers_resend_create",
                 "description": "Resend the invitation email for a pending organization ownership transfer (outgoing owner only).",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "guid",
+                        "name": "uid",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "GUID of the ownership transfer",
+                        "description": "UID of the ownership transfer",
                         "required": true
                     },
                     {
@@ -28124,9 +28124,8 @@
             "OrganizationOwnershipTransfer": {
                 "type": "object",
                 "properties": {
-                    "guid": {
+                    "uid": {
                         "type": "string",
-                        "format": "uuid",
                         "readOnly": true
                     },
                     "organization_id": {
@@ -28151,8 +28150,7 @@
                         "readOnly": true
                     },
                     "recipient": {
-                        "type": "string",
-                        "writeOnly": true
+                        "type": "string"
                     },
                     "recipient_username": {
                         "type": "string",
@@ -28161,13 +28159,14 @@
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/InviteStatusChoicesEnum"
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransferStatusEnum"
                             }
                         ],
                         "readOnly": true
                     },
                     "billing_review_requested": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": false
                     },
                     "created": {
                         "type": "string",
@@ -28182,7 +28181,6 @@
                 },
                 "required": [
                     "created",
-                    "guid",
                     "modified",
                     "organization_id",
                     "organization_name",
@@ -28191,8 +28189,23 @@
                     "sender",
                     "sender_email",
                     "sender_name",
-                    "status"
+                    "status",
+                    "uid"
                 ]
+            },
+            "OrganizationOwnershipTransferStatusEnum": {
+                "enum": [
+                    "accepted",
+                    "cancelled",
+                    "complete",
+                    "declined",
+                    "expired",
+                    "failed",
+                    "in_progress",
+                    "pending"
+                ],
+                "type": "string",
+                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
             },
             "OrganizationResponse": {
                 "type": "object",

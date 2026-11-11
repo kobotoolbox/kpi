@@ -1,4 +1,3 @@
-import type { Flow } from '#/api/models/flow'
 import type { User } from '#/api/models/user'
 import type { AllauthResponse } from './allauthErrors'
 
@@ -7,19 +6,19 @@ import type { AllauthResponse } from './allauthErrors'
 // Ported from `determineAuthChangeEvent` and the `authInfo` helper next to it in django-allauth react-spa example ( see
 // https://codeberg.org/allauth/django-allauth/src/branch/main/examples/react-spa/frontend/src/auth/hooks.js).
 //
-// The status code carries the meaning, and all three answers are normal: `200` a session with nothing outstanding,
-// `401` either nobody signed in or somebody who has to prove it again (`meta.is_authenticated` tells those two apart),
-// `410` a session allauth has thrown away.
+// The status code carries the meaning: `200` a session with nothing outstanding, `401` either nobody signed in or
+// somebody who has to prove it again (`meta.is_authenticated` tells those two apart).
 //
-// `GET /auth/session` is not the only source: a reauthentication ask comes back from the sensitive request itself, and
-// `#/auth/authChangeWatcher` files it under the same key - which is what makes `reauthenticationRequired` reachable.
+// Note: only `loggedIn` and `loggedOut` are ported. KPI is to ask for reauthentication in place, on the account
+// security screen (planned in DEV-1971), not on a route of its own, so the reference client's `reauthenticated` and
+// `reauthenticationRequired` have nothing to redirect to. Its `flowUpdated` is left out because every sign-in step is
+// answered inside the card that started it (the code in `LoginRoute`, the inbox panels after signup). Its `410` handling
+// is left out too: allauth only sends that to `app` clients, and KPI is a `browser` one.
 
 // Spelled out rather than taken from the generated response union
 interface SessionResponseBody {
   data?: {
-    flows?: Flow[]
     user?: User
-    methods?: unknown[]
   }
   meta?: {
     is_authenticated?: boolean
@@ -30,47 +29,23 @@ interface SessionResponseBody {
 export interface AuthStatus {
   /** Also true for a 401 carrying `meta.is_authenticated`: allauth wants the password again, the session is real */
   isAuthenticated: boolean
-  isReauthenticationRequired: boolean
-  /**
-   * The session existed and allauth dropped it (which is not the same as never having had one). `app` clients only, so
-   * never true for KPI - kept to match the reference client.
-   */
-  isSessionGone: boolean
-  /** Every step allauth named, flagged as pending or not */
-  flows: Flow[]
-  pendingFlow: Flow | null
   user: User | null
-  /** Grows with every accepted reauthentication, which is the only reliable sign of one */
-  methodCount: number
 }
 
 /** Nobody signed in. Also what a changed user id gets compared against - see {@link determineAuthChangeEvent}. */
 export const ANONYMOUS_AUTH_STATUS: AuthStatus = Object.freeze({
   isAuthenticated: false,
-  isReauthenticationRequired: false,
-  isSessionGone: false,
-  flows: [],
-  pendingFlow: null,
   user: null,
-  methodCount: 0,
 })
 
 /** Flattens a session response into the {@link AuthStatus}. */
 export function getAuthStatus(response: AllauthResponse): AuthStatus {
   const body = response.data as SessionResponseBody | undefined
-  const flows = Array.isArray(body?.data?.flows) ? body.data.flows : []
-
   const isAuthenticated = response.status === 200 || (response.status === 401 && body?.meta?.is_authenticated === true)
 
   return {
     isAuthenticated,
-    // Authenticated and still a 401 means the session is fine, the request was not enough
-    isReauthenticationRequired: isAuthenticated && response.status === 401,
-    isSessionGone: response.status === 410,
-    flows,
-    pendingFlow: flows.find((flow) => flow?.is_pending === true) ?? null,
     user: isAuthenticated ? (body?.data?.user ?? null) : null,
-    methodCount: Array.isArray(body?.data?.methods) ? body.data.methods.length : 0,
   }
 }
 
@@ -78,12 +53,6 @@ export function getAuthStatus(response: AllauthResponse): AuthStatus {
 export const AuthChangeEvent = {
   loggedOut: 'loggedOut',
   loggedIn: 'loggedIn',
-  /** allauth got the credentials it asked for again, so whatever was interrupted may go ahead */
-  reauthenticated: 'reauthenticated',
-  /** allauth wants those credentials before it goes on */
-  reauthenticationRequired: 'reauthenticationRequired',
-  /** Nobody is signed in and the step allauth waits on has changed - a password accepted, a code wanted */
-  flowUpdated: 'flowUpdated',
 } as const
 export type AuthChangeEvent = (typeof AuthChangeEvent)[keyof typeof AuthChangeEvent]
 
@@ -94,13 +63,8 @@ function hasUserChanged(fromStatus: AuthStatus, toStatus: AuthStatus): boolean {
   return fromId !== undefined && toId !== undefined && fromId !== toId
 }
 
-/** Which of the five events the move between two readings is, or `null` when nothing worth reacting to changed */
+/** Which of the events the move between two readings is, or `null` when nothing worth reacting to changed */
 export function determineAuthChangeEvent(fromStatus: AuthStatus, toStatus: AuthStatus): AuthChangeEvent | null {
-  // A dropped session outranks everything else that could be read into the pair
-  if (toStatus.isSessionGone) {
-    return AuthChangeEvent.loggedOut
-  }
-
   // Comparing two different accounts directly would report no change, so the old side is read as anonymous - which is
   // what a new account arriving amounts to
   const from = hasUserChanged(fromStatus, toStatus) ? ANONYMOUS_AUTH_STATUS : fromStatus
@@ -111,23 +75,6 @@ export function determineAuthChangeEvent(fromStatus: AuthStatus, toStatus: AuthS
 
   if (from.isAuthenticated && !toStatus.isAuthenticated) {
     return AuthChangeEvent.loggedOut
-  }
-
-  if (from.isAuthenticated && toStatus.isAuthenticated) {
-    if (toStatus.isReauthenticationRequired) {
-      return AuthChangeEvent.reauthenticationRequired
-    }
-    // allauth adds a method on every accepted reauthentication. Unlike the reference client, a dropped flag alone is
-    // ignored: the session poll (e.g. on window focus) answers 200 while reauthentication is still pending.
-    if (from.methodCount < toStatus.methodCount) {
-      return AuthChangeEvent.reauthenticated
-    }
-    return null
-  }
-
-  // Both sides anonymous: a sign-in is under way and has moved on to another step
-  if (toStatus.pendingFlow && toStatus.pendingFlow.id !== from.pendingFlow?.id) {
-    return AuthChangeEvent.flowUpdated
   }
 
   return null

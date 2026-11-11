@@ -12,7 +12,7 @@ from more_itertools import chunked
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import OrganizationInviteStatusChoices
-from kobo.apps.project_ownership.models import Transfer
+from kobo.apps.project_ownership.models import InviteStatusChoices, Transfer
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.celery import celery_app
 from kpi.exceptions import MailerError
@@ -65,8 +65,8 @@ def transfer_member_data_ownership_to_org(user_id: int):
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )
 def transfer_organization_ownership(transfer_id: int):
-    OrganizationOwnershipTransfer = apps.get_model(
-        'organizations', 'OrganizationOwnershipTransfer'
+    OrgOwnershipTransferInvite = apps.get_model(
+        'project_ownership', 'OrgOwnershipTransferInvite'
     )
     OrganizationOwner = apps.get_model('organizations', 'OrganizationOwner')
     OrganizationUser = apps.get_model('organizations', 'OrganizationUser')
@@ -77,16 +77,16 @@ def transfer_organization_ownership(transfer_id: int):
         # quickly and do not block concurrent requests.
         with transaction.atomic():
             transfer = (
-                OrganizationOwnershipTransfer.objects.select_for_update()
-                .select_related('organization', 'sender', 'recipient')
+                OrgOwnershipTransferInvite.objects.select_for_update()
+                .select_related('sender', 'recipient')
                 .get(pk=transfer_id)
             )
 
             if transfer.status in (
-                OrganizationInviteStatusChoices.COMPLETE,
-                OrganizationInviteStatusChoices.CANCELLED,
-                OrganizationInviteStatusChoices.DECLINED,
-                OrganizationInviteStatusChoices.FAILED,
+                InviteStatusChoices.COMPLETE,
+                InviteStatusChoices.CANCELLED,
+                InviteStatusChoices.DECLINED,
+                InviteStatusChoices.FAILED,
             ):
                 logging.warning(
                     f'Transfer {transfer_id} is in status {transfer.status}; '
@@ -94,15 +94,20 @@ def transfer_organization_ownership(transfer_id: int):
                 )
                 return
 
-            if transfer.status != OrganizationInviteStatusChoices.IN_PROGRESS:
-                transfer.status = OrganizationInviteStatusChoices.IN_PROGRESS
-                transfer.save(update_fields=['status', 'modified'])
+            if transfer.status != InviteStatusChoices.IN_PROGRESS:
+                transfer.status = InviteStatusChoices.IN_PROGRESS
+                transfer.save(update_fields=['status', 'date_modified'])
+
+            org = transfer.organization
+            if not org:
+                logging.error(f'Organization not found for transfer {transfer_id}')
+                return
 
             org_owner = OrganizationOwner.objects.select_for_update().get(
-                organization=transfer.organization
+                organization=org
             )
             new_org_user = OrganizationUser.objects.select_for_update().get(
-                organization=transfer.organization,
+                organization=org,
                 user=transfer.recipient,
             )
             if org_owner.organization_user_id != new_org_user.id:
@@ -110,7 +115,7 @@ def transfer_organization_ownership(transfer_id: int):
                 org_owner.save(update_fields=['organization_user'])
 
             outgoing_org_user = OrganizationUser.objects.select_for_update().get(
-                organization=transfer.organization,
+                organization=org,
                 user=transfer.sender,
             )
             if not outgoing_org_user.is_admin:
@@ -145,11 +150,11 @@ def transfer_organization_ownership(transfer_id: int):
 
         # Phase 3: Mark transfer as complete and trigger completion emails.
         with transaction.atomic():
-            transfer = OrganizationOwnershipTransfer.objects.select_for_update().get(
+            transfer = OrgOwnershipTransferInvite.objects.select_for_update().get(
                 pk=transfer_id
             )
-            transfer.status = OrganizationInviteStatusChoices.COMPLETE
-            transfer.save(update_fields=['status', 'modified'])
+            transfer.status = InviteStatusChoices.COMPLETE
+            transfer.save(update_fields=['status', 'date_modified'])
             transaction.on_commit(transfer.send_completion_email)
 
     except Exception as e:
@@ -157,9 +162,9 @@ def transfer_organization_ownership(transfer_id: int):
             f'Failed to execute organization ownership transfer {transfer_id}: {e}'
         )
         try:
-            OrganizationOwnershipTransfer.objects.filter(pk=transfer_id).update(
-                status=OrganizationInviteStatusChoices.FAILED,
-                modified=timezone.now(),
+            OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).update(
+                status=InviteStatusChoices.FAILED,
+                date_modified=timezone.now(),
             )
         except Exception as inner_e:
             logging.error(
@@ -170,14 +175,14 @@ def transfer_organization_ownership(transfer_id: int):
 
 @task_failure.connect(sender=transfer_organization_ownership)
 def transfer_organization_ownership_failure(sender=None, **kwargs):
-    OrganizationOwnershipTransfer = apps.get_model(
-        'organizations', 'OrganizationOwnershipTransfer'
+    OrgOwnershipTransferInvite = apps.get_model(
+        'project_ownership', 'OrgOwnershipTransferInvite'
     )
     transfer_id = kwargs['args'][0]
     try:
-        OrganizationOwnershipTransfer.objects.filter(pk=transfer_id).update(
-            status=OrganizationInviteStatusChoices.FAILED,
-            modified=timezone.now(),
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).update(
+            status=InviteStatusChoices.FAILED,
+            date_modified=timezone.now(),
         )
     except Exception as e:
         logging.error(

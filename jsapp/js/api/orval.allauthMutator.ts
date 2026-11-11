@@ -1,6 +1,7 @@
 import { recordAllauthResponse } from '#/auth/authChangeWatcher'
 import { getCsrfToken } from '#/utils'
 import { ServerError } from './ServerError'
+import { prependRootUrl } from './prependRootUrl'
 
 interface FetchAllauthConfig extends RequestInit {
   method?: 'GET' | 'PUT' | 'POST' | 'PATCH' | 'DELETE'
@@ -20,7 +21,8 @@ export const fetchAllauth = async <T>(url: string, config: FetchAllauthConfig): 
   const csrfToken = getCsrfToken()
   const hasFormDataBody = typeof FormData !== 'undefined' && config.body instanceof FormData
 
-  const response = await fetch(url, {
+  // Only fetch gets the prefix. `recordAllauthResponse` expects the plain URL.
+  const response = await fetch(prependRootUrl(url), {
     ...config,
     headers: {
       ...config.headers,

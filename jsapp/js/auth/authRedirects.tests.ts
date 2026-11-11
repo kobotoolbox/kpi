@@ -1,25 +1,9 @@
 import chai from 'chai'
-import type { Flow } from '#/api/models/flow'
-import { FlowId } from '#/api/models/flowId'
+import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { ROOT_URL } from '#/constants'
-import { ACCOUNT_AUTH_ROUTES, AUTH_ROUTES, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
+import { AUTH_ROUTES, PROJECTS_ROUTES } from '#/router/routerConstants'
 import { type AuthChange, type RedirectContext, redirectForAuthChange } from './authRedirects'
-import { ANONYMOUS_AUTH_STATUS, AuthChangeEvent, type AuthStatus } from './authStatus'
-
-const signedIn: AuthStatus = {
-  ...ANONYMOUS_AUTH_STATUS,
-  isAuthenticated: true,
-  user: { id: 7, display: 'sallyride', username: 'sallyride', has_usable_password: true, has_validated_password: true },
-  methodCount: 1,
-}
-
-const statusWithFlows = (flows: Flow[], base: AuthStatus = signedIn): AuthStatus => {
-  return {
-    ...base,
-    flows,
-    pendingFlow: flows.find((flow) => flow.is_pending) ?? null,
-  }
-}
+import { AuthChangeEvent } from './authStatus'
 
 /**
  * Defaults put the browser on a project page with nowhere else named, which most events read as "stay put". Only the
@@ -38,33 +22,32 @@ function contextAt(overrides: Partial<Omit<RedirectContext, 'navigate' | 'goToPa
 }
 
 /** A change this tab brought on itself, which is every one of these but the sign-in made somewhere else. */
-const change = (event: AuthChangeEvent, status: AuthStatus): AuthChange => ({
+const change = (event: AuthChangeEvent): AuthChange => ({
   event,
-  status,
   isReadingFromOwnCall: true,
 })
 
 /** Arriving on the session poll instead - the only way another tab's sign-in reaches us. */
-const changeFromAnotherTab = (event: AuthChangeEvent, status: AuthStatus): AuthChange => ({
-  ...change(event, status),
+const changeFromAnotherTab = (event: AuthChangeEvent): AuthChange => ({
+  ...change(event),
   isReadingFromOwnCall: false,
 })
 
 describe('redirectForAuthChange', () => {
   it('sends a session that ended to the login screen, carrying the page it interrupted', () => {
-    const context = contextAt({ routePath: ACCOUNT_AUTH_ROUTES.MFA, routeWithSearch: `${ACCOUNT_AUTH_ROUTES.MFA}?a=1` })
+    const context = contextAt({ routePath: ACCOUNT_ROUTES.SECURITY, routeWithSearch: `${ACCOUNT_ROUTES.SECURITY}?a=1` })
 
-    redirectForAuthChange(change(AuthChangeEvent.loggedOut, ANONYMOUS_AUTH_STATUS), context)
+    redirectForAuthChange(change(AuthChangeEvent.loggedOut), context)
 
     chai
       .expect(context.navigate.mock.calls)
-      .to.deep.equal([[`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Faccount%2F2fa%3Fa%3D1`, { replace: true }]])
+      .to.deep.equal([[`${AUTH_ROUTES.LOGIN}?next=%2F%23%2Faccount%2Fsecurity%3Fa%3D1`, { replace: true }]])
   })
 
   it('reloads rather than navigates on a sign-in, since the app boots its own state once', () => {
     const context = contextAt({ routePath: AUTH_ROUTES.LOGIN, nextRoute: PROJECTS_ROUTES.MY_PROJECTS })
 
-    redirectForAuthChange(change(AuthChangeEvent.loggedIn, signedIn), context)
+    redirectForAuthChange(change(AuthChangeEvent.loggedIn), context)
 
     chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/#${PROJECTS_ROUTES.MY_PROJECTS}`]])
     chai.expect(context.navigate.mock.calls).to.deep.equal([])
@@ -74,7 +57,7 @@ describe('redirectForAuthChange', () => {
   it('reloads in place when a sign-in lands somewhere other than an authentication screen', () => {
     const context = contextAt()
 
-    redirectForAuthChange(change(AuthChangeEvent.loggedIn, signedIn), context)
+    redirectForAuthChange(change(AuthChangeEvent.loggedIn), context)
 
     chai.expect(context.goToPage.mock.calls).to.deep.equal([[null]])
   })
@@ -85,13 +68,12 @@ describe('redirectForAuthChange', () => {
       // With `ACCOUNT_EMAIL_VERIFICATION` off, signup answers 200 and signs the new account straight in
       AUTH_ROUTES.SIGNUP,
       AUTH_ROUTES.CONFIRM_EMAIL.replace(':key', 'a-verification-key'),
-      AUTH_ROUTES.NEW_PASSWORD.replace(':key', 'a-reset-key'),
     ]
 
     for (const routePath of paths) {
       const context = contextAt({ routePath })
 
-      redirectForAuthChange(change(AuthChangeEvent.loggedIn, signedIn), context)
+      redirectForAuthChange(change(AuthChangeEvent.loggedIn), context)
 
       chai.expect(context.goToPage.mock.calls, routePath).to.deep.equal([])
       chai.expect(context.navigate.mock.calls, routePath).to.deep.equal([])
@@ -102,7 +84,7 @@ describe('redirectForAuthChange', () => {
   it('follows a sign-in these screens had no hand in off them anyway', () => {
     const context = contextAt({ routePath: AUTH_ROUTES.SIGNUP })
 
-    redirectForAuthChange(changeFromAnotherTab(AuthChangeEvent.loggedIn, signedIn), context)
+    redirectForAuthChange(changeFromAnotherTab(AuthChangeEvent.loggedIn), context)
 
     chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/`]])
   })
@@ -111,95 +93,22 @@ describe('redirectForAuthChange', () => {
   it('still follows a sign-in off the screen that only asks for a reset email', () => {
     const context = contextAt({ routePath: AUTH_ROUTES.RESET_PASSWORD })
 
-    redirectForAuthChange(change(AuthChangeEvent.loggedIn, signedIn), context)
+    redirectForAuthChange(change(AuthChangeEvent.loggedIn), context)
 
     chai.expect(context.goToPage.mock.calls).to.deep.equal([[`${ROOT_URL}/`]])
   })
 
-  it('sends a reauthentication ask to the screen allauth named, carrying the page to come back to', () => {
-    const context = contextAt({ routePath: ACCOUNT_AUTH_ROUTES.MFA })
-    const status = statusWithFlows([{ id: FlowId.reauthenticate }], { ...signedIn, isReauthenticationRequired: true })
+  // Otherwise login would navigate to itself, and a password reset would hide its success panel.
+  it('leaves a session that ended alone on the authentication screens', () => {
+    const paths = [AUTH_ROUTES.LOGIN, AUTH_ROUTES.NEW_PASSWORD.replace(':key', 'a-reset-key')]
 
-    redirectForAuthChange(change(AuthChangeEvent.reauthenticationRequired, status), context)
+    for (const routePath of paths) {
+      const context = contextAt({ routePath })
 
-    chai
-      .expect(context.navigate.mock.calls)
-      .to.deep.equal([[`${ACCOUNT_AUTH_ROUTES.REAUTHENTICATE}?next=%2F%23%2Faccount%2F2fa`, { replace: false }]])
-  })
+      redirectForAuthChange(change(AuthChangeEvent.loggedOut), context)
 
-  // `webauthn` has no screen in KPI. Offering a different one would only have somebody refused.
-  it('stays put when allauth asks for a credential KPI has no screen for', () => {
-    const context = contextAt()
-    const status = statusWithFlows([{ id: FlowId.mfa_reauthenticate, types: ['webauthn'] }], {
-      ...signedIn,
-      isReauthenticationRequired: true,
-    })
-
-    redirectForAuthChange(change(AuthChangeEvent.reauthenticationRequired, status), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([])
-  })
-
-  it('returns to `next` once credentials are accepted again', () => {
-    const context = contextAt({ routePath: ACCOUNT_AUTH_ROUTES.REAUTHENTICATE, nextRoute: ACCOUNT_AUTH_ROUTES.MFA })
-
-    redirectForAuthChange(change(AuthChangeEvent.reauthenticated, signedIn), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([[ACCOUNT_AUTH_ROUTES.MFA, { replace: true }]])
-  })
-
-  it('falls back to the account page when a reauthentication had nowhere to return to', () => {
-    const context = contextAt({ routePath: ACCOUNT_AUTH_ROUTES.REAUTHENTICATE })
-
-    redirectForAuthChange(change(AuthChangeEvent.reauthenticated, signedIn), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([[ROUTES.ACCOUNT_ROOT, { replace: true }]])
-  })
-
-  // A credential added in another tab is no reason to move somebody off the page they are on.
-  it('ignores a reauthentication that lands anywhere but a reauthentication screen', () => {
-    const context = contextAt()
-
-    redirectForAuthChange(change(AuthChangeEvent.reauthenticated, signedIn), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([])
-  })
-
-  it('follows a half finished sign-in to the screen for the step it is waiting on', () => {
-    const context = contextAt({ routePath: AUTH_ROUTES.LOGIN })
-    const status = statusWithFlows([{ id: FlowId.provider_signup, is_pending: true }], ANONYMOUS_AUTH_STATUS)
-
-    redirectForAuthChange(change(AuthChangeEvent.flowUpdated, status), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([[AUTH_ROUTES.PROVIDER_SIGNUP, { replace: true }]])
-  })
-
-  it('carries the destination to the step`s screen, so a flow started in another tab does not drop it', () => {
-    const context = contextAt({ routePath: AUTH_ROUTES.LOGIN, nextRoute: PROJECTS_ROUTES.MY_PROJECTS })
-    const status = statusWithFlows([{ id: FlowId.provider_signup, is_pending: true }], ANONYMOUS_AUTH_STATUS)
-
-    redirectForAuthChange(change(AuthChangeEvent.flowUpdated, status), context)
-
-    chai
-      .expect(context.navigate.mock.calls)
-      .to.deep.equal([[`${AUTH_ROUTES.PROVIDER_SIGNUP}?next=%2F%23%2Fprojects%2Fhome`, { replace: true }]])
-  })
-
-  // The card that started the step answers it in place - see `FLOW_PATHS`.
-  it('stays put on a step with no screen of its own', () => {
-    const context = contextAt({ routePath: AUTH_ROUTES.LOGIN })
-    const status = statusWithFlows([{ id: FlowId.mfa_authenticate, is_pending: true }], ANONYMOUS_AUTH_STATUS)
-
-    redirectForAuthChange(change(AuthChangeEvent.flowUpdated, status), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([])
-  })
-
-  it('does not navigate to the route it is already on, which is how a redirect loop starts', () => {
-    const context = contextAt({ routePath: AUTH_ROUTES.LOGIN })
-
-    redirectForAuthChange(change(AuthChangeEvent.loggedOut, ANONYMOUS_AUTH_STATUS), context)
-
-    chai.expect(context.navigate.mock.calls).to.deep.equal([])
+      chai.expect(context.navigate.mock.calls, routePath).to.deep.equal([])
+      chai.expect(context.goToPage.mock.calls, routePath).to.deep.equal([])
+    }
   })
 })

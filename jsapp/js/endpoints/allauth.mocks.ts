@@ -143,6 +143,19 @@ export const loginMfaRequiredMock = () =>
     ),
   )
 
+/** The same halfway-there 401, waiting on a step KPI has turned off - trusting the device, here */
+export const loginUnhandledStepMock = () =>
+  http.post(LOGIN_URL, () =>
+    HttpResponse.json(
+      {
+        status: 401,
+        data: { flows: [{ id: 'login' }, { id: 'mfa_trust', is_pending: true }] },
+        meta: { is_authenticated: false },
+      },
+      { status: 401 },
+    ),
+  )
+
 /** Somebody is already signed in - allauth says 409 and nothing else */
 export const loginAlreadyAuthenticatedMock = () =>
   http.post(LOGIN_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
@@ -277,7 +290,7 @@ export const emailVerifyConfirmMock = () =>
     }),
   )
 
-/** With `ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION` off: verified, nobody signed in, reported as a 401. */
+/** Confirmed with no pending login in the session (see `ConfirmedPanel`): verified, nobody signed in, a 401. */
 export const emailVerifyConfirmWithoutSessionMock = () =>
   http.post(EMAIL_VERIFY_URL, () =>
     HttpResponse.json(
@@ -316,26 +329,6 @@ export const passwordResetKeyInvalidMock = () =>
       { status: 400, errors: [{ code: 'invalid', param: 'key', message: 'Invalid or expired key.' }] },
       { status: 400 },
     ),
-  )
-
-/** A good key looked up while signed in: allauth will not reset a password from a link behind a session. */
-export const passwordResetKeyConflictMock = () =>
-  http.get(PASSWORD_RESET_URL, () => HttpResponse.json({ status: 409 }, { status: 409 }))
-
-/**
- * A reset that changed the password and signed the account in: `ACCOUNT_LOGIN_ON_PASSWORD_RESET` on. With it
- * off - the KPI default - allauth answers 401, and the story covering that builds its own response.
- */
-export const passwordResetDoneAndSignedInMock = () =>
-  http.post(PASSWORD_RESET_URL, () =>
-    HttpResponse.json({
-      status: 200,
-      data: {
-        user: { id: 1, display: 'sallyride', username: 'sallyride', has_usable_password: true },
-        methods: [{ method: 'password', at: 1700000000, username: 'sallyride' }],
-      },
-      meta: { is_authenticated: true },
-    }),
   )
 
 /** A rejected reset. `param: 'password'` lands under the input; `param: 'key'` ends the whole attempt. */

@@ -48,7 +48,8 @@ if (sentryDsnEl !== null) {
     sendClientReports: false,
     autoSessionTracking: false,
   })
-  window.Raven = Sentry // Legacy use (formbuilder)
+  // Legacy use: formbuilder only needs this. Exposing all of `Sentry` would bundle all of it, Replay included.
+  window.Raven = { captureException: Sentry.captureException }
   /*
     In TS files, it's safe to do
 
@@ -60,7 +61,7 @@ if (sentryDsnEl !== null) {
 
     In CoffeeScript, you can keep using
 
-        window.Raven?.captureMessage(...)
+        window.Raven?.captureException(...)
 
     Support for `import` syntax (or literal JS in backticks) varies between
     CoffeeScript versions. We might invoke Sentry as a CommonJS module (perhaps
