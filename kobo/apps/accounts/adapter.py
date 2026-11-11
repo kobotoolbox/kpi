@@ -148,12 +148,23 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             return config.REGISTRATION_OPEN
 
         custom_data = getattr(app, 'custom_data', None)
+        domain = get_normalized_domain(sociallogin.user.email)
+
         if custom_data is not None and custom_data.open_signup:
             # The provider is the allowlist: it only authenticates people it
-            # recognises, so there is no domain left to check
-            return True
+            # recognises, so there is no domain left to check. A domain that
+            # is managed by *another* provider must still be rejected though,
+            # otherwise this flag would let one provider hijack an organisation
+            # that mandated SSO through a different one.
+            if not domain:
+                return True
+            managing = SocialAppManagedDomain.objects.filter(
+                domain__iexact=domain, social_app__managed=True
+            ).first()
+            if managing is None or managing.social_app.social_app_id == app.pk:
+                return True
+            # Fall through to the managed-domain check below, which rejects.
 
-        domain = get_normalized_domain(sociallogin.user.email)
         if not domain:
             # No address to match a managed domain against
             return config.REGISTRATION_OPEN

@@ -185,7 +185,9 @@ class RegistrationTestCase(TestCase):
         self.assertNotContains(response, t('Create an account'))
 
     @override_config(REGISTRATION_OPEN=False)
-    def test_login_shows_signup_link_when_open_signup_provider_exists(self):
+    def test_login_hides_signup_link_when_closed_even_with_open_signup_provider(self):
+        # `open_signup` opens the SSO flow, not the password signup page, so
+        # the "Create an account" link stays hidden when registration is closed
         social_app = SocialApp.objects.create(
             client_id='test.service.id',
             secret='test.service.secret',
@@ -197,7 +199,7 @@ class RegistrationTestCase(TestCase):
         )
 
         response = self.client.get(reverse('account_login'))
-        self.assertContains(response, t('Create an account'))
+        self.assertNotContains(response, t('Create an account'))
 
     @override_config(REGISTRATION_OPEN=False)
     def test_login_hides_signup_link_when_open_signup_provider_is_private(self):
@@ -344,6 +346,29 @@ class RegistrationTestCase(TestCase):
         )
 
         assert get_social_adapter().is_open_for_signup(request, social_login) is True
+
+    @override_config(REGISTRATION_OPEN=False)
+    def test_open_signup_does_not_accept_managed_domain_of_another_provider(self):
+        # `open_signup` must not let a provider hijack a domain that another
+        # provider manages: the organisation mandated SSO through that one
+        managed_app = SocialApp.objects.create(
+            client_id='managed.id',
+            secret='managed.secret',
+            name='Managed App',
+            provider='Managed App',
+        )
+        managed_custom = SocialAppCustomData.objects.create(
+            social_app=managed_app, managed=True
+        )
+        SocialAppManagedDomain.objects.create(
+            domain='managed.test', social_app=managed_custom
+        )
+
+        request, social_login = self._social_login_for(
+            {'open_signup': True}, 'user@managed.test'
+        )
+
+        assert get_social_adapter().is_open_for_signup(request, social_login) is False
 
     @override_config(REGISTRATION_OPEN=False)
     def test_open_signup_false_keeps_unlisted_domain_closed(self):
