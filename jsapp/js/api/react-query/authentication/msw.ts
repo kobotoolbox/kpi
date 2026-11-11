@@ -16,7 +16,7 @@ import type { HttpResponseResolver, RequestHandlerOptions } from 'msw'
 
 import type { SocialAccountProvisioningResponse } from '../../models/socialAccountProvisioningResponse'
 
-export const getSocialAccountsProvisioningRetrieveResponseMock = (
+export const getSocialAccountsProvisioningCreateResponseMock = (
   overrideResponse: Partial<Extract<SocialAccountProvisioningResponse, object>> = {},
 ): SocialAccountProvisioningResponse => ({
   ready: faker.datatype.boolean(),
@@ -25,7 +25,7 @@ export const getSocialAccountsProvisioningRetrieveResponseMock = (
   ...overrideResponse,
 })
 
-export const getSocialAccountsProvisioningRetrieveMockHandler = (
+export const getSocialAccountsProvisioningCreateMockHandler = (
   overrideResponse?:
     | SocialAccountProvisioningResponse
     | ((
@@ -33,7 +33,7 @@ export const getSocialAccountsProvisioningRetrieveMockHandler = (
       ) => Promise<SocialAccountProvisioningResponse> | SocialAccountProvisioningResponse),
   options?: RequestHandlerOptions,
 ) => {
-  return http.get(
+  return http.post(
     '*/api/v2/social-accounts/provisioning{/}?',
     async (info: Parameters<HttpResponseResolver>[0]) => {
       return HttpResponse.json(
@@ -41,11 +41,11 @@ export const getSocialAccountsProvisioningRetrieveMockHandler = (
           ? typeof overrideResponse === 'function'
             ? await overrideResponse(info)
             : overrideResponse
-          : getSocialAccountsProvisioningRetrieveResponseMock(),
+          : getSocialAccountsProvisioningCreateResponseMock(),
         { status: 200 },
       )
     },
     options,
   )
 }
-export const getAuthenticationMock = () => [getSocialAccountsProvisioningRetrieveMockHandler()]
+export const getAuthenticationMock = () => [getSocialAccountsProvisioningCreateMockHandler()]

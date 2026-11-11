@@ -9,8 +9,8 @@
  * **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import { useQuery } from '@tanstack/react-query'
-import type { QueryFunction, QueryKey, UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
+import type { MutationFunction, UseMutationOptions, UseMutationResult } from '@tanstack/react-query'
 
 import type { SocialAccountProvisioningResponse } from '../../models/socialAccountProvisioningResponse'
 
@@ -18,33 +18,18 @@ import { fetchWithAuth } from '../../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
-const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKey: K } => {
-  const result = { queryKey } as T & { queryKey: K }
-  for (const key of Object.keys(query)) {
-    // The explicit queryKey always wins, matching the previous
-    // `{ ...query, queryKey }` spread where it was set last.
-    if (key === 'queryKey') continue
-    Object.defineProperty(result, key, {
-      enumerable: true,
-      configurable: true,
-      get: () => (query as Record<string, unknown>)[key],
-    })
-  }
-  return result
-}
-
-export type socialAccountsProvisioningRetrieveResponse200 = {
+export type socialAccountsProvisioningCreateResponse200 = {
   data: SocialAccountProvisioningResponse
   status: 200
 }
 
-export type socialAccountsProvisioningRetrieveResponseSuccess = socialAccountsProvisioningRetrieveResponse200 & {
+export type socialAccountsProvisioningCreateResponseSuccess = socialAccountsProvisioningCreateResponse200 & {
   headers: Headers
 }
 
-export type socialAccountsProvisioningRetrieveResponse = socialAccountsProvisioningRetrieveResponseSuccess
+export type socialAccountsProvisioningCreateResponse = socialAccountsProvisioningCreateResponseSuccess
 
-export const getSocialAccountsProvisioningRetrieveUrl = () => {
+export const getSocialAccountsProvisioningCreateUrl = () => {
   return `/api/v2/social-accounts/provisioning/`
 }
 
@@ -56,15 +41,16 @@ export const getSocialAccountsProvisioningRetrieveUrl = () => {
  * When a first-time user authenticates via a SCIM-enabled Identity Provider, the browser is redirected to the provisioning wait screen while Keycloak or Okta asynchronously provisions the account in Kobo via SCIM. The client polls this endpoint to detect when the account has been provisioned and complete the login.
  *
  * ### Session Requirement
- * Requires an active browser session with the pending `socialaccount_sociallogin` state generated during the OIDC callback. If no pending provisioning session exists or it has expired, the endpoint responds with `200 OK` and `expired: true` (never `401 Unauthorized`).
+ * Requires an active browser session with the pending `scim_pending_sociallogin` state generated during the OIDC callback. If no pending provisioning session exists or it has expired, the endpoint responds with `200 OK` and `expired: true` (never `401 Unauthorized`).
  *
  * ### Timeout Behavior
  * The pending provisioning state expires after 60 seconds (`SCIM_PROVISIONING_TIMEOUT`). If SCIM provisioning does not arrive within this window, the pending session is cleared and the endpoint returns `expired: true`.
  *
  * Examples:
  * ```shell
- *   curl -X GET https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \
- *        -H "Cookie: sessionid=..."
+ *   curl -X POST https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \
+ *        -H "Cookie: sessionid=...; csrftoken=..." \
+ *        -H "X-CSRFToken: ..."
  * ```
  *
  * > Response 200 (Waiting for SCIM)
@@ -94,55 +80,44 @@ export const getSocialAccountsProvisioningRetrieveUrl = () => {
  * }
  * ```
  */
-export const socialAccountsProvisioningRetrieve = async (
+export const socialAccountsProvisioningCreate = async (
   options?: Parameters<typeof fetchWithAuth>[1],
-): Promise<socialAccountsProvisioningRetrieveResponse> => {
-  return fetchWithAuth<socialAccountsProvisioningRetrieveResponse>(getSocialAccountsProvisioningRetrieveUrl(), {
+): Promise<socialAccountsProvisioningCreateResponse> => {
+  return fetchWithAuth<socialAccountsProvisioningCreateResponse>(getSocialAccountsProvisioningCreateUrl(), {
     ...options,
-    method: 'GET',
+    method: 'POST',
   })
 }
 
-export const getSocialAccountsProvisioningRetrieveQueryKey = () => {
-  return ['api', 'v2', 'social-accounts', 'provisioning'] as const
-}
+export const getSocialAccountsProvisioningCreateMutationKey = () => ['socialAccountsProvisioningCreate'] as const
 
-export const getSocialAccountsProvisioningRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>,
-  TError = unknown,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>, TError, TData>
+export const getSocialAccountsProvisioningCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof socialAccountsProvisioningCreate>>, TError, void, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
+}): UseMutationOptions<Awaited<ReturnType<typeof socialAccountsProvisioningCreate>>, TError, void, TContext> => {
+  const mutationKey = getSocialAccountsProvisioningCreateMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
 
-  const queryKey = queryOptions?.queryKey ?? getSocialAccountsProvisioningRetrieveQueryKey()
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof socialAccountsProvisioningCreate>>, void> = () => {
+    return socialAccountsProvisioningCreate(requestOptions)
+  }
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>> = ({ signal }) =>
-    socialAccountsProvisioningRetrieve({ signal, ...requestOptions })
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
+  return { mutationFn, ...mutationOptions }
 }
 
-export type SocialAccountsProvisioningRetrieveQueryResult = NonNullable<
-  Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>
+export type SocialAccountsProvisioningCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof socialAccountsProvisioningCreate>>
 >
-export type SocialAccountsProvisioningRetrieveQueryError = unknown
 
-export function useSocialAccountsProvisioningRetrieve<
-  TData = Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>,
-  TError = unknown,
->(options?: {
-  query?: UseQueryOptions<Awaited<ReturnType<typeof socialAccountsProvisioningRetrieve>>, TError, TData>
+export type SocialAccountsProvisioningCreateMutationError = unknown
+
+export const useSocialAccountsProvisioningCreate = <TError = unknown, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof socialAccountsProvisioningCreate>>, TError, void, TContext>
   request?: SecondParameter<typeof fetchWithAuth>
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getSocialAccountsProvisioningRetrieveQueryOptions(options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  return withQueryKey(query, queryOptions.queryKey)
+}): UseMutationResult<Awaited<ReturnType<typeof socialAccountsProvisioningCreate>>, TError, void, TContext> => {
+  return useMutation(getSocialAccountsProvisioningCreateMutationOptions(options))
 }
