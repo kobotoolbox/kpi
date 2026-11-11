@@ -4,6 +4,8 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
+import pytest
+from constance.test import override_config
 from dateutil.relativedelta import relativedelta
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -38,6 +40,7 @@ from kobo.apps.stripe.utils.billing_dates import (
 from kobo.apps.stripe.utils.limit_enforcement import (
     check_exceeded_limit,
     check_exceeded_limits,
+    raise_if_usage_limit_exceeded,
     update_or_remove_limit_counter,
 )
 from kobo.apps.stripe.utils.manual_subscription import (
@@ -54,6 +57,7 @@ from kobo.apps.stripe.utils.subscription_limits import (
     get_paid_subscription_limits,
     get_plan_name,
 )
+from kpi.exceptions import UsageLimitExceededException
 from kpi.tests.kpi_test_case import BaseTestCase
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
@@ -892,3 +896,29 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
                 ).count()
                 == 1
             )
+
+    def test_raise_if_usage_limit_exceeded(self):
+        cases = [
+            # (enforcement, exceeded, should_raise)
+            (True, True, True),
+            (True, False, False),
+            (False, True, False),
+        ]
+        for enforcement, exceeded, should_raise in cases:
+            with self.subTest(enforcement=enforcement, exceeded=exceeded):
+                with (
+                    override_config(USAGE_LIMIT_ENFORCEMENT=enforcement),
+                    patch(
+                        'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa: E501
+                        return_value={UsageType.ASR_SECONDS: {'exceeded': exceeded}},
+                    ),
+                ):
+                    if should_raise:
+                        with pytest.raises(UsageLimitExceededException):
+                            raise_if_usage_limit_exceeded(
+                                self.someuser, UsageType.ASR_SECONDS
+                            )
+                    else:
+                        raise_if_usage_limit_exceeded(
+                            self.someuser, UsageType.ASR_SECONDS
+                        )

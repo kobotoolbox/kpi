@@ -25,6 +25,7 @@ from google.protobuf.json_format import MessageToDict
 
 from kobo.apps.languages.exceptions import LanguageNotSupported
 from kobo.apps.languages.models.transcription import TranscriptionService
+from kobo.apps.organizations.constants import UsageType
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
@@ -39,13 +40,13 @@ from ...exceptions import (
     GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
-    TranscriptionResultNotFound
+    TranscriptionResultNotFound,
 )
 from .base import GoogleService
 from .locations import (
     get_asr_language_code_overrides,
+    get_speech_location_for_model,
     get_speech_location_for_region,
-    get_speech_location_for_model
 )
 from .rate_limit import (
     GoogleServiceRateLimitExceeded,
@@ -68,6 +69,7 @@ class GoogleTranscriptionService(GoogleService):
     API_NAME = 'speech'
     API_VERSION = 'v2'
     API_RESOURCE = 'projects.locations.operations'
+    USAGE_TYPE = UsageType.ASR_SECONDS
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
@@ -260,6 +262,7 @@ class GoogleTranscriptionService(GoogleService):
         # If no operation reference exists, this is treated as the first request for
         # the given submission/language pair, and a new Google batch job is created
         if not operation_name:
+            self._before_new_operation()
             try:
                 converted_audio = self.get_converted_audio(
                     xpath,
