@@ -1,6 +1,5 @@
 from allauth.socialaccount.helpers import complete_social_login
 from allauth.socialaccount.models import SocialAccount, SocialLogin
-from django.apps import apps
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, resolve_url
@@ -42,11 +41,7 @@ class SocialAccountProvisioningResponseSerializer(serializers.Serializer):
 @extend_schema_view(
     post=extend_schema(
         request=None,
-        description=(
-            read_md('kobo_scim', 'social_accounts/provisioning.md')
-            if apps.is_installed('kobo.apps.kobo_scim')
-            else ''
-        ),
+        description=read_md('kobo_scim', 'social_accounts/provisioning.md'),
         responses=open_api_200_ok_response(
             SocialAccountProvisioningResponseSerializer,
             require_auth=False,

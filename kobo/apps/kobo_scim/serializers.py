@@ -141,10 +141,3 @@ class ScimGroupSerializer(serializers.ModelSerializer):
             'lastModified': modified,
             'location': location,
         }
-
-
-__all__ = [
-    'ScimGroupSerializer',
-    'ScimUserSerializer',
-    'SocialAccountProvisioningResponseSerializer',
-]

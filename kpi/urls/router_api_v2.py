@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
@@ -302,19 +301,17 @@ qa_tag_tracker_url_patterns = [
     ),
 ]
 
-kobo_scim_url_patterns = []
-if apps.is_installed('kobo.apps.kobo_scim'):
-    kobo_scim_url_patterns = [
-        path(
-            'scim/v2/',
-            include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
-        ),
-        path(
-            'social-accounts/provisioning/',
-            SocialAccountProvisioningView.as_view(),
-            name='social-account-provisioning',
-        ),
-    ]
+kobo_scim_url_patterns = [
+    path(
+        'scim/v2/',
+        include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
+    ),
+    path(
+        'social-accounts/provisioning/',
+        SocialAccountProvisioningView.as_view(),
+        name='social-account-provisioning',
+    ),
+]
 
 # Declared here rather than registered on a router: the endpoint is a single
 # unauthenticated POST that requests mail, not a collection, and a router would
