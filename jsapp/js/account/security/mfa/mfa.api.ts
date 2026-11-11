@@ -57,21 +57,16 @@ export function useMfaStatus() {
   })
 }
 
-/**
- * Whether to ask for the password along with the code. Always, for accounts that have one: the backend timeout is
- * configurable, so we can't tell if an earlier reauthentication still counts.
- */
-export function useIsPasswordNeeded() {
-  const { data } = useAllauthBrowserV1AuthSessionGet<boolean>({
+/** Whether the account has a password. Undefined until the session has loaded. */
+export function useHasUsablePassword() {
+  const { data } = useAllauthBrowserV1AuthSessionGet<boolean | undefined>({
     query: {
       queryKey: getAuthStatusQueryKey(),
-      // SSO-only accounts have no password, and allauth doesn't ask them for one
-      select: (response) => getAuthStatus(response).user?.has_usable_password ?? true,
+      select: (response) => getAuthStatus(response).user?.has_usable_password,
       throwOnError: false,
     },
   })
-  // Ask until we know otherwise
-  return data ?? true
+  return data
 }
 
 /** Every write changes the status, so they all reread {@link useMfaStatus} */
@@ -116,7 +111,7 @@ export const useMfaActivate = () =>
   })
 
 interface MfaConfirmVariables extends MfaCode {
-  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
+  /** Leave out for accounts without a password, see {@link useHasUsablePassword} */
   password?: string
 }
 
@@ -140,11 +135,12 @@ export const useMfaRecoveryCodes = () =>
     const response = await allauthBrowserV1AccountAuthenticatorsRecoveryCodesGet()
     assertOk(response, null)
     // KPI hides codes kept from the old 2FA system, as it only has their hashes. A new setup gets new ones instead
-    return response.data.data.unused_codes ?? generateRecoveryCodes(null)
+    const codes = response.data.data.unused_codes
+    return codes?.length ? codes : generateRecoveryCodes(null)
   })
 
 interface MfaDeactivateVariables extends MfaCode {
-  /** Leave out for accounts {@link useIsPasswordNeeded} lets through */
+  /** Leave out for accounts without a password, see {@link useHasUsablePassword} */
   password?: string
 }
 

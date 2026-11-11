@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
-  useIsPasswordNeeded,
+  useHasUsablePassword,
   useMfaActivate,
   useMfaConfirmCode,
   useMfaDeactivate,
@@ -88,7 +88,9 @@ function MFAModals(props: MFAModalsProps) {
   /** 2FA is on, but the codes may still need reading */
   const [isActivated, setIsActivated] = useState(false)
 
-  const isPasswordNeeded = useIsPasswordNeeded()
+  // Asked whenever the account has a password: the backend timeout is configurable, so we can't tell if an earlier
+  // reauthentication still counts. SSO-only accounts have none, and nobody asks them
+  const isPasswordNeeded = useHasUsablePassword() !== false
   // A retry after activation reauthenticates with the token alone
   const isPasswordNeededToTurnOn = isPasswordNeeded && !isActivated
   // Turning off needs the password too, reconfiguring included. Regenerating and SSO-only accounts use the code alone.
