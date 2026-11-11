@@ -70,17 +70,6 @@ export function cleanupAndUniqueTags(tags: string[]) {
   return Array.from(new Set(cleanupTags(tags)))
 }
 
-/**
- * Returns nicer "me" label for your own assets.
- */
-export function getAssetOwnerDisplayName(username: string) {
-  if (profileStore.currentAccount?.username && profileStore.currentAccount.username === username) {
-    return t('me')
-  } else {
-    return username
-  }
-}
-
 export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (asset.settings.organization) {
     return asset.settings.organization
@@ -796,7 +785,6 @@ export default {
   cleanupTags,
   getAssetDisplayName,
   getAssetIcon,
-  getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
   getLanguageIndex,

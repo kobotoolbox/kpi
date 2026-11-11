@@ -10,7 +10,6 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
-import { getAssetOwnerDisplayName } from '#/assetUtils'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import profileStore from '#/stores/profile'
@@ -77,9 +76,7 @@ class TemplatesList extends React.Component {
                 className={['templates-list__row', this.state.selectedTemplateUid === template.uid ? 'selected' : '']}
               >
                 <bem.TemplatesList__column m='name'>{template.name}</bem.TemplatesList__column>
-                <bem.TemplatesList__column m='owner'>
-                  {getAssetOwnerDisplayName(template.owner__username)}
-                </bem.TemplatesList__column>
+                <bem.TemplatesList__column m='owner'>{template.owner__username}</bem.TemplatesList__column>
                 <bem.TemplatesList__column m='date'>{formatTime(template.date_modified)}</bem.TemplatesList__column>
                 <bem.TemplatesList__column m='questions'>{template.summary.row_count}</bem.TemplatesList__column>
 
