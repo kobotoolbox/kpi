@@ -21,6 +21,7 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+from ..constants import SUBMISSION_UUID_FIELD
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
     NLPExternalServiceClass,
@@ -178,6 +179,9 @@ class ActionClassConfig:
       to generate data.
     - review_type: How data is reviewed (verified or accepted)
     - allow_async: Whether the action may generate a celery task to finish
+    - create_in_progress_upfront: Whether a new launch saves its `in_progress`
+      version before the external service is called, so its `_dateCreated` is
+      the real start of the action
     """
 
     allow_multiple: bool
@@ -185,6 +189,7 @@ class ActionClassConfig:
     action_data_key: str | None = None
     review_type: ReviewType | None = None
     allow_async: bool = False
+    create_in_progress_upfront: bool = False
 
 
 class BaseAction:
@@ -219,6 +224,20 @@ class BaseAction:
 
     def attach_action_dependency(self, action_data: dict, submission: dict):
         pass
+
+    def build_in_progress_supplemental_data(
+        self,
+        submission: dict,
+        action_supplemental_data: dict,
+        action_data: dict,
+    ) -> dict | None:
+        """
+        Return the action supplemental data with a new `in_progress` version on
+        top, or None when this call is not a new launch
+
+        Only automatic actions can launch anything
+        """
+        return None
 
     def check_limits(self, user: User, action_data: dict):
 
@@ -433,10 +452,15 @@ class BaseAction:
         submission: dict,
         action_supplemental_data: dict,
         action_data: dict,
+        in_progress_created_upfront: bool = False,
     ) -> dict | None:
         """
         `submission` argument for future use by subclasses
         this method might need to be made more friendly for overriding
+
+        `in_progress_created_upfront` tells that the `in_progress` version on top
+        of `action_supplemental_data` was saved by this very call (see
+        `build_in_progress_supplemental_data()`)
         """
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
@@ -474,6 +498,7 @@ class BaseAction:
                     submission,
                     current_version,
                     action_data,
+                    in_progress_created_upfront=in_progress_created_upfront,
                 )
             ):
                 # If the service response is None, the external task is still running.
@@ -502,21 +527,10 @@ class BaseAction:
                 and action_data.get('value') is not None
             )
 
-        if dependency_supplemental_data:
-            # Sanitize 'dependency' before persisting: keep only a reference of the
-            # dependency (with '_actionId' and '_uuid') and drop all other fields
-            # (e.g., 'value', 'language', timestamps).
-            dependency_supplemental_data = {
-                self.ACTION_ID_FIELD: dependency_supplemental_data[
-                    self.ACTION_ID_FIELD
-                ],
-                self.UUID_FIELD: dependency_supplemental_data[self.UUID_FIELD],
-            }
-
         return self.get_new_action_supplemental_data(
             action_supplemental_data,
             action_data,
-            dependency_supplemental_data,
+            self._sanitize_dependency(dependency_supplemental_data),
             accepted,
             verified,
         )
@@ -591,6 +605,22 @@ class BaseAction:
                     destination_schema[key] = schema_to_inject[key]
             else:
                 destination_schema[key] = schema_to_inject[key]
+
+    def _sanitize_dependency(
+        self, dependency_supplemental_data: dict | None
+    ) -> dict | None:
+        """
+        Keep only a reference of the dependency (with '_actionId' and '_uuid')
+        before persisting it, and drop all other fields (e.g., 'value',
+        'language', timestamps)
+        """
+        if not dependency_supplemental_data:
+            return dependency_supplemental_data
+
+        return {
+            self.ACTION_ID_FIELD: dependency_supplemental_data[self.ACTION_ID_FIELD],
+            self.UUID_FIELD: dependency_supplemental_data[self.UUID_FIELD],
+        }
 
     @property
     def _is_usage_limited(self):
@@ -940,6 +970,54 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             },
         }
 
+    def build_in_progress_supplemental_data(
+        self,
+        submission: dict,
+        action_supplemental_data: dict,
+        action_data: dict,
+    ) -> dict | None:
+        """
+        Return the action supplemental data with a new `in_progress` version on
+        top, or None when this call is not a new launch
+        """
+
+        if not self.action_class_config.create_in_progress_upfront:
+            return None
+
+        # Deletion, acceptance or verification: not a launch
+        if {'value', 'accepted', 'verified'} & action_data.keys():
+            return None
+
+        # Same checks as `revise_data()`, run before the upfront write: a
+        # request rejected after it would leave an `in_progress` version that
+        # no poll ever ends. Validating also makes a malformed request fail as
+        # it always has, instead of on a missing localization key below
+        self.validate_data(action_data)
+        self.raise_for_any_leading_underscore_key(action_data)
+        localized_data, _ = self.get_localized_action_supplemental_data(
+            action_supplemental_data, action_data
+        )
+        versions = localized_data.get(self.VERSION_FIELD, [])
+        if (
+            versions
+            and versions[0][self.VERSION_DATA_FIELD].get('status') == 'in_progress'
+        ):
+            # Already running: keep the original start time
+            return None
+
+        in_progress_data = deepcopy(action_data)
+        self.attach_action_dependency(in_progress_data, submission)
+        dependency = in_progress_data.pop(self.DEPENDENCY_FIELD, None)
+        # Request-only key, forbidden in a persisted version by the result schema
+        in_progress_data.pop('auto_accept', None)
+        in_progress_data['status'] = 'in_progress'
+
+        return self.get_new_action_supplemental_data(
+            deepcopy(action_supplemental_data),
+            in_progress_data,
+            self._sanitize_dependency(dependency),
+        )
+
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
         """ """
 
@@ -970,8 +1048,14 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
           `revise_data()` can exit early and avoid redundant processing.
         - If the service returns `failed` or `complete`, the processed result is
           returned and passed back to `revise_data()`.
+        - When `in_progress_created_upfront` is true, the `in_progress` version
+          already exists, so an `in_progress` answer schedules the Celery poll
+          and returns `None` instead of adding a second `in_progress` version.
+          An unexpected error then ends as `failed`, so that version is never
+          left behind with nothing to finish it.
         """
 
+        in_progress_created_upfront = kwargs.get('in_progress_created_upfront', False)
         current_version = action_supplemental_data.get(self.VERSION_DATA_FIELD, {})
 
         # If the client explicitly removed a previously stored result,
@@ -986,7 +1070,32 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 'status': 'deleted',
             }
 
-        # Otherwise, trigger the external service.
+        try:
+            return self._run_external_service(
+                submission,
+                current_version,
+                action_data,
+                in_progress_created_upfront,
+            )
+        except GoogleQuotaExceededError:
+            # Re-raised on purpose, in Celery only: the task retries it later
+            raise
+        except Exception as e:
+            if not in_progress_created_upfront:
+                raise
+            logging.exception(
+                f'{self.ID} failed on submission '
+                f'{submission.get(SUBMISSION_UUID_FIELD)}: {e}'
+            )
+            return {'status': 'failed', 'error': str(e)}
+
+    def _run_external_service(
+        self,
+        submission: dict,
+        current_version: dict,
+        action_data: dict,
+        in_progress_created_upfront: bool,
+    ) -> dict | None:
         bulk_action_uid = action_data.get('bulk_action_uid')
 
         NLPService = self.get_nlp_service_class()  # noqa
@@ -1034,7 +1143,12 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
         if service_data['status'] == 'in_progress':
-            if current_version.get('status') == 'in_progress':
+            if (
+                current_version.get('status') == 'in_progress'
+                and not in_progress_created_upfront
+            ):
+                # A poll or a repeated request on a running action: the poll
+                # that will finish it is already scheduled
                 return None
             elif self.action_class_config.allow_async:
                 # Make Celery update in the background.
@@ -1057,6 +1171,10 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     )
             else:
                 logging.warn('Non-async task returned "in progress" status')
+                return None
+
+            if in_progress_created_upfront:
+                # The `in_progress` version is already saved, do not add another
                 return None
 
         # Normal case: return the processed transcription data.

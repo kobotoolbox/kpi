@@ -16,7 +16,8 @@ class AutomaticGoogleTranscriptionAction(
         allow_multiple=False,
         automatic=True,
         review_type=ReviewType.ACCEPTANCE,
-        allow_async=True
+        allow_async=True,
+        create_in_progress_upfront=True,
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
