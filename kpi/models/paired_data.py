@@ -1,4 +1,3 @@
-# coding: utf-8
 import time
 from typing import Union
 
@@ -16,6 +15,14 @@ from kpi.interfaces import OpenRosaManifestInterface, SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.hash import calculate_hash
 from kpi.utils.urls import versioned_reverse
+
+# Fields of an `Asset` that the permission checks read: `has_perm()`,
+# `get_perms()` and the project view lookups, which use `str(asset)` in their
+# cache key
+ASSET_PERMISSION_FIELDS = ('uid', 'name', 'owner_id', 'asset_type', 'settings')
+# Fields of a source asset that the pairing validation, the permission checks
+# and the XML generation read
+SOURCE_ASSET_FIELDS = (*ASSET_PERMISSION_FIELDS, 'data_sharing', '_deployment_data')
 
 
 # FIXME: simplify this by making PairedData a real Django Model ^_^
@@ -183,9 +190,9 @@ class PairedData(OpenRosaManifestInterface,
         # Avoid circular import
         Asset = self.asset.__class__  # noqa
         try:
-            source_asset = Asset.objects.only(
-                'asset_type', 'data_sharing', 'owner_id', '_deployment_data'
-            ).get(uid=self.source_uid)
+            source_asset = Asset.objects.only(*SOURCE_ASSET_FIELDS).get(
+                uid=self.source_uid
+            )
         except Asset.DoesNotExist:
             return None
 
