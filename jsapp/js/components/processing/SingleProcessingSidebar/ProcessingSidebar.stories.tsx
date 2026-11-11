@@ -1,5 +1,7 @@
 import type { Decorator, Meta, StoryObj } from '@storybook/react-webpack5'
+import type { ComponentProps } from 'react'
 import { generatePath } from 'react-router-dom'
+import { useArgs } from 'storybook/preview-api'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -69,9 +71,22 @@ const transcriptRouteDecorator: Decorator = (Story) => {
   return Story()
 }
 
+// Keeps the label language in args, so the Display settings select works.
+const RenderProcessingSidebar = (args: ComponentProps<typeof ProcessingSidebar>) => {
+  const [, updateArgs] = useArgs()
+
+  return (
+    <ProcessingSidebar
+      {...args}
+      setQuestionLabelLanguage={(questionLabelLanguage) => updateArgs({ questionLabelLanguage })}
+    />
+  )
+}
+
 const meta: Meta<typeof ProcessingSidebar> = {
   title: 'Components/ProcessingSidebar',
   component: ProcessingSidebar,
+  render: RenderProcessingSidebar,
   decorators: [queryClientDecorator, transcriptRouteDecorator],
   parameters: { a11y: { disable: true } },
   args: {
