@@ -1,9 +1,9 @@
+from allauth.account.adapter import get_adapter
 from django.db import transaction
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
-    get_client_ip,
     get_human_readable_client_user_agent,
 )
 from kpi.constants import PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
@@ -22,7 +22,7 @@ def create_bulk_action_history_log(request, bulk_action) -> None:
         metadata = {
             'asset_uid': bulk_action.asset.uid,
             'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
-            'ip_address': get_client_ip(request),
+            'ip_address': get_adapter().get_client_ip(request),
             'source': get_human_readable_client_user_agent(request),
             'project_owner': bulk_action.asset.owner.username,
             'bulk_action': bulk_action.get_history_log_metadata(),
