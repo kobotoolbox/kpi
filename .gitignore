@@ -18,6 +18,7 @@ staticfiles
 .sass-cache
 webpack-stats.json
 webpack-bundle-report.json
+webpack-bundle-sizes.json
 sensitive_data.json
 test/compiled/*
 .idea/
