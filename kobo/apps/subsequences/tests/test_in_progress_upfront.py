@@ -195,13 +195,42 @@ class InProgressUpfrontTestCase(TestCase):
             AutomaticGoogleTranscriptionAction, 'validate_data'
         ), patch.object(
             AutomaticGoogleTranscriptionAction, 'validate_result'
-        ), self.assertRaises(Exception):
+        ), self.assertRaisesRegex(Exception, 'leading underscore'):
             self._revise({'language': 'en', '_sneaky': True})
 
         content = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_uuid
         ).content
         assert ACTION_ID not in content.get(self.xpath, {})
+
+    def test_question_name_with_double_underscore_stays_one_key(self):
+        # `__` is legal in a question name, and must not be read as a nested path
+        self.xpath = 'group_name/audio__recording'
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath=self.xpath,
+            action=ACTION_ID,
+            params=[{'language': 'en'}],
+        )
+        self.submission[self.xpath] = 'audio.m4a'
+
+        with freeze_time('2026-01-01 10:00:00'), patch(POLL_PATH):
+            self._revise({'language': 'en'}, return_value={'status': 'in_progress'})
+        with freeze_time('2026-01-01 10:05:00'):
+            returned = self._revise(
+                {'language': 'en'}, return_value={'status': 'in_progress'}
+            )
+
+        content = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content
+        assert set(content) == {'_version', self.xpath}
+        stored = content[self.xpath][ACTION_ID]
+        assert [v['_data']['status'] for v in stored['_versions']] == ['in_progress']
+        assert stored['_dateModified'] == '2026-01-01T10:05:00Z'
+        assert returned[self.xpath][ACTION_ID]['_dateModified'] == (
+            '2026-01-01T10:05:00Z'
+        )
 
     def test_poll_does_not_erase_an_edit_made_meanwhile(self):
         with patch(POLL_PATH):

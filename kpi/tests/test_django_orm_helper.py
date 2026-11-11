@@ -237,6 +237,42 @@ class DjangoORMHelperTestCase(TestCase):
         except ValueError:
             pass
 
+    def test_list_path_keeps_double_underscore_keys_literal(self):
+        """
+        With a list path, a key containing `__` is one key, not two
+        """
+        seed = {'audio__recording': {'lang': 'en'}}
+        ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
+            data=UpdateJSONFieldAttributes('data', updates=seed)
+        )
+
+        ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
+            data=UpdateJSONFieldAttributes(
+                'data', path=['audio__recording'], updates={'status': 'done'}
+            )
+        )
+        ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
+            data=UpdateJSONFieldAttributes(
+                'data', path=['audio__recording', 'meta__date'], updates='today'
+            )
+        )
+
+        data = self._data()
+        assert data['audio__recording'] == {
+            'lang': 'en',
+            'status': 'done',
+            'meta__date': 'today',
+        }
+        assert 'audio' not in data
+
+    def test_error_invalid_list_path(self):
+        """
+        An empty list path, or one with an empty key, should raise ValueError.
+        """
+        for path in ([], ['foo', '']):
+            with pytest.raises(ValueError):
+                UpdateJSONFieldAttributes('data', path=path, updates=1)
+
     def test_update_returning_refuses_joins(self):
         """
         With a join, Django moves the filters into a subquery that PostgreSQL

@@ -362,6 +362,14 @@ class UpdateJSONFieldAttributes(Func):
         MyModel.objects.update(
             data=UpdateJSONFieldAttributes('data', path='flags__legacy', updates=False)
         )
+
+        # Keys that may contain `__` (e.g. question names): pass a list, each
+        # item is one literal key
+        MyModel.objects.update(
+            data=UpdateJSONFieldAttributes(
+                'data', path=['audio__recording', 'status'], updates='done'
+            )
+        )
     """
 
     output_field = JSONField()
@@ -372,7 +380,7 @@ class UpdateJSONFieldAttributes(Func):
         self,
         expression: str,
         updates: Any,
-        path: str | None = None,
+        path: str | list[str] | tuple[str, ...] | None = None,
         **extra,
     ):
         # `jsonb_set()` returns NULL whenever its target document is NULL,
@@ -402,7 +410,14 @@ class UpdateJSONFieldAttributes(Func):
                         create_missing=True,
                     )
         else:
-            path_list = _split_path_dunder(path)
+            if isinstance(path, (list, tuple)):
+                path_list = list(path)
+                if not path_list or any(
+                    not isinstance(p, str) or p == '' for p in path_list
+                ):
+                    raise ValueError('path must only contain non-empty keys')
+            else:
+                path_list = _split_path_dunder(path)
             parent_path = path_list[:-1]
             if isinstance(updates, dict):
                 # Make sure parents exist, then deep-merge at the object path.

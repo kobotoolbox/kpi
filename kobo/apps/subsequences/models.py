@@ -130,7 +130,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     ).update(
                         content=JSONBSet(
                             UpdateJSONFieldAttributes(
-                                'content', path='__'.join(action_path), updates=updates
+                                'content', path=action_path, updates=updates
                             ),
                             ['_version'],
                             Value(SCHEMA_VERSIONS[0], output_field=models.JSONField()),
@@ -238,7 +238,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         ).update(
             content=UpdateJSONFieldAttributes(
                 'content',
-                path='__'.join(action_path + ['_dateModified']),
+                path=action_path + ['_dateModified'],
                 updates=date_modified,
             )
         )
