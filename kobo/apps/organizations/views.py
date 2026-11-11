@@ -1210,13 +1210,6 @@ class OrganizationOwnershipTransferViewSet(
 
         return queryset
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        transfer = serializer.save()
-        response_serializer = self.get_serializer(transfer)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
     @action(detail=True, methods=['patch'])
     def accept(self, request, *args, **kwargs):
         transfer = self.get_object()
@@ -1250,10 +1243,10 @@ class OrganizationOwnershipTransferViewSet(
             locked_transfer.save(update_fields=['status', 'date_modified'])
             # Placeholder for async ownership and asset reassignment task (DEV-2896)
 
-        transfer.status = locked_transfer.status
-        transfer.date_modified = locked_transfer.date_modified
-        transfer.send_acceptance_email()
-        return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
+        locked_transfer.send_acceptance_email()
+        return Response(
+            self.get_serializer(locked_transfer).data, status=status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=['patch'])
     def decline(self, request, *args, **kwargs):
@@ -1273,10 +1266,10 @@ class OrganizationOwnershipTransferViewSet(
             locked_transfer.status = InviteStatusChoices.DECLINED
             locked_transfer.save(update_fields=['status', 'date_modified'])
 
-        transfer.status = locked_transfer.status
-        transfer.date_modified = locked_transfer.date_modified
-        transfer.send_refusal_email()
-        return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
+        locked_transfer.send_refusal_email()
+        return Response(
+            self.get_serializer(locked_transfer).data, status=status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=['patch'])
     def cancel(self, request, *args, **kwargs):
@@ -1296,10 +1289,10 @@ class OrganizationOwnershipTransferViewSet(
             locked_transfer.status = InviteStatusChoices.CANCELLED
             locked_transfer.save(update_fields=['status', 'date_modified'])
 
-        transfer.status = locked_transfer.status
-        transfer.date_modified = locked_transfer.date_modified
-        transfer.send_cancellation_email()
-        return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
+        locked_transfer.send_cancellation_email()
+        return Response(
+            self.get_serializer(locked_transfer).data, status=status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=['post'])
     def resend(self, request, *args, **kwargs):
@@ -1334,6 +1327,7 @@ class OrganizationOwnershipTransferViewSet(
             locked_transfer.date_modified = now
             locked_transfer.save(update_fields=['date_modified'])
 
-        transfer.date_modified = locked_transfer.date_modified
-        transfer.send_invite_email()
-        return Response(self.get_serializer(transfer).data, status=status.HTTP_200_OK)
+        locked_transfer.send_invite_email()
+        return Response(
+            self.get_serializer(locked_transfer).data, status=status.HTTP_200_OK
+        )

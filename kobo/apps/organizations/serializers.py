@@ -679,15 +679,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'uid',
-            'organization_id',
-            'organization_name',
-            'sender',
-            'sender_name',
-            'sender_email',
-            'recipient_username',
             'status',
-            'created',
-            'modified',
         ]
 
     @extend_schema_field(OpenApiTypes.STR)
@@ -700,7 +692,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['recipient'] = instance.recipient.username
-        representation['billing_review_requested'] = instance.billing_review_requested
         return representation
 
     def _get_organization(self):
