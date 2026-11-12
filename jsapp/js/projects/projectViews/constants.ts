@@ -1,3 +1,6 @@
+import type { ComboboxItem } from '#/components/common/select.types'
+import { DEPLOYMENT_STATUS_LABELS } from '#/constants'
+
 export type OrderDirection = 'ascending' | 'descending'
 
 export const HOME_VIEW = {
@@ -13,7 +16,8 @@ export const ORG_VIEW = {
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName
   condition?: FilterConditionName
-  value?: string
+  /** A list for fields with `valueOptions`, but older saved filters may have a string. */
+  value?: string | string[]
 }
 
 // NOTE: if you plan to add a condition, make sure to re-check
@@ -125,6 +129,8 @@ export interface ProjectFieldDefinition {
   apiOrderingName: string
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
   availableConditions: FilterConditionName[]
+  /** Fixed values to pick from, shown as a multiselect. */
+  valueOptions?: Array<ComboboxItem<string>>
 }
 
 type ProjectFields = { [P in ProjectFieldName]: ProjectFieldDefinition }
@@ -167,6 +173,7 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiFilteringName: '_deployment_status',
     apiOrderingName: '_deployment_status',
     availableConditions: ['is', 'isNot'],
+    valueOptions: Object.entries(DEPLOYMENT_STATUS_LABELS).map(([value, label]) => ({ value, label })),
   },
   ownerUsername: {
     name: 'ownerUsername',

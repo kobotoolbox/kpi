@@ -175,6 +175,13 @@ export const ASSET_TYPES: AssetTypes = {
   },
 }
 
+/** Project deployment status labels, in the default sort order. */
+export const DEPLOYMENT_STATUS_LABELS: Record<'deployed' | 'draft' | 'archived', string> = {
+  deployed: t('Deployed'),
+  draft: t('Draft'),
+  archived: t('Archived'),
+}
+
 export type AssetFileType = 'map_layer' | 'form_media'
 
 export const ASSET_FILE_TYPES: {

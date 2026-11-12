@@ -1,5 +1,6 @@
 import React from 'react'
 
+import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
@@ -8,7 +9,7 @@ import { recordValues } from '#/utils'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
 import styles from './projectsFilterEditor.module.scss'
-import { isFilterConditionValueRequired } from './utils'
+import { getFilterValues, isFilterConditionValueRequired } from './utils'
 
 interface ProjectsFilterEditorProps {
   filter: ProjectsFilterDefinition
@@ -27,7 +28,7 @@ const COUNTRIES = envStore.data.country_choices
  * and textboxes, and a delete button.
  */
 export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
-  const onFilterValueChange = (newValue: string) => {
+  const onFilterValueChange = (newValue: string | string[]) => {
     props.onFilterChange({
       fieldName: props.filter.fieldName,
       condition: props.filter.condition,
@@ -87,7 +88,53 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     })
   }
 
-  const isCountryFilterSelected = props.filter.fieldName && props.filter.fieldName === 'countries'
+  const renderValueInput = () => {
+    if (!isFilterConditionValueRequired(props.filter.condition)) {
+      return <div />
+    }
+
+    const valueOptions = props.filter.fieldName && PROJECT_FIELDS[props.filter.fieldName].valueOptions
+    if (valueOptions) {
+      return (
+        <MultiSelect
+          size='sm'
+          clearable
+          placeholder={t('Select values')}
+          // Older saved filters have a single string
+          value={getFilterValues(props.filter)}
+          data={valueOptions}
+          onChange={onFilterValueChange}
+        />
+      )
+    }
+
+    const textValue = typeof props.filter.value === 'string' ? props.filter.value : ''
+    if (props.filter.fieldName === 'countries') {
+      return (
+        <Select
+          size='sm'
+          clearable
+          placeholder={t('Country')}
+          value={textValue || null}
+          data={COUNTRIES}
+          onChange={(code) => {
+            onFilterValueChange(code || '')
+          }}
+        />
+      )
+    }
+
+    return (
+      <TextInput
+        value={textValue}
+        onChange={(evt) => onFilterValueChange(evt.currentTarget.value)}
+        placeholder={t('Enter value')}
+        // Requires field to be selected first
+        disabled={!props.filter.fieldName}
+        size='sm'
+      />
+    )
+  }
 
   return (
     <div className={styles.root}>
@@ -123,29 +170,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       <div className={styles.column}>
         {!props.hideLabels && <span className={styles.label}>{t('Value')}</span>}
 
-        {!isFilterConditionValueRequired(props.filter.condition) && <div />}
-        {isFilterConditionValueRequired(props.filter.condition) && !isCountryFilterSelected && (
-          <TextInput
-            value={props.filter.value || ''}
-            onChange={(evt) => onFilterValueChange(evt.currentTarget.value)}
-            placeholder={t('Enter value')}
-            // Requires field to be selected first
-            disabled={!props.filter.fieldName}
-            size='sm'
-          />
-        )}
-        {isFilterConditionValueRequired(props.filter.condition) && isCountryFilterSelected && (
-          <Select
-            size='sm'
-            clearable
-            placeholder={t('Country')}
-            value={props.filter.value || null}
-            data={COUNTRIES}
-            onChange={(code) => {
-              onFilterValueChange(code || '')
-            }}
-          />
-        )}
+        {renderValueInput()}
       </div>
 
       <div className={styles.column}>

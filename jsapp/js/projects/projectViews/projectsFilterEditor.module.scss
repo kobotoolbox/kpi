@@ -14,15 +14,16 @@
 
 .column {
   &:nth-child(1) {
-    min-width: 40%;
-    max-width: 40%;
-  }
-
-  &:nth-child(2) {
     min-width: 30%;
     max-width: 30%;
   }
 
+  &:nth-child(2) {
+    min-width: 22%;
+    max-width: 22%;
+  }
+
+  // Wide enough to fit all status pills in one line
   &:nth-child(3) {
     flex: 1;
   }
