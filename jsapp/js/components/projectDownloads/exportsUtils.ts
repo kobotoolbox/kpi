@@ -9,6 +9,10 @@ export interface ExportFormatOption {
   langIndex?: number
 }
 
+export function isExportSettingEnabled(value: boolean | string | undefined): boolean {
+  return typeof value === 'string' ? value.toLowerCase() === 'true' : value === true
+}
+
 /**
  * Every export setting that the exports creator form builds on its own (see
  * `onSubmit` in `ProjectExportsCreator`). The form sends some of them only for
