@@ -16,7 +16,7 @@ class HomeViewCacheTestCase(BaseTestCase):
         cache_control = {
             directive.strip() for directive in response['Cache-Control'].split(',')
         }
-        assert {'no-store', 'no-cache', 'must-revalidate', 'private'} <= cache_control
+        assert {'no-store', 'no-cache', 'must-revalidate', 'private'}.issubset(cache_control)
 
     def test_authenticated_response_is_not_stored(self):
         self.client.login(username='someuser', password='someuser')
