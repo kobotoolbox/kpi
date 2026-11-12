@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework.exceptions import server_error
 
 from kobo.apps.accounts.views import HeadlessManageTOTPView
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -104,6 +105,11 @@ urlpatterns = [
         'accounts/email/',
         RedirectView.as_view(url='/#/account/settings', permanent=False),
         name='account_email',
+    ),
+    path(
+        'accounts/social/provisioning/',
+        SocialAccountProvisioningHTMLView.as_view(),
+        name='socialaccount_provisioning',
     ),
     # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
     # from allauth's
