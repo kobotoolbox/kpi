@@ -69,8 +69,8 @@ class ModelBackend(DjangoModelBackend):
     def authenticate(
         self,
         request: HttpRequest | None,
-        username: str | None = ...,
-        password: str | None = ...,
+        username: str | None = None,
+        password: str | None = None,
         **kwargs: Any,
     ):
         user = super().authenticate(request, username, password, **kwargs)
