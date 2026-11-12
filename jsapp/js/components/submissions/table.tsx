@@ -56,7 +56,6 @@ import {
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
-import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
   buildColumnRowFinder,
   buildFilterQuery,
@@ -118,6 +117,8 @@ interface DataTableProps {
   activeBulkActions?: BulkActionResponse[]
   hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
+  /** From `useTableSettings`, so changes re-render the table. */
+  tableSettings: Readonly<AssetTableSettings>
 }
 
 interface DataTableState {
@@ -163,9 +164,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   frozenLeftRef = 0
 
-  /** We store it for future checks. */
-  previousTableSettings: AssetTableSettings = {}
-
   private lastRowRefreshErrorNotifiedAt = 0
 
   private unlisteners: Function[] = []
@@ -205,9 +203,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   componentDidMount() {
-    this.previousTableSettings = tableStore.getTableSettings()
     this.unlisteners.push(
-      tableStore.listen(this.onTableStoreChange.bind(this), this),
       actions.resources.updateSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
@@ -265,6 +261,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
       // If bulk actions have changed, it means they might've just gotten loaded
       // from API, and we might need to display more columns.
+      this._prepColumns(this.state.submissions)
+    }
+
+    const prevTableSettings = prevProps.tableSettings
+    const newTableSettings = this.props.tableSettings
+    if (!isEqual(prevTableSettings[DATA_TABLE_SETTINGS.SORT_BY], newTableSettings[DATA_TABLE_SETTINGS.SORT_BY])) {
+      // A new sort needs new submissions, which rebuild the columns too.
+      this.refreshSubmissions()
+    } else if (!isEqual(prevTableSettings, newTableSettings)) {
+      // Other settings (e.g. a hidden or frozen column) only change how existing
+      // data is presented, so rebuilding the columns is enough.
       this._prepColumns(this.state.submissions)
     }
 
@@ -396,12 +403,18 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     /** The parameters that the call was made with. */
     options: GetSubmissionsOptions,
   ) {
+    // The action passes back the very `options` object it was called with. Other tables get the response too, e.g. one
+    // that has unmounted since, so we skip what we didn't ask for.
+    const list = this.requestedLists.get(options)
+    if (!list) {
+      return
+    }
+
     const results = response.results
     const lastPage = Math.max(Math.ceil(response.count / this.state.pageSize) - 1, 0)
 
     if (results && results.length > 0) {
-      // The action passes back the very `options` object it was called with.
-      this.displayedList = this.requestedLists.get(options)
+      this.displayedList = list
       this.setState(
         {
           loading: false,
@@ -438,7 +451,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   // The table view needs to handle the following errors differently:
   // - a 500 gets its own panel in `render()`, built from the status alone
   // - anything else shows the backend's message in the middle of the table, when there is one to show
-  onGetSubmissionsFailed(error: FailResponse) {
+  onGetSubmissionsFailed(error: FailResponse, options: GetSubmissionsOptions) {
+    // Like in `onGetSubmissionsCompleted`, it's not ours if we didn't ask for it.
+    if (!this.requestedLists.has(options)) {
+      return
+    }
+
     if (error?.status) {
       this.setState({ errorNumber: error.status })
 
@@ -1000,23 +1018,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     if (this.state.fetchInstance) {
       this.fetchSubmissions(this.state.fetchInstance)
     }
-  }
-
-  onTableStoreChange(newData: TableStoreData) {
-    // If sort setting changed, we definitely need to get new submissions (which
-    // will rebuild columns)
-    if (
-      JSON.stringify(this.previousTableSettings[DATA_TABLE_SETTINGS.SORT_BY]) !==
-      JSON.stringify(newData.tableSettings[DATA_TABLE_SETTINGS.SORT_BY])
-    ) {
-      this.refreshSubmissions()
-    } else if (!isEqual(this.previousTableSettings, newData.tableSettings)) {
-      // Other settings (e.g. a hidden or frozen column) only change how existing
-      // data is presented, so rebuilding the columns is enough.
-      this._prepColumns(this.state.submissions)
-    }
-
-    this.previousTableSettings = newData.tableSettings
   }
 
   /** Uses `fetchData` but with past instance. */
