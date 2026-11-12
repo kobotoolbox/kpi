@@ -9,7 +9,7 @@ import { recordValues } from '#/utils'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
 import styles from './projectsFilterEditor.module.scss'
-import { isFilterConditionValueRequired } from './utils'
+import { isFilterConditionValueRequired, isValidFilterDate } from './utils'
 
 interface ProjectsFilterEditorProps {
   filter: ProjectsFilterDefinition
@@ -22,11 +22,6 @@ interface ProjectsFilterEditorProps {
 }
 
 const COUNTRIES = envStore.data.country_choices
-
-const DATE_FIELDS: ProjectFieldName[] = ['dateModified', 'dateDeployed']
-
-/** Matches `YYYY-MM-DD`, the format the date picker uses. */
-const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
 /**
  * This component renders a single (editable) filter row. It has few dropdowns,
@@ -95,7 +90,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
 
   const isValueRequired = isFilterConditionValueRequired(props.filter.condition)
   const isCountryFilterSelected = props.filter.fieldName === 'countries'
-  const isDateFilterSelected = !!props.filter.fieldName && DATE_FIELDS.includes(props.filter.fieldName)
+  const isDateFilterSelected = !!props.filter.fieldName && !!PROJECT_FIELDS[props.filter.fieldName].isDate
 
   return (
     <div className={styles.root}>
@@ -159,8 +154,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
             size='sm'
             clearable
             placeholder={t('Select date')}
-            // Filters saved before the picker may hold partial dates like `2026-11`.
-            value={props.filter.value && ISO_DATE_REGEX.test(props.filter.value) ? props.filter.value : null}
+            value={isValidFilterDate(props.filter.value) ? props.filter.value : null}
             onChange={(date) => onFilterValueChange(date || '')}
           />
         )}

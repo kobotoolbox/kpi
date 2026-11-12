@@ -10,7 +10,12 @@ describe('projectViewsUtils', () => {
         { fieldName: 'sector', condition: 'isEmptyObject' },
         // this one is ok, just the value should be dropped
         { fieldName: 'countries', condition: 'isNotEmptyObject', value: 'Bar' },
+        { fieldName: 'dateDeployed', condition: 'isOnOrAfter', value: '2026-11-11' },
         // all bad below
+        // partial date, saved before the date picker
+        { fieldName: 'dateModified', condition: 'isOn', value: '2026-11' },
+        // text condition, saved before the date picker
+        { fieldName: 'dateModified', condition: 'contains', value: '2026-11-11' },
         { fieldName: 'languages', condition: 'contains', value: '' },
         { condition: 'isNot', value: 'Fum' },
         { fieldName: 'ownerUsername', value: 'Baz' },
@@ -24,6 +29,7 @@ describe('projectViewsUtils', () => {
         { fieldName: 'name', condition: 'is', value: 'Foo' },
         { fieldName: 'sector', condition: 'isEmptyObject' },
         { fieldName: 'countries', condition: 'isNotEmptyObject' },
+        { fieldName: 'dateDeployed', condition: 'isOnOrAfter', value: '2026-11-11' },
       ]
       const test = removeIncorrectFilters(dirty)
       chai.expect(test).to.deep.equal(clean)
@@ -107,6 +113,35 @@ describe('projectViewsUtils', () => {
         it(`should build "${testCase.out}" query from filter`, () => {
           const test = buildQueriesFromFilters([testCase.in])
           chai.expect(test).to.deep.equal([testCase.out])
+        })
+      })
+    })
+
+    describe('should build date queries in local time', () => {
+      // The offset depends on the machine's timezone, so we only check that there is one.
+      const midnight = (day: string) => `"${day}T00:00:00\\.000[+-]\\d{2}:\\d{2}"`
+      const cases: Array<{ in: ProjectsFilterDefinition; out: RegExp }> = [
+        {
+          in: { fieldName: 'dateModified', condition: 'isOn', value: '2026-11-11' },
+          out: new RegExp(
+            `^date_modified__gte:${midnight('2026-11-11')} AND date_modified__lt:${midnight('2026-11-12')}$`,
+          ),
+        },
+        {
+          in: { fieldName: 'dateDeployed', condition: 'isOnOrAfter', value: '2026-11-11' },
+          out: new RegExp(`^date_deployed__gte:${midnight('2026-11-11')}$`),
+        },
+        {
+          // "On or before" includes the whole picked day.
+          in: { fieldName: 'dateDeployed', condition: 'isOnOrBefore', value: '2026-12-31' },
+          out: new RegExp(`^date_deployed__lt:${midnight('2027-01-01')}$`),
+        },
+      ]
+      cases.forEach((testCase) => {
+        it(`should build ${testCase.in.condition} query`, () => {
+          const test = buildQueriesFromFilters([testCase.in])
+          chai.expect(test).to.have.length(1)
+          chai.expect(test[0]).to.match(testCase.out)
         })
       })
     })
