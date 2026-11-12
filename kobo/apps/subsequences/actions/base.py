@@ -6,6 +6,7 @@ from typing import Optional
 
 import jsonschema
 from django.utils import timezone
+from rest_framework.exceptions import APIException
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.utils.limit_enforcement import raise_if_usage_limit_exceeded
@@ -1037,7 +1038,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
           already exists, so an `in_progress` answer schedules the Celery poll
           and returns `None` instead of adding a second `in_progress` version.
           An unexpected error then ends as `failed`, so that version is never
-          left behind with nothing to finish it.
+          left behind with nothing to finish it. A quota error or an
+          `APIException` (e.g. the usage limit) is raised as before, and
+          `SubmissionSupplement.revise_data()` removes that version.
         """
 
         in_progress_created_upfront = kwargs.get('in_progress_created_upfront', False)
@@ -1062,8 +1065,11 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 action_data,
                 in_progress_created_upfront,
             )
-        except GoogleQuotaExceededError:
-            # Re-raised on purpose, in Celery only: the task retries it later
+        except (GoogleQuotaExceededError, APIException):
+            # Not failures of the service, re-raised on purpose: Celery retries
+            # the quota error later, and an `APIException` (e.g. the usage
+            # limit) is the response the client must get. The caller then
+            # removes the upfront `in_progress` version
             raise
         except Exception as e:
             if not in_progress_created_upfront:

@@ -10,7 +10,11 @@ from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.user_reports.models import BillingAndUsageSnapshotRun
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes, get_distinct_values
+from kpi.utils.django_orm_helper import (
+    RemoveJSONFieldAttribute,
+    UpdateJSONFieldAttributes,
+    get_distinct_values,
+)
 
 
 class DjangoORMHelperTestCase(TestCase):
@@ -264,6 +268,23 @@ class DjangoORMHelperTestCase(TestCase):
             'meta__date': 'today',
         }
         assert 'audio' not in data
+
+    def test_remove_attribute_with_list_path_keeps_keys_literal(self):
+        """
+        With a list path, keys containing a dot or `__` are left as they are.
+        """
+        seed = {'group.name/audio__recording': {'c__d': 1, 'keep': 2}}
+        ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
+            data=UpdateJSONFieldAttributes('data', updates=seed)
+        )
+
+        ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
+            data=RemoveJSONFieldAttribute(
+                'data', ['group.name/audio__recording', 'c__d']
+            )
+        )
+
+        assert self._data()['group.name/audio__recording'] == {'keep': 2}
 
     def test_error_invalid_list_path(self):
         """

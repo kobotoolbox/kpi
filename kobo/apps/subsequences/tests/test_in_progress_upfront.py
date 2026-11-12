@@ -4,6 +4,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 from ..actions import (
     AutomaticGoogleTranscriptionAction,
@@ -49,11 +50,20 @@ class InProgressUpfrontTestCase(TestCase):
             self.xpath: 'audio.m4a',
         }
 
-    def _revise(self, action_data: dict, action_id: str = ACTION_ID, **service):
+    def _revise(
+        self,
+        action_data: dict | None = None,
+        action_id: str = ACTION_ID,
+        question_data: dict | None = None,
+        **service,
+    ):
         """
-        Call `SubmissionSupplement.revise_data()` with a mocked service.
+        Call `SubmissionSupplement.revise_data()` with a mocked service, for
+        one action or for `question_data`, several actions of the question.
         `service` holds `return_value` or `side_effect` for `process_data()`
         """
+        if question_data is None:
+            question_data = {action_id: action_data}
         with patch.object(
             AutomaticGoogleTranscriptionAction,
             'get_nlp_service_class',
@@ -62,7 +72,7 @@ class InProgressUpfrontTestCase(TestCase):
             return SubmissionSupplement.revise_data(
                 self.asset,
                 self.submission,
-                {'_version': '20250820', self.xpath: {action_id: action_data}},
+                {'_version': '20250820', self.xpath: question_data},
             )
 
     def _stored(self, action_id: str = ACTION_ID) -> dict:
@@ -143,13 +153,19 @@ class InProgressUpfrontTestCase(TestCase):
         started = self._stored()['_versions'][0]['_dateCreated']
 
         with freeze_time('2026-01-01 10:05:00'), patch(POLL_PATH) as poll:
-            self._revise({'language': 'en'}, return_value={'status': 'in_progress'})
+            returned = self._revise(
+                {'language': 'en'}, return_value={'status': 'in_progress'}
+            )
 
         stored = self._stored()
         poll.assert_not_called()
         assert self._statuses() == ['in_progress']
         assert stored['_versions'][0]['_dateCreated'] == started
         assert stored['_dateModified'] == '2026-01-01T10:05:00Z'
+        # What the poll returns matches what it saved
+        assert returned[self.xpath][ACTION_ID]['_dateModified'] == (
+            stored['_dateModified']
+        )
 
         with freeze_time('2026-01-01 10:10:00'):
             self._revise(
@@ -173,19 +189,6 @@ class InProgressUpfrontTestCase(TestCase):
         assert stored['_dateModified'] == '2026-01-01T10:00:30Z'
         assert returned[self.xpath][ACTION_ID]['_dateModified'] == (
             stored['_dateModified']
-        )
-
-    def test_poll_still_running_returns_the_saved_date_modified(self):
-        with freeze_time('2026-01-01 10:00:00'), patch(POLL_PATH):
-            self._revise({'language': 'en'}, return_value={'status': 'in_progress'})
-
-        with freeze_time('2026-01-01 10:05:00'):
-            returned = self._revise(
-                {'language': 'en'}, return_value={'status': 'in_progress'}
-            )
-
-        assert returned[self.xpath][ACTION_ID]['_dateModified'] == (
-            '2026-01-01T10:05:00Z'
         )
 
     def test_leading_underscore_key_is_rejected_before_the_upfront_write(self):
@@ -269,12 +272,14 @@ class InProgressUpfrontTestCase(TestCase):
                 return_value={'status': 'complete', 'value': 'hello'},
             )
 
+        in_memory = self._stored()
         with freeze_time('2026-01-01 10:05:00'):
-            SubmissionSupplement._touch_in_progress_action(
-                self.asset, self.submission_uuid, [self.xpath, ACTION_ID]
+            SubmissionSupplement._refresh_in_progress_action(
+                self.asset, self.submission_uuid, [self.xpath, ACTION_ID], in_memory
             )
 
         assert self._stored()['_dateModified'] == '2026-01-01T10:00:00Z'
+        assert in_memory['_dateModified'] == '2026-01-01T10:00:00Z'
 
     def test_delete_and_accept_never_create_an_in_progress_version(self):
         self._revise(
@@ -339,3 +344,46 @@ class InProgressUpfrontTestCase(TestCase):
             )
             is None
         )
+
+    def test_sibling_edit_in_the_same_request_is_saved_while_running(self):
+        with patch(POLL_PATH):
+            returned = self._revise(
+                question_data={
+                    'manual_transcription': {'language': 'en', 'value': 'mine'},
+                    ACTION_ID: {'language': 'en'},
+                },
+                return_value={'status': 'in_progress'},
+            )
+
+        manual = self._stored('manual_transcription')
+        assert manual['_versions'][0]['_data']['value'] == 'mine'
+        assert returned[self.xpath]['manual_transcription'] == manual
+        assert self._statuses() == ['in_progress']
+
+    def test_refused_launch_leaves_no_trace_on_a_new_action(self):
+        # The usage limit is checked by the service right before a new Google
+        # operation: the request must keep its 402 response
+        with self.assertRaises(UsageLimitExceededException):
+            self._revise({'language': 'en'}, side_effect=UsageLimitExceededException())
+
+        content = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content
+        assert ACTION_ID not in content[self.xpath]
+
+    def test_refused_launch_puts_an_existing_action_back_as_it_was(self):
+        with freeze_time('2026-01-01 10:00:00'):
+            self._revise(
+                {'language': 'en'},
+                return_value={'status': 'complete', 'value': 'hello'},
+            )
+            self._revise({'language': 'en', 'value': None})
+        before = self._stored()
+
+        with freeze_time('2026-01-01 10:05:00'), self.assertRaises(
+            UsageLimitExceededException
+        ):
+            self._revise({'language': 'en'}, side_effect=UsageLimitExceededException())
+
+        assert self._stored() == before
+        assert self._statuses() == ['deleted', 'complete', 'in_progress']

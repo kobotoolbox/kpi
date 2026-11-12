@@ -140,6 +140,9 @@ class RemoveJSONFieldAttribute(Func):
     targeting the attribute with its dotted path.
     E.g., to remove `foo1` in `{"foo": {"foo1": "bar1", "foo2": "bar2"}}`,
     `foo.foo1` should be passed as `attribute_dotted_path` parameter.
+
+    Keys that may contain a dot (e.g. question names) are passed as a list
+    instead, each item being one literal key: `['foo', 'foo1']`.
     """
 
     arg_joiner = ' #- '
@@ -149,14 +152,17 @@ class RemoveJSONFieldAttribute(Func):
     def __init__(
         self,
         expression: str,
-        attribute_dotted_path: str,
+        attribute_dotted_path: str | list[str] | tuple[str, ...],
         **extra,
     ):
-        super().__init__(
-            expression,
-            Value('{' + attribute_dotted_path.replace('.', ',') + '}'),
-            **extra,
-        )
+        if isinstance(attribute_dotted_path, (list, tuple)):
+            path = Value(
+                list(attribute_dotted_path),
+                output_field=ArrayField(base_field=TextField()),
+            )
+        else:
+            path = Value('{' + attribute_dotted_path.replace('.', ',') + '}')
+        super().__init__(expression, path, **extra)
 
 
 def get_distinct_values(
