@@ -130,6 +130,14 @@ describe('projectViewsUtils', () => {
           in: { fieldName: 'status', condition: 'isNot', value: ['draft', 'archived'] },
           out: '(NOT _deployment_status__iexact:"draft" AND NOT _deployment_status__iexact:"archived")',
         },
+        {
+          in: { fieldName: 'sector', condition: 'contains', value: ['Environment', 'Other'] },
+          out: '(settings__sector__icontains:"Environment" OR settings__sector__icontains:"Other")',
+        },
+        {
+          in: { fieldName: 'countries', condition: 'doesNotContain', value: ['POL', 'CAN'] },
+          out: '(NOT settings__country_codes[]__icontains:"POL" AND NOT settings__country_codes[]__icontains:"CAN")',
+        },
       ]
       cases.forEach((testCase) => {
         it(`should build "${testCase.out}" query from filter`, () => {

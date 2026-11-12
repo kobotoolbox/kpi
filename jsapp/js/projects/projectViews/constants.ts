@@ -130,7 +130,7 @@ export interface ProjectFieldDefinition {
   apiOrderingName: string
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
   availableConditions: FilterConditionName[]
-  /** Fixed values to pick from, shown as a multiselect. */
+  /** Fixed values to pick from, shown as a multiselect. Sector and countries use `envStore` choices instead. */
   valueOptions?: Array<ComboboxItem<string>>
 }
 
