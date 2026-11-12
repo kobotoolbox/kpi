@@ -1,5 +1,6 @@
 import type { ComboboxItem } from '#/components/common/select.types'
 import { DEPLOYMENT_STATUS_LABELS } from '#/constants'
+import { recordEntries } from '#/utils'
 
 export type OrderDirection = 'ascending' | 'descending'
 
@@ -173,7 +174,9 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiFilteringName: '_deployment_status',
     apiOrderingName: '_deployment_status',
     availableConditions: ['is', 'isNot'],
-    valueOptions: Object.entries(DEPLOYMENT_STATUS_LABELS).map(([value, label]) => ({ value, label })),
+    valueOptions: recordEntries(DEPLOYMENT_STATUS_LABELS).map(([value, label]) => {
+      return { value, label }
+    }),
   },
   ownerUsername: {
     name: 'ownerUsername',
