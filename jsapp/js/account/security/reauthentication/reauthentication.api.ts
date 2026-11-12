@@ -39,7 +39,7 @@ export interface ReauthenticateVariables {
   code?: string
 }
 
-/** Sends every credential asked for in one go: KPI wants the password and the 2FA code, not just one */
+/** Sends every credential asked for in one go: an email change wants the password and the 2FA code, not just one */
 export async function reauthenticate({ password, code }: ReauthenticateVariables) {
   // Password first, so a wrong one doesn't use up a recovery code
   if (password !== undefined) {

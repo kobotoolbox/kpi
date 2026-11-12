@@ -5,10 +5,10 @@ import { when } from 'mobx'
 import { useMfaStatus } from '#/account/security/mfa/mfa.api'
 import { fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import MfaCodeInput from '#/auth/MfaCodeInput'
 import LazyPasswordStrength from '#/components/LazyPasswordStrength'
 import ButtonNew from '#/components/common/ButtonNew'
 import PasswordInput from '#/components/common/PasswordInput'
-import TextInput from '#/components/common/TextInput'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -184,15 +184,11 @@ export default function UpdatePasswordForm(props: UpdatePasswordFormProps) {
       {/* Last, so the token is typed right before it is sent and has no time to expire */}
       {isCodeNeeded && (
         <div className={styles.row}>
-          <TextInput
+          <MfaCodeInput
             label={t('Two-factor authentication code')}
-            placeholder={t('Enter token or backup code')}
             error={mfaCodeError?.join(' ')}
             value={mfaCode}
             onChange={(evt) => setMfaCode(evt.currentTarget.value)}
-            autoComplete='one-time-code'
-            // Not `numeric`: a recovery code has letters too
-            inputMode='text'
           />
         </div>
       )}

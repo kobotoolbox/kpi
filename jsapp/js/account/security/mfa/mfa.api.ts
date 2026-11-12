@@ -23,8 +23,7 @@ import { getAuthStatus } from '#/auth/authStatus'
 import { notify } from '#/utils'
 
 // allauth wants a recent authentication before any 2FA change, and answers a 401 otherwise. KPI asks for it in the
-// modal rather than on a screen of its own, and wants the password and the code together, so each write
-// reauthenticates first with what the modal collected.
+// modal rather than on a screen of its own, so each write reauthenticates first with what the modal collected.
 
 /** A TOTP token or a recovery code - allauth takes either */
 interface MfaCode {
@@ -139,20 +138,15 @@ export const useMfaRecoveryCodes = () =>
     return codes?.length ? codes : generateRecoveryCodes(null)
   })
 
-interface MfaDeactivateVariables extends MfaCode {
-  /** Leave out for accounts without a password, see {@link useHasUsablePassword} */
-  password?: string
-}
-
-/** KPI wants every credential the account has before 2FA goes off, so the password as well as the code */
+/** The code is the reauthentication allauth wants first: its delete takes no body of its own */
 export const useMfaDeactivate = () =>
-  useMfaMutation<void, MfaDeactivateVariables>('deactivate', async ({ code, password }) => {
-    await reauthenticate({ password, code })
+  useMfaMutation<void, MfaCode>('deactivate', async ({ code }) => {
+    await reauthenticate({ code })
     // KPI refuses with a 403 for superusers under `SUPERUSER_AUTH_ENFORCEMENT`
     assertOk(await allauthBrowserV1AccountAuthenticatorsTotpDelete(), 'code')
   })
 
-/** Reauthenticates first, with the code alone: allauth's rule, which KPI keeps here */
+/** Reauthenticates with the code first, same as {@link useMfaDeactivate} */
 export const useMfaRegenerateCodes = () =>
   useMfaMutation<string[], MfaCode>('regenerate', async ({ code }) => {
     await reauthenticate({ code })

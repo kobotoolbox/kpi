@@ -88,13 +88,9 @@ function MFAModals(props: MFAModalsProps) {
   /** 2FA is on, but the codes may still need reading */
   const [isActivated, setIsActivated] = useState(false)
 
-  // Asked whenever the account has a password: the backend timeout is configurable, so we can't tell if an earlier
-  // reauthentication still counts. SSO-only accounts have none, and nobody asks them
+  // allauth wants a recent password before 2FA goes on. Always asked: the backend timeout is configurable, so we can't
+  // tell if an earlier reauthentication still counts. SSO-only accounts have none, and allauth doesn't ask them
   const isPasswordNeeded = useHasUsablePassword() !== false
-  // A retry after activation reauthenticates with the token alone
-  const isPasswordNeededToTurnOn = isPasswordNeeded && !isActivated
-  // Turning off needs the password too, reconfiguring included. Regenerating and SSO-only accounts use the code alone.
-  const isPasswordNeededToTurnOff = isPasswordNeeded && props.modalType !== 'regenerate'
   const activate = useMfaActivate()
   const confirmCode = useMfaConfirmCode()
   const deactivate = useMfaDeactivate()
@@ -176,11 +172,9 @@ function MFAModals(props: MFAModalsProps) {
   function mfaDeactivate() {
     clearErrors()
     deactivate.mutate(
-      { code: inputString, password: isPasswordNeededToTurnOff ? password : undefined },
+      { code: inputString },
       {
         onSuccess: () => {
-          // Not kept around for the new setup that reconfiguring walks on to
-          setPassword('')
           // Reconfiguring is a deactivation plus a fresh setup, so the modal walks on to the new QR code itself.
           if (props.modalType === 'reconfigure') {
             activate.mutate(undefined, {
@@ -280,16 +274,17 @@ function MFAModals(props: MFAModalsProps) {
   }
 
   /**
-   * allauth wants a recent password before turning 2FA on, and KPI wants it before turning 2FA off, so it is asked for
-   * here, next to the code. Sending both together means neither expires while the other is typed.
+   * allauth wants a recent password before turning 2FA on, so it is asked for here, next to the code. Sending both
+   * together means neither expires while the other is typed.
    */
-  function renderPasswordInput(isShown: boolean, description: string) {
-    if (!isShown) {
+  function renderPasswordInput() {
+    // A retry after activation reauthenticates with the token alone
+    if (!isPasswordNeeded || isActivated) {
       return null
     }
     return (
       <>
-        <bem.MFAModal__p>{description}</bem.MFAModal__p>
+        <bem.MFAModal__p>{t('Confirm your password to turn on two-factor authentication.')}</bem.MFAModal__p>
         <bem.MFAModal__p>
           <TextInput
             className='mfa-modals-textbox'
@@ -354,10 +349,7 @@ function MFAModals(props: MFAModalsProps) {
           </bem.MFAModal__p>
 
           {renderCodeInput()}
-          {renderPasswordInput(
-            isPasswordNeededToTurnOn,
-            t('Confirm your password to turn on two-factor authentication'),
-          )}
+          {renderPasswordInput()}
         </bem.MFAModal__body>
 
         <bem.MFAModal__footer>
@@ -453,10 +445,7 @@ function MFAModals(props: MFAModalsProps) {
           </bem.MFAModal__p>
 
           {renderCodeInput()}
-          {renderPasswordInput(
-            isPasswordNeededToTurnOn,
-            t('Confirm your password to turn on two-factor authentication'),
-          )}
+          {renderPasswordInput()}
 
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
@@ -505,10 +494,6 @@ function MFAModals(props: MFAModalsProps) {
           </bem.MFAModal__p>
 
           {renderCodeInput()}
-          {renderPasswordInput(
-            isPasswordNeededToTurnOff,
-            t('Confirm your password to turn off two-factor authentication'),
-          )}
 
           <bem.MFAModal__p m='align-right'>
             <bem.MFAModal__helpLink
@@ -529,7 +514,7 @@ function MFAModals(props: MFAModalsProps) {
               isFullWidth
               label={t('Next')}
               onClick={onSubmit}
-              isDisabled={!isTokenValid() || (isPasswordNeededToTurnOff && !password)}
+              isDisabled={!isTokenValid()}
               isPending={isBusy}
             />
           </bem.MFAModal__footerRight>

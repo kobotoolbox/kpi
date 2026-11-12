@@ -1,12 +1,12 @@
 import { Group, Stack, Text } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
+import MfaCodeInput from '#/auth/MfaCodeInput'
 import { getGenericAllauthErrorMessage } from '#/auth/allauthErrors'
 import { validatePassword, validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
 import PasswordInput from '#/components/common/PasswordInput'
-import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { CredentialRejection, useReauthenticate } from './reauthentication.api'
 import type { ReauthenticationAsk } from './reauthentication.utils'
@@ -94,12 +94,7 @@ export default function ReauthenticateModal({
             )}
 
             {ask.isCodeNeeded && (
-              <TextInput
-                label={t('Code')}
-                placeholder={t('Enter token or backup code')}
-                autoComplete='one-time-code'
-                // Not `numeric`: a recovery code has letters too
-                inputMode='text'
+              <MfaCodeInput
                 data-autofocus={!ask.isPasswordNeeded || undefined}
                 key={form.key('code')}
                 {...form.getInputProps('code')}
