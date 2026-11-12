@@ -87,7 +87,7 @@ class MfaMethodDeactivateView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        username = request.username
+        username = request.user.username
         with rate_limit(
             'login_failed',
             request=request,
@@ -107,7 +107,7 @@ class MfaMethodRegenerateCodesView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        username = request.username
+        username = request.user.username
         with rate_limit(
             'login_failed',
             request=request,

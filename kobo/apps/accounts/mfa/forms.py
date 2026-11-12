@@ -1,6 +1,5 @@
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.base.forms import AuthenticateForm, ReauthenticateForm
-from allauth.mfa.base.internal.flows import check_rate_limit
 from django import forms
 from django.utils.translation import gettext_lazy as t
 
