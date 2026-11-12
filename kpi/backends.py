@@ -73,7 +73,7 @@ class ModelBackend(DjangoModelBackend):
         password: str | None = None,
         **kwargs: Any,
     ):
-        user = super().authenticate(request, username, password, **kwargs)
+        user = super().authenticate(request, username, password)
         if user is not None:
             auth_success.send(sender=self, user=user, request=request)
         return user
