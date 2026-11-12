@@ -43,15 +43,14 @@ export function redirectForAuthChange(change: AuthChange, context: RedirectConte
   const { navigate, routePath, routeWithSearch, nextRoute, goToPage } = context
 
   switch (event) {
-    case AuthChangeEvent.loggedOut: {
-      const loginRoute = getLoginRouteWithNext(routeWithSearch)
-      // Skips a navigation that would land where the browser already is
-      if (loginRoute.split('?')[0] !== routePath) {
+    case AuthChangeEvent.loggedOut:
+      // Authentication screens work without a session, so stay put. A password reset ends its own session, but still
+      // has to show its success panel.
+      if (!isAuthenticationScreen(routePath)) {
         // `replace`, since Back would return to a dead page
-        navigate(loginRoute, { replace: true })
+        navigate(getLoginRouteWithNext(routeWithSearch), { replace: true })
       }
       return
-    }
 
     case AuthChangeEvent.loggedIn:
       // The screen is mid-sentence about the session it just created, so let it finish. A sign-in in another tab

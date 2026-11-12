@@ -1,5 +1,7 @@
 import base64
 from copy import deepcopy
+from io import BytesIO
+from math import floor, sqrt
 from typing import Optional
 from xml.sax.saxutils import escape
 
@@ -7,6 +9,8 @@ from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutErr
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 from openai import OpenAIError
+from PIL import Image, ImageOps, UnidentifiedImageError
+from pillow_heif import register_heif_opener
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
@@ -26,6 +30,8 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
+    InvalidImageDimensions,
+    InvalidImageFile,
     ManualQualNotFound,
 )
 from kobo.apps.subsequences.prompts import (
@@ -59,6 +65,8 @@ from .automatic_bedrock_qual_utils import (
     Gemma4,
     LLModel,
 )
+
+MAX_IMAGE_PIXELS = 645120  # pixel area of Gemma 4's default budget of 280 tokens
 
 
 class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
@@ -120,23 +128,21 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                     for a in attachments
                     if a.get('question_xpath') == self.source_question_xpath
                 )
-                with default_storage.open(attachment.get('filename')) as fp:
-                    image_bytes = base64.b64encode(fp.read()).decode('utf-8')
-                    image_mimetype = attachment.get('mimetype')
-                return self.construct_image_request(prompt, image_bytes, image_mimetype)
+                image_bytes = self.format_image_for_llm(attachment)
+                return self.construct_image_request(prompt, image_bytes)
             except (FileNotFoundError, StopIteration):
                 raise AttachmentNotFoundException()
         else:
             return self.construct_text_request(prompt)
 
-    def construct_image_request(self, prompt, image_bytes, mimetype):
+    def construct_image_request(self, prompt, image_bytes):
         return {
             'role': 'user',
             'content': [
                 {'type': 'input_text', 'text': prompt},
                 {
                     'type': 'input_image',
-                    'image_url': f'data:{mimetype};base64,{image_bytes}',
+                    'image_url': f'data:image/jpeg;base64,{image_bytes}',
                 },
             ],
         }
@@ -250,6 +256,45 @@ class AutomaticBedrockQual(RequiresAdditionalSource, BaseQualAction):
                 )
             except QuestionAdvancedFeature.DoesNotExist:
                 raise ManualQualNotFound
+
+    def format_image_for_llm(self, attachment_dict: dict) -> str:
+        """
+        Return b64-encoded image, converted to jpg and resized if necessary
+        to fit maximum size limits
+        """
+        filename = attachment_dict.get('filename')
+        register_heif_opener()
+
+        with default_storage.open(filename) as fp:
+            raw_bytes = fp.read()
+            in_buffer = BytesIO(raw_bytes)
+            out_buffer = BytesIO()
+            try:
+                with Image.open(in_buffer) as image:
+                    width, height = image.size
+                    total_pixels = width * height
+                    if total_pixels > MAX_IMAGE_PIXELS:
+                        max_height = floor(
+                            height * sqrt(MAX_IMAGE_PIXELS / total_pixels)
+                        )
+                        max_width = floor(width * sqrt(MAX_IMAGE_PIXELS / total_pixels))
+                        if max_height == 0 or max_width == 0:
+                            raise InvalidImageDimensions
+                        image.thumbnail((max_width, max_height), Image.LANCZOS)
+                    ImageOps.exif_transpose(image, in_place=True)
+                    if image.has_transparency_data:
+                        # put transparent images on a white background
+                        white_bg = Image.new('RGBA', image.size, 'WHITE')
+                        image = Image.alpha_composite(white_bg, image.convert('RGBA'))
+                    image = image.convert('RGB')
+                    image.save(out_buffer, format='JPEG', quality=90)
+            except (
+                Image.DecompressionBombWarning,
+                UnidentifiedImageError,
+                OSError,  # PIL raises an OSError if the image file is truncated
+            ) as e:
+                raise InvalidImageFile() from e
+        return base64.b64encode(out_buffer.getvalue()).decode()
 
     def get_output_fields(self) -> list[dict]:
         return []

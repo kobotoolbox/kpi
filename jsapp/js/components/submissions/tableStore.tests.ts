@@ -1,6 +1,7 @@
+import { act, renderHook } from '@testing-library/react'
 import { simpleSurveyAsset, simpleSurveySubmission } from '#/components/submissions/submissionUtils.mocks'
 import { DATA_TABLE_SETTINGS, SortValues } from '#/components/submissions/tableConstants'
-import tableStore from '#/components/submissions/tableStore'
+import tableStore, { useTableSettings } from '#/components/submissions/tableStore'
 import { getRouteAssetUid } from '#/router/routerUtils'
 
 jest.mock('#/router/routerUtils', () => ({
@@ -129,5 +130,35 @@ describe('tableStore', () => {
 
     chai.expect(localStorage.getItem(storageKey)).to.equal(null)
     consoleErrorSpy.mockRestore()
+  })
+
+  it('should notify subscribers until they unsubscribe', () => {
+    const listener = jest.fn()
+    const unsubscribe = tableStore.subscribe(listener)
+
+    tableStore.setSortBy('Name', SortValues.ASCENDING)
+    unsubscribe()
+    tableStore.setSortBy('Age', SortValues.ASCENDING)
+
+    chai.expect(listener.mock.calls.length).to.equal(1)
+  })
+
+  it('should keep the same snapshot until settings change', () => {
+    const snapshot = tableStore.getTableSettingsSnapshot()
+    chai.expect(tableStore.getTableSettingsSnapshot()).to.equal(snapshot)
+
+    tableStore.setSortBy('Name', SortValues.ASCENDING)
+
+    chai.expect(tableStore.getTableSettingsSnapshot()).to.not.equal(snapshot)
+    chai.expect(tableStore.getTableSettingsSnapshot()).to.deep.equal(tableStore.getTableSettings())
+  })
+
+  it('should re-render `useTableSettings` on change', () => {
+    const { result } = renderHook(() => useTableSettings())
+    chai.expect(result.current).to.deep.equal({})
+
+    act(() => tableStore.setFrozenColumn('Age', true))
+
+    chai.expect(result.current).to.deep.equal({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: ['Age'] })
   })
 })
