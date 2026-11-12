@@ -1,0 +1,35 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  // Without it a tall page stretches the layout, instead of scrolling
+  min-height: 0;
+}
+
+// Pages either scroll themselves (`.form-view` is `height: 100%`), or grow and scroll here (e.g. `.report-view`)
+.page {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+}
+
+// Next to the side menu, pages don't scroll sideways
+.page:not(:first-child) > * {
+  overflow-x: hidden;
+}
+
+// Let long pages flow onto more printed pages
+@media print {
+  .root,
+  .body,
+  .page {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+}

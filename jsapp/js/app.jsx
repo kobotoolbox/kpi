@@ -30,8 +30,7 @@ import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
-import FormViewSideTabs from '#/project/FormViewSideTabs'
-import ProjectTopTabs from '#/project/projectTopTabs.component'
+import ProjectLayout from '#/project/ProjectLayout'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import { RouteGuardPendingContext } from '#/router/RouteGuardSpinner'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
@@ -82,9 +81,6 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
   }, [closeDrawer])
 
   const pageWrapperContentModifiers = []
-  if (isFormSingle) {
-    pageWrapperContentModifiers.push('form-landing')
-  }
   if (isLibrarySingle) {
     pageWrapperContentModifiers.push('library-landing')
   }
@@ -98,6 +94,12 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
   if (typeof modal === 'object') {
     pageWrapperModifiers[`is-modal-${modal.type}`] = true
   }
+
+  const routeOutlet = (
+    <RouteGuardPendingContext.Provider value={setIsGuardPending}>
+      <Outlet />
+    </RouteGuardPendingContext.Provider>
+  )
 
   return (
     <>
@@ -114,16 +116,12 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
         )}
 
         <bem.PageWrapper__content className='mdl-layout__content' m={pageWrapperContentModifiers}>
-          {isMainShown && (
-            <>
-              {isFormSingle && <ProjectTopTabs />}
-              <FormViewSideTabs />
-            </>
+          {/* Not `isMainShown`, as it flips while the route guard runs, and would remount the page */}
+          {shouldDisplayMain && isFormSingle ? (
+            <ProjectLayout isNavHidden={!isMainShown}>{routeOutlet}</ProjectLayout>
+          ) : (
+            routeOutlet
           )}
-
-          <RouteGuardPendingContext.Provider value={setIsGuardPending}>
-            <Outlet />
-          </RouteGuardPendingContext.Provider>
         </bem.PageWrapper__content>
       </bem.PageWrapper>
     </>
