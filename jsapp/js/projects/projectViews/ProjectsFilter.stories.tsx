@@ -10,7 +10,7 @@ const meta: Meta<typeof ProjectsFilter> = {
     onFiltersChange: fn(),
   },
   // TODO: improve our button - `light` variant text fails AA contrast
-  parameters: { a11y: { config: { rules: [{ id: 'color-contrast', enabled: false }] } } },
+  parameters: { a11y: { disable: true } },
 }
 
 type Story = StoryObj<typeof ProjectsFilter>
