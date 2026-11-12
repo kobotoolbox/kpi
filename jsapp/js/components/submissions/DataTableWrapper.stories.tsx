@@ -433,17 +433,15 @@ function resetTableSettings() {
 }
 
 /** Rebuilding the columns replaces the header cells, so we need to query again each time it happens */
-function findHeaderCell(canvasElement: HTMLElement, columnLabel: string, className = 'rt-th') {
-  return waitFor(() => {
-    const label = within(canvasElement).getByText(columnLabel, { selector: '.rt-thead.-header *' })
-    const headerCell = label.closest<HTMLElement>('.rt-th')
-    expect(headerCell).toHaveClass(className)
-    return headerCell!
-  })
+function getHeaderCell(canvasElement: HTMLElement, columnLabel: string, className = 'rt-th') {
+  const label = within(canvasElement).getByText(columnLabel, { selector: '.rt-thead.-header *' })
+  const headerCell = label.closest<HTMLElement>('.rt-th')
+  expect(headerCell).toHaveClass(className)
+  return headerCell!
 }
 
 async function clickColumnMenuItem(canvasElement: HTMLElement, columnLabel: string, itemName: string) {
-  const headerCell = await findHeaderCell(canvasElement, columnLabel)
+  const headerCell = await waitFor(() => getHeaderCell(canvasElement, columnLabel))
   await userEvent.click(headerCell.querySelector('.table-column-sort-dropdown-trigger-button')!)
   // Mantine renders the menu in a portal, outside of the canvas.
   await userEvent.click(await within(document.body).findByRole('menuitem', { name: itemName }))
@@ -463,18 +461,15 @@ export const SettingsChanges: Story = {
   },
   play: async ({ canvasElement }) => {
     const column = 'Record a sound'
-    // Columns only show up once the first submissions arrive.
-    await findHeaderCell(canvasElement, column)
-    expect(onSubmissionsRequest).toHaveBeenCalledTimes(1)
-
+    // The previous story's table may still send a request, so we don't count the ones before the freeze.
     await clickColumnMenuItem(canvasElement, column, 'Sort A→Z')
-    await findHeaderCell(canvasElement, column, 'is-sorted')
-    expect(onSubmissionsRequest).toHaveBeenCalledTimes(2)
-    expect(onSubmissionsRequest).toHaveBeenLastCalledWith(expect.stringContaining('"Record_a_sound":1'))
+    await waitFor(() => getHeaderCell(canvasElement, column, 'is-sorted'))
+    expect(onSubmissionsRequest).toHaveBeenCalledWith(expect.stringContaining('"Record_a_sound":1'))
 
+    onSubmissionsRequest.mockClear()
     await clickColumnMenuItem(canvasElement, column, 'Freeze field')
-    await findHeaderCell(canvasElement, column, 'is-frozen')
-    expect(onSubmissionsRequest).toHaveBeenCalledTimes(2)
+    await waitFor(() => getHeaderCell(canvasElement, column, 'is-frozen'))
+    expect(onSubmissionsRequest).not.toHaveBeenCalled()
   },
 }
 

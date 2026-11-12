@@ -403,12 +403,18 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     /** The parameters that the call was made with. */
     options: GetSubmissionsOptions,
   ) {
+    // The action passes back the very `options` object it was called with. Other tables get the response too, e.g. one
+    // that has unmounted since, so we skip what we didn't ask for.
+    const list = this.requestedLists.get(options)
+    if (!list) {
+      return
+    }
+
     const results = response.results
     const lastPage = Math.max(Math.ceil(response.count / this.state.pageSize) - 1, 0)
 
     if (results && results.length > 0) {
-      // The action passes back the very `options` object it was called with.
-      this.displayedList = this.requestedLists.get(options)
+      this.displayedList = list
       this.setState(
         {
           loading: false,
@@ -445,7 +451,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   // The table view needs to handle the following errors differently:
   // - a 500 gets its own panel in `render()`, built from the status alone
   // - anything else shows the backend's message in the middle of the table, when there is one to show
-  onGetSubmissionsFailed(error: FailResponse) {
+  onGetSubmissionsFailed(error: FailResponse, options: GetSubmissionsOptions) {
+    // Like in `onGetSubmissionsCompleted`, it's not ours if we didn't ask for it.
+    if (!this.requestedLists.has(options)) {
+      return
+    }
+
     if (error?.status) {
       this.setState({ errorNumber: error.status })
 
