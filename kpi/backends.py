@@ -73,6 +73,8 @@ class ModelBackend(DjangoModelBackend):
         password: str | None = None,
         **kwargs: Any,
     ):
+        # django-digest replaces `authenticate` with a method that doesn't accept
+        # additional kwargs
         user = super().authenticate(request, username, password)
         if user is not None:
             auth_success.send(sender=self, user=user, request=request)
