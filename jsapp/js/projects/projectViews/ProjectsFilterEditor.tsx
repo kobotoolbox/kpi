@@ -1,14 +1,14 @@
 import React from 'react'
 
+import ActionIcon from '#/components/common/ActionIcon'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
-import Button from '#/components/common/button'
 import envStore from '#/envStore'
 import { recordValues } from '#/utils'
+import styles from './ProjectsFilterEditor.module.scss'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
-import styles from './projectsFilterEditor.module.scss'
 import { getFilterValues, isFilterConditionValueRequired } from './utils'
 
 interface ProjectsFilterEditorProps {
@@ -174,7 +174,13 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       </div>
 
       <div className={styles.column}>
-        <Button type='secondary-danger' size='m' onClick={props.onDelete} startIcon='trash' />
+        <ActionIcon
+          variant='danger-secondary'
+          size='md'
+          iconName='trash'
+          tooltip={t('Delete')}
+          onClick={props.onDelete}
+        />
       </div>
     </div>
   )
