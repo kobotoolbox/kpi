@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
-
 import Button from '#/components/common/ButtonNew'
 import ModalNew from '#/components/common/ModalNew'
-import type { ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import ProjectsFilterForm from './ProjectsFilterForm'
+import type { ProjectFieldName, ProjectsFilterDefinition } from './constants'
 
 interface ProjectsFilterProps {
   /** A list of existing filters (if any are defined). */

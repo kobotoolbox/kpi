@@ -5,9 +5,9 @@ import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import envStore from '#/envStore'
 import { recordValues } from '#/utils'
+import styles from './ProjectsFilterEditor.module.scss'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
-import styles from './ProjectsFilterEditor.module.scss'
 import { isFilterConditionValueRequired } from './utils'
 
 interface ProjectsFilterEditorProps {

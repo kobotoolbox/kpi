@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
-
 import { Group, Stack, Text } from '@mantine/core'
+import React, { useState } from 'react'
 import Button from '#/components/common/ButtonNew'
-import type { ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import ProjectsFilterEditor from './ProjectsFilterEditor'
+import type { ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { removeIncorrectFilters } from './utils'
 
 interface ProjectsFilterFormProps {
