@@ -53,9 +53,7 @@ class AssetsTableRow extends React.Component<AssetsTableRowProps> {
           {rowCount !== null && <bem.AssetsTableRow__tag m='gray-circle'>{rowCount}</bem.AssetsTableRow__tag>}
         </bem.AssetsTableRow__column>
 
-        <bem.AssetsTableRow__column m='owner'>
-          {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner_label)}
-        </bem.AssetsTableRow__column>
+        <bem.AssetsTableRow__column m='owner'>{this.props.asset.owner_label}</bem.AssetsTableRow__column>
 
         {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS && (
           <bem.AssetsTableRow__column m='subscribers-count'>
