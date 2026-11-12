@@ -14,14 +14,11 @@ class MfaAuthenticateMixin:
     """
 
     def clean_code(self):
-        # Raises allauth's own error, which must reach the user as is
-        clear_rl = check_rate_limit(self.user)
         code = self.cleaned_data['code']
         if authenticator := validate_mfa_code(self.user, code):
             # As in allauth, for `save()`, without fetching the user again
             authenticator.user = self.user
             self.authenticator = authenticator
-            clear_rl()
             return code
 
         if totp := get_totp_authenticator(self.user):

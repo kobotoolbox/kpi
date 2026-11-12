@@ -67,7 +67,11 @@ class ModelBackend(DjangoModelBackend):
         return getattr(user_obj, cache_key)
 
     def authenticate(
-        self, request: HttpRequest | None, username: str | None = ..., password: str | None = ..., **kwargs: Any
+        self,
+        request: HttpRequest | None,
+        username: str | None = ...,
+        password: str | None = ...,
+        **kwargs: Any,
     ):
         user = super().authenticate(request, username, password, **kwargs)
         if user is not None:

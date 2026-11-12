@@ -18,6 +18,7 @@ SETTINGS_BY_SCOPE = {
     'login_failed': 'LOGIN_FAILED_RATE_LIMIT',
 }
 
+
 class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
     """
     Per-address limit on the unauthenticated "resend confirmation email" endpoint
@@ -102,6 +103,7 @@ class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
         # The cache key format is inherited from `SimpleRateThrottle.cache_format`
         # and follows the pattern: 'throttle_<scope>_<ident>'
         return self.cache_format % {'scope': self.scope, 'ident': ident}
+
 
 @contextmanager
 def rate_limit(scope, username, request, rollback_signal=None):

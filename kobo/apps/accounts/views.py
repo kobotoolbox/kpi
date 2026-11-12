@@ -18,14 +18,13 @@ from allauth.headless.mfa.views import (
 from allauth.headless.mfa.views import (
     ManageRecoveryCodesView as BaseHeadlessManageRecoveryCodesView,
 )
-
 from allauth.headless.mfa.views import ManageTOTPView as BaseHeadlessManageTOTPView
 from allauth.headless.mfa.views import (
     ReauthenticateView as BaseHeadlessMfaReauthenticateView,
 )
 from allauth.mfa.adapter import get_adapter as get_mfa_adapter
-from allauth.mfa.recovery_codes.internal.flows import view_recovery_codes
 from allauth.mfa.base.views import AuthenticateView
+from allauth.mfa.recovery_codes.internal.flows import view_recovery_codes
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
@@ -68,9 +67,9 @@ from .extend_schemas.api.v2.email.serializers import (
     EmailReauthenticationRequiredResponse,
     EmailRequestPayload,
 )
+from .forms import LoginForm
 from .mfa.inputs import MfaAuthenticateInput, MfaReauthenticateInput
 from .mfa.utils import has_hashed_migrated_codes
-from .forms import LoginForm
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
@@ -488,15 +487,6 @@ class HeadlessManageRecoveryCodesView(BaseHeadlessManageRecoveryCodesView):
         )
 
 
-class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
-    """
-    The 2FA step of the login, accepting legacy recovery codes like the
-    templated page does
-    """
-
-    input_class = MfaAuthenticateInput
-
-
 class HeadlessMfaReauthenticateView(BaseHeadlessMfaReauthenticateView):
     """
     Re-authentication with a 2FA code, accepting legacy recovery codes like the
@@ -504,10 +494,19 @@ class HeadlessMfaReauthenticateView(BaseHeadlessMfaReauthenticateView):
     """
 
     input_class = MfaReauthenticateInput
+
+
 # HeadlessMfaAuthenticateView, HeadlessMfaLoginView, MfaAuthenticateView,
 # and MfaLoginView all replace the default allauth views in urls.py
 
+
 class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
+    """
+    The 2FA step of the login, accepting legacy recovery codes like the
+    templated page does
+    """
+
+    input_class = MfaAuthenticateInput
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         if request.method in ['GET', 'HEAD']:
