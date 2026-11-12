@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import uuid
 from contextlib import ExitStack, contextmanager
 
 import constance
@@ -111,6 +112,7 @@ def rate_limit(scope, username, request, rollback_signal=None):
     limits = getattr(settings, setting)
     if not limits:
         yield
+        return
     rates = {rate.per: rate for rate in parse_rates(limits)}
     identifiers = {'ip': get_adapter().get_client_ip(request), 'key': username}
     with ExitStack() as stack:
@@ -122,6 +124,7 @@ def rate_limit(scope, username, request, rollback_signal=None):
                     identifier=identifiers[per],
                     rate=rate,
                     rollback_signal=rollback_signal,
+                    request=request,
                 )
             )
         yield
@@ -133,6 +136,7 @@ def single_rate_limit(
     identifier_type: str,
     identifier: str,
     rate: Rate,
+    request,
     rollback_signal: django.dispatch.Signal | None = None,
 ):
     cache_key = f'{scope}:{identifier_type}:{identifier}'
@@ -141,16 +145,22 @@ def single_rate_limit(
             now = timezone.now()
             cutoff_time = now - datetime.timedelta(seconds=rate.duration)
             history = cache.get(cache_key, [])
+            request_id = uuid.uuid4()
 
             def rollback_history(*args, **kwargs):
-                history.pop()
-                cache.set(cache_key, history, timeout=rate.duration)
+                signal_request = kwargs['request']
+                if signal_request == request:
+                    try:
+                        history.remove((now, request_id))
+                    except ValueError:
+                        pass
+                    cache.set(cache_key, history, timeout=rate.duration)
 
-            while len(history) > 0 and history[0] < cutoff_time:
+            while len(history) > 0 and history[0][0] < cutoff_time:
                 history.pop(0)
             if len(history) >= rate.amount:
                 raise Throttled()
-            history.append(now)
+            history.append((now, request_id))
             cache.set(cache_key, history, timeout=rate.duration)
             if rollback_signal:
                 rollback_signal.connect(rollback_history)

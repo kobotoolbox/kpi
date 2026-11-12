@@ -53,4 +53,5 @@ def sync_profile_on_totp_removed(sender, instance, **kwargs):
 
 @receiver(authenticator_used)
 def emit_authentication_success(sender, authenticator, **kwargs):
-    auth_success.send(sender=sender)
+    request = kwargs.get('request')
+    auth_success.send(sender=sender, authenticator=authenticator, request=request)

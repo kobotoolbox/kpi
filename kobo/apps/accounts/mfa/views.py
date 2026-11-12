@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
+from ..throttling import auth_success, rate_limit
 from .flows import activate_totp, deactivate_totp, regenerate_codes
 from .permissions import EnforceSuperuserMFA, IsMfaEnabled
 from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
@@ -86,12 +87,19 @@ class MfaMethodDeactivateView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = MfaCodeSerializer(
-            data=request.data, context={'user': request.user, 'method': method}
-        )
-        serializer.is_valid(raise_exception=True)
-        deactivate_totp(request, method)
-        return Response({})
+        username = request.username
+        with rate_limit(
+            'login_failed',
+            request=request,
+            username=username,
+            rollback_signal=auth_success,
+        ):
+            serializer = MfaCodeSerializer(
+                data=request.data, context={'user': request.user, 'method': method}
+            )
+            serializer.is_valid(raise_exception=True)
+            deactivate_totp(request, method)
+            return Response({})
 
 
 class MfaMethodRegenerateCodesView(APIView):
@@ -99,10 +107,17 @@ class MfaMethodRegenerateCodesView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = MfaCodeSerializer(
-            data=request.data, context={'user': request.user, 'method': method}
-        )
-        serializer.is_valid(raise_exception=True)
-        recovery_codes = regenerate_codes(request, method)
-        backup_codes = recovery_codes.get_unused_codes()
-        return Response({'backup_codes': backup_codes})
+        username = request.username
+        with rate_limit(
+            'login_failed',
+            request=request,
+            username=username,
+            rollback_signal=auth_success,
+        ):
+            serializer = MfaCodeSerializer(
+                data=request.data, context={'user': request.user, 'method': method}
+            )
+            serializer.is_valid(raise_exception=True)
+            recovery_codes = regenerate_codes(request, method)
+            backup_codes = recovery_codes.get_unused_codes()
+            return Response({'backup_codes': backup_codes})

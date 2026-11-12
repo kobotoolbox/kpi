@@ -34,6 +34,16 @@ urlpatterns = [
         name='kobo_headless_mfa_auth',
     ),
     path(
+        'api/v2/allauth/app/v1/auth/login',
+        HeadlessMfaLoginView.as_api_view(client=Client.APP),
+        name='kobo_headless_login_browser',
+    ),
+    path(
+        'api/v2/allauth/app/v1/auth/2fa/authenticate',
+        HeadlessMfaAuthenticateView.as_api_view(client=Client.APP),
+        name='kobo_headless_mfa_auth',
+    ),
+    path(
         'api/v2/auth/mfa/user-methods/',
         MfaListUserMethodsView.as_view(),
         name='mfa_list_user_methods',
