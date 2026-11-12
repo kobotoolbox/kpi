@@ -1,10 +1,10 @@
 import React from 'react'
-
 import ActionIcon from '#/components/common/ActionIcon'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import envStore from '#/envStore'
+import { KOBO_Z_INDEX } from '#/theme/kobo/zIndex'
 import { recordValues } from '#/utils'
 import styles from './ProjectsFilterEditor.module.scss'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
@@ -104,6 +104,8 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           value={getFilterValues(props.filter)}
           data={valueOptions}
           onChange={onFilterValueChange}
+          // In a portal, so the modal doesn't clip it. This replaces the theme's comboboxProps, so zIndex is set again.
+          comboboxProps={{ withinPortal: true, zIndex: KOBO_Z_INDEX.dropdown }}
         />
       )
     }
