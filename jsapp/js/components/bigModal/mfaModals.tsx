@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
 import {
-  MfaRejection,
   useHasUsablePassword,
   useMfaActivate,
   useMfaConfirmCode,
@@ -13,6 +12,7 @@ import {
   useMfaRecoveryCodes,
   useMfaRegenerateCodes,
 } from '#/account/security/mfa/mfa.api'
+import { CredentialRejection } from '#/account/security/reauthentication/reauthentication.api'
 import bem, { makeBem } from '#/bem'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
@@ -131,7 +131,7 @@ function MFAModals(props: MFAModalsProps) {
 
   /** A refused credential shows by its field; anything else is left to the usual error toast. */
   function onCredentialRejected(error: Error) {
-    if (!(error instanceof MfaRejection)) {
+    if (!(error instanceof CredentialRejection)) {
       return
     }
     if (error.field === 'password') {

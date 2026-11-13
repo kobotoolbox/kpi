@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { toast } from 'react-hot-toast'
-import { expect, fn, userEvent, within } from 'storybook/test'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { Canvas } from '#/auth/authStoryHelpers'
 import Modal from '#/components/common/modal'
 import {
@@ -72,6 +72,16 @@ async function submitCode(canvas: Canvas, code: string) {
 
 async function typePassword(canvas: Canvas, password: string) {
   await userEvent.type(await canvas.findByLabelText('Password'), password)
+}
+
+/**
+ * For SSO-only accounts. Until the session answers the modal assumes a password, shows its field and keeps Next
+ * disabled, so this waits for the field to go before anything is pressed. A long timeout, as a slow CI runner can
+ * take over a second to answer.
+ */
+async function waitForNoPasswordField(canvas: Canvas) {
+  await canvas.findByRole('textbox')
+  await waitFor(() => expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument(), { timeout: 5000 })
 }
 
 async function expectBackupCodes(canvas: Canvas) {
@@ -186,10 +196,10 @@ export const ConfirmWithoutPassword: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
+    await waitForNoPasswordField(canvas)
     await submitCode(canvas, VALID_CODE)
 
     await expectBackupCodes(canvas)
-    expect(canvas.queryByLabelText('Password')).not.toBeInTheDocument()
   },
 }
 

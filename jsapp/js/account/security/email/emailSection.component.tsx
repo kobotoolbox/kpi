@@ -1,5 +1,10 @@
 import cx from 'classnames'
 import { useState } from 'react'
+import ReauthenticateModal from '#/account/security/reauthentication/ReauthenticateModal'
+import {
+  type ReauthenticationAsk,
+  getReauthenticationAsk,
+} from '#/account/security/reauthentication/reauthentication.utils'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { type OrvalFetchError, getFieldErrors, onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
@@ -26,6 +31,8 @@ export default function EmailSection() {
   const [fieldErrors, setFieldErrors] = useState<string[]>([])
   /** When the confirmation link was last re-sent */
   const [resentAt, setResentAt] = useState<string | null>(null)
+  /** A change refused until the user confirms it's them, kept for the retry */
+  const [reauthentication, setReauthentication] = useState<{ ask: ReauthenticationAsk; email: string } | null>(null)
 
   const emailsQuery = useMeEmailsList()
   const emails = emailsQuery.data?.status === 200 ? emailsQuery.data.data.results : []
@@ -35,6 +42,12 @@ export default function EmailSection() {
   const createEmail = useMeEmailsCreate<OrvalFetchError>({
     mutation: {
       onError: (error, variables, context) => {
+        // A stale session, not a bad address: ask for credentials and keep the address for the retry
+        const ask = getReauthenticationAsk(error)
+        if (ask) {
+          setReauthentication({ ask, email: variables.data.email })
+          return
+        }
         // Both "Enter a valid email address" and the refusal for SSO accounts arrive under `email`.
         const emailErrors = getFieldErrors(error, 'email')
         if (emailErrors.length > 0) {
@@ -42,7 +55,6 @@ export default function EmailSection() {
           return
         }
         // Nothing to pin to the field, so fall back to the toast every other Orval call uses.
-        // TODO: DEV-1971 catch `code: 'reauthentication_required'` here and walk the user through the listed flows.
         onErrorDefaultHandler(error, variables, context)
       },
     },
@@ -157,6 +169,17 @@ export default function EmailSection() {
           </>
         )}
       </div>
+      {reauthentication && (
+        <ReauthenticateModal
+          ask={reauthentication.ask}
+          description={t("For your security, please confirm it's you before changing your email address")}
+          onReauthenticated={() => {
+            setReauthentication(null)
+            changeEmail(reauthentication.email)
+          }}
+          onClose={() => setReauthentication(null)}
+        />
+      )}
       {userCanChangeEmail && (
         // Stays rendered when empty, to keep the layout.
         <div className={styles.options}>
