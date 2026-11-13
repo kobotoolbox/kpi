@@ -1043,18 +1043,26 @@ export interface ValidationStatusResponse {
   label: string
 }
 
+/** In priority order: each column breaks the ties of the one before it. */
+export type SubmissionsSort = Array<{
+  /** Column name */
+  id: string
+  /** Is `true` for descending and `false` for ascending */
+  desc: boolean
+}>
+
+/** The data API's `sort` param, e.g. `{"_submission_time": 1, "_id": -1}`. */
+export function getSubmissionsSortQuery(sort: SubmissionsSort): Record<string, 1 | -1> {
+  return Object.fromEntries(sort.map(({ id, desc }) => [id, desc ? -1 : 1]))
+}
+
 // TODO: this should be moved to some better place, like
 // `…/actions/submissions.js` after moving it to TypeScript
 export interface GetSubmissionsOptions {
   uid: string
   pageSize?: number
   page?: number
-  sort?: Array<{
-    /** Column name */
-    id: string
-    /** Is `true` for descending and `false` for ascending */
-    desc: boolean
-  }>
+  sort?: SubmissionsSort
   fields?: string[]
   filter?: string
 }
@@ -1887,7 +1895,7 @@ export const dataInterface: DataInterface = {
     uid: string,
     pageSize: number = DEFAULT_PAGE_SIZE,
     page = 0,
-    sort: Array<{ desc: boolean; id: string }> = [],
+    sort: SubmissionsSort = [],
     fields: string[] = [],
     filter = '',
   ): JQuery.jqXHR<PaginatedResponse<SubmissionResponse>> {
@@ -1895,7 +1903,7 @@ export const dataInterface: DataInterface = {
     let s = '&sort={"_id":-1}' // default sort
     let f = ''
     if (sort.length) {
-      s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`
+      s = `&sort=${JSON.stringify(getSubmissionsSortQuery(sort))}`
     }
     if (fields.length) {
       f = `&fields=${JSON.stringify(fields)}`

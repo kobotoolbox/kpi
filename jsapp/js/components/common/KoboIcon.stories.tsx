@@ -4,11 +4,12 @@ import * as TablerIcons from '@tabler/icons-react'
 import type { TablerIcon } from '@tabler/icons-react'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
+import type { IconName } from '#/k-icons'
 import IconLegacySupport from './IconLegacySupport'
 import { resolveLegacySvgIconByName } from './IconLegacySvgMappings'
 import KoboIcon from './KoboIcon'
 import type { KoboIconProps } from './KoboIcon'
-import { getLegacyIconsCatalog } from './KoboIconMappings'
+import { LegacyIconToTablerIconMap } from './KoboIconMappings'
 import Icon from './icon'
 import type { IconColor } from './icon'
 
@@ -17,13 +18,21 @@ const iconSizes = ['xs', 'sm', 'md', 'lg', 'xl'] satisfies Array<Exclude<NonNull
 const noneControlOption = '(none)'
 const iconColorTokens = iconColors.filter((item): item is IconColor => item !== undefined)
 
-const legacyIconsCatalog = getLegacyIconsCatalog()
-
 const tablerIconEntries = Object.entries(TablerIcons).filter(
   (entry): entry is [string, TablerIcon] =>
     entry[0].startsWith('Icon') &&
     (typeof entry[1] === 'function' || (typeof entry[1] === 'object' && entry[1] !== null)),
 )
+
+const tablerIconToNameMap = new Map<TablerIcon, string>(tablerIconEntries.map(([name, icon]) => [icon, name]))
+const legacyIconsCatalog = Object.entries(LegacyIconToTablerIconMap)
+  .map(([legacyName, icon]) => ({
+    legacyName: legacyName as IconName,
+    tablerIconName: icon ? tablerIconToNameMap.get(icon) : undefined,
+    icon,
+  }))
+  .sort((a, b) => a.legacyName.localeCompare(b.legacyName))
+
 const tablerIconOptions = tablerIconEntries.map(([tablerIconName]) => tablerIconName).sort((a, b) => a.localeCompare(b))
 const tablerIconMapping = {
   [noneControlOption]: undefined,

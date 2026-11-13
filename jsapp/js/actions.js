@@ -404,7 +404,7 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
     .deleteSubmission(uid, sid)
     .done(() => {
       notify(t('submission deleted'))
-      actions.resources.deleteSubmission.completed()
+      actions.resources.deleteSubmission.completed(sid)
       actions.resources.loadAsset({ id: uid })
     })
     .fail(() => {

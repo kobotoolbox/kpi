@@ -38,7 +38,7 @@ interface GetSubmissionCompletedDefinition extends Function {
 interface GetSubmissionsDefinition extends Function {
   (options: GetSubmissionsOptions): void
   completed: GetSubmissionsCompletedDefinition
-  failed: GenericFailedDefinition
+  failed: GetSubmissionsFailedDefinition
 }
 
 interface GetSubmissionsCompletedDefinition extends Function {
@@ -46,6 +46,11 @@ interface GetSubmissionsCompletedDefinition extends Function {
   listen: (
     callback: (response: PaginatedResponse<SubmissionResponse>, options: GetSubmissionsOptions) => void,
   ) => Function
+}
+
+interface GetSubmissionsFailedDefinition extends Function {
+  (response: FailResponse, options: GetSubmissionsOptions): void
+  listen: (callback: (response: FailResponse, options: GetSubmissionsOptions) => void) => Function
 }
 
 interface GetProcessingSubmissionsDefinition extends Function {

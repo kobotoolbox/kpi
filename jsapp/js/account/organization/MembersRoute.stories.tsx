@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationMembersMock, { buildMember } from '#/endpoints/organizationMembers.mocks'
@@ -200,6 +201,46 @@ export const SearchRejectedByBackend: Story = {
 
     await canvas.findByText(/could not search the members list/i)
     expect(canvas.getByRole('textbox', { name: /search members/i })).toBeInTheDocument()
+  },
+}
+
+/**
+ * A member with a pending ownership transfer (always an admin, as the backend
+ * requires) shows a different badge, a disabled role selector, and
+ * "Resend invitation" / "Cancel invitation" in the actions menu.
+ * The `pending_transfer` field is cast because it is not yet in the generated type.
+ */
+export const PendingOwnerTransfer: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        organizationMock(),
+        organizationMembersMock([
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          buildMember('matt90', 'Matthew Sungur', { role: MemberRoleEnum.admin, pending_transfer: true } as any),
+          buildMember('alice', 'Alice Alvarez'),
+        ]),
+        helpBubbleMock,
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByText('Matthew Sungur')
+
+    const mattRow = canvas.getByText('Matthew Sungur').closest('tr')!
+
+    // Badge shows "Pending owner" instead of "Active"
+    expect(within(mattRow).getByText('Pending owner')).toBeInTheDocument()
+
+    // Role selector is disabled
+    expect(within(mattRow).getByDisplayValue('Admin')).toBeDisabled()
+
+    // Actions menu shows transfer-specific items
+    await userEvent.click(within(mattRow).getByRole('button'))
+    const page = within(canvasElement.ownerDocument.body)
+    await page.findByText('Resend invitation')
+    expect(page.getByText('Cancel invitation')).toBeInTheDocument()
   },
 }
 
