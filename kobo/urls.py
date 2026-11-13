@@ -1,7 +1,5 @@
 from allauth import urls as allauth_urls
-from allauth.headless import app_settings as headless_settings
 from allauth.headless import urls as headless_urls
-from allauth.headless.constants import Client
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
@@ -15,14 +13,32 @@ from markdownx.views import MarkdownifyView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
-from kobo.apps.accounts.views import HeadlessManageTOTPView
+from kobo.apps.accounts.views import (
+    HeadlessManageRecoveryCodesView,
+    HeadlessManageTOTPView,
+    HeadlessMfaAuthenticateView,
+    HeadlessMfaReauthenticateView,
+)
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
 )
-from kpi.utils.urls import exclude_routes, is_request_for_html
+from kpi.utils.urls import exclude_routes, is_request_for_html, replace_route_views
 from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
+
+# allauth's headless routes, without its email management (`/me/emails/` is
+# the only way to change an email address), and with KPI's views where KPI
+# adds rules of its own
+HEADLESS_URLPATTERNS = replace_route_views(
+    exclude_routes(headless_urls.urlpatterns, {'manage_email'}),
+    {
+        'mfa:authenticate': HeadlessMfaAuthenticateView,
+        'mfa:reauthenticate': HeadlessMfaReauthenticateView,
+        'mfa:manage_totp': HeadlessManageTOTPView,
+        'mfa:manage_recovery_codes': HeadlessManageRecoveryCodesView,
+    },
+)
 
 admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
@@ -111,20 +127,7 @@ urlpatterns = [
         'accounts/',
         include(exclude_routes(allauth_urls.urlpatterns, {'account_email'})),
     ),
-    # Must be before `allauth.headless.urls`, whose TOTP endpoint it replaces
-    *[
-        path(
-            f'api/v2/allauth/{client}/v1/account/authenticators/totp',
-            HeadlessManageTOTPView.as_api_view(client=Client(client)),
-        )
-        for client in headless_settings.CLIENTS
-    ],
-    path(
-        'api/v2/allauth/',
-        include(
-            (exclude_routes(headless_urls.urlpatterns, {'manage_email'}), 'headless')
-        ),
-    ),
+    path('api/v2/allauth/', include((HEADLESS_URLPATTERNS, 'headless'))),
     re_path(
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),

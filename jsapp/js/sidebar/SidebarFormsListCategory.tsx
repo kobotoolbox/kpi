@@ -20,6 +20,7 @@ import {
   type projectViewsAssetsMinimalListRetrieveResponse,
 } from '#/api/react-query/user-team-organization-usage'
 import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
+import { DEPLOYMENT_STATUS_LABELS } from '#/constants'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import AssetName from '../components/common/assetName'
@@ -126,12 +127,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
 
   const isLoading = isProjectsListVisible && query.isLoading
 
-  const categoryLabel =
-    props.deploymentStatus === 'deployed'
-      ? t('Deployed')
-      : props.deploymentStatus === 'draft'
-        ? t('Draft')
-        : t('Archived')
+  const categoryLabel = DEPLOYMENT_STATUS_LABELS[props.deploymentStatus]
 
   return (
     <>
