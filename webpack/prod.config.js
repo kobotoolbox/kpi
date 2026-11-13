@@ -3,6 +3,7 @@ const webpack = require('webpack')
 const WebpackCommon = require('./webpack.common')
 const TerserPlugin = require('terser-webpack-plugin')
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const { BundleReportPlugin } = require('./bundleReportPlugin')
 
 const publicPath = (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') + '/static/compiled/'
 
@@ -34,6 +35,7 @@ const prodConfig = WebpackCommon({
       filename: '[file].map',
       exclude: /vendors.*.*/,
     }),
+    new BundleReportPlugin(),
   ],
   // mainly for hiding stylelint output
   stats: {
