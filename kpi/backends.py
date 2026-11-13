@@ -1,8 +1,12 @@
 # coding: utf-8
+from typing import Any
+
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend as DjangoModelBackend
 from django.contrib.auth.management import DEFAULT_DB_ALIAS
+from django.http import HttpRequest
 
+from kobo.apps.accounts.throttling import auth_success
 from .utils.database import get_thread_local
 from .utils.object_permission import get_database_user
 from .utils.permissions import is_user_anonymous
@@ -61,3 +65,17 @@ class ModelBackend(DjangoModelBackend):
                 *self.get_group_permissions(user_obj),
             })
         return getattr(user_obj, cache_key)
+
+    def authenticate(
+        self,
+        request: HttpRequest | None,
+        username: str | None = None,
+        password: str | None = None,
+        **kwargs: Any,
+    ):
+        # django-digest replaces `authenticate` with a method that doesn't accept
+        # additional kwargs
+        user = super().authenticate(request, username, password)
+        if user is not None:
+            auth_success.send(sender=self, user=user, request=request)
+        return user

@@ -1943,12 +1943,12 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 # Accounts can share an email, so login stays username-only: allauth rejects
 # `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
+# re-use allauth environment var name for consistency,
+# even though we homerolled our own login_failed rate limiting
+LOGIN_FAILED_RATE_LIMIT = env.str(
+    'ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'
+)
 ACCOUNT_RATE_LIMITS = {
-    # Brute force. Per username ("key") and per IP. Also applies to wrong
-    # MFA codes, per user. 10 matches the "5-10 failures, 15-minute lockout"
-    # in the issue; 30 per IP tolerates a few people mistyping behind one
-    # address while capping a spray from one IP at 120 guesses an hour.
-    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'),
     # All login POSTs per IP, successful or not. Set loosely so a
     # training room behind one address is not blocked. '' turns it off.
     'login': env.str('ALLAUTH_LOGIN_RATE_LIMIT', '40/m/ip'),
@@ -1967,6 +1967,8 @@ ACCOUNT_RATE_LIMITS = {
     # Off: /api/v2/email-confirmations/ already has its own per-address
     # throttle (EMAIL_CONFIRMATION_REQUESTS_PER_HOUR).
     'confirm_email': '',
+    # Off: replaced with a custom version
+    'login_failed': '',
 }
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.

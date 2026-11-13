@@ -1,14 +1,8 @@
-from allauth.account.views import LoginView
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.internal.flows.add import validate_can_add_authenticator
 from allauth.mfa.models import Authenticator
 from allauth.mfa.totp.internal import auth as totp_auth
-from django.conf import settings
-from django.contrib.auth import logout
 from django.db.models import QuerySet
-from django.http import HttpResponse
-from django.shortcuts import resolve_url
-from django.urls import reverse
 from django.utils.translation import gettext as t
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView
@@ -19,60 +13,11 @@ from rest_framework.views import APIView
 
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
-from ..forms import LoginForm
+from ..throttling import auth_success, rate_limit
 from .flows import activate_totp, deactivate_totp, regenerate_codes
 from .permissions import EnforceSuperuserMFA, IsMfaEnabled
 from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
 from .utils import MFA_METHOD_NAME, get_totp_authenticator
-
-
-class MfaLoginView(LoginView):
-    form_class = LoginForm
-
-    def form_valid(self, form) -> HttpResponse:
-        """
-        Overload parent method to drop a stale session before logging in.
-        """
-        # `form.user` is the account being authenticated. Remember it before
-        # anything else: allauth calls `get_success_url()` before the login
-        # completes, and the `logout()` below clears `request.user`, so
-        # `request.user` is not a reliable reference to the target user there.
-        self._login_user = form.user
-
-        user = self.request.user
-        if user.is_authenticated and user.pk != form.user.pk:
-            logout(self.request)
-
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        """
-        Overload parent method to validate `next` url
-        """
-        redirect_to = super().get_success_url()
-
-        if not redirect_to:
-            redirect_to = self.request.POST.get(
-                self.redirect_field_name,
-                self.request.GET.get(self.redirect_field_name, ''),
-            )
-
-        # We do not want to redirect a regular user to `/admin/` if they
-        # are not a superuser. Otherwise, they are successfully authenticated,
-        # redirected to the admin platform, then disconnected because of the
-        # lack of permissions. Check the account being authenticated
-        # (`self._login_user`), not `request.user`: this runs before the login
-        # completes, and a stale session may have just been logged out.
-        user = getattr(self, '_login_user', self.request.user)
-        if (
-            user.is_authenticated
-            and self.redirect_field_name in self.request.POST
-            and not user.is_superuser
-            and redirect_to.startswith(reverse('admin:index'))
-        ):
-            return resolve_url(settings.LOGIN_REDIRECT_URL)
-
-        return redirect_to
 
 
 class MfaListUserMethodsView(ListAPIView):
@@ -142,12 +87,19 @@ class MfaMethodDeactivateView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = MfaCodeSerializer(
-            data=request.data, context={'user': request.user, 'method': method}
-        )
-        serializer.is_valid(raise_exception=True)
-        deactivate_totp(request, method)
-        return Response({})
+        username = request.user.username
+        with rate_limit(
+            'login_failed',
+            request=request,
+            username=username,
+            rollback_signal=auth_success,
+        ):
+            serializer = MfaCodeSerializer(
+                data=request.data, context={'user': request.user, 'method': method}
+            )
+            serializer.is_valid(raise_exception=True)
+            deactivate_totp(request, method)
+            return Response({})
 
 
 class MfaMethodRegenerateCodesView(APIView):
@@ -155,10 +107,17 @@ class MfaMethodRegenerateCodesView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = MfaCodeSerializer(
-            data=request.data, context={'user': request.user, 'method': method}
-        )
-        serializer.is_valid(raise_exception=True)
-        recovery_codes = regenerate_codes(request, method)
-        backup_codes = recovery_codes.get_unused_codes()
-        return Response({'backup_codes': backup_codes})
+        username = request.user.username
+        with rate_limit(
+            'login_failed',
+            request=request,
+            username=username,
+            rollback_signal=auth_success,
+        ):
+            serializer = MfaCodeSerializer(
+                data=request.data, context={'user': request.user, 'method': method}
+            )
+            serializer.is_valid(raise_exception=True)
+            recovery_codes = regenerate_codes(request, method)
+            backup_codes = recovery_codes.get_unused_codes()
+            return Response({'backup_codes': backup_codes})

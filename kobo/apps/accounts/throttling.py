@@ -1,8 +1,23 @@
+import datetime
 import hashlib
+import uuid
+from contextlib import ExitStack, contextmanager
 
 import constance
-from rest_framework.exceptions import APIException
+import django.dispatch
+from allauth.account.adapter import get_adapter
+from allauth.core.internal.ratelimit import Rate, cache_lock, parse_rates
+from django.conf import settings
+from django.core.cache import cache
+from django.utils import timezone
+from rest_framework.exceptions import APIException, Throttled
 from rest_framework.throttling import SimpleRateThrottle
+
+auth_success = django.dispatch.Signal()
+
+SETTINGS_BY_SCOPE = {
+    'login_failed': 'LOGIN_FAILED_RATE_LIMIT',
+}
 
 
 class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
@@ -89,3 +104,70 @@ class EmailConfirmationRequestEmailThrottle(SimpleRateThrottle):
         # The cache key format is inherited from `SimpleRateThrottle.cache_format`
         # and follows the pattern: 'throttle_<scope>_<ident>'
         return self.cache_format % {'scope': self.scope, 'ident': ident}
+
+
+@contextmanager
+def rate_limit(scope, username, request, rollback_signal=None):
+    setting = SETTINGS_BY_SCOPE[scope]
+    limits = getattr(settings, setting)
+    if not limits:
+        yield
+        return
+    rates = {rate.per: rate for rate in parse_rates(limits)}
+    identifiers = {'ip': get_adapter().get_client_ip(request), 'key': username}
+    with ExitStack() as stack:
+        for per, rate in rates.items():
+            stack.enter_context(
+                single_rate_limit(
+                    scope=scope,
+                    identifier_type=per,
+                    identifier=identifiers[per],
+                    rate=rate,
+                    rollback_signal=rollback_signal,
+                    request=request,
+                )
+            )
+        yield
+
+
+@contextmanager
+def single_rate_limit(
+    scope: str,
+    identifier_type: str,
+    identifier: str,
+    rate: Rate,
+    request,
+    rollback_signal: django.dispatch.Signal | None = None,
+):
+    cache_key = f'{scope}:{identifier_type}:{identifier}'
+    with cache_lock(cache_key) as locked:
+        if locked:
+            now = timezone.now()
+            cutoff_time = now - datetime.timedelta(seconds=rate.duration)
+            history = cache.get(cache_key, [])
+            request_id = uuid.uuid4()
+
+            def rollback_history(*args, **kwargs):
+                signal_request = kwargs['request']
+                if signal_request == request:
+                    try:
+                        history.remove((now, request_id))
+                    except ValueError:
+                        pass
+                    cache.set(cache_key, history, timeout=rate.duration)
+
+            while len(history) > 0 and history[0][0] < cutoff_time:
+                history.pop(0)
+            if len(history) >= rate.amount:
+                raise Throttled()
+            history.append((now, request_id))
+            cache.set(cache_key, history, timeout=rate.duration)
+            if rollback_signal:
+                rollback_signal.connect(rollback_history)
+            try:
+                yield
+            finally:
+                if rollback_signal:
+                    rollback_signal.disconnect(rollback_history)
+        else:
+            raise Throttled()
