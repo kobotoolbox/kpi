@@ -29,7 +29,7 @@ export type FilterConditionName =
   | 'endsWith'
   | 'is'
   | 'isEmpty'
-  // *Object conditions are for sector, language, and countries fields
+  // *Object conditions are for the sector field, a JSON object. List fields use the plain ones.
   | 'isEmptyObject'
   | 'isNot'
   | 'isNotEmpty'
@@ -130,7 +130,7 @@ export interface ProjectFieldDefinition {
   apiOrderingName: string
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
   availableConditions: FilterConditionName[]
-  /** Fixed values to pick from, shown as a multiselect. */
+  /** Fixed values to pick from, shown as a multiselect. Sector and countries use `envStore` choices instead. */
   valueOptions?: Array<ComboboxItem<string>>
 }
 
@@ -267,14 +267,14 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Countries'),
     apiFilteringName: 'settings__country_codes[]',
     apiOrderingName: 'settings__country_codes[]',
-    availableConditions: ['contains', 'doesNotContain', 'is', 'isEmptyObject', 'isNot', 'isNotEmptyObject'],
+    availableConditions: ['contains', 'doesNotContain', 'is', 'isEmpty', 'isNot', 'isNotEmpty'],
   },
   languages: {
     name: 'languages',
     label: t('Languages'),
     apiFilteringName: 'summary__languages[]',
     apiOrderingName: 'summary__languages[]',
-    availableConditions: ['contains', 'doesNotContain', 'is', 'isEmptyObject', 'isNot', 'isNotEmptyObject'],
+    availableConditions: ['contains', 'doesNotContain', 'is', 'isEmpty', 'isNot', 'isNotEmpty'],
   },
   submissions: {
     name: 'submissions',
