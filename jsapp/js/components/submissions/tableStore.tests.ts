@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react'
-import { simpleSurveyAsset, simpleSurveySubmission } from '#/components/submissions/submissionUtils.mocks'
 import { DATA_TABLE_SETTINGS, SortValues } from '#/components/submissions/tableConstants'
 import tableStore, { useTableSettings } from '#/components/submissions/tableStore'
 import { getRouteAssetUid } from '#/router/routerUtils'
@@ -115,11 +114,33 @@ describe('tableStore', () => {
     tableStore.setFrozenColumn('First_name', true)
     tableStore.setFrozenColumn('start', true)
 
-    tableStore.hideField(simpleSurveyAsset, [simpleSurveySubmission], [], 'start')
+    tableStore.hideField('start')
 
-    chai.expect(tableStore.getSelectedColumns()).to.include('First_name').and.not.include('start')
-
+    chai.expect(tableStore.getHiddenColumns()).to.deep.equal(['start'])
     chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['First_name'])
+  })
+
+  it('should show columns added to the form after some were hidden', () => {
+    tableStore.hideField('start')
+
+    chai.expect(tableStore.isFieldVisible('start')).to.equal(false)
+    chai.expect(tableStore.isFieldVisible('New_question')).to.equal(true)
+  })
+
+  it('should unsort when hiding the sorted column', () => {
+    tableStore.setSortBy('Age', SortValues.ASCENDING)
+
+    tableStore.setHiddenColumns(['Name', 'Age'])
+
+    chai.expect(tableStore.getSortBy()).to.equal(null)
+  })
+
+  it('should drop hidden columns when showing all', () => {
+    tableStore.hideField('Age')
+
+    tableStore.showAllFields()
+
+    chai.expect(JSON.parse(localStorage.getItem(storageKey) || '')).to.deep.equal({ assetA: {} })
   })
 
   it('should not save anything outside of an asset route', () => {

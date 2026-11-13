@@ -90,7 +90,7 @@ class TableStore {
 
   /**
    * @param newTableSettings - will be merged into current settings. Passing
-   * `null` for a setting brings back its default.
+   * `null` or an empty list for a setting brings back its default.
    */
   saveTableSettings(newTableSettings: AssetTableSettings) {
     const assetUid = getRouteAssetUid()
@@ -109,9 +109,9 @@ class TableStore {
     }
 
     const mergedSettings = { ...this.settingsByAsset[assetUid], ...newTableSettings }
-    // `null` means "use default", so there's no point storing it.
+    // `null` and `[]` mean "use default", so there's no point storing them.
     this.settingsByAsset[assetUid] = Object.fromEntries(
-      recordEntries(mergedSettings).filter(([, value]) => value !== null),
+      recordEntries(mergedSettings).filter(([, value]) => value !== null && !(Array.isArray(value) && !value.length)),
     ) as AssetTableSettings
 
     if (this.storageKey) {
@@ -137,15 +137,10 @@ class TableStore {
     return columns
   }
 
-  /**
-   * `null` means no selection, i.e. all columns
-   */
-  getSelectedColumns(): string[] | null {
-    const tableSettings = this.getTableSettings()
-    if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
-      return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] || null
-    }
-    return null
+  /** We store hidden columns, not visible ones, so new form questions show up by default. */
+  getHiddenColumns(): string[] {
+    const hiddenColumns = this.getTableSettings()[DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]
+    return Array.isArray(hiddenColumns) ? hiddenColumns : []
   }
 
   /** Returns ids of frozen columns, in the order they were frozen. */
@@ -169,17 +164,7 @@ class TableStore {
       return true
     }
 
-    const selectedColumns = this.getSelectedColumns()
-    // nothing is selected, so all columns are visible
-    if (selectedColumns === null) {
-      return true
-    }
-
-    if (Array.isArray(selectedColumns)) {
-      return selectedColumns.includes(fieldId)
-    }
-
-    return true
+    return !this.getHiddenColumns().includes(fieldId)
   }
 
   isFieldFrozen(fieldId: string) {
@@ -190,7 +175,7 @@ class TableStore {
   setFrozenColumn(fieldId: string, isFrozen: boolean) {
     const otherColumns = this.getFrozenColumns().filter((id) => id !== fieldId)
     const newFrozenColumns = isFrozen ? [...otherColumns, fieldId] : otherColumns
-    this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns.length ? newFrozenColumns : null })
+    this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns })
   }
 
   /**
@@ -233,96 +218,23 @@ class TableStore {
   }
 
   showAllFields() {
-    const settingsObj: AssetTableSettings = {}
-    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = null
-    this.saveTableSettings(settingsObj)
+    this.setHiddenColumns([])
   }
 
-  /** Show single column - shortcut method for setFieldsVisibility */
-  showField(
-    asset: AssetResponse,
-    submissions: SubmissionResponse[],
-    bulkActions: BulkActionResponse[],
-    fieldId: string,
-  ) {
-    const selectedColumns = this.getSelectedColumns()
-
-    // We start with `null` just to be safe, but the case when selectedColumns
-    // is `null` already (i.e. all columns visible) and we show column should
-    // never happen.
-    let newSelectedColumns = null
-
-    // Some fields are selected and we show one column
-    if (Array.isArray(selectedColumns)) {
-      newSelectedColumns = [...selectedColumns]
-      newSelectedColumns.push(fieldId)
-    }
-
-    this.setFieldsVisibility(asset, submissions, bulkActions, newSelectedColumns)
+  hideField(fieldId: string) {
+    this.setHiddenColumns([...this.getHiddenColumns(), fieldId])
   }
 
-  /** Hide single column - a shortcut method for setFieldsVisibility */
-  hideField(
-    asset: AssetResponse,
-    submissions: SubmissionResponse[],
-    bulkActions: BulkActionResponse[],
-    fieldId: string,
-  ) {
-    const selectedColumns = this.getSelectedColumns()
-    const hideableColumns = this.getHideableColumns(asset, submissions, bulkActions)
-
-    let newSelectedColumns: string[] = []
-
-    // Case 1: nothing selected and we hide one column, i.e. we need to select all but one
-    if (selectedColumns === null) {
-      newSelectedColumns = [...hideableColumns]
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1)
+  setHiddenColumns(hiddenColumns: string[]) {
+    const settingsObj: AssetTableSettings = {
+      [DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]: hiddenColumns,
+      // Hidden columns can't stay frozen, so we unfreeze them.
+      [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: this.getFrozenColumns().filter((id) => !hiddenColumns.includes(id)),
     }
 
-    // Case 2: some fields selected and we hide one column
-    if (Array.isArray(selectedColumns)) {
-      newSelectedColumns = [...selectedColumns]
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1)
-    }
-
-    this.setFieldsVisibility(asset, submissions, bulkActions, newSelectedColumns)
-  }
-
-  setFieldsVisibility(
-    asset: AssetResponse,
-    submissions: SubmissionResponse[],
-    bulkActions: BulkActionResponse[],
-    columnsToBeVisible: string[] | null,
-  ) {
-    const hideableColumns = this.getHideableColumns(asset, submissions, bulkActions)
-    let newSelectedColumns = columnsToBeVisible
-
-    // If we make all possible columns visible, we save `null` value
-    if (Array.isArray(newSelectedColumns) && newSelectedColumns.length === hideableColumns.length) {
-      newSelectedColumns = null
-    }
-
-    const settingsObj: AssetTableSettings = {}
-    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns
-
-    // Hidden columns can't stay frozen, so we unfreeze them.
-    if (Array.isArray(newSelectedColumns)) {
-      const frozenColumns = this.getFrozenColumns()
-      const visibleFrozenColumns = frozenColumns.filter((id) => newSelectedColumns.includes(id))
-      if (visibleFrozenColumns.length !== frozenColumns.length) {
-        settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = visibleFrozenColumns.length ? visibleFrozenColumns : null
-      }
-    }
-
-    // If we are hiding the column that data is sorted by, we need to unsort it.
+    // Data can't stay sorted by a hidden column.
     const sortBy = this.getSortBy()
-    if (
-      sortBy !== null &&
-      typeof sortBy === 'object' &&
-      Array.isArray(newSelectedColumns) &&
-      !newSelectedColumns.includes(sortBy.fieldId)
-    ) {
-      // Currently we allow only one sort column, so we just set it to `null`.
+    if (sortBy && hiddenColumns.includes(sortBy.fieldId)) {
       settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = null
     }
 
