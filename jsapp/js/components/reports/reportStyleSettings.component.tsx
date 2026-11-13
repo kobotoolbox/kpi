@@ -1,6 +1,6 @@
 import React from 'react'
 
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import { getRowName } from '#/assetUtils'
@@ -88,25 +88,25 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
   }
 
   onReportColorsChange(newColors: string[]) {
-    const newStyle = clonedeep(this.state.reportStyle)
+    const newStyle = cloneDeep(this.state.reportStyle)
     newStyle.report_colors = newColors
     this.setState({ reportStyle: newStyle })
   }
 
   onReportTypeChange(newType: ReportStyleName) {
-    const newStyles = clonedeep(this.state.reportStyle)
+    const newStyles = cloneDeep(this.state.reportStyle)
     newStyles.report_type = newType
     this.setState({ reportStyle: newStyles })
   }
 
   onTranslationIndexChange(newIndex: string) {
-    const newStyle = clonedeep(this.state.reportStyle)
+    const newStyle = cloneDeep(this.state.reportStyle)
     newStyle.translationIndex = Number.parseInt(newIndex)
     this.setState({ reportStyle: newStyle })
   }
 
   onGroupByChange(newValue: string) {
-    const newStyle = clonedeep(this.state.reportStyle)
+    const newStyle = cloneDeep(this.state.reportStyle)
     newStyle.groupDataBy = newValue
     this.setState({ reportStyle: newStyle })
   }
@@ -120,7 +120,7 @@ export default class ReportStyleSettings extends React.Component<ReportStyleSett
     }
 
     if (currentCustomReport) {
-      const reportCustom = clonedeep(this.props.parentState.asset?.report_custom || {})
+      const reportCustom = cloneDeep(this.props.parentState.asset?.report_custom || {})
       if (reportCustom) {
         reportCustom[currentCustomReport.crid].reportStyle = this.state.reportStyle
         actions.reports.setCustom(assetUid, reportCustom, currentCustomReport.crid)

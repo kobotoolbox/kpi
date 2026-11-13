@@ -1,6 +1,6 @@
 import React from 'react'
 
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import type { PreparedTable } from './reportViewItem.component'
 import type { ReportsResponseData, ReportsResponseDataValues } from './reportsConstants'
 
@@ -79,7 +79,7 @@ export default class ReportTable extends React.Component<ReportTableProps> {
     }
 
     if (this.props.type === 'disaggregated' && this.props.rows && this.props.rows.length > 0) {
-      const rowsB = clonedeep(this.props.rows) || []
+      const rowsB = cloneDeep(this.props.rows) || []
       if (this.props.responseLabels) {
         th = th.concat(this.props.responseLabels)
       } else if (typeof rowsB?.[0]?.[1] === 'object' && 'responses' in rowsB?.[0]?.[1] && rowsB?.[0]?.[1]?.responses) {

@@ -2,7 +2,7 @@ import './reports.scss'
 
 import React, { useEffect, useState } from 'react'
 
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
@@ -134,7 +134,7 @@ export default function Reports(props: ReportsProps) {
       let groupBy = ''
       // The code further down this function is mutating `AssetResponseReportStyles` we got from API call, we clone it
       // to avoid issues
-      const reportStyles: AssetResponseReportStyles = state.reportStyles || clonedeep(assetDataCast.report_styles)
+      const reportStyles: AssetResponseReportStyles = state.reportStyles || cloneDeep(assetDataCast.report_styles)
       const reportCustom = assetDataCast.report_custom
 
       // TODO: verify why do we need to "fix" API response, come up with a better solution

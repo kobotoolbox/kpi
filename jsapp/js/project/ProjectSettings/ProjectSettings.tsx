@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { when } from 'mobx'
 import React from 'react'
 import autoBind from 'react-autobind'
@@ -178,7 +178,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
 
   onAnyFieldChange(fieldName: string, newFieldValue: string | string[] | null) {
     // Deep clone state to avoid mutations (React best practice)
-    const newStateObj: ProjectSettingsState = clonedeep(this.state) as ProjectSettingsState
+    const newStateObj: ProjectSettingsState = cloneDeep(this.state) as ProjectSettingsState
 
     // Check if this is an admin-configured extra field or a standard field
     if (newStateObj.fields.extra_metadata_fields?.hasOwnProperty(fieldName)) {

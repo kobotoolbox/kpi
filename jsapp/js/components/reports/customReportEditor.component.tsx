@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import React from 'react'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
@@ -58,13 +58,13 @@ export default class CustomReportEditor extends React.Component<CustomReportEdit
   }
 
   onCustomReportNameChange(newName: string) {
-    const newReport = clonedeep(this.state.customReport)
+    const newReport = cloneDeep(this.state.customReport)
     newReport.name = newName
     this.setState({ customReport: newReport })
   }
 
   customReportQuestionChange(name: string, isChecked: boolean) {
-    const newReport = clonedeep(this.state.customReport)
+    const newReport = cloneDeep(this.state.customReport)
 
     if (isChecked) {
       newReport.questions.push(name)
@@ -76,7 +76,7 @@ export default class CustomReportEditor extends React.Component<CustomReportEdit
 
   /** Pass `null` to delete report */
   updateAssetCustomReports(crid: string, newReport: CustomReportSettings | null) {
-    const assetCustomReports = clonedeep(this.props.asset.report_custom || {})
+    const assetCustomReports = cloneDeep(this.props.asset.report_custom || {})
     if (newReport === null) {
       delete assetCustomReports[crid]
     } else {

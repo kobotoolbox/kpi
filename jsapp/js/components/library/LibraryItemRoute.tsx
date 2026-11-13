@@ -1,6 +1,6 @@
 import React from 'react'
 
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
 import assetUtils from '#/assetUtils'
@@ -86,7 +86,7 @@ export default class LibraryItemRoute extends React.Component<LibraryItemRoutePr
    * from Back End.
    */
   onAssetAccessTypeChanged(setSubscribed: boolean) {
-    const newAsset = clonedeep(this.state.asset)
+    const newAsset = cloneDeep(this.state.asset)
     if (newAsset) {
       if (setSubscribed && newAsset.access_types === null) {
         newAsset.access_types = [ACCESS_TYPES.subscribed]
