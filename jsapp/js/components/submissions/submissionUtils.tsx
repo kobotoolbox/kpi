@@ -1,5 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
-import get from 'lodash.get'
+import { cloneDeep, get } from 'lodash-es'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   type SurveyFlatPaths,
@@ -884,7 +883,7 @@ export function markAttachmentAsDeleted(
   submissionData: DataResponse | SubmissionResponse,
   targetAttachmentUid: string,
 ): DataResponse | SubmissionResponse {
-  const data = clonedeep(submissionData)
+  const data = cloneDeep(submissionData)
   const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
   data._attachments.forEach((attachment) => {
     if (
@@ -903,7 +902,7 @@ export function markAttachmentAsDeleted(
  * Removes empty objects (and arrays) from the given object recursively without mutating the original object.
  */
 export function removeEmptyObjects(originalObj: { [key: string]: any }) {
-  let obj = clonedeep(originalObj)
+  let obj = cloneDeep(originalObj)
   if (typeof obj !== 'object' || obj === null) {
     return obj
   }
@@ -924,7 +923,7 @@ export function removeEmptyObjects(originalObj: { [key: string]: any }) {
  * objects in it (nested), you can end up with an empty object as an final outcome.
  */
 export function removeEmptyFromSupplementalDetails(supplementalDetails: SubmissionSupplementalDetails) {
-  const details = clonedeep(supplementalDetails)
+  const details = cloneDeep(supplementalDetails)
 
   // Step 1: Remove responses to qual questions that are:
   // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.

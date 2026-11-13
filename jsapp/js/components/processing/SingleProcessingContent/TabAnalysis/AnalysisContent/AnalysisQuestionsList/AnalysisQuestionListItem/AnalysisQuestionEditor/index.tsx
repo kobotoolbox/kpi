@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 
 import { Box, Input, Stack, ThemeIcon } from '@mantine/core'
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
 import TextInput from '#/components/common/TextInput'
@@ -40,13 +40,13 @@ export default function AnalysisQuestionEditor({
     return null
   }
 
-  const [newQaQuestion, setNewQaQuestion] = useState<ResponseManualQualActionParams>(() => clonedeep(qaQuestion))
+  const [newQaQuestion, setNewQaQuestion] = useState<ResponseManualQualActionParams>(() => cloneDeep(qaQuestion))
   const [errorMessageLabel, setErrorMessageLabel] = useState<string | undefined>()
   const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
 
   const handleChangeLabel = useCallback((newLabel: string) => {
     setNewQaQuestion((prev) => ({
-      ...clonedeep(prev),
+      ...cloneDeep(prev),
       labels: {
         _default: newLabel,
       },
@@ -56,7 +56,7 @@ export default function AnalysisQuestionEditor({
 
   const handleChangeHint = useCallback((newHint: string) => {
     setNewQaQuestion((prev) => {
-      const updated = clonedeep(prev)
+      const updated = cloneDeep(prev)
       // If user deletes hint it becomes an empty string, and we want to remove it rather than store empty string
       if (newHint.trim()) {
         const existingHint = updated.hint ?? {}
@@ -71,7 +71,7 @@ export default function AnalysisQuestionEditor({
 
   function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
     setNewQaQuestion(() => ({
-      ...clonedeep(newQaQuestion),
+      ...cloneDeep(newQaQuestion),
       choices,
     }))
     const choicesFiltered = choices.filter((choice) => !choice.options?.deleted)
@@ -105,7 +105,7 @@ export default function AnalysisQuestionEditor({
 
     if (hasErrors) return
 
-    const payload = clonedeep(newQaQuestion)
+    const payload = cloneDeep(newQaQuestion)
     if (payload.uuid === LOCALLY_EDITED_PLACEHOLDER_UUID) payload.uuid = generateUuid()
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
@@ -128,7 +128,7 @@ export default function AnalysisQuestionEditor({
   }
 
   function handleCancel() {
-    setNewQaQuestion(clonedeep(qaQuestion))
+    setNewQaQuestion(cloneDeep(qaQuestion))
     onCancel()
   }
 

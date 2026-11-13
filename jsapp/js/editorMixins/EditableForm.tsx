@@ -1,8 +1,6 @@
 import { Box } from '@mantine/core'
 import alertify from 'alertifyjs'
-import clonedeep from 'lodash.clonedeep'
-import debounce from 'lodash.debounce'
-import last from 'lodash.last'
+import { cloneDeep, debounce, last } from 'lodash-es'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import { useBeforeUnload, useBlocker } from 'react-router-dom'
@@ -159,7 +157,7 @@ export default function EditableForm(props: EditableFormProps) {
           // from corrupting the cache. Form Builder code mutates asset properties during initialization.
           // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
           // too much refactor in here.
-          asset: clonedeep(assetDataCast),
+          asset: cloneDeep(assetDataCast),
         }
       })
     }
@@ -518,7 +516,7 @@ export default function EditableForm(props: EditableFormProps) {
 
     // asset content is being mutated somewhere during form builder initialisation
     // so we need to make sure this stays untouched
-    const rawAssetContent = Object.freeze(clonedeep(assetContent))
+    const rawAssetContent = Object.freeze(cloneDeep(assetContent))
 
     const isEmptySurvey =
       assetContent &&
@@ -530,7 +528,7 @@ export default function EditableForm(props: EditableFormProps) {
 
     try {
       if (assetContent) {
-        survey = dkobo_xlform.model.Survey.loadDict(clonedeep(assetContent))
+        survey = dkobo_xlform.model.Survey.loadDict(cloneDeep(assetContent))
         if (newState.files && newState.files.length > 0) {
           survey.availableFiles = newState.files
         }

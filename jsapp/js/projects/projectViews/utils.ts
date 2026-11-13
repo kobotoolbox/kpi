@@ -17,6 +17,11 @@ export function isFilterConditionValueRequired(conditionName?: FilterConditionNa
   return true
 }
 
+/** Filter value as a list, so single and multiple values are handled the same way. */
+export function getFilterValues(filter: ProjectsFilterDefinition): string[] {
+  return ([] as string[]).concat(filter.value ?? []).filter(Boolean)
+}
+
 export function isConditionAvailableForFilter(conditionName: FilterConditionName, fieldName: ProjectFieldName) {
   const fieldDefinition = PROJECT_FIELDS[fieldName]
   return fieldDefinition.availableConditions.includes(conditionName)
@@ -33,7 +38,7 @@ export function removeIncorrectFilters(filters: ProjectsFilterDefinition[]) {
       filter.fieldName &&
       filter.condition &&
       isConditionAvailableForFilter(filter.condition, filter.fieldName) &&
-      (!isValueRequired || (isValueRequired && filter.value))
+      (!isValueRequired || getFilterValues(filter).length > 0)
     ) {
       // We rewrite filter object to avoid including value if a non-value
       // condition was selected.
@@ -60,28 +65,29 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     const fieldDefinition = PROJECT_FIELDS[filter.fieldName]
     const conditionDefinition = FILTER_CONDITIONS[filter.condition]
 
-    // Filtering by `ownerUsername` should filter on both the owner and organization name
-    if (filter.fieldName === 'ownerUsername') {
-      const ownerNameQuery = conditionDefinition.filterQuery
-        .replace('<field>', 'search_field__owner_username')
-        .replace('<term>', `"${filter.value}"`)
-      const orgNameQuery = conditionDefinition.filterQuery
-        .replace('<field>', 'search_field__organization_name')
-        .replace('<term>', `"${filter.value}"`)
-      return `(${ownerNameQuery} OR ${orgNameQuery})`
-    }
-
-    if (conditionDefinition.requiresValue && filter.value) {
-      return (
-        conditionDefinition.filterQuery
-          .replace('<field>', fieldDefinition.apiFilteringName)
-          // wrapping term in quotes to make it work with spaces
-          .replace('<term>', `"${filter.value}"`)
-      )
-    } else if (!conditionDefinition.requiresValue) {
+    if (!conditionDefinition.requiresValue) {
       return conditionDefinition.filterQuery.replace('<field>', fieldDefinition.apiFilteringName)
     }
 
-    return ''
+    const buildQuery = (field: string, term: string) =>
+      conditionDefinition.filterQuery
+        .replace('<field>', field)
+        // wrapping term in quotes to make it work with spaces
+        .replace('<term>', `"${term}"`)
+
+    const valueQueries = getFilterValues(filter).map((term) => {
+      // Filtering by `ownerUsername` should filter on both the owner and organization name
+      if (filter.fieldName === 'ownerUsername') {
+        return `(${buildQuery('search_field__owner_username', term)} OR ${buildQuery('search_field__organization_name', term)})`
+      }
+      return buildQuery(fieldDefinition.apiFilteringName, term)
+    })
+
+    if (valueQueries.length === 1) {
+      return valueQueries[0]
+    }
+    // "Is" matches any of the values, "Is not" must match none of them.
+    const joiner = conditionDefinition.filterQuery.startsWith('NOT ') ? ' AND ' : ' OR '
+    return `(${valueQueries.join(joiner)})`
   })
 }

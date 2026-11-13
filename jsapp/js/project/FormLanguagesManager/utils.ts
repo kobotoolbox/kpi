@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasRowRestriction } from '#/components/locking/lockingUtils'
 import { GROUP_TYPES_BEGIN, QUESTION_TYPES } from '#/constants'

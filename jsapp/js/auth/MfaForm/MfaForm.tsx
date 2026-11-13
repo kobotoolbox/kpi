@@ -6,10 +6,10 @@ import { useAllauthBrowserV1Auth2faAuthenticatePost } from '#/api/react-query/au
 import InjectedHtml from '#/auth/AuthContainer/InjectedHtml'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import MfaCodeInput from '#/auth/MfaCodeInput'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateRequiredField } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
-import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
 import { replaceSupportEmail } from '#/textUtils'
 
@@ -165,18 +165,7 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
       {/* `noValidate` so no browser rule ends up between a backup code and the server that knows its shape */}
       <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
         <Stack gap='xl'>
-          <TextInput
-            label={t('Code')}
-            placeholder={t('Enter token or backup code')}
-            // Lets a password manager or a phone hand over the code it just saw
-            autoComplete='one-time-code'
-            // Not `numeric`: a backup code is not all digits, and a keypad would hide the letters
-            inputMode='text'
-            autoFocus
-            key={form.key('code')}
-            {...withAuthFieldError(form.getInputProps('code'))}
-            required
-          />
+          <MfaCodeInput autoFocus key={form.key('code')} {...withAuthFieldError(form.getInputProps('code'))} required />
 
           <Stack gap='xs'>
             <ButtonNew type='submit' size='lg' fullWidth loading={authenticate.isPending}>

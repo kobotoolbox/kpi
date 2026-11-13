@@ -10,7 +10,7 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
-import escape from 'lodash.escape'
+import { escape } from 'lodash-es'
 import toast from 'react-hot-toast'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import pageState from '#/pageState.store'

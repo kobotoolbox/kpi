@@ -1,7 +1,7 @@
 const BundleTracker = require('webpack-bundle-tracker')
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin')
 const fs = require('fs')
-const lodash = require('lodash')
+const { mergeWith } = require('lodash-es')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const path = require('path')
 const webpack = require('webpack')
@@ -154,8 +154,8 @@ const getCommonOptions = (isProduction) => ({
 
 module.exports = (options) => {
   const commonOptions = getCommonOptions(options?.mode === 'production')
-  options = lodash.mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
-    if (lodash.isArray(objValue)) {
+  options = mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
+    if (Array.isArray(objValue)) {
       return objValue.concat(srcValue)
     }
   })

@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { ASSET_TYPES, type AssetTypeName, GroupTypeBeginName, GroupTypeEndName } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
 import type { KoboMatrixPlainData } from '#/formbuild/containers/KoboMatrix'
@@ -175,11 +175,11 @@ export function nullifyTranslations(
   choices?: FlatChoice[],
 ): NullifiedTranslations {
   const data: NullifiedTranslations = {
-    survey: clonedeep(survey) as FlatRow[],
-    translations: clonedeep(translations),
+    survey: cloneDeep(survey) as FlatRow[],
+    translations: cloneDeep(translations),
   }
   if (choices) {
-    data.choices = clonedeep(choices) as FlatChoice[]
+    data.choices = cloneDeep(choices) as FlatChoice[]
   }
 
   const sheets: Array<Array<FlatRow | FlatChoice>> = [data.survey ?? [], data.choices ?? []]
