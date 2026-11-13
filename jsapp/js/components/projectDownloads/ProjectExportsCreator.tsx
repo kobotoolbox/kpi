@@ -1,6 +1,6 @@
-import { Loader, Switch } from '@mantine/core'
+import { Box, Group, Loader, Switch, Text } from '@mantine/core'
 import * as Sentry from '@sentry/react'
-import { IconTrashFilled } from '@tabler/icons-react'
+import { IconHelpCircleFilled, IconTrashFilled } from '@tabler/icons-react'
 import cx from 'classnames'
 import React, { useEffect, useRef, useState } from 'react'
 import { type OrvalFetchError, getApiErrorMessage } from '#/api/onErrorDefaultHandler'
@@ -38,7 +38,7 @@ import { openDeleteExportSettingModal } from '#/components/projectDownloads/open
 import { getColumnLabel, orderColumns } from '#/components/submissions/tableUtils'
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery } from '#/dataInterface'
-import { createDateQuery, formatTimeDate, notify, recordKeys, recordValues } from '#/utils'
+import { createDateQuery, notify, recordKeys, recordValues } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
@@ -59,7 +59,6 @@ interface ProjectExportsCreatorState {
   isIncludeGroupsEnabled: boolean
   isIncludeAllVersionsEnabled: boolean
   isAdvancedViewVisible: boolean
-  isSaveCustomExportEnabled: boolean
   customExportName: string
   isCustomSelectionEnabled: boolean
   isFlattenGeoJsonEnabled: boolean
@@ -130,7 +129,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
       isIncludeAllVersionsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_ALL_VERSIONS,
       isAdvancedViewVisible: false,
-      isSaveCustomExportEnabled: DEFAULT_EXPORT_SETTINGS.SAVE_CUSTOM_EXPORT,
       customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
@@ -185,7 +183,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
       isIncludeAllVersionsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_ALL_VERSIONS,
-      isSaveCustomExportEnabled: DEFAULT_EXPORT_SETTINGS.SAVE_CUSTOM_EXPORT,
       customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
@@ -228,7 +225,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS[data.export_settings.multiple_select],
       isIncludeGroupsEnabled: data.export_settings.hierarchy_in_labels,
       isIncludeAllVersionsEnabled: data.export_settings.fields_from_all_versions,
-      isSaveCustomExportEnabled: typeof data.name === 'string' && data.name.length >= 1,
       customExportName: data.name,
       isCustomSelectionEnabled: customSelectionEnabled,
       // Only some export types store these, so a setting saved for another type
@@ -335,10 +331,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     mergeState({ isAdvancedViewVisible: !stateRef.current.isAdvancedViewVisible })
   }
 
-  function generateExportName() {
-    return `Export ${formatTimeDate(new Date().toString())}`
-  }
-
   async function onSubmit(evt: React.FormEvent) {
     evt.preventDefault()
 
@@ -373,8 +365,8 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       payload.export_settings.include_media_url = currentState.isIncludeMediaUrlEnabled
     }
 
-    if (currentState.isSaveCustomExportEnabled) {
-      payload.name = currentState.customExportName || generateExportName()
+    if (currentState.customExportName.trim().length > 0) {
+      payload.name = currentState.customExportName
     }
 
     if (currentState.isCustomSelectionEnabled) {
@@ -619,29 +611,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
           <bem.ProjectDownloads__columnRow>
             <Checkbox
-              checked={state.isSaveCustomExportEnabled}
-              onChange={(newValue) => {
-                clearSelectedDefinedExport()
-                mergeState({ isSaveCustomExportEnabled: newValue })
-              }}
-              label={t('Save selection as…')}
-            />
-
-            <TextInput
-              disabled={!state.isSaveCustomExportEnabled}
-              value={state.customExportName}
-              onChange={(evt) => {
-                clearSelectedDefinedExport()
-                mergeState({ customExportName: evt.currentTarget.value })
-              }}
-              placeholder={t('Name your export settings')}
-              className='custom-export-name-textbox'
-              size='sm'
-            />
-          </bem.ProjectDownloads__columnRow>
-
-          <bem.ProjectDownloads__columnRow>
-            <Checkbox
               checked={state.isDateEnabled}
               onChange={(newValue) => {
                 clearSelectedDefinedExport()
@@ -719,7 +688,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     if (props.selectedExportType.value !== stateRef.current.selectedExportType.value) {
       mergeState({
         selectedExportType: props.selectedExportType,
-        isSaveCustomExportEnabled: false,
         customExportName: '',
       })
     }
@@ -819,51 +787,78 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
         {state.isAdvancedViewVisible && renderAdvancedView()}
 
-        <bem.ProjectDownloads__submitRow>
-          <bem.ProjectDownloads__exportsSelector>
-            {state.definedExports.length >= 1 && (
-              <React.Fragment>
-                <label>
-                  <bem.ProjectDownloads__title>{t('Apply saved export settings')}</bem.ProjectDownloads__title>
-
-                  <Select
-                    rightSection={state.isUpdatingDefinedExportsList ? <Loader size='xs' /> : undefined}
-                    value={state.selectedDefinedExport?.value ?? ''}
-                    data={getSelectedDefinedExportOptions()}
-                    onChange={onSelectedDefinedExportChange}
-                    placeholder={t('No export settings selected')}
-                    clearable={false}
-                  />
-                </label>
-
-                {state.selectedDefinedExport && userCan(PERMISSIONS_CODENAMES.manage_asset, props.asset) && (
-                  <ActionIcon
-                    variant='danger'
-                    size='lg'
-                    onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
-                      evt.preventDefault()
-                      if (state.selectedDefinedExport?.data.uid) {
-                        safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
-                      }
-                    }}
-                    icon={IconTrashFilled}
-                    className='project-downloads__delete-settings-button'
-                  />
+        <Group mt={20} mb={20} align='flex-end' gap={20} wrap='nowrap'>
+          <Box w='33%'>
+            <Group gap={4} align='center' wrap='nowrap' mb={6}>
+              <Text>{t('Save settings and create synchronous export')}</Text>
+              <ActionIcon
+                icon={IconHelpCircleFilled}
+                size='sm'
+                variant='transparent'
+                tooltip={t(
+                  'Synchronous exports provide a link to current project data as a CSV or XLSX file that updates as new data is submitted.',
                 )}
-              </React.Fragment>
-            )}
-          </bem.ProjectDownloads__exportsSelector>
+                aria-label={t('About synchronous exports')}
+              />
+            </Group>
+            <TextInput
+              value={state.customExportName}
+              onChange={(evt) => {
+                clearSelectedDefinedExport()
+                mergeState({ customExportName: evt.currentTarget.value })
+              }}
+              placeholder={t('Name your export settings')}
+              size='sm'
+              w='100%'
+            />
+          </Box>
 
-          <Button
-            type='primary'
-            size='l'
-            isSubmit
-            onClick={onSubmit}
-            isDisabled={state.isCustomSelectionEnabled && state.selectedRows.size === 0}
-            isPending={state.isPending}
-            label={t('Export')}
-          />
-        </bem.ProjectDownloads__submitRow>
+          {state.definedExports.length >= 1 && (
+            <Group w='33%' align='flex-end' gap='xs' wrap='nowrap'>
+              <Box flex={1}>
+                <Select
+                  label={t('Apply saved export settings')}
+                  rightSection={state.isUpdatingDefinedExportsList ? <Loader size='xs' /> : undefined}
+                  value={state.selectedDefinedExport?.value ?? ''}
+                  data={getSelectedDefinedExportOptions()}
+                  onChange={onSelectedDefinedExportChange}
+                  placeholder={t('No export settings selected')}
+                  clearable={false}
+                  w='100%'
+                />
+              </Box>
+              {state.selectedDefinedExport && userCan(PERMISSIONS_CODENAMES.manage_asset, props.asset) && (
+                <ActionIcon
+                  variant='danger'
+                  size='lg'
+                  onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
+                    evt.preventDefault()
+                    if (state.selectedDefinedExport?.data.uid) {
+                      safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
+                    }
+                  }}
+                  icon={IconTrashFilled}
+                />
+              )}
+            </Group>
+          )}
+        </Group>
+
+        <hr />
+
+        <Group mt={20} justify='flex-end'>
+          <Box>
+            <Button
+              type='primary'
+              size='l'
+              isSubmit
+              onClick={onSubmit}
+              isDisabled={state.isCustomSelectionEnabled && state.selectedRows.size === 0}
+              isPending={state.isPending}
+              label={t('Export')}
+            />
+          </Box>
+        </Group>
       </bem.FormView__form>
     </bem.FormView__cell>
   )
