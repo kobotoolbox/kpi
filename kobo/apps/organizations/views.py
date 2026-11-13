@@ -1198,8 +1198,15 @@ class OrganizationOwnershipTransferViewSet(
         if not organization_id:
             return OrgOwnershipTransferInvite.objects.none()
 
+        # Matches records explicitly bound to this org, and legacy records
+        # created before organization_id was added to metadata (scoped to sender's org).
+        queryset_filter = Q(metadata__organization_id=str(organization_id)) | (
+            ~Q(metadata__has_key='organization_id')
+            & Q(sender__organizations_organizationuser__organization_id=organization_id)
+        )
+
         queryset = OrgOwnershipTransferInvite.objects.filter(
-            metadata__organization_id=str(organization_id)
+            queryset_filter
         ).select_related('sender__extra_details', 'recipient')
 
         if self.action == 'list':

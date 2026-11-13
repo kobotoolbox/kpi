@@ -265,7 +265,7 @@ class OrgOwnershipTransferInvite(Invite):
             'billing_review_requested': {'type': 'boolean'},
             'organization_id': {'type': 'string'},
         },
-        'required': ['billing_review_requested', 'organization_id'],
+        'required': ['billing_review_requested'],
         'additionalProperties': False,
     }
 
@@ -289,7 +289,7 @@ class OrgOwnershipTransferInvite(Invite):
         if org_id := self.metadata.get('organization_id'):
             Organization = apps.get_model('organizations', 'Organization')
             return Organization.objects.filter(id=org_id).first()
-        return None
+        return getattr(self.sender, 'organization', None)
 
     @property
     def billing_review_requested(self) -> bool:
