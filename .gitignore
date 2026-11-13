@@ -31,7 +31,8 @@ env
 public
 .venv
 storybook-static
-emails
+debug-storybook.log
+/emails/
 .claude/
 
 # Ignore locale build files.

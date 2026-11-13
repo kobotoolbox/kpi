@@ -1,7 +1,7 @@
 import React from 'react'
 
 import type { MantineSize } from '@mantine/core'
-import isEqual from 'lodash.isequal'
+import { isEqual } from 'lodash-es'
 import Select from '#/components/common/Select'
 import type { ComboboxItem } from '#/components/common/select.types'
 import languagesStore from '#/components/languages/languagesStore'

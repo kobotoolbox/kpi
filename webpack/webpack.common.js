@@ -1,7 +1,7 @@
 const BundleTracker = require('webpack-bundle-tracker')
 const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin')
 const fs = require('fs')
-const lodash = require('lodash')
+const { mergeWith } = require('lodash-es')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const path = require('path')
 const webpack = require('webpack')
@@ -44,6 +44,20 @@ const swcLoader = {
 }
 
 const getCommonOptions = (isProduction) => ({
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          // Startup dependencies only, so lazy routes don't make every page load theirs.
+          // `errorApp` stays out so error pages work even if the main app fails to load
+          // (`scripts/check_error_bundle_isolation.js` checks this).
+          chunks: (chunk) => chunk.canBeInitial() && chunk.name !== 'errorApp',
+        },
+      },
+    },
+  },
   module: {
     rules: [
       {
@@ -140,8 +154,8 @@ const getCommonOptions = (isProduction) => ({
 
 module.exports = (options) => {
   const commonOptions = getCommonOptions(options?.mode === 'production')
-  options = lodash.mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
-    if (lodash.isArray(objValue)) {
+  options = mergeWith(commonOptions, options || {}, (objValue, srcValue) => {
+    if (Array.isArray(objValue)) {
       return objValue.concat(srcValue)
     }
   })

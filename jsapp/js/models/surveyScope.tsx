@@ -1,7 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
-import findIndex from 'lodash.findindex'
-import isEmpty from 'lodash.isempty'
-import map from 'lodash.map'
+import { cloneDeep, findIndex, isEmpty, map } from 'lodash-es'
 import { assetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import { openImportLanguagesModal } from '#/components/formBuilder/ImportLanguagesModals/openImportLanguagesModal'
 import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
@@ -153,7 +150,7 @@ class SurveyScope {
       }
 
       // Cloned up front because both `discardAssetLanguages` and `Survey.loadDict` mutate what they are given
-      const content = clonedeep(data.content) as AssetContent
+      const content = cloneDeep(data.content) as AssetContent
       const resolution = resolveImportLanguages(getFormLanguages(this.survey._initialParams), content.translations)
 
       if (resolution.action !== 'merge') {

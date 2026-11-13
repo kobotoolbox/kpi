@@ -1,6 +1,6 @@
 import React from 'react'
 
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import bem from '#/bem'
@@ -143,13 +143,13 @@ export default class ReportStyleSettingsSingleQuestion extends React.Component<
   }
 
   onReportTypeChange(newType: ReportStyleName) {
-    const newStyles = clonedeep(this.state.reportStyle)
+    const newStyles = cloneDeep(this.state.reportStyle)
     newStyles.report_type = newType
     this.setState({ reportStyle: newStyles })
   }
 
   onReportColorsChange(newColors: string[]) {
-    const newStyles = clonedeep(this.state.reportStyle)
+    const newStyles = cloneDeep(this.state.reportStyle)
     newStyles.report_colors = newColors
     this.setState({ reportStyle: newStyles })
   }

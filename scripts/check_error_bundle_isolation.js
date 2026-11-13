@@ -3,7 +3,7 @@
  * Guards the one property of the `errorApp` bundle that code review can't see:
  * that it stays self-contained.
  *
- * The `chunks` predicate in `webpack/prod.config.js` is what keeps the entry out
+ * The `chunks` predicate in `webpack/webpack.common.js` is what keeps the entry out
  * of the shared `vendors` chunk. Simplifying it back to `chunks: 'all'` would
  * make the error pages pull in the multi-MB main app bundle, and every test
  * would still pass, so this runs in CI after a production build.
@@ -25,7 +25,7 @@ if (jsAssets.length !== 1) {
     `expected exactly 1 JS asset, found ${jsAssets.length}:\n` +
       jsAssets.map((name) => `    - ${name}`).join('\n') +
       '\n  The entry must not share a chunk with the main app. Check the ' +
-      '`splitChunks` config in `webpack/prod.config.js`.',
+      '`splitChunks` config in `webpack/webpack.common.js`.',
   )
 }
 

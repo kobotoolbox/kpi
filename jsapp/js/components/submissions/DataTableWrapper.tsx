@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import tableStore, { TABLE_SETTINGS_STORAGE_KEY_PREFIX } from '#/components/submissions/tableStore'
+import tableStore, { TABLE_SETTINGS_STORAGE_KEY_PREFIX, useTableSettings } from '#/components/submissions/tableStore'
 import type { AssetResponse } from '#/dataInterface'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 import { DataTable } from './table'
@@ -31,6 +31,7 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
       setLoadedStorageKey(storageKey)
     }
   }, [storageKey])
+  const tableSettings = useTableSettings()
 
   // Wait for stored settings, so the table doesn't load with defaults first
   // and then fetch submissions again with the stored sorting.
@@ -44,6 +45,7 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
       activeBulkActions={activeBulkActions}
       hasActiveBulkActionsCreatedByCurrentUser={hasActiveBulkActionsCreatedByCurrentUser}
       currentUsername={currentUsername}
+      tableSettings={tableSettings}
     />
   )
 }

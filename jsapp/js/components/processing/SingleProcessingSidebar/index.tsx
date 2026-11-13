@@ -110,7 +110,12 @@ export default function ProcessingSidebar({
         )}
 
         {(selectedDisplays.includes(StaticDisplays.Audio) || selectedDisplays.includes(StaticDisplays.Image)) && (
-          <SidebarSubmissionMedia asset={asset} xpath={questionXpath} submission={submission} />
+          <SidebarSubmissionMedia
+            asset={asset}
+            xpath={questionXpath}
+            questionType={questionType}
+            submission={submission}
+          />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Text) && (
