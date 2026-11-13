@@ -31,7 +31,8 @@ interface ColumnsHideColumn {
 interface ColumnsHideFormState {
   filterPhrase: string
   allColumns: ColumnsHideColumn[]
-  selectedColumns: string[]
+  /** Can hold columns missing from `allColumns` (e.g. from other pages), we keep them hidden. */
+  hiddenColumns: string[]
 }
 
 class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, ColumnsHideFormState> {
@@ -40,7 +41,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
     this.state = {
       filterPhrase: '',
       allColumns: [], // {object[]}
-      selectedColumns: [], // {string[]}
+      hiddenColumns: [], // {string[]}
     }
   }
 
@@ -63,7 +64,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
 
     this.setState({
       allColumns: allColumns,
-      selectedColumns: tableStore.getSelectedColumns() || allColumnsIds,
+      hiddenColumns: tableStore.getHiddenColumns(),
     })
   }
 
@@ -73,23 +74,13 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
   }
 
   onApply() {
-    tableStore.setFieldsVisibility(
-      this.props.asset,
-      this.props.submissions,
-      this.props.bulkActions,
-      this.state.selectedColumns,
-    )
+    tableStore.setHiddenColumns(this.state.hiddenColumns)
     this.props.onRequestClose()
   }
 
-  onFieldToggleChange(fieldId: string, isSelected: boolean) {
-    const newSelectedColumns = [...this.state.selectedColumns]
-    if (isSelected) {
-      newSelectedColumns.push(fieldId)
-    } else {
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1)
-    }
-    this.setState({ selectedColumns: newSelectedColumns })
+  onFieldToggleChange(fieldId: string, isVisible: boolean) {
+    const otherHiddenColumns = this.state.hiddenColumns.filter((id) => id !== fieldId)
+    this.setState({ hiddenColumns: isVisible ? otherHiddenColumns : [...otherHiddenColumns, fieldId] })
   }
 
   onFilterPhraseChange(newPhrase: string) {
@@ -132,7 +123,7 @@ class ColumnsHideForm extends React.Component<ColumnsHideFormPropsInternal, Colu
               {filteredFieldsList.map((fieldObj) => (
                 <Box key={fieldObj.fieldId}>
                   <Switch
-                    checked={this.state.selectedColumns.includes(fieldObj.fieldId)}
+                    checked={!this.state.hiddenColumns.includes(fieldObj.fieldId)}
                     onChange={(event) => {
                       this.onFieldToggleChange(fieldObj.fieldId, event.currentTarget.checked)
                     }}

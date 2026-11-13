@@ -514,7 +514,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onHideField(fieldId: string) {
-    tableStore.hideField(this.props.asset, this.state.submissions, this.props.activeBulkActions || [], fieldId)
+    tableStore.hideField(fieldId)
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
@@ -965,20 +965,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
     })
 
-    // prepare list of selected columns, if configured
-    const selectedColumnsIds = tableStore.getSelectedColumns()
-    if (selectedColumnsIds) {
-      // always include frozen columns
-      selectedColumnsIds.unshift(...frozenColumns.filter((id) => !selectedColumnsIds.includes(id)))
-
-      columnsToRender = columnsToRender.filter((el) => {
-        // always include checkbox column
-        if (el.id === SUBMISSION_ACTIONS_ID) {
-          return true
-        }
-        return Boolean(el.id && selectedColumnsIds.includes(el.id) !== false)
-      })
-    }
+    // Frozen and checkbox columns always stay, see `isFieldVisible`.
+    columnsToRender = columnsToRender.filter((el) => !el.id || tableStore.isFieldVisible(el.id))
 
     // Only the last frozen column (the checkbox one if none) gets the border and
     // shadow. CSS `order` keeps list order, so last here is last on screen.
