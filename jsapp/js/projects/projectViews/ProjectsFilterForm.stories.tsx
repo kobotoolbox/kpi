@@ -32,23 +32,45 @@ export const WithFilters: Story = {
       { fieldName: 'name', condition: 'contains', value: 'health' },
       { fieldName: 'description', condition: 'isEmpty' },
       { fieldName: 'ownerUsername', condition: 'is', value: 'kobo' },
+      { fieldName: 'status', condition: 'is', value: ['deployed', 'draft', 'archived'] },
+      // Saved before status became a multiselect
+      { fieldName: 'status', condition: 'isNot', value: 'draft' },
     ],
   },
+}
+
+/** Opens a dropdown by its placeholder and clicks given options. */
+const pickOptions = async (canvasElement: HTMLElement, placeholder: string, ...optionNames: string[]) => {
+  await userEvent.click(within(canvasElement).getByPlaceholderText(placeholder))
+  // Select dropdowns render in a portal
+  const body = within(canvasElement.ownerDocument.body)
+  for (const name of optionNames) {
+    await userEvent.click(await body.findByRole('option', { name }))
+  }
 }
 
 export const ApplyNewFilter: Story = {
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement)
-    // Dropdowns render in a portal
-    const body = within(canvasElement.ownerDocument.body)
-    await userEvent.click(canvas.getByPlaceholderText('Select field'))
-    await userEvent.click(await body.findByRole('option', { name: 'Project name' }))
-    await userEvent.click(canvas.getByPlaceholderText('Select condition'))
-    await userEvent.click(await body.findByRole('option', { name: 'Contains' }))
+    await pickOptions(canvasElement, 'Select field', 'Project name')
+    await pickOptions(canvasElement, 'Select condition', 'Contains')
     await userEvent.type(canvas.getByPlaceholderText('Enter value'), 'health')
     await userEvent.click(canvas.getByRole('button', { name: 'Apply' }))
 
     await expect(args.onApply).toHaveBeenCalledWith([{ fieldName: 'name', condition: 'contains', value: 'health' }])
+  },
+}
+
+export const ApplyManyStatuses: Story = {
+  play: async ({ args, canvasElement }) => {
+    await pickOptions(canvasElement, 'Select field', 'Status')
+    await pickOptions(canvasElement, 'Select condition', 'Is')
+    await pickOptions(canvasElement, 'Select values', 'Deployed', 'Draft')
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Apply' }))
+
+    await expect(args.onApply).toHaveBeenCalledWith([
+      { fieldName: 'status', condition: 'is', value: ['deployed', 'draft'] },
+    ])
   },
 }
 
