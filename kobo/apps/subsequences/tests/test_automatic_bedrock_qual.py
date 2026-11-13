@@ -70,10 +70,7 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_VALIDATION_MAIN_UUID,
     FIXTURE_AUTOMATIC_QUAL_IMAGE_TEXT_UUID,
 )
-from kobo.apps.subsequences.tests.utils import (
-    MockMantleClient,
-    MockRuntimeClient,
-)
+from kobo.apps.subsequences.tests.utils import MockMantleClient, MockRuntimeClient
 from kobo.apps.subsequences.throttling import AutomaticQARateThrottle
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import PERM_CHANGE_SUBMISSIONS, PERM_VIEW_SUBMISSIONS

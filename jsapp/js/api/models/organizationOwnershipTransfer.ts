@@ -16,7 +16,10 @@ export interface OrganizationOwnershipTransfer {
   readonly organization_id: string
   readonly organization_name: string
   readonly sender: string
+  readonly sender_name: string
+  readonly sender_email: string
   recipient: string
+  readonly recipient_username: string
   readonly status: OrganizationOwnershipTransferStatusEnum
   billing_review_requested?: boolean
   readonly created: string

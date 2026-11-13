@@ -2,7 +2,7 @@ import math
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -644,6 +644,11 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
+    sender_name = serializers.SerializerMethodField()
+    sender_email = serializers.EmailField(source='sender.email', read_only=True)
+    recipient_username = serializers.CharField(
+        source='recipient.username', read_only=True
+    )
     organization_id = serializers.CharField(source='organization.id', read_only=True)
     organization_name = serializers.CharField(
         source='organization.name', read_only=True
@@ -663,7 +668,10 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_id',
             'organization_name',
             'sender',
+            'sender_name',
+            'sender_email',
             'recipient',
+            'recipient_username',
             'status',
             'billing_review_requested',
             'created',
@@ -671,18 +679,19 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'uid',
-            'organization_id',
-            'organization_name',
-            'sender',
             'status',
-            'created',
-            'modified',
         ]
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_sender_name(self, obj):
+        try:
+            return obj.sender.extra_details.data.get('name', '')
+        except (AttributeError, ObjectDoesNotExist):
+            return ''
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['recipient'] = instance.recipient.username
-        representation['billing_review_requested'] = instance.billing_review_requested
         return representation
 
     def _get_organization(self):
@@ -739,6 +748,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                 transfer = OrgOwnershipTransferInvite.objects.create(
                     sender=validated_data['sender'],
                     recipient=validated_data['recipient'],
+                    organization=self._get_organization(),
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
