@@ -2242,11 +2242,21 @@ export type organizationsOwnershipTransfersListResponse200 = {
   status: 200
 }
 
+export type organizationsOwnershipTransfersListResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type organizationsOwnershipTransfersListResponseSuccess = organizationsOwnershipTransfersListResponse200 & {
   headers: Headers
 }
+export type organizationsOwnershipTransfersListResponseError = organizationsOwnershipTransfersListResponse404 & {
+  headers: Headers
+}
 
-export type organizationsOwnershipTransfersListResponse = organizationsOwnershipTransfersListResponseSuccess
+export type organizationsOwnershipTransfersListResponse =
+  | organizationsOwnershipTransfersListResponseSuccess
+  | organizationsOwnershipTransfersListResponseError
 
 export const getOrganizationsOwnershipTransfersListUrl = (
   uidOrganization: string,
@@ -2268,7 +2278,11 @@ export const getOrganizationsOwnershipTransfersListUrl = (
 }
 
 /**
- * List organization ownership transfers for the current user.
+ * ## List Organization Ownership Transfers
+ *
+ * * List ownership transfers for the current user and organization.
+ * * Accessible by organization owner and administrators.
+ * * Transfers can be filtered by `status` query parameter (e.g. `pending`, `accepted`, `declined`, `cancelled`).
  */
 export const organizationsOwnershipTransfersList = async (
   uidOrganization: string,
@@ -2293,7 +2307,7 @@ export const getOrganizationsOwnershipTransfersListQueryKey = (
 
 export const getOrganizationsOwnershipTransfersListQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsOwnershipTransfersList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   params?: OrganizationsOwnershipTransfersListParams,
@@ -2322,11 +2336,11 @@ export const getOrganizationsOwnershipTransfersListQueryOptions = <
 export type OrganizationsOwnershipTransfersListQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsOwnershipTransfersList>>
 >
-export type OrganizationsOwnershipTransfersListQueryError = unknown
+export type OrganizationsOwnershipTransfersListQueryError = ErrorDetail
 
 export function useOrganizationsOwnershipTransfersList<
   TData = Awaited<ReturnType<typeof organizationsOwnershipTransfersList>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   params?: OrganizationsOwnershipTransfersListParams,
@@ -2486,19 +2500,33 @@ export type organizationsOwnershipTransfersRetrieveResponse200 = {
   status: 200
 }
 
+export type organizationsOwnershipTransfersRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
 export type organizationsOwnershipTransfersRetrieveResponseSuccess =
   organizationsOwnershipTransfersRetrieveResponse200 & {
     headers: Headers
   }
+export type organizationsOwnershipTransfersRetrieveResponseError =
+  organizationsOwnershipTransfersRetrieveResponse404 & {
+    headers: Headers
+  }
 
-export type organizationsOwnershipTransfersRetrieveResponse = organizationsOwnershipTransfersRetrieveResponseSuccess
+export type organizationsOwnershipTransfersRetrieveResponse =
+  | organizationsOwnershipTransfersRetrieveResponseSuccess
+  | organizationsOwnershipTransfersRetrieveResponseError
 
 export const getOrganizationsOwnershipTransfersRetrieveUrl = (uidOrganization: string, uid: string) => {
   return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/${encodeURIComponent(String(uid))}/`
 }
 
 /**
- * Retrieve an organization ownership transfer by UID.
+ * ## Retrieve Organization Ownership Transfer
+ *
+ * * Retrieve the details of an organization ownership transfer by UID.
+ * * Accessible by the sender (owner) or recipient (invitee).
  */
 export const organizationsOwnershipTransfersRetrieve = async (
   uidOrganization: string,
@@ -2520,7 +2548,7 @@ export const getOrganizationsOwnershipTransfersRetrieveQueryKey = (uidOrganizati
 
 export const getOrganizationsOwnershipTransfersRetrieveQueryOptions = <
   TData = Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   uid: string,
@@ -2549,11 +2577,11 @@ export const getOrganizationsOwnershipTransfersRetrieveQueryOptions = <
 export type OrganizationsOwnershipTransfersRetrieveQueryResult = NonNullable<
   Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>
 >
-export type OrganizationsOwnershipTransfersRetrieveQueryError = unknown
+export type OrganizationsOwnershipTransfersRetrieveQueryError = ErrorDetail
 
 export function useOrganizationsOwnershipTransfersRetrieve<
   TData = Awaited<ReturnType<typeof organizationsOwnershipTransfersRetrieve>>,
-  TError = unknown,
+  TError = ErrorDetail,
 >(
   uidOrganization: string,
   uid: string,
@@ -2616,7 +2644,12 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateUrl = (uidOrga
 }
 
 /**
- * Accept an organization ownership transfer request (invitee only).
+ * ## Accept Organization Ownership Transfer
+ *
+ * * Accept an organization ownership transfer request.
+ * * Can only be accepted by the designated recipient (invitee).
+ * * The recipient must still be an active administrator in the organization.
+ * * The sender must still be the current owner of the organization at the time of acceptance.
  */
 export const organizationsOwnershipTransfersAcceptPartialUpdate = async (
   uidOrganization: string,
@@ -2747,7 +2780,10 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateUrl = (uidOrga
 }
 
 /**
- * Cancel a pending organization ownership transfer request (outgoing owner only).
+ * ## Cancel Organization Ownership Transfer
+ *
+ * * Cancel a pending organization ownership transfer request.
+ * * Can only be cancelled by the sender (current organization owner).
  */
 export const organizationsOwnershipTransfersCancelPartialUpdate = async (
   uidOrganization: string,
@@ -2878,7 +2914,10 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateUrl = (uidOrg
 }
 
 /**
- * Decline an organization ownership transfer request (invitee only).
+ * ## Decline Organization Ownership Transfer
+ *
+ * * Decline a pending organization ownership transfer request.
+ * * Can only be declined by the designated recipient (invitee).
  */
 export const organizationsOwnershipTransfersDeclinePartialUpdate = async (
   uidOrganization: string,
@@ -3015,7 +3054,11 @@ export const getOrganizationsOwnershipTransfersResendCreateUrl = (uidOrganizatio
 }
 
 /**
- * Resend the invitation email for a pending organization ownership transfer (outgoing owner only).
+ * ## Resend Organization Ownership Transfer Invitation
+ *
+ * * Resend the invitation email for a pending organization ownership transfer.
+ * * Can only be triggered by the sender (current organization owner).
+ * * Rate-limited to prevent rapid repeated invitations.
  */
 export const organizationsOwnershipTransfersResendCreate = async (
   uidOrganization: string,

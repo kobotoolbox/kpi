@@ -13207,7 +13207,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/": {
             "get": {
                 "operationId": "api_v2_organizations_ownership_transfers_list",
-                "description": "List organization ownership transfers for the current user.",
+                "description": "## List Organization Ownership Transfers\n\n* List ownership transfers for the current user and organization.\n* Accessible by organization owner and administrators.\n* Transfers can be filtered by `status` query parameter (e.g. `pending`, `accepted`, `declined`, `cancelled`).\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -13271,6 +13271,24 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PaginatedOrganizationOwnershipTransferList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
                                 }
                             }
                         },
@@ -13378,7 +13396,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/": {
             "get": {
                 "operationId": "api_v2_organizations_ownership_transfers_retrieve",
-                "description": "Retrieve an organization ownership transfer by UID.",
+                "description": "## Retrieve Organization Ownership Transfer\n\n* Retrieve the details of an organization ownership transfer by UID.\n* Accessible by the sender (owner) or recipient (invitee).\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -13420,6 +13438,24 @@
                             }
                         },
                         "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -13427,7 +13463,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/": {
             "patch": {
                 "operationId": "api_v2_organizations_ownership_transfers_accept_partial_update",
-                "description": "Accept an organization ownership transfer request (invitee only).",
+                "description": "## Accept Organization Ownership Transfer\n\n* Accept an organization ownership transfer request.\n* Can only be accepted by the designated recipient (invitee).\n* The recipient must still be an active administrator in the organization.\n* The sender must still be the current owner of the organization at the time of acceptance.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -13548,7 +13584,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/": {
             "patch": {
                 "operationId": "api_v2_organizations_ownership_transfers_cancel_partial_update",
-                "description": "Cancel a pending organization ownership transfer request (outgoing owner only).",
+                "description": "## Cancel Organization Ownership Transfer\n\n* Cancel a pending organization ownership transfer request.\n* Can only be cancelled by the sender (current organization owner).\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -13669,7 +13705,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/": {
             "patch": {
                 "operationId": "api_v2_organizations_ownership_transfers_decline_partial_update",
-                "description": "Decline an organization ownership transfer request (invitee only).",
+                "description": "## Decline Organization Ownership Transfer\n\n* Decline a pending organization ownership transfer request.\n* Can only be declined by the designated recipient (invitee).\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -13790,7 +13826,7 @@
         "/api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/": {
             "post": {
                 "operationId": "api_v2_organizations_ownership_transfers_resend_create",
-                "description": "Resend the invitation email for a pending organization ownership transfer (outgoing owner only).",
+                "description": "## Resend Organization Ownership Transfer Invitation\n\n* Resend the invitation email for a pending organization ownership transfer.\n* Can only be triggered by the sender (current organization owner).\n* Rate-limited to prevent rapid repeated invitations.\n",
                 "parameters": [
                     {
                         "in": "path",
