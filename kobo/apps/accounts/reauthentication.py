@@ -46,26 +46,41 @@ def did_recently_reauthenticate(request) -> bool:
     for an account with MFA active. We require re-authenticating "with password,
     and also with 2FA if it's enabled", so every method the user has available
     must have been completed within `ACCOUNT_REAUTHENTICATION_TIMEOUT`.
-
-    Unlike allauth, a recent login still counts: the frontend cannot walk users
-    through re-authentication yet (DEV-1971), so logging in again is the only
-    way to change the email address from the UI.
     """
     user = request.user
-    if not user.is_authenticated:
-        return False
+    return user.is_authenticated and _did_recently_complete(
+        request, get_required_reauthentication_methods(user)
+    )
 
-    required = get_required_reauthentication_methods(user)
-    if not required:
+
+def did_recently_reauthenticate_with_mfa(request) -> bool:
+    """
+    Whether the user completed a 2FA code within `ACCOUNT_REAUTHENTICATION_TIMEOUT`
+
+    For turning 2FA off, which needs the code but not the password. allauth would
+    accept a re-authentication with the password alone. As in
+    `did_recently_reauthenticate()`, a recent login counts
+    """
+    return request.user.is_authenticated and _did_recently_complete(
+        request, {MFA_METHOD}
+    )
+
+
+def _did_recently_complete(request, methods: set[str]) -> bool:
+    """
+    Whether every method in `methods` was completed within
+    `ACCOUNT_REAUTHENTICATION_TIMEOUT`, at login or re-authentication
+    """
+    if not methods:
         return True
 
     cutoff = time.time() - app_settings.REAUTHENTICATION_TIMEOUT
     fresh_methods = {
         record['method']
-        for record in get_authentication_records(request, user)
+        for record in get_authentication_records(request, request.user)
         if record.get('at', 0) > cutoff
     }
-    return required.issubset(fresh_methods)
+    return methods.issubset(fresh_methods)
 
 
 def is_session_authenticated(request) -> bool:
@@ -125,14 +140,14 @@ def validate_stateless_reauthentication(request) -> None:
         elif not errors:
             # Only spend the 2FA code once the password has passed; a wrong
             # password must not cost the user a recovery code
-            if not _is_valid_mfa_code(user, mfa_code):
+            if not is_valid_mfa_code(user, mfa_code):
                 errors['mfa_code'] = t('Invalid code.')
 
     if errors:
         raise serializers.ValidationError(errors)
 
 
-def _is_valid_mfa_code(user, code) -> bool:
+def is_valid_mfa_code(user, code) -> bool:
     """
     Validate a TOTP or recovery code, reusing the serializer that already backs
     the MFA endpoints so that legacy migrated recovery codes keep working

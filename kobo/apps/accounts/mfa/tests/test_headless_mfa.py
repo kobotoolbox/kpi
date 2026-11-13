@@ -143,10 +143,9 @@ class HeadlessMfaTestCase(BaseTestCase):
 
         # KPI's code validation finds the new recovery codes
         response = self.client.post(
-            reverse('mfa-deactivate', args=('app',)), data={'code': recovery_code}
+            reverse('mfa-regenerate', args=('app',)), data={'code': recovery_code}
         )
         assert response.status_code == status.HTTP_200_OK
-        assert not user_has_active_mfa(self.someuser)
 
     @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
     def test_superuser_cannot_deactivate_with_headless_when_enforced(self):

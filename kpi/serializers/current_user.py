@@ -2,6 +2,7 @@ import datetime
 from zoneinfo import ZoneInfo
 
 import constance
+from allauth.mfa.utils import is_mfa_enabled
 from constance import config
 from django.conf import settings
 from django.contrib.auth import update_session_auth_hash
@@ -16,6 +17,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from hub.models import ExtraUserDetail
+from kobo.apps.accounts.reauthentication import is_valid_mfa_code
 from kobo.apps.accounts.serializers import SocialAccountSerializer
 from kobo.apps.accounts.utils import user_is_managed_by_sso
 from kobo.apps.kobo_auth.shortcuts import User
@@ -46,6 +48,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     extra_details = ExtraDetailsOverload(source='extra_details.data')
     current_password = serializers.CharField(write_only=True, required=False)
     new_password = serializers.CharField(write_only=True, required=False)
+    mfa_code = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
     social_accounts = SocialAccountSerializer(
         source='socialaccount_set', many=True, read_only=True
@@ -71,6 +74,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'extra_details',
             'current_password',
             'new_password',
+            'mfa_code',
             'git_rev',
             'social_accounts',
             'validated_password',
@@ -204,6 +208,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
         current_password = attrs.pop('current_password', False)
         new_password = attrs.get('new_password', False)
+        mfa_code = attrs.pop('mfa_code', None)
 
         if all((current_password, new_password)):
             if not self.instance.check_password(current_password):
@@ -218,6 +223,21 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                     for validation_error in validation_errors:
                         errors.append(validation_error)
                 raise serializers.ValidationError({'new_password': errors})
+            # A password alone must not be enough to change it when 2FA is on.
+            # Checked after both passwords: a valid recovery code is spent, so a
+            # wrong or invalid password must not cost one
+            if is_mfa_enabled(self.instance):
+                if not mfa_code:
+                    raise serializers.ValidationError(
+                        {
+                            'mfa_code': t(
+                                'This field is required to change the password'
+                                ' when two-factor authentication is enabled.'
+                            )
+                        }
+                    )
+                if not is_valid_mfa_code(self.instance, mfa_code):
+                    raise serializers.ValidationError({'mfa_code': t('Invalid code.')})
         elif any((current_password, new_password)):
             not_empty_field_name = (
                 'current_password' if current_password else 'new_password'
