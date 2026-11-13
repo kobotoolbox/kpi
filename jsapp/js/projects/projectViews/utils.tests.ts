@@ -18,9 +18,11 @@ describe('projectViewsUtils', () => {
         { fieldName: 'name', condition: 'is', value: 'Foo' },
         { fieldName: 'sector', condition: 'isEmptyObject' },
         // this one is ok, just the value should be dropped
-        { fieldName: 'countries', condition: 'isNotEmptyObject', value: 'Bar' },
+        { fieldName: 'countries', condition: 'isNotEmpty', value: 'Bar' },
         { fieldName: 'status', condition: 'is', value: ['draft', 'archived'] },
         // all bad below
+        // Was offered for countries before, but never matched right
+        { fieldName: 'countries', condition: 'isEmptyObject' },
         { fieldName: 'languages', condition: 'contains', value: '' },
         { fieldName: 'status', condition: 'is', value: [] },
         { condition: 'isNot', value: 'Fum' },
@@ -34,7 +36,7 @@ describe('projectViewsUtils', () => {
       const clean: ProjectsFilterDefinition[] = [
         { fieldName: 'name', condition: 'is', value: 'Foo' },
         { fieldName: 'sector', condition: 'isEmptyObject' },
-        { fieldName: 'countries', condition: 'isNotEmptyObject' },
+        { fieldName: 'countries', condition: 'isNotEmpty' },
         { fieldName: 'status', condition: 'is', value: ['draft', 'archived'] },
       ]
       const test = removeIncorrectFilters(dirty)
@@ -58,9 +60,9 @@ describe('projectViewsUtils', () => {
       const filters: ProjectsFilterDefinition[] = [
         { fieldName: 'name', condition: 'is', value: 'Foo' },
         { fieldName: 'sector', condition: 'isEmptyObject' },
-        { fieldName: 'countries', condition: 'isNotEmptyObject' },
+        { fieldName: 'countries', condition: 'isNotEmpty' },
       ]
-      const queries = ['name__iexact:"Foo"', 'settings__sector__iexact:{}', 'NOT settings__country_codes[]__iexact:{}']
+      const queries = ['name__iexact:"Foo"', 'settings__sector__iexact:{}', 'NOT settings__country_codes[]:""']
       const test = buildQueriesFromFilters(filters)
       chai.expect(test).to.deep.equal(queries)
     })
@@ -109,6 +111,10 @@ describe('projectViewsUtils', () => {
         {
           in: { fieldName: 'sector', condition: 'isNotEmptyObject' },
           out: 'NOT settings__sector__iexact:{}',
+        },
+        {
+          in: { fieldName: 'languages', condition: 'isEmpty' },
+          out: 'summary__languages[]:""',
         },
         {
           in: { fieldName: 'languages', condition: 'is', value: 'foo' },
