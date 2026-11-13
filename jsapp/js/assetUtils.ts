@@ -651,8 +651,14 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
   const errors = []
 
   if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (!asset.name || !asset.settings.organization || !asset.settings.sector) {
-      errors.push(t('Name, organization and sector are required to make collection public.'))
+    // Sector can only be asked for when this instance offers the field
+    const isSectorRequired = Boolean(envStore.data.getProjectMetadataField('sector'))
+    if (!asset.name || !asset.settings.organization || (isSectorRequired && !asset.settings.sector)) {
+      errors.push(
+        isSectorRequired
+          ? t('Name, organization and sector are required to make collection public.')
+          : t('Name and organization are required to make collection public.'),
+      )
     }
     if (asset.children.count === 0) {
       errors.push(t('Empty collection is not allowed to be made public.'))
