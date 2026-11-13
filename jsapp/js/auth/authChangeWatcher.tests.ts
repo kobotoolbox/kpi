@@ -3,7 +3,7 @@ import { fetchGet } from '#/api'
 import { fetchWithAuth } from '#/api/orval.mutator'
 import { queryClient } from '#/api/queryClient'
 import {
-  allauthBrowserV1AccountPasswordChangePost,
+  allauthBrowserV1AccountAuthenticatorsTotpPost,
   getAllauthBrowserV1AuthSessionGetQueryKey,
   getAllauthBrowserV1AuthSessionGetUrl,
 } from '#/api/react-query/authentication-allauth-headless'
@@ -45,7 +45,7 @@ const reauthenticationRequired = response(401, {
 
 const sessionUrl = getAllauthBrowserV1AuthSessionGetUrl()
 /** The kind of request that raises a reauthentication ask, and the kind the session poll can race. */
-const fromAccountCall = { url: '/api/v2/allauth/browser/v1/account/password/change', method: 'POST' }
+const fromAccountCall = { url: '/api/v2/allauth/browser/v1/account/authenticators/totp', method: 'POST' }
 /** An asset, a project list, a submission: a KPI endpoint, which has no use for a 401 other than "no session". */
 const assetUrl = '/api/v2/assets/aXy5nQ2vFmW8pLr3TkJdHc/'
 
@@ -132,7 +132,7 @@ describe('recordAllauthResponse', () => {
 
   it('leaves the last reading in place when the answer is not one', async () => {
     await recordAllauthResponse(fromAccountCall, session)
-    await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Wrong password.' }] }))
+    await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Incorrect code.' }] }))
 
     const cached = queryClient.getQueryData(queryKey) as AllauthResponse
     chai.expect(cached.status).to.equal(200)
@@ -169,7 +169,7 @@ describe('recordAllauthResponse', () => {
 
   it('does not move that for an answer carrying no reading', async () => {
     await recordAllauthResponse({ url: sessionUrl, method: 'GET' }, session)
-    await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Wrong password.' }] }))
+    await recordAllauthResponse(fromAccountCall, response(400, { errors: [{ message: 'Incorrect code.' }] }))
 
     chai.expect(isNewestReadingFromOwnCall()).to.equal(false)
   })
@@ -191,7 +191,7 @@ describe('an allauth call from a screen other than the session poll', () => {
   it('leaves its answer as the newest session reading', async () => {
     fetchSpy.mockResolvedValue(jsonResponse(401, reauthenticationRequired.data))
 
-    await allauthBrowserV1AccountPasswordChangePost({ current_password: 'hunter2', new_password: 'hunter3' })
+    await allauthBrowserV1AccountAuthenticatorsTotpPost({ code: '123456' })
 
     const cached = queryClient.getQueryData(queryKey) as AllauthResponse
     chai.expect(cached.status).to.equal(401)

@@ -98,6 +98,21 @@ class MePasswordChangeWithMfaTestCase(TestCase):
         assert list(invalid_password.json()) == ['new_password']
         validate.assert_not_called()
 
+    def test_sso_managed_account_is_refused_without_spending_code(self):
+        with (
+            patch(
+                'kpi.serializers.current_user.user_is_managed_by_sso',
+                return_value=True,
+            ),
+            patch('kpi.serializers.current_user.is_valid_mfa_code') as validate,
+        ):
+            response = self._change_password(mfa_code='123456')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == ['Cannot update password for sso-managed account']
+        validate.assert_not_called()
+        self._assert_password_unchanged()
+
     def test_code_not_needed_without_mfa(self):
         Authenticator.objects.filter(user=self.user).delete()
 

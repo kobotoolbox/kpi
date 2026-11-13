@@ -46,6 +46,11 @@ def did_recently_reauthenticate(request) -> bool:
     for an account with MFA active. We require re-authenticating "with password,
     and also with 2FA if it's enabled", so every method the user has available
     must have been completed within `ACCOUNT_REAUTHENTICATION_TIMEOUT`.
+
+    Unlike allauth, a recent login also counts, not only an explicit
+    re-authentication. Until the frontend could walk users through
+    re-authentication, logging in again was the only way to change the email
+    address from the UI.
     """
     user = request.user
     return user.is_authenticated and _did_recently_complete(

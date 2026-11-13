@@ -225,8 +225,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'new_password': errors})
             # A password alone must not be enough to change it when 2FA is on.
             # Checked after both passwords: a valid recovery code is spent, so a
-            # wrong or invalid password must not cost one
-            if is_mfa_enabled(self.instance):
+            # wrong or invalid password must not cost one. Neither must a change
+            # that `update()` refuses anyway for an SSO-managed account
+            if is_mfa_enabled(self.instance) and not user_is_managed_by_sso(
+                self.instance
+            ):
                 if not mfa_code:
                     raise serializers.ValidationError(
                         {
