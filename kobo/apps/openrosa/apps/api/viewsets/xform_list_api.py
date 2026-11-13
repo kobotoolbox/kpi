@@ -157,7 +157,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             )
 
             queryset = queryset.filter(
-                Q(user__username=username.lower()) | Q(kpi_asset_uid__in=asset_uids),
+                Q(user_id=openrosa_user.pk) | Q(kpi_asset_uid__in=asset_uids),
                 require_auth=False,
             )
 
