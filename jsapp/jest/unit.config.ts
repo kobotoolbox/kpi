@@ -26,8 +26,6 @@ const config: Config = {
     '\\.(css|scss)$': 'identity-obj-proxy',
     // 🖼️ webpack resolves these to a URL string; give tests a stand-in
     '\\.(svg|png|jpg|gif|ttf|eot|woff2?)$': '<rootDir>/fileMock.js',
-    // 📦 same API as `lodash-es`, but CommonJS, so Jest doesn't have to transform it
-    '^lodash-es$': 'lodash',
   },
 
   // Extensions to try in order (for import statements with no extension)
@@ -49,7 +47,7 @@ const config: Config = {
   // These packages are explicitly allowlisted because they can publish ESM output,
   // which otherwise causes parse errors like "unexpected token export/import" in tests.
   transformIgnorePatterns: [
-    'node_modules/(?!(msw|@mswjs|@open-draft|@bundled-es-modules|headers-polyfill|outvariant|is-node-process|strict-event-emitter|statuses|until-async|rettime)/)',
+    'node_modules/(?!(msw|@mswjs|@open-draft|@bundled-es-modules|headers-polyfill|outvariant|is-node-process|strict-event-emitter|statuses|until-async|rettime|lodash-es)/)',
   ],
 
   // Set up test environment
