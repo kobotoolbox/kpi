@@ -253,6 +253,11 @@ const tsConfig = {
             message: "Use TextInput from 'jsapp/js/components/common' instead.",
           },
           {
+            name: '@mantine/dates',
+            importNames: ['DatePickerInput'],
+            message: "Use DatePickerInput from 'jsapp/js/components/common' instead, it lazy loads @mantine/dates.",
+          },
+          {
             name: 'react-dropzone',
             message: "react-dropzone is deprecated. Use @mantine/dropzone via jsapp/js/components/common/DropzoneNew instead.",
           },
