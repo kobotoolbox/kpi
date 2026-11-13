@@ -6,10 +6,6 @@
   flex-direction: row;
   align-items: stretch;
   gap: 6px;
-
-  & + & {
-    margin-top: 8px;
-  }
 }
 
 .column {
