@@ -4,12 +4,19 @@ from functools import lru_cache
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q, Value
+from django.db.models.fields.json import KeyTextTransform, KeyTransform
+from django.db.models.lookups import Exact
 from django.utils import timezone
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.django_orm_helper import (
+    JSONBSet,
+    RemoveJSONFieldAttribute,
+    UpdateJSONFieldAttributes,
+)
 from kpi.utils.log import logging
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import (
@@ -22,6 +29,7 @@ from .constants import (
 )
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
+from .utils.time import utc_datetime_to_js_str
 
 
 class SubmissionSupplement(AbstractTimeStampedModel):
@@ -71,6 +79,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         ].content  # lock it?
 
         pending_qual_tag_syncs = []
+        has_new_data = False
         for question_xpath, data_for_this_question in incoming_data.items():
             if question_xpath == '_version':
                 # FIXME: what's a better way? skip all leading underscore keys?
@@ -108,18 +117,81 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 action = feature.to_action(prefetched_dependencies)
                 action.check_limits(asset.owner, action_data)
 
-                if not (
-                    action_supplemental_data := action.revise_data(
+                # Create the `in_progress` version before calling the service,
+                # so its `_dateCreated` is the real start of the action
+                in_progress_created_upfront = False
+                if upfront_data := action.build_in_progress_supplemental_data(
+                    submission, action_supplemental_data, action_data
+                ):
+                    action_path, previous_data = SubmissionSupplement._locate_action(
+                        action, question_xpath, action_data, action_supplemental_data
+                    )
+                    _, new_data = SubmissionSupplement._locate_action(
+                        action, question_xpath, action_data, upfront_data
+                    )
+                    # `_version` is written in the same statement: on a new
+                    # supplement this is the first write, and content without
+                    # it is read back as the legacy schema, which drops it
+                    SubmissionSupplement.objects.filter(
+                        asset=asset, submission_uuid=submission_uuid
+                    ).update(
+                        content=JSONBSet(
+                            UpdateJSONFieldAttributes(
+                                'content', path=action_path, updates=new_data
+                            ),
+                            ['_version'],
+                            Value(SCHEMA_VERSIONS[0], output_field=models.JSONField()),
+                        )
+                    )
+                    # Keep the in-memory copy in sync, so `action.revise_data()`
+                    # sees the new version as the current one
+                    question_supplemental_data[action_id] = upfront_data
+                    action_supplemental_data = upfront_data
+                    in_progress_created_upfront = True
+
+                try:
+                    new_action_supplemental_data = action.revise_data(
                         submission,
                         action_supplemental_data,
                         action_data,
+                        in_progress_created_upfront=in_progress_created_upfront,
                     )
-                ):
-                    # TODO is line below really needed?
-                    supplemental_data['_version'] = schema_version
-                    return supplemental_data
+                except Exception:
+                    if in_progress_created_upfront:
+                        # The launch was refused (e.g. usage limit reached): the
+                        # request fails as it always has, and the action is put
+                        # back as it was
+                        SubmissionSupplement._update_while_in_progress(
+                            asset,
+                            submission_uuid,
+                            action_path,
+                            JSONBSet(
+                                F('content'),
+                                action_path,
+                                Value(previous_data, output_field=models.JSONField()),
+                            )
+                            if previous_data
+                            else RemoveJSONFieldAttribute('content', action_path),
+                        )
+                    raise
 
-                question_supplemental_data[action_id] = action_supplemental_data
+                if new_action_supplemental_data is None:
+                    # Still running: nothing new to save for this action, apart
+                    # from the refresh of its `in_progress` version
+                    if action.action_class_config.create_in_progress_upfront:
+                        action_path, running_data = (
+                            SubmissionSupplement._locate_action(
+                                action, question_xpath, action_data,
+                                action_supplemental_data,
+                            )
+                        )
+                        SubmissionSupplement._refresh_in_progress_action(
+                            asset, submission_uuid, action_path, running_data
+                        )
+                    continue
+
+                has_new_data = True
+                question_supplemental_data[action_id] = new_action_supplemental_data
 
                 if action_id == Action.MANUAL_QUAL:
                     # Defer tracker sync until the supplement content is
@@ -128,6 +200,11 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     pending_qual_tag_syncs.append((feature.params, action_data))
 
         supplemental_data['_version'] = schema_version
+        if not has_new_data:
+            # Only running actions: their refresh is saved above, and a full
+            # rewrite of `content` could erase an edit made meanwhile
+            return supplemental_data
+
         validate_submission_supplement(asset, supplemental_data)
 
         with transaction.atomic():
@@ -141,6 +218,70 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 )
 
         return supplemental_data
+
+    @staticmethod
+    def _locate_action(
+        action, question_xpath: str, action_data: dict, action_supplemental_data: dict
+    ) -> tuple[list[str], dict]:
+        """
+        Return the keys leading to the action's data in `content`, and that
+        data within `action_supplemental_data` (the same object, not a copy)
+
+        A localized action (e.g. translation) has one block per language: the
+        path leads to it, so targeted updates never rewrite sibling languages
+        """
+        path = [question_xpath, action.ID]
+        if action.action_class_config.allow_multiple:
+            needle = action_data[action.action_class_config.action_data_key]
+            path.append(needle)
+            action_supplemental_data = action_supplemental_data.get(needle, {})
+        return path, action_supplemental_data
+
+    @staticmethod
+    def _refresh_in_progress_action(
+        asset: 'kpi.Asset',
+        submission_uuid: str,
+        action_path: list[str],
+        running_data: dict,
+    ) -> None:
+        """
+        Move the action's `_dateModified` forward while it is still running, so
+        the front end knows when it last moved. `running_data`, the in-memory
+        copy the caller returns, is kept in sync with what was saved
+        """
+        date_modified = utc_datetime_to_js_str(timezone.now())
+        if SubmissionSupplement._update_while_in_progress(
+            asset,
+            submission_uuid,
+            action_path,
+            UpdateJSONFieldAttributes(
+                'content', path=[*action_path, '_dateModified'], updates=date_modified
+            ),
+        ):
+            running_data['_dateModified'] = date_modified
+
+    @staticmethod
+    def _update_while_in_progress(
+        asset: 'kpi.Asset', submission_uuid: str, action_path: list[str], content
+    ) -> bool:
+        """
+        Apply the `content` expression while the action's latest version is
+        still `in_progress`, and tell whether it was applied
+
+        A targeted JSON update, never a rewrite of `content`: it cannot erase an
+        edit made on the same submission meanwhile. The condition on the status
+        leaves a result or a deletion landing in between untouched
+        """
+        latest_version_data = 'content'
+        for key in [*action_path, '_versions', '0', '_data']:
+            latest_version_data = KeyTransform(key, latest_version_data)
+
+        updated = SubmissionSupplement.objects.filter(
+            Exact(KeyTextTransform('status', latest_version_data), 'in_progress'),
+            asset=asset,
+            submission_uuid=submission_uuid,
+        ).update(content=content)
+        return bool(updated)
 
     @staticmethod
     def _sync_qual_tag_trackers(
