@@ -7,7 +7,7 @@ from allauth.mfa.totp.internal.auth import TOTP
 from django.db import transaction
 from rest_framework.exceptions import NotFound, ValidationError
 
-from .utils import MFA_METHOD_NAME, deactivate_mfa, user_has_active_mfa
+from .utils import MFA_METHOD_NAME, user_has_active_mfa
 
 
 def _validate_method(name):
@@ -56,10 +56,3 @@ def regenerate_codes(request, name):
         recovery_codes = RecoveryCodes.activate(request.user).instance
 
     return recovery_codes.wrap()
-
-
-def deactivate_totp(request, name):
-    _validate_method(name)
-    if not user_has_active_mfa(request.user):
-        raise NotFound
-    deactivate_mfa(request.user, request=request)

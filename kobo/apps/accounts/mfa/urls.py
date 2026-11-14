@@ -6,7 +6,6 @@ from .views import (
     MfaLoginView,
     MfaMethodActivationView,
     MfaMethodConfirmView,
-    MfaMethodDeactivateView,
     MfaMethodRegenerateCodesView,
 )
 
@@ -26,11 +25,6 @@ urlpatterns = [
         'api/v2/auth/<str:method>/activate/confirm/',
         MfaMethodConfirmView.as_view(),
         name='mfa-confirm',
-    ),
-    path(
-        'api/v2/auth/<str:method>/deactivate/',
-        MfaMethodDeactivateView.as_view(),
-        name='mfa-deactivate',
     ),
     path(
         'api/v2/auth/<str:method>/codes/regenerate/',

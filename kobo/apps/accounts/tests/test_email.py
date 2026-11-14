@@ -391,7 +391,7 @@ class EmailChangeReauthenticationTestCase(APITestCase):
                 return_value=True,
             ),
             patch(
-                'kobo.apps.accounts.reauthentication._is_valid_mfa_code',
+                'kobo.apps.accounts.reauthentication.is_valid_mfa_code',
                 return_value=True,
             ),
         ):
@@ -407,7 +407,7 @@ class EmailChangeReauthenticationTestCase(APITestCase):
                 return_value=True,
             ),
             patch(
-                'kobo.apps.accounts.reauthentication._is_valid_mfa_code',
+                'kobo.apps.accounts.reauthentication.is_valid_mfa_code',
                 return_value=False,
             ),
         ):
@@ -456,7 +456,7 @@ class EmailChangeReauthenticationTestCase(APITestCase):
                 'kobo.apps.accounts.reauthentication.is_mfa_enabled',
                 return_value=True,
             ),
-            patch('kobo.apps.accounts.reauthentication._is_valid_mfa_code') as validate,
+            patch('kobo.apps.accounts.reauthentication.is_valid_mfa_code') as validate,
         ):
             res = self._post_with(current_password='wrong', mfa_code='123456')
         assert res.status_code == status.HTTP_400_BAD_REQUEST
