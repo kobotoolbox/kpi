@@ -1,5 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
-import isEqual from 'lodash.isequal'
+import { cloneDeep, isEqual } from 'lodash-es'
 import type { PartialPermission, PartialPermissionFilter, PermissionBase, PermissionResponse } from '#/dataInterface'
 import { ANON_USERNAME, buildUserUrl, getUsernameFromUrl } from '#/users/utils'
 import { recordEntries, recordKeys, recordValues } from '#/utils'
@@ -139,7 +138,7 @@ function removeContradictoryPerms(parsed: PermissionBase[]): PermissionBase[] {
  */
 export function removeImpliedPartialPerms(partialPerms: PartialPermission[]): PartialPermission[] {
   // Step 1. Don't mutate things
-  let perms = clonedeep(partialPerms)
+  let perms = cloneDeep(partialPerms)
 
   // Step 2. Gather all implied permissions x filters pairs.
   const redundantFilters: Array<{

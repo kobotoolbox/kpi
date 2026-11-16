@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import isEqual from 'lodash.isequal'
+import { isEqual } from 'lodash-es'
 import { makeAutoObservable, reaction } from 'mobx'
 import { handleApiFail, isAbortResponse } from '#/api'
 import searchBoxStore from '#/components/header/searchBoxStore'

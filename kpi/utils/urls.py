@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -10,6 +11,7 @@ from django.urls import (
     resolve,
 )
 from django.utils.encoding import uri_to_iri
+from django.views import View
 from rest_framework.reverse import reverse
 
 from kpi.constants import API_NAMESPACES
@@ -114,11 +116,13 @@ def exclude_routes(
 
     Use it to drop a third-party route instead of masking it with an earlier
     pattern on the same path, which leaves the original registered behind it.
-    Namespaces and app names are kept, so reversing the remaining routes is
-    unaffected. Raises `ImproperlyConfigured` when a name matches no route, so a
-    route renamed upstream cannot quietly come back
+    A name can be qualified by its closest namespaces (e.g. `mfa:reauthenticate`)
+    when the bare name is not unique. Namespaces and app names are kept, so
+    reversing the remaining routes is unaffected. Raises `ImproperlyConfigured`
+    when a name matches no route, so a route renamed upstream cannot quietly
+    come back
     """
-    kept, excluded = _exclude_routes(patterns, names)
+    kept, excluded = _rewrite_routes(patterns, names, lambda pattern, name: None)
     if missing := names - excluded:
         raise ImproperlyConfigured(
             f'No route to exclude is named {", ".join(sorted(missing))}'
@@ -126,16 +130,69 @@ def exclude_routes(
     return kept
 
 
-def _exclude_routes(
-    patterns: list[URLPattern | URLResolver], names: set[str]
+def replace_route_views(
+    patterns: list[URLPattern | URLResolver], views: dict[str, type[View]]
+) -> list[URLPattern | URLResolver]:
+    """
+    Return `patterns` with the view of each route named in `views` replaced by
+    the given subclass of that view, at any depth
+
+    Use it to change a third-party view instead of masking its route with an
+    earlier pattern on the same path, which would silently stop applying if the
+    path changed upstream. The route keeps its path, name and namespaces, and
+    the replacement is built with the original view's init kwargs (e.g. the
+    `client` of allauth's headless views). Names are matched as in
+    `exclude_routes()`. Raises `ImproperlyConfigured` when a name matches no
+    route, or when a replacement does not subclass the view it replaces
+    """
+
+    def replace(pattern: URLPattern, name: str) -> URLPattern:
+        view_class = views[name]
+        original = getattr(pattern.callback, 'view_class', None)
+        if original is None or not issubclass(view_class, original):
+            raise ImproperlyConfigured(
+                f'{view_class.__name__} does not subclass the view of the {name} route'
+            )
+        # allauth's headless views wrap `as_view()` for their client
+        build = getattr(view_class, 'as_api_view', view_class.as_view)
+        return URLPattern(
+            pattern.pattern,
+            build(**pattern.callback.view_initkwargs),
+            pattern.default_args,
+            pattern.name,
+        )
+
+    replaced, matched = _rewrite_routes(patterns, set(views), replace)
+    if missing := set(views) - matched:
+        raise ImproperlyConfigured(
+            f'No route to replace is named {", ".join(sorted(missing))}'
+        )
+    return replaced
+
+
+def _rewrite_routes(
+    patterns: list[URLPattern | URLResolver],
+    names: set[str],
+    rewrite: Callable[[URLPattern, str], URLPattern | None],
+    namespaces: tuple[str, ...] = (),
 ) -> tuple[list[URLPattern | URLResolver], set[str]]:
-    kept = []
-    excluded = set()
+    """
+    Return `patterns` with each route named in `names` passed through
+    `rewrite()`, which returns its replacement or `None` to drop it, and the
+    names that matched a route
+    """
+    rewritten = []
+    matched = set()
     for pattern in patterns:
         if isinstance(pattern, URLResolver):
-            nested, nested_excluded = _exclude_routes(pattern.url_patterns, names)
-            excluded |= nested_excluded
-            kept.append(
+            nested, nested_matched = _rewrite_routes(
+                pattern.url_patterns,
+                names,
+                rewrite,
+                (*namespaces, pattern.namespace) if pattern.namespace else namespaces,
+            )
+            matched |= nested_matched
+            rewritten.append(
                 URLResolver(
                     pattern.pattern,
                     nested,
@@ -144,8 +201,35 @@ def _exclude_routes(
                     pattern.namespace,
                 )
             )
-        elif pattern.name in names:
-            excluded.add(pattern.name)
-        else:
-            kept.append(pattern)
-    return kept, excluded
+            continue
+
+        name = _match_route_name(pattern, namespaces, names)
+        if name is None:
+            rewritten.append(pattern)
+            continue
+        matched.add(name)
+        if (replacement := rewrite(pattern, name)) is not None:
+            rewritten.append(replacement)
+    return rewritten, matched
+
+
+def _match_route_name(
+    pattern: URLPattern, namespaces: tuple[str, ...], names: set[str]
+) -> str | None:
+    """
+    Return the entry of `names` that names `pattern`, either bare or qualified
+    by the namespaces closest to it
+    """
+    if pattern.name is None:
+        return None
+    qualified = ':'.join((*namespaces, pattern.name))
+    matches = [
+        name for name in names if qualified == name or qualified.endswith(f':{name}')
+    ]
+    if len(matches) > 1:
+        # e.g. `reauthenticate` and `mfa:reauthenticate`: which one applies
+        # would depend on the iteration order of the set
+        raise ImproperlyConfigured(
+            f'Several names match the {qualified} route: {", ".join(sorted(matches))}'
+        )
+    return matches[0] if matches else None

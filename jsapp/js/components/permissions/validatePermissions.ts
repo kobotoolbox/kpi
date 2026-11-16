@@ -1,4 +1,4 @@
-import union from 'lodash.union'
+import { union } from 'lodash-es'
 import permConfig from '#/components/permissions/permConfig'
 import type { PermissionResponse } from '#/dataInterface'
 import { replaceSupportEmail } from '#/textUtils'
