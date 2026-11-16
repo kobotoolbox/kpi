@@ -9659,6 +9659,81 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                BadRequest:
+                  value:
+                    detail: Invalid request
+                  summary: Bad request
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/:
+    post:
+      operationId: api_v2_organizations_ownership_transfers_create
+      description: |
+        ## Initiate Organization Ownership Transfer
+
+        * Initiate a request to transfer organization ownership to another administrator.
+        * Only the current organization owner can initiate an ownership transfer.
+        * The recipient must be an active administrator within the same organization.
+        * The recipient can be identified by username or email.
+      parameters:
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorValidation'
+              examples:
+                BadRequest:
+                  value:
+                    field_name:
+                    - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:
       operationId: api_v2_organizations_service_usage_retrieve
@@ -10684,7 +10759,18 @@ paths:
       operationId: api_v2_project_views_assets_retrieve
       description: |
         ## Retrieve assets available in project view
+
+        Superusers can add `?extra_fields=on` to get, for each project, its sharing `status`, its `summary`, the uid and the content hash of its latest version (`version_id`, `version__content_hash`), the uid of its deployed version (`deployed_version_id`) and its number of versions (`version_count`). Comparing `version_id` with a previous crawl tells which forms changed, so that only those need `/api/v2/assets/{uid_asset}/content/`. The parameter is ignored for other users.
       parameters:
+      - in: query
+        name: extra_fields
+        schema:
+          type: string
+          enum:
+          - 'on'
+        description: 'Superusers only: `on` adds `status`, `summary`, `version_id`,
+          `version__content_hash`, `deployed_version_id` and `version_count` to each
+          project'
       - in: query
         name: limit
         schema:
@@ -14540,272 +14626,6 @@ paths:
                 no_email:
                   $ref: '#/components/examples/DisconnectNotAllowedNoVerifiedEmail'
       operationId: api_v2_allauth_app_v1_account_providers_delete
-  /api/v2/allauth/browser/v1/account/email:
-    get:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: List email addresses
-      description: |
-        Retrieves the list of email addresses of the account.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_browser_v1_account_email_get
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: |
-        Add/Change email address
-      description: |
-        The following functionality is available:
-
-          - Adding a new email address for an already signed in user (`ACCOUNT_CHANGE_EMAIL = False`).
-          - Change to a new email address for an already signed in user   (`ACCOUNT_CHANGE_EMAIL = True`).
-          - Change to a new email address during the email verification process at signup (`ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_CHANGE = True`).
-
-        In all cases, an email verification mail will be sent containing a link or code that needs to be verified.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '401':
-          $ref: '#/components/responses/AuthenticationOrReauthentication'
-        '409':
-          description: |
-            Conflict. For example, when no user is authenticated and no email verification flow is pending.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConflictResponse'
-      operationId: api_v2_allauth_browser_v1_account_email_post
-    put:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Request email verification
-      description: |
-        Requests for (another) email verification email to be sent. Note that
-        sending emails is rate limited, so when you send too many requests the
-        email will not be sent.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/StatusOK'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '403':
-          description: |
-            Too many email verification mails were already sent.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ForbiddenResponse'
-      operationId: api_v2_allauth_browser_v1_account_email_put
-    patch:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change primary email address
-      description: |
-        Used to change primary email address to a different one. Note that only verified email addresses
-        can be marked as primary.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/MarkPrimaryEmail'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_browser_v1_account_email_patch
-    delete:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Remove an email address
-      description: |
-        Used to remove an email address.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_browser_v1_account_email_delete
-  /api/v2/allauth/app/v1/account/email:
-    get:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: List email addresses
-      description: |
-        Retrieves the list of email addresses of the account.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_app_v1_account_email_get
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: |
-        Add/Change email address
-      description: |
-        The following functionality is available:
-
-          - Adding a new email address for an already signed in user (`ACCOUNT_CHANGE_EMAIL = False`).
-          - Change to a new email address for an already signed in user   (`ACCOUNT_CHANGE_EMAIL = True`).
-          - Change to a new email address during the email verification process at signup (`ACCOUNT_EMAIL_VERIFICATION_SUPPORTS_CHANGE = True`).
-
-        In all cases, an email verification mail will be sent containing a link or code that needs to be verified.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '401':
-          $ref: '#/components/responses/AuthenticationOrReauthentication'
-        '409':
-          description: |
-            Conflict. For example, when no user is authenticated and no email verification flow is pending.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConflictResponse'
-      operationId: api_v2_allauth_app_v1_account_email_post
-    put:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Request email verification
-      description: |
-        Requests for (another) email verification email to be sent. Note that
-        sending emails is rate limited, so when you send too many requests the
-        email will not be sent.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/StatusOK'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-        '403':
-          description: |
-            Too many email verification mails were already sent.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ForbiddenResponse'
-      operationId: api_v2_allauth_app_v1_account_email_put
-    patch:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change primary email address
-      description: |
-        Used to change primary email address to a different one. Note that only verified email addresses
-        can be marked as primary.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/MarkPrimaryEmail'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_app_v1_account_email_patch
-    delete:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Remove an email address
-      description: |
-        Used to remove an email address.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/Email'
-      responses:
-        '200':
-          $ref: '#/components/responses/EmailAddresses'
-        '400':
-          description: An input error occurred.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                invalid_code:
-                  $ref: '#/components/examples/InvalidEmail'
-      operationId: api_v2_allauth_app_v1_account_email_delete
   /api/v2/allauth/browser/v1/account/phone:
     get:
       tags:
@@ -20050,6 +19870,67 @@ components:
       - accept
       type: string
       description: '* `accept` - accept'
+    OrganizationOwnershipTransfer:
+      type: object
+      properties:
+        uid:
+          type: string
+          readOnly: true
+        organization_id:
+          type: string
+          readOnly: true
+        organization_name:
+          type: string
+          readOnly: true
+        sender:
+          type: string
+          readOnly: true
+        recipient:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/OrganizationOwnershipTransferStatusEnum'
+          readOnly: true
+        billing_review_requested:
+          type: boolean
+          default: false
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+        modified:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created
+      - modified
+      - organization_id
+      - organization_name
+      - recipient
+      - sender
+      - status
+      - uid
+    OrganizationOwnershipTransferStatusEnum:
+      enum:
+      - accepted
+      - cancelled
+      - complete
+      - declined
+      - expired
+      - failed
+      - in_progress
+      - pending
+      type: string
+      description: |-
+        * `accepted` - Accepted
+        * `cancelled` - Cancelled
+        * `complete` - Complete
+        * `declined` - Declined
+        * `expired` - Expired
+        * `failed` - Failed
+        * `in_progress` - In Progress
+        * `pending` - Pending
     OrganizationResponse:
       type: object
       properties:
@@ -22877,6 +22758,93 @@ components:
                 example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/
         owner_label:
           type: string
+        status:
+          type: string
+        summary:
+          type: object
+          properties:
+            geo:
+              type: boolean
+            labels:
+              type: array
+              items:
+                type: string
+            columns:
+              type: array
+              items:
+                type: string
+            lock_all:
+              type: boolean
+            lock_any:
+              type: boolean
+            languages:
+              type: array
+              items:
+                type:
+                - string
+                - 'null'
+                nullable: true
+            row_count:
+              type: integer
+            name_quality:
+              type: object
+              properties:
+                ok:
+                  type: integer
+                bad:
+                  type: integer
+                good:
+                  type: integer
+                total:
+                  type: integer
+                firsts:
+                  type: object
+                  properties:
+                    ok:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        index:
+                          type: integer
+                        label:
+                          type: array
+                          items:
+                            type: string
+                    bad:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        index:
+                          type: integer
+                        label:
+                          type: array
+                          items:
+                            type: string
+            default_translation:
+              type:
+              - string
+              - 'null'
+              nullable: true
+            naming_conflicts:
+              type: array
+              items:
+                type: string
+        version_id:
+          type:
+          - string
+          - 'null'
+        version__content_hash:
+          type:
+          - string
+          - 'null'
+        deployed_version_id:
+          type:
+          - string
+          - 'null'
+        version_count:
+          type: integer
       required:
       - asset_type
       - date_created

@@ -11,14 +11,16 @@ from django.utils.translation import gettext_lazy as t
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
+    OpenApiResponse,
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from kobo.apps.project_ownership.models import OrgOwnershipTransferInvite
 from kpi import filters
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import (
@@ -61,12 +63,15 @@ from kpi.utils.query_parser import ParseError, parse
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
     open_api_200_ok_response,
     open_api_201_created_response,
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.utils import mfa_is_active_expression
+from .constants import OWNER_REMOVAL_ERROR
+from .exceptions import InvalidMembershipRequest
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -77,11 +82,13 @@ from .models import (
 from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
+    IsOrgOwnerPermission,
     OrganizationNestedHasOrgRolePermission,
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
 from .serializers import (
+    OrganizationOwnershipTransferSerializer,
     OrganizationResponseSerializer,
     OrganizationSerializer,
     OrganizationUserSerializer,
@@ -438,10 +445,23 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 @extend_schema_view(
     destroy=extend_schema(
         description=read_md('organizations', 'members/delete.md'),
-        responses=open_api_204_empty_response(
-            require_auth=False,
-            validate_payload=False,
-        ),
+        responses={
+            **open_api_204_empty_response(
+                require_auth=False,
+                validate_payload=False,
+            ),
+            (status.HTTP_400_BAD_REQUEST, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Bad request',
+                        value={'detail': 'Invalid request'},
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+        },
         parameters=[
             OpenApiParameter(
                 name='username',
@@ -784,6 +804,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         member = instance
+        if member.organization.is_owner(member.user):
+            raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
+
         with transaction.atomic():
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
@@ -938,3 +961,42 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
             return [OrgMembershipCreateOrDeleteInvitePermission()]
 
         return [OrgMembershipInvitePermission()]
+
+
+@extend_schema(
+    tags=['User / team / organization / usage'],
+    parameters=[
+        OpenApiParameter(
+            name='uid_organization',
+            type=str,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description='UID of the organization',
+        )
+    ],
+)
+@extend_schema_view(
+    create=extend_schema(
+        description=read_md('organizations', 'ownership_transfers/create.md'),
+        responses=open_api_201_created_response(
+            OrganizationOwnershipTransferSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+        ),
+    ),
+)
+class OrganizationOwnershipTransferViewSet(
+    mixins.CreateModelMixin, viewsets.GenericViewSet
+):
+    """
+    ViewSet for initiating organization ownership transfers.
+
+    Available actions:
+    - create → POST /api/v2/organizations/{uid_organization}/ownership-transfers/
+    """
+
+    queryset = OrgOwnershipTransferInvite.objects.none()
+    serializer_class = OrganizationOwnershipTransferSerializer
+    permission_classes = [IsOrgOwnerPermission]
+    http_method_names = ['post']
+    parent_lookup_field = 'uid_organization'

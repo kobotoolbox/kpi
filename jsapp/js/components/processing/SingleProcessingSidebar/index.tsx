@@ -109,8 +109,13 @@ export default function ProcessingSidebar({
           <TransxDisplay transxVersion={transcript} supplement={supplement} xpath={questionXpath} />
         )}
 
-        {selectedDisplays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia asset={asset} xpath={questionXpath} submission={submission} />
+        {(selectedDisplays.includes(StaticDisplays.Audio) || selectedDisplays.includes(StaticDisplays.Image)) && (
+          <SidebarSubmissionMedia
+            asset={asset}
+            xpath={questionXpath}
+            questionType={questionType}
+            submission={submission}
+          />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Text) && (

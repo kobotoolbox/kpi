@@ -52,6 +52,8 @@ import type { MeSocialAccountsListParams } from '../../models/meSocialAccountsLi
 
 import type { MemberListResponse } from '../../models/memberListResponse'
 
+import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
+
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -2120,6 +2122,11 @@ export type organizationsMembersDestroyResponse204 = {
   status: 204
 }
 
+export type organizationsMembersDestroyResponse400 = {
+  data: ErrorDetail
+  status: 400
+}
+
 export type organizationsMembersDestroyResponse403 = {
   data: ErrorDetail
   status: 403
@@ -2134,6 +2141,7 @@ export type organizationsMembersDestroyResponseSuccess = organizationsMembersDes
   headers: Headers
 }
 export type organizationsMembersDestroyResponseError = (
+  | organizationsMembersDestroyResponse400
   | organizationsMembersDestroyResponse403
   | organizationsMembersDestroyResponse404
 ) & {
@@ -2224,6 +2232,145 @@ export const useOrganizationsMembersDestroy = <TError = ErrorDetail, TContext = 
   TContext
 > => {
   return useMutation(getOrganizationsMembersDestroyMutationOptions(options))
+}
+export type organizationsOwnershipTransfersCreateResponse201 = {
+  data: OrganizationOwnershipTransfer
+  status: 201
+}
+
+export type organizationsOwnershipTransfersCreateResponse400 = {
+  data: ErrorValidation
+  status: 400
+}
+
+export type organizationsOwnershipTransfersCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type organizationsOwnershipTransfersCreateResponseSuccess = organizationsOwnershipTransfersCreateResponse201 & {
+  headers: Headers
+}
+export type organizationsOwnershipTransfersCreateResponseError = (
+  | organizationsOwnershipTransfersCreateResponse400
+  | organizationsOwnershipTransfersCreateResponse404
+) & {
+  headers: Headers
+}
+
+export type organizationsOwnershipTransfersCreateResponse =
+  | organizationsOwnershipTransfersCreateResponseSuccess
+  | organizationsOwnershipTransfersCreateResponseError
+
+export const getOrganizationsOwnershipTransfersCreateUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${encodeURIComponent(String(uidOrganization))}/ownership-transfers/`
+}
+
+/**
+ * ## Initiate Organization Ownership Transfer
+ *
+ * * Initiate a request to transfer organization ownership to another administrator.
+ * * Only the current organization owner can initiate an ownership transfer.
+ * * The recipient must be an active administrator within the same organization.
+ * * The recipient can be identified by username or email.
+ */
+export const organizationsOwnershipTransfersCreate = async (
+  uidOrganization: string,
+  organizationOwnershipTransfer: NonReadonly<OrganizationOwnershipTransfer>,
+  options?: Parameters<typeof fetchWithAuth>[1],
+): Promise<organizationsOwnershipTransfersCreateResponse> => {
+  const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {}
+    if (h instanceof Headers) return Object.fromEntries(h.entries())
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      )
+    }
+    const headers: Record<string, string | readonly string[]> = {}
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value
+    }
+    return headers
+  }
+  return fetchWithAuth<organizationsOwnershipTransfersCreateResponse>(
+    getOrganizationsOwnershipTransfersCreateUrl(uidOrganization),
+    {
+      ...options,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+      body: JSON.stringify(organizationOwnershipTransfer),
+    },
+  )
+}
+
+export const getOrganizationsOwnershipTransfersCreateMutationKey = () =>
+  ['organizationsOwnershipTransfersCreate'] as const
+
+export const getOrganizationsOwnershipTransfersCreateMutationOptions = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
+    TError,
+    OrganizationsOwnershipTransfersCreateMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
+  TError,
+  OrganizationsOwnershipTransfersCreateMutationVariables,
+  TContext
+> => {
+  const mutationKey = getOrganizationsOwnershipTransfersCreateMutationKey()
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
+    OrganizationsOwnershipTransfersCreateMutationVariables
+  > = (props) => {
+    const { uidOrganization, data } = props ?? {}
+
+    return organizationsOwnershipTransfersCreate(uidOrganization, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type OrganizationsOwnershipTransfersCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>
+>
+export type OrganizationsOwnershipTransfersCreateMutationBody = NonReadonly<OrganizationOwnershipTransfer>
+export type OrganizationsOwnershipTransfersCreateMutationError = ErrorValidation | ErrorDetail
+export type OrganizationsOwnershipTransfersCreateMutationVariables = {
+  uidOrganization: string
+  data: NonReadonly<OrganizationOwnershipTransfer>
+}
+
+export const useOrganizationsOwnershipTransfersCreate = <
+  TError = ErrorValidation | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
+    TError,
+    OrganizationsOwnershipTransfersCreateMutationVariables,
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationResult<
+  Awaited<ReturnType<typeof organizationsOwnershipTransfersCreate>>,
+  TError,
+  OrganizationsOwnershipTransfersCreateMutationVariables,
+  TContext
+> => {
+  return useMutation(getOrganizationsOwnershipTransfersCreateMutationOptions(options))
 }
 export type organizationsServiceUsageRetrieveResponse200 = {
   data: OrganizationServiceUsageResponse
@@ -2790,6 +2937,8 @@ export const getProjectViewsAssetsRetrieveUrl = (uidProjectView: string, params?
 
 /**
  * ## Retrieve assets available in project view
+ *
+ * Superusers can add `?extra_fields=on` to get, for each project, its sharing `status`, its `summary`, the uid and the content hash of its latest version (`version_id`, `version__content_hash`), the uid of its deployed version (`deployed_version_id`) and its number of versions (`version_count`). Comparing `version_id` with a previous crawl tells which forms changed, so that only those need `/api/v2/assets/{uid_asset}/content/`. The parameter is ignored for other users.
  */
 export const projectViewsAssetsRetrieve = async (
   uidProjectView: string,

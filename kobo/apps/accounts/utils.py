@@ -9,6 +9,7 @@ from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
 
+from kobo.apps.accounts.constants import MAX_DISPLAYED_SSO_PROVIDERS
 from kobo.apps.accounts.models import SocialAppManagedDomain, get_normalized_domain
 from kobo.apps.help.models import InAppMessage, InAppMessageUsers, MessageType
 from kobo.apps.kobo_auth.shortcuts import User
@@ -33,6 +34,31 @@ DEFAULT_IN_APP_MESSAGE_FIELDS = {
     'message_type': MessageType.MANAGED_SSO_REMINDER,
     'published': True,
 }
+
+
+def get_public_social_apps():
+    """
+    SocialApps shown to users, oldest first
+
+    An app with no `SocialAppCustomData` row counts as public. The order decides
+    which apps get the limited buttons on the login and registration screens, so
+    it must stay stable: adding a provider never hides one that is already shown.
+    """
+    return SocialApp.objects.filter(
+        Q(custom_data__is_public=True) | Q(custom_data__isnull=True)
+    ).order_by('id')
+
+
+def get_hidden_public_social_app_names() -> list[str]:
+    """
+    Names of the public SocialApps that get no button on the login and
+    registration screens because the first `MAX_DISPLAYED_SSO_PROVIDERS` took them
+    """
+    return list(
+        get_public_social_apps().values_list('name', flat=True)[
+            MAX_DISPLAYED_SSO_PROVIDERS:
+        ]
+    )
 
 
 class SplitPart(Func):

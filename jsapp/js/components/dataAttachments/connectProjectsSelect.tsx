@@ -30,7 +30,7 @@ export default function ConnectProjectsSelect({
   return (
     <Select
       className='connect-projects-select'
-      placeholder={t('Select a different project to import data from')}
+      placeholder={t('Select a project to import data from')}
       // `Select` only works on strings, so we use asset urls as option values
       // and look the whole asset up again when one gets selected.
       data={filteredAssets.map((asset) => ({ value: asset.url, label: asset.name }))}

@@ -73,7 +73,7 @@ export default function FormViewSideTabs() {
   return (
     <Box component='nav' aria-label={menu.label} className={styles.root}>
       {menu.tabs.map((tab) => {
-        const isActive = matchPath({ path: tab.path, end: true }, location.pathname) !== null
+        const isActive = matchPath({ path: tab.path, end: !tab.matchesNestedRoutes }, location.pathname) !== null
         return (
           <NavLink
             key={tab.path}

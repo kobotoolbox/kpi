@@ -13,6 +13,7 @@ from google.cloud import storage
 from googleapiclient import discovery
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.stripe.utils.limit_enforcement import raise_if_usage_limit_exceeded
 from kobo.apps.trackers.utils import update_nlp_counter
 from kpi.utils.log import logging
 from ...constants import (
@@ -34,6 +35,7 @@ class GoogleService(ABC):
     API_NAME = None
     API_VERSION = None
     API_RESOURCE = None
+    USAGE_TYPE = None
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         super().__init__()
@@ -153,6 +155,13 @@ class GoogleService(ABC):
             self.asset.owner_id,
             self.asset.id,
         )
+
+    def _before_new_operation(self) -> None:
+        """
+        Refuse to start a new operation if the asset owner has exceeded their
+        usage limit, since usage is counted when an operation starts
+        """
+        raise_if_usage_limit_exceeded(self.asset.owner, self.USAGE_TYPE)
 
     def _get_cache_key(
         self, xpath: str, source_lang: str, target_lang: str | None

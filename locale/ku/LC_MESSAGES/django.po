@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 12:57+0000\n"
+"POT-Creation-Date: 2026-11-05 19:56+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Halo, 2022\n"
 "Language-Team: Kurdish (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ku/)\n"
@@ -2171,7 +2171,7 @@ msgstr ""
 msgid "Invalid submission - deprecatedID refers to an old version"
 msgstr ""
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:248 kpi/exceptions.py:93
+#: kobo/apps/openrosa/libs/utils/middleware.py:253 kpi/exceptions.py:93
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."

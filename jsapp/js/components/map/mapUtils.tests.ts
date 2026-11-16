@@ -1,5 +1,12 @@
 import type { DataResponse } from '#/api/models/dataResponse'
-import { getMapPageCount, getPlottedPoints, getPointsBounds, getWorldCopyOffsets, unwrapLongitudes } from './mapUtils'
+import {
+  getMapPageCount,
+  getPlottedPoints,
+  getPointsBounds,
+  getWorldCopyOffsets,
+  normalizeQueryLimit,
+  unwrapLongitudes,
+} from './mapUtils'
 
 describe('unwrapLongitudes', () => {
   it('handles having no points at all', () => {
@@ -144,6 +151,36 @@ describe('getPlottedPoints', () => {
   })
 })
 
+describe('normalizeQueryLimit', () => {
+  it('uses the default when nothing is saved', () => {
+    chai.expect(normalizeQueryLimit(undefined)).to.equal(1000)
+    chai.expect(normalizeQueryLimit('')).to.equal(1000)
+  })
+
+  it('uses the default for a value that is not a number', () => {
+    chai.expect(normalizeQueryLimit('lots')).to.equal(1000)
+  })
+
+  it('keeps a value that is already one of the options', () => {
+    chai.expect(normalizeQueryLimit('1000')).to.equal(1000)
+    chai.expect(normalizeQueryLimit('10000')).to.equal(10000)
+    chai.expect(normalizeQueryLimit('30000')).to.equal(30000)
+  })
+
+  it('rounds a value saved with the old slider up to the next option', () => {
+    chai.expect(normalizeQueryLimit('2000')).to.equal(5000)
+    chai.expect(normalizeQueryLimit('12000')).to.equal(20000)
+  })
+
+  it('raises a value below the smallest option to it', () => {
+    chai.expect(normalizeQueryLimit('500')).to.equal(1000)
+  })
+
+  it('lowers a value above the largest option to it', () => {
+    chai.expect(normalizeQueryLimit('50000')).to.equal(30000)
+  })
+})
+
 describe('getMapPageCount', () => {
   it('asks only for the first page until the count has loaded', () => {
     chai.expect(getMapPageCount('10000', undefined)).to.equal(1)
@@ -168,13 +205,7 @@ describe('getMapPageCount', () => {
     chai.expect(getMapPageCount('20000', 'unknown')).to.equal(20)
   })
 
-  it('uses the default limit when none is saved, or it is not a number', () => {
-    chai.expect(getMapPageCount(undefined, 'many')).to.equal(1)
-    chai.expect(getMapPageCount('lots', 'many')).to.equal(1)
-  })
-
-  it('keeps the limit to the most the map loads', () => {
-    chai.expect(getMapPageCount('12000', 'many')).to.equal(12)
-    chai.expect(getMapPageCount('50000', 'many')).to.equal(30)
+  it('uses the limit rounded to one of the options', () => {
+    chai.expect(getMapPageCount('12000', 'many')).to.equal(20)
   })
 })

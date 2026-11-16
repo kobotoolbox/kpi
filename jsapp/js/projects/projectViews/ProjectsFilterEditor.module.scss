@@ -6,21 +6,18 @@
   flex-direction: row;
   align-items: stretch;
   gap: 6px;
-
-  & + & {
-    margin-top: 8px;
-  }
 }
 
 .column {
+  // Kept narrow, so the value column fits all status pills in one line
   &:nth-child(1) {
-    min-width: 40%;
-    max-width: 40%;
+    min-width: 30%;
+    max-width: 30%;
   }
 
   &:nth-child(2) {
-    min-width: 30%;
-    max-width: 30%;
+    min-width: 22%;
+    max-width: 22%;
   }
 
   &:nth-child(3) {

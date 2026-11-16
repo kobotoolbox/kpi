@@ -16,6 +16,26 @@
   &.mediaWrapperVideo {
     overflow: hidden;
   }
+
+  &.mediaWrapperImage {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 20px 20px;
+  }
+}
+
+.imagePreviewButton {
+  display: flex;
+  justify-content: center;
+  cursor: zoom-in;
+}
+
+.imagePreview {
+  display: block;
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
 }
 
 .videoPreview {

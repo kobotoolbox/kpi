@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
+from constance import config
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -8,6 +9,7 @@ from django_request_cache import cache_for_request
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 
 if TYPE_CHECKING:
@@ -75,6 +77,22 @@ def check_exceeded_limits(
         cache.set(cache_key, True, settings.ENDPOINT_CACHE_DURATION)
 
     return counters
+
+
+def raise_if_usage_limit_exceeded(
+    user: 'kobo_auth.User', usage_type: UsageType
+) -> None:
+    """
+    Raise `UsageLimitExceededException` if `user` has exceeded their
+    `usage_type` limit, when limits are enforced
+    """
+    if not settings.STRIPE_ENABLED or not config.USAGE_LIMIT_ENFORCEMENT:
+        return
+
+    calculator = ServiceUsageCalculator(user)
+    balance = calculator.get_usage_balances()[usage_type]
+    if balance and balance['exceeded']:
+        raise UsageLimitExceededException()
 
 
 @requires_stripe

@@ -11,6 +11,7 @@
  */
 import type { ProjectViewAssetResponseDownloadsItem } from './projectViewAssetResponseDownloadsItem'
 import type { ProjectViewAssetResponseSettings } from './projectViewAssetResponseSettings'
+import type { ProjectViewAssetResponseSummary } from './projectViewAssetResponseSummary'
 
 export interface ProjectViewAssetResponse {
   url: string
@@ -33,4 +34,13 @@ export interface ProjectViewAssetResponse {
   asset_type: string
   downloads: ProjectViewAssetResponseDownloadsItem[]
   owner_label: string
+  status?: string
+  summary?: ProjectViewAssetResponseSummary
+  /** @nullable */
+  version_id?: string | null
+  /** @nullable */
+  version__content_hash?: string | null
+  /** @nullable */
+  deployed_version_id?: string | null
+  version_count?: number
 }

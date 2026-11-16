@@ -1,12 +1,14 @@
 # coding: utf-8
 
 from django.db import models
+from django.db.models.expressions import RawSQL
 from formpack.utils.expand_content import expand_content
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_content_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.xlsform_preprocessors.kobomatrix_handler import KoboMatrixGroupHandler
 
 
 class AssetVersion(AbstractTimeStampedModel):
@@ -24,6 +26,7 @@ class AssetVersion(AbstractTimeStampedModel):
     uid_aliases = models.JSONField(null=True)
     # Tee hee, `deployed_content` is never written to the database!
     # TODO: It should be changed to a property instead, no?
+    # Deprecated, see the comment in `_deployed_content()`
     deployed_content = models.JSONField(null=True)
     _deployment_data = models.JSONField(default=dict)
     deployed = models.BooleanField(default=False)
@@ -40,18 +43,35 @@ class AssetVersion(AbstractTimeStampedModel):
             ' (deployed)' if self.deployed else '',
         )
 
-    def _deployed_content(self):
+    def _deployed_content(self, include_choices: bool = True) -> dict:
+        # The `deployed_content` field is deprecated. It used to cache the compiled
+        # form, and no code has written it since October 2016. Some versions from
+        # 2016 still hold a value, and this check keeps returning it for them. Every
+        # other version is compiled below from `version_content`
         if self.deployed_content is not None:
             return self.deployed_content
+
+        version_content = (
+            self.version_content
+            if include_choices
+            else self._version_content_without_choices()
+        )
         legacy_names = self._reversion_version is not None
         if legacy_names:
-            return to_xlsform_structure(self.version_content, deprecated_autoname=True)
+            return to_xlsform_structure(version_content, deprecated_autoname=True)
         else:
-            return to_xlsform_structure(self.version_content, move_autonames=True)
+            return to_xlsform_structure(version_content, move_autonames=True)
 
-    def to_formpack_schema(self):
+    def to_formpack_schema(self, include_choices: bool = True) -> dict:
+        """
+        Return the schema that formpack builds this version from.
+
+        Choices can weigh far more than the rest of the content, and a caller
+        that only reads the questions has no use for them.
+        """
+
         return {
-            'content': expand_content(self._deployed_content()),
+            'content': expand_content(self._deployed_content(include_choices)),
             'version': self.uid,
             'version_id_key': '__version__',
         }
@@ -86,3 +106,40 @@ class AssetVersion(AbstractTimeStampedModel):
             kwargs['update_fields'].append('_content_hash')
 
         super().save(*args, **kwargs)
+
+    def _version_content_without_choices(self) -> dict:
+        """
+        Return `version_content` without its `choices`.
+
+        When the field is deferred, the database strips the choices, so that they
+        never reach this process. A matrix question builds its rows from its
+        choices, so a version that has one keeps them.
+        """
+
+        if 'version_content' in self.get_deferred_fields():
+            content = (
+                AssetVersion.objects.filter(pk=self.pk)
+                .annotate(
+                    content_without_choices=RawSQL(
+                        "version_content - 'choices'",
+                        [],
+                        output_field=models.JSONField(),
+                    )
+                )
+                .values_list('content_without_choices', flat=True)
+                .get()
+            )
+        else:
+            content = {
+                key: value
+                for key, value in self.version_content.items()
+                if key != 'choices'
+            }
+
+        if any(
+            row.get('type') == KoboMatrixGroupHandler.start_type
+            for row in content.get('survey', [])
+        ):
+            return self.version_content
+
+        return content

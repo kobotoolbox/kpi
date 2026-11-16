@@ -1,10 +1,22 @@
 from collections import defaultdict
 
-from django.db.models import Prefetch
+from django.conf import settings
+from django.contrib.postgres.aggregates import BoolOr
+from django.db.models import (
+    BooleanField,
+    Count,
+    ExpressionWrapper,
+    F,
+    Prefetch,
+    Q,
+    Window,
+)
 
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.organizations.models import Organization
 from kpi.models.asset import Asset
+from kpi.models.asset_version import AssetVersion
+from kpi.models.object_permission import ObjectPermission
 
 
 class AssetViewSetListMixin:
@@ -50,6 +62,68 @@ class AssetViewSetListMixin:
             for organization in organizations_per_asset.values()
         }
         return Organization.get_mmo_ids(list(organizations.values()))
+
+    def get_shared_asset_ids(self, asset_ids: list) -> tuple[set[int], set[int]]:
+        """
+        Return, with one query:
+        - the ids of the assets that grant a permission to anyone but their
+          owner, the anonymous user included, which `get_status()` reports as
+          shared unless they are public;
+        - among them, the ids of the assets shared with a user other than the
+          anonymous one, which `get_access_types()` needs.
+        """
+
+        records = (
+            ObjectPermission.objects.filter(
+                asset_id__in=asset_ids,
+                deny=False,
+            )
+            .exclude(
+                user_id=F('asset__owner_id'),
+            )
+            .values('asset_id')
+            .annotate(
+                shared_with_user=BoolOr(
+                    ExpressionWrapper(
+                        ~Q(user_id=settings.ANONYMOUS_USER_ID),
+                        output_field=BooleanField(),
+                    )
+                )
+            )
+            .order_by()
+        )
+
+        permission_asset_ids = set()
+        user_shared_asset_ids = set()
+        for record in records:
+            permission_asset_ids.add(record['asset_id'])
+            if record['shared_with_user']:
+                user_shared_asset_ids.add(record['asset_id'])
+
+        return permission_asset_ids, user_shared_asset_ids
+
+    def get_versions_per_asset_ids(self, asset_ids: list) -> dict:
+        """
+        Return the uid and the content hash of the latest version, and the number
+        of versions, of each asset, e.g.
+        `{1: {'uid': 'vabc', 'content_hash': '3f2a…', 'count': 3}}`, with one
+        query whatever the number of assets.
+
+        The hash is the stored one only: computing a missing one would load the
+        content of the version.
+        """
+
+        versions = (
+            AssetVersion.objects.filter(asset_id__in=asset_ids)
+            .annotate(count=Window(Count('pk'), partition_by=F('asset_id')))
+            .order_by('asset_id', '-date_modified')
+            .distinct('asset_id')
+            .values_list('asset_id', 'uid', '_content_hash', 'count')
+        )
+        return {
+            asset_id: {'uid': uid, 'content_hash': content_hash, 'count': count}
+            for asset_id, uid, content_hash, count in versions
+        }
 
     def _attach_xforms_to_assets(self, assets: list):
         """
