@@ -2,8 +2,8 @@ from unittest import mock
 
 from constance.test import override_config
 from django.db.utils import OperationalError
-from django.test import Client, TestCase, override_settings
-from django.urls import path, reverse
+from django.test import Client, RequestFactory, TestCase, override_settings
+from django.urls import path
 
 import kobo.urls
 from hub.models import ConfigurationFile
@@ -87,15 +87,26 @@ class ErrorPageHandlersTestCase(TestCase):
         ]:
             self.assertContains(response, attribute, status_code=404)
 
+    @override_settings(GOOGLE_ANALYTICS_TOKEN='G-TEST123')
+    def test_context_processors_run_normally(self):
+        # Same as any other page: e.g. the GA token from `external_service_tokens`
+        response = self.client.get('/accounts/blahblah/', **HTML)
+        self.assertContains(
+            response,
+            '<meta name="google-analytics-token" content="G-TEST123">',
+            status_code=404,
+        )
+
     def test_500_page_survives_database_outage(self):
         """
-        The case this whole setup exists for: a 500 caused by the database
-        must not crash the 500 handler when it reads branding from that same
-        database. The page renders with Kobo's default branding instead.
+        The case the fallback exists for: a 500 caused by the database must not
+        crash the 500 handler when the `config` context processor reads
+        branding from that same database. The page renders with Kobo's default
+        branding instead.
         """
         with mock.patch.object(
             ConfigurationFile.objects,
-            'filter',
+            'all',
             side_effect=OperationalError('database is down'),
         ):
             response = self.client.get('/__crash__/', **HTML)
@@ -104,22 +115,20 @@ class ErrorPageHandlersTestCase(TestCase):
         self.assertContains(response, 'data-logo-url=""', status_code=500)
         self.assertContains(response, 'data-background-url=""', status_code=500)
 
-    def test_context_processors_do_not_run(self):
-        """
-        Context processors query the database too, so the page must be
-        rendered without them. If one did run, this one would blow up.
-        """
-        with mock.patch(
-            'kpi.context_processors.config',
+    def test_404_page_survives_database_outage(self):
+        # Without the fallback, Django would turn this into a 500
+        with mock.patch.object(
+            ConfigurationFile.objects,
+            'all',
             side_effect=OperationalError('database is down'),
         ):
-            response = self.client.get('/__crash__/', **HTML)
+            response = self.client.get('/accounts/blahblah/', **HTML)
 
-        self.assert_error_app_page(response, 500)
+        self.assert_error_app_page(response, 404)
 
     def test_500_falls_back_to_static_html_if_template_fails(self):
         with mock.patch(
-            'kpi.views.error_pages.render_to_string',
+            'django.template.loader.get_template',
             side_effect=OSError('webpack-stats.json missing'),
         ):
             response = self.client.get('/__crash__/', **HTML)
@@ -134,7 +143,8 @@ class DevErrorPagePreviewTestCase(TestCase):
         # Called directly: the route is only registered with `DEBUG` on
         for error_code in [404, 500]:
             with self.subTest(error_code=error_code):
-                response = dev_error_page_preview(None, str(error_code))
+                request = RequestFactory().get(f'/__dev__/error/{error_code}/')
+                response = dev_error_page_preview(request, str(error_code))
                 self.assertEqual(response.status_code, error_code)
                 self.assertContains(
                     response,

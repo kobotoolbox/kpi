@@ -1,9 +1,7 @@
-import constance
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 from django.template.loader import render_to_string
 
-from hub.models import ConfigurationFile
-from hub.models.configuration_file import ConfigurationFileSlug
 from kpi.utils.log import logging
 
 ERROR_PAGE_TEMPLATE = 'error_page.html'
@@ -19,69 +17,39 @@ LAST_RESORT_500_HTML = (
 )
 
 
-def get_error_page_branding() -> dict:
-    """
-    Read the instance branding the error app shows: logo, background and footer
-    links
-
-    This hits the database (`ConfigurationFile` and constance), which may well
-    be what's broken when a 500 is being served. Any failure therefore returns
-    empty values, which the error app treats as "not configured" and replaces
-    with Kobo defaults.
-    """
-    try:
-        files = {
-            f.slug: f.url
-            for f in ConfigurationFile.objects.filter(
-                slug__in=[
-                    ConfigurationFileSlug.LOGO,
-                    ConfigurationFileSlug.LOGIN_BACKGROUND,
-                ]
-            )
-        }
-        return {
-            'logo': files.get(ConfigurationFileSlug.LOGO, ''),
-            'login_background': files.get(ConfigurationFileSlug.LOGIN_BACKGROUND, ''),
-            'TERMS_OF_SERVICE_URL': constance.config.TERMS_OF_SERVICE_URL,
-            'PRIVACY_POLICY_URL': constance.config.PRIVACY_POLICY_URL,
-        }
-    except Exception:
-        logging.warning('Error page rendered without branding', exc_info=True)
-        return {
-            'logo': '',
-            'login_background': '',
-            'TERMS_OF_SERVICE_URL': '',
-            'PRIVACY_POLICY_URL': '',
-        }
-
-
-def render_error_page(error_code: int) -> HttpResponse:
+def render_error_page(request: HttpRequest, error_code: int) -> HttpResponse:
     """
     Render the shell of the standalone error app (`jsapp/js/errorApp/`)
 
-    Rendered without the request on purpose, the same way Django's own
-    `defaults.server_error` does it: passing the request would run every
-    context processor in `settings.TEMPLATES`, and several of them query the
-    database. If the database is why we're serving a 500, that would make the
-    500 handler crash too. The template gets only what's built here.
+    Normally rendered like any other page, so the context processors supply the
+    branding (`config`) and everything else the base template expects.
+
+    Several context processors query the database, which may well be why we're
+    serving an error in the first place. If rendering fails, the page is
+    rendered again without the request, so no context processors run. The
+    branding is then missing, and the error app falls back to Kobo defaults.
     """
-    context = {
-        'error_code': error_code,
-        'config': get_error_page_branding(),
-    }
-    return HttpResponse(
-        render_to_string(ERROR_PAGE_TEMPLATE, context), status=error_code
-    )
+    context = {'error_code': error_code}
+    try:
+        return render(request, ERROR_PAGE_TEMPLATE, context, status=error_code)
+    except Exception:
+        logging.warning(
+            f'Error page {error_code} rendered without context processors',
+            exc_info=True,
+        )
+        return HttpResponse(
+            render_to_string(ERROR_PAGE_TEMPLATE, context), status=error_code
+        )
 
 
-def render_500_page() -> HttpResponse:
+def render_500_page(request: HttpRequest) -> HttpResponse:
     """
     The 500 page, plus a hard-coded fallback for when even the template can't
     be rendered (e.g. a broken webpack stats file). Django doesn't catch
     exceptions raised by `handler500`, so this has to be the last line of defence
     """
     try:
-        return render_error_page(500)
+        return render_error_page(request, 500)
     except Exception:
         logging.error('Could not render the 500 error page', exc_info=True)
         return HttpResponse(LAST_RESORT_500_HTML, status=500)
@@ -97,4 +65,4 @@ def dev_error_page_preview(request, error_code: int):
     development. This renders exactly what they would serve. Only registered
     when `DEBUG` is enabled; see `kpi/urls/__init__.py`.
     """
-    return render_error_page(int(error_code))
+    return render_error_page(request, int(error_code))

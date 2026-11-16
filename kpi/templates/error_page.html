@@ -30,10 +30,8 @@
 {% endblock %}
 
 {% comment %}
-  Branding travels as data attributes, so the app makes no API calls. `config` is built
-  by `kpi.views.error_pages.get_error_page_branding`, not the `config` context
-  processor: this template is rendered without the request, so no context processors
-  run. An empty value falls back to Kobo defaults.
+  Branding travels as data attributes, so the app makes no API calls. `config` comes
+  from `kpi.context_processors.config`; an empty value falls back to Kobo defaults.
 {% endcomment %}
 {% block body %}
 <div id="kobo-error-app" data-error-code="{{ error_code }}" data-background-url="{{ config.login_background }}"

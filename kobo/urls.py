@@ -151,14 +151,14 @@ if settings.ENABLE_METRICS:
 
 def render404(request: HttpRequest, exception):
     if is_request_for_html(request):
-        return render_error_page(404)
+        return render_error_page(request, 404)
     # fall back to a basic JSON response if a data route is being requested
     return HttpResponse('Resource not found (404)', status=status.HTTP_404_NOT_FOUND)
 
 
 def render500(request: HttpRequest):
     if is_request_for_html(request):
-        return render_500_page()
+        return render_500_page(request)
     # fall back to the DRF 500 handler if a data route is being requested
     return server_error(request)
 
