@@ -11,6 +11,7 @@ from ..actions import (
     AutomaticGoogleTranslationAction,
 )
 from ..constants import SUBMISSION_UUID_FIELD
+from ..exceptions import GoogleQuotaExceededError
 from ..models import QuestionAdvancedFeature, SubmissionSupplement
 
 ACTION_ID = 'automatic_google_transcription'
@@ -387,3 +388,20 @@ class InProgressUpfrontTestCase(TestCase):
 
         assert self._stored() == before
         assert self._statuses() == ['deleted', 'complete', 'in_progress']
+
+    def test_quota_error_in_celery_keeps_the_launch_running(self):
+        action_data = {'language': 'en', 'bulk_action_uid': 'sbaFakeUid'}
+        with patch('kobo.apps.subsequences.actions.base.celery_app') as celery_app:
+            celery_app.current_worker_task = object()
+            with freeze_time('2026-01-01 10:00:00'), self.assertRaises(
+                GoogleQuotaExceededError
+            ):
+                self._revise(dict(action_data), side_effect=GoogleQuotaExceededError())
+            # Celery retries it later: the same launch goes on
+            with freeze_time('2026-01-01 10:05:00'):
+                self._revise(dict(action_data), return_value={'status': 'in_progress'})
+
+        stored = self._stored()
+        assert self._statuses() == ['in_progress']
+        assert stored['_versions'][0]['_dateCreated'] == '2026-01-01T10:00:00Z'
+        assert stored['_dateModified'] == '2026-01-01T10:05:00Z'

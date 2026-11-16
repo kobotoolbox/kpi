@@ -430,6 +430,9 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         )
         logging.exception(error_msg)
         _mark_bulk_item_failed(item, str(e))
+        apps.get_model('subsequences', 'SubmissionSupplement').fail_bulk_launch(
+            bulk_action, item.submission_root_uuid, str(e)
+        )
         return
 
 
