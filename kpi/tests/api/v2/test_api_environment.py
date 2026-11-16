@@ -215,6 +215,25 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.assertContains(response, 'social_app')
         self.assertNotContains(response, 'app.name')
 
+    @override_settings(SOCIALACCOUNT_PROVIDERS={})
+    def test_social_apps_oldest_first(self):
+        """
+        The frontend shows buttons for the first few providers only, so the
+        order must be stable: oldest first, whatever the names or flags
+        """
+        # created in an order that sorting by name or provider would not keep
+        names = ['Zeta', 'Alpha', 'Mu', 'Beta']
+        for name in names:
+            app = baker.make('socialaccount.SocialApp', name=name)
+            if name == 'Mu':
+                SocialAppCustomData.objects.create(social_app=app, is_public=True)
+        hidden = baker.make('socialaccount.SocialApp', name='Hidden')
+        SocialAppCustomData.objects.create(social_app=hidden, is_public=False)
+
+        response = self.client.get(self.url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert [app['name'] for app in response.data['social_apps']] == names
+
     def test_tos_sitewide_message(self):
         """
         Check that fixtures properly stores terms of service

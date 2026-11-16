@@ -29,6 +29,7 @@ env
 public
 .venv
 storybook-static
+debug-storybook.log
 /emails/
 .claude/
 
