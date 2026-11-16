@@ -5,7 +5,7 @@ import { actions } from '#/actions'
 import { archiveAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import { openDeleteAssetModal } from '#/components/DeleteAssetModal/openDeleteAssetModal'
-import InlineMessage from '#/components/common/inlineMessage'
+import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
@@ -633,11 +633,9 @@ export default function ProjectSettings(props: ProjectSettingsProps) {
 
   if (isReplacingFormLocked()) {
     return (
-      <InlineMessage
-        type='warning'
-        icon='alert'
-        message={t("Form replacing is not available due to form's Locking Profile restrictions.")}
-      />
+      <Alert type='warning' iconName='alert'>
+        {t("Form replacing is not available due to form's Locking Profile restrictions.")}
+      </Alert>
     )
   }
 

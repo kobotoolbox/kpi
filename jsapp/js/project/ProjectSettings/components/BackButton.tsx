@@ -1,5 +1,5 @@
 import React from 'react'
-import Button from '#/components/common/button'
+import Button from '#/components/common/ButtonNew'
 import type { StepName } from '../constants'
 
 interface BackButtonProps {
@@ -13,5 +13,9 @@ export default function BackButton({ previousStep, isDisabled, onClick }: BackBu
     return null
   }
 
-  return <Button type='secondary' size='l' onClick={onClick} isDisabled={isDisabled} label={t('Back')} />
+  return (
+    <Button variant='light' size='lg' onClick={onClick} disabled={isDisabled}>
+      {t('Back')}
+    </Button>
+  )
 }
