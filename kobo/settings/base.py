@@ -163,6 +163,7 @@ MIDDLEWARE = [
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'hub.middleware.NeverCacheJSONMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
