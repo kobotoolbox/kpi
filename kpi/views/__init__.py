@@ -1,4 +1,5 @@
 from django.template.response import TemplateResponse
+from django.views.decorators.cache import never_cache
 from rest_framework import exceptions
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes
@@ -12,6 +13,9 @@ from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
 
 
+# The app shell holds the logged-in user's data in memory, so the browser must
+# not keep it around after logout, e.g. to restore it on Back
+@never_cache
 def home(request):
     return TemplateResponse(request, 'index.html')
 
