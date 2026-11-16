@@ -9,8 +9,8 @@ const DatePickerInputMantine = React.lazy(() => import('./DatePickerInputMantine
 
 export type { DatePickerInputProps }
 
-/** Looks like the picker, so nothing flickers when it replaces this. */
-function DatePickerInputFallback(props: DatePickerInputProps) {
+/** Looks like the picker, so nothing flickers when it replaces this. Exported for the comparison story. */
+export function DatePickerInputFallback(props: DatePickerInputProps) {
   const { styleProps } = extractStyleProps(props)
   const value = props.value ?? props.defaultValue
 
