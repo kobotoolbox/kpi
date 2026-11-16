@@ -1,8 +1,6 @@
 import React from 'react'
 
 import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
 import Modal from '#/components/common/modal'
 import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
@@ -107,7 +105,5 @@ class BigModal extends React.Component {
     )
   }
 }
-
-reactMixin(BigModal.prototype, Reflux.ListenerMixin)
 
 export default BigModal

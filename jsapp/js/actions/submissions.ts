@@ -2,9 +2,7 @@
  * submissions related actions
  */
 
-import $ from 'jquery'
 import Reflux from 'reflux'
-import { ROOT_URL } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import type {
   BulkSubmissionsRequest,
@@ -19,13 +17,11 @@ import { notify } from '#/utils'
  * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 const submissionsActions = Reflux.createActions({
-  getSubmission: { children: ['completed', 'failed'] },
   getSubmissions: { children: ['completed', 'failed'] },
   bulkDeleteStatus: { children: ['completed', 'failed'] },
   bulkPatchStatus: { children: ['completed', 'failed'] },
   bulkPatchValues: { children: ['completed', 'failed'] },
   bulkDelete: { children: ['completed', 'failed'] },
-  getProcessingSubmissions: { children: ['completed', 'failed'] },
 })
 
 /**
@@ -41,34 +37,6 @@ submissionsActions.getSubmissions.listen((options: GetSubmissionsOptions) => {
     .fail((response: FailResponse) => {
       submissionsActions.getSubmissions.failed(response, options)
     })
-})
-
-/**
- * This gets an array of submission uuids
- */
-submissionsActions.getProcessingSubmissions.listen((assetUid: string, questionsPaths: string[]) => {
-  let fields = ''
-  questionsPaths.forEach((questionPath: string) => {
-    fields += `,"${questionPath}"`
-  })
-
-  $.ajax({
-    dataType: 'json',
-    method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid", "meta/rootUuid" ${fields}]`,
-  })
-    .done(submissionsActions.getProcessingSubmissions.completed)
-    .fail(submissionsActions.getProcessingSubmissions.failed)
-})
-submissionsActions.getProcessingSubmissions.failed.listen(() => {
-  notify(t('Failed to get submissions uuids.'), 'error')
-})
-
-submissionsActions.getSubmission.listen((assetUid: string, submissionId: string) => {
-  dataInterface
-    .getSubmission(assetUid, submissionId)
-    .done(submissionsActions.getSubmission.completed)
-    .fail(submissionsActions.getSubmission.failed)
 })
 
 submissionsActions.bulkDeleteStatus.listen((uid: string, data: BulkSubmissionsRequest) => {

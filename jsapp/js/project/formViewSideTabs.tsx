@@ -2,7 +2,6 @@ import React from 'react'
 
 import autoBind from 'react-autobind'
 import { NavLink } from 'react-router-dom'
-import Reflux from 'reflux'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
@@ -66,7 +65,7 @@ export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
   ]
 }
 
-class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSideTabsProps, FormViewSideTabsState> {
+class FormViewSideTabs extends React.Component<FormViewSideTabsProps, FormViewSideTabsState> {
   private unlisteners: Function[] = []
 
   constructor(props: FormViewSideTabsProps) {
