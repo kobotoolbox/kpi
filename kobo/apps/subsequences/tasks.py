@@ -234,6 +234,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         TERMINAL_BULK_ACTION_ITEM_STATUSES,
         BulkActionItemStatus,
         BulkActionStatus,
+        SubmissionSupplement,
     )
 
     SubsequenceBulkActionItem = apps.get_model(  # noqa: N806
@@ -336,9 +337,9 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         }
 
         try:
-            supplement_data = apps.get_model(
-                'subsequences', 'SubmissionSupplement'
-            ).revise_data(asset, submission, incoming_data)
+            supplement_data = SubmissionSupplement.revise_data(
+                asset, submission, incoming_data
+            )
         except GoogleQuotaExceededError as err:
             _clear_pending_operation_marker(item)
             raise self.retry(countdown=err.retry_after, exc=err)
@@ -430,7 +431,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
         )
         logging.exception(error_msg)
         _mark_bulk_item_failed(item, str(e))
-        apps.get_model('subsequences', 'SubmissionSupplement').fail_bulk_launch(
+        SubmissionSupplement.fail_bulk_launch(
             bulk_action, item.submission_root_uuid, str(e)
         )
         return

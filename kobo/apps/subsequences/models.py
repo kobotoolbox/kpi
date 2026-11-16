@@ -129,19 +129,8 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     _, new_data = SubmissionSupplement._locate_action(
                         action, question_xpath, action_data, upfront_data
                     )
-                    # `_version` is written in the same statement: on a new
-                    # supplement this is the first write, and content without
-                    # it is read back as the legacy schema, which drops it
-                    SubmissionSupplement.objects.filter(
-                        asset=asset, submission_uuid=submission_uuid
-                    ).update(
-                        content=JSONBSet(
-                            UpdateJSONFieldAttributes(
-                                'content', path=action_path, updates=new_data
-                            ),
-                            ['_version'],
-                            Value(SCHEMA_VERSIONS[0], output_field=models.JSONField()),
-                        )
+                    SubmissionSupplement._save_upfront_version(
+                        asset, submission_uuid, action_path, new_data
                     )
                     # Keep the in-memory copy in sync, so `action.revise_data()`
                     # sees the new version as the current one
@@ -286,6 +275,33 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             path.append(needle)
             action_supplemental_data = action_supplemental_data.get(needle, {})
         return path, action_supplemental_data
+
+    @staticmethod
+    def _save_upfront_version(
+        asset: 'kpi.Asset',
+        submission_uuid: str,
+        action_path: list[str],
+        new_data: dict,
+    ) -> None:
+        """
+        Save the action with its new `in_progress` version on top, before the
+        external service is called
+
+        `_version` is written in the same statement: on a new supplement this is
+        the first write, and content without it is read back as the legacy
+        schema, which drops it
+        """
+        SubmissionSupplement.objects.filter(
+            asset=asset, submission_uuid=submission_uuid
+        ).update(
+            content=JSONBSet(
+                UpdateJSONFieldAttributes(
+                    'content', path=action_path, updates=new_data
+                ),
+                ['_version'],
+                Value(SCHEMA_VERSIONS[0], output_field=models.JSONField()),
+            )
+        )
 
     @staticmethod
     def _refresh_in_progress_action(
