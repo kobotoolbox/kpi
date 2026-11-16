@@ -2,7 +2,8 @@ const fs = require('fs')
 const path = require('path')
 
 const REPORT_PATH = path.resolve(__dirname, '../webpack-bundle-report.json')
-const DEV_ONLY_MODULE = /\.(stories|mocks)\.|[\\/](msw|msw-mocks)[\\/]/
+// `msw.ts` files are Orval's generated mock factories, which code can import without pulling in msw itself.
+const DEV_ONLY_MODULE = /\.(stories|mocks)\.|[\\/](msw|msw-mocks)[\\/]|[\\/]msw\.ts$/
 
 /** Groups a module path by npm package, or by its first `depth` folders for our own code. */
 function getModuleGroup(resource, depth = 3) {

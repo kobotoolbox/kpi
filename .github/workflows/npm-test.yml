@@ -84,15 +84,15 @@ jobs:
       - name: Check error pages bundle stays self-contained
         run: npm run lint:error-bundle
 
-      # main's sizes at the PR's base commit, so the check below can show what changed. Only main saves them, so
-      # PRs into other branches go without, rather than getting a comparison against the wrong code.
+      # main's sizes at the PR's base commit, so the check below can show what changed. Only that exact commit:
+      # PRs into other branches, or whose base main's CI hasn't saved yet, go without rather than getting a
+      # comparison against the wrong code.
       - name: Restore main's bundle sizes
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         uses: actions/cache/restore@v6
         with:
           path: bundle-sizes-base.json
           key: bundle-sizes-${{ github.event.pull_request.base.sha }}
-          restore-keys: bundle-sizes-
 
       # Catches bundle bloat and dev-only code in the build
       - name: Check bundle size
