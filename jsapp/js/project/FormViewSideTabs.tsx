@@ -7,8 +7,12 @@ import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import type { AssetResponse } from '#/dataInterface'
 import { ROUTES } from '#/router/routerConstants'
+import { isPlainClick } from '#/utils'
 import styles from './FormViewSideTabs.module.scss'
 import { getSideMenu } from './FormViewSideTabs.utils'
+
+// No background in any state, so the active styles only change the colors. Inline, so Mantine's own CSS can't win.
+const navLinkVars = () => ({ root: { '--nl-bg': 'transparent', '--nl-hover': 'transparent' }, children: {} })
 
 /** Side menu for the project data and settings routes. Renders nothing elsewhere. */
 export default function FormViewSideTabs() {
@@ -81,8 +85,10 @@ export default function FormViewSideTabs() {
             aria-current={isActive ? 'page' : undefined}
             disabled={tab.isDisabled}
             classNames={{ root: styles.tab, section: styles.tabIcon, label: styles.tabLabel }}
+            vars={navLinkVars}
             onClick={(evt) => {
-              if (isActive) {
+              // Ctrl/Cmd/Shift-clicks still open the tab in a new tab or window
+              if (isActive && isPlainClick(evt)) {
                 evt.preventDefault()
                 refreshTab(tab.path)
               }

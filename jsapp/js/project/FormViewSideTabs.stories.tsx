@@ -43,7 +43,10 @@ export const DataTabs: Story = {
     await expectTabs(canvasElement, ['Table', 'Reports', 'Gallery', 'Downloads', 'Map'])
     const canvas = within(canvasElement)
     await expect(canvas.getByRole('navigation', { name: 'Data' })).toBeInTheDocument()
-    await expect(canvas.getByRole('link', { name: 'Table' })).toHaveAttribute('aria-current', 'page')
+    const activeTab = canvas.getByRole('link', { name: 'Table' })
+    await expect(activeTab).toHaveAttribute('aria-current', 'page')
+    // Only the teal bar marks it, no Mantine background
+    await expect(getComputedStyle(activeTab).backgroundColor).toBe('rgba(0, 0, 0, 0)')
     await expect(canvas.getByRole('link', { name: 'Reports' })).not.toHaveAttribute('aria-current')
   },
 }

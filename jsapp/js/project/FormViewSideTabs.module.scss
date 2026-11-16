@@ -17,10 +17,6 @@
 }
 
 .tab {
-  // No background in any state, so Mantine's active styles only drive the colors below
-  --nl-bg: transparent;
-  --nl-hover: transparent;
-
   position: relative;
   width: auto;
   margin-left: 10px;
