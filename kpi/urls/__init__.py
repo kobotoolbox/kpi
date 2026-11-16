@@ -1,7 +1,8 @@
-import private_storage.urls
 from django.conf import settings
 from django.urls import include, path, re_path
+from django.views.decorators.cache import never_cache
 from django.views.i18n import JavaScriptCatalog
+from private_storage.views import PrivateStorageView
 
 from hub.models import ConfigurationFile
 from kpi.utils.log import logging
@@ -45,7 +46,13 @@ urlpatterns = [
     path('token/', TokenView.as_view(), name='token'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
-    path('private-media/', include(private_storage.urls)),
+    # Exports are served from here. The library's own headers force
+    # revalidation but still allow storing the file on disk.
+    re_path(
+        r'^private-media/(?P<path>.*)$',
+        never_cache(PrivateStorageView.as_view()),
+        name='serve_private_file',
+    ),
     # Statistics for superusers
     path(
         'superuser_stats/',
