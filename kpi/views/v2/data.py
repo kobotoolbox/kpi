@@ -638,7 +638,7 @@ class DataViewSet(
             )
         except InvalidImageFile:
             raise serializers.ValidationError(
-                {'detail': 'Invalid or corrupted image file'}
+                {'detail': 'Invalid image type or corrupted image file'}
             )
 
         return Response(supplemental_data)
