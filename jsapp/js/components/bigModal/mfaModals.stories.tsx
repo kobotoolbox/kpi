@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { toast } from 'react-hot-toast'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import type { Canvas } from '#/auth/authStoryHelpers'
-import Modal from '#/components/common/modal'
 import {
   BACKUP_CODES,
   INCORRECT_CODE_MESSAGE,
@@ -44,17 +43,7 @@ const meta: Meta<typeof MFAModals> = {
     (Story) => (
       <>
         <ToasterConfig />
-        {/* `BigModal`'s frame, so each step shows at its real size */}
-        <Modal
-          open
-          onClose={() => {}}
-          title='Two-factor authentication'
-          className='modal--custom-header modal--mfa-setup'
-        >
-          <Modal.Body>
-            <Story />
-          </Modal.Body>
-        </Modal>
+        <Story />
       </>
     ),
     queryClientDecorator,
@@ -63,6 +52,11 @@ const meta: Meta<typeof MFAModals> = {
 
 export default meta
 type Story = StoryObj<typeof MFAModals>
+
+/** Mantine renders the modal in a portal, outside the story root */
+function withinModal(canvasElement: HTMLElement) {
+  return within(canvasElement.ownerDocument.body)
+}
 
 /** Types a code into the step currently showing and presses on */
 async function submitCode(canvas: Canvas, code: string) {
@@ -94,7 +88,8 @@ async function expectBackupCodes(canvas: Canvas) {
 export const ConfirmNewSetup: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
   play: async ({ canvasElement, args }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
+    expect(await canvas.findByRole('button', { name: 'Close' })).toBeInTheDocument()
 
     await typePassword(canvas, VALID_PASSWORD)
     await submitCode(canvas, VALID_CODE)
@@ -102,6 +97,7 @@ export const ConfirmNewSetup: Story = {
     await expectBackupCodes(canvas)
     // Nothing may close this step before the codes have been downloaded
     expect(canvas.getByRole('button', { name: 'I saved my codes' })).toBeDisabled()
+    expect(canvas.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument()
     expect(args.onModalClose).not.toHaveBeenCalled()
   },
 }
@@ -127,7 +123,7 @@ export const ConfirmRetriesRecoveryCodes: Story = {
     reauthenticationCount = 0
   },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await typePassword(canvas, VALID_PASSWORD)
     await submitCode(canvas, VALID_CODE)
@@ -162,7 +158,7 @@ export const ConfirmReplacesHiddenRecoveryCodes: Story = {
     generationCount = 0
   },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await typePassword(canvas, VALID_PASSWORD)
     await submitCode(canvas, VALID_CODE)
@@ -175,7 +171,7 @@ export const ConfirmReplacesHiddenRecoveryCodes: Story = {
 export const ConfirmRejectsBadPassword: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await typePassword(canvas, 'wrong password')
     await submitCode(canvas, VALID_CODE)
@@ -194,7 +190,7 @@ export const ConfirmWithoutPassword: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
   parameters: { msw: { handlers: mfaMocks(state, { hasUsablePassword: false }) } },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await waitForNoPasswordField(canvas)
     await submitCode(canvas, VALID_CODE)
@@ -206,7 +202,7 @@ export const ConfirmWithoutPassword: Story = {
 export const EnterKeyManually: Story = {
   args: { modalType: 'qr', qrCode: TOTP_URL },
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await userEvent.click(await canvas.findByText('Enter key manually'))
 
@@ -218,7 +214,7 @@ export const EnterKeyManually: Story = {
 export const ReconfigureContinuesToNewSetup: Story = {
   args: { modalType: 'reconfigure' },
   play: async ({ canvasElement, args }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await userEvent.click(await canvas.findByRole('button', { name: 'Next' }))
     await submitCode(canvas, VALID_CODE)
@@ -238,7 +234,7 @@ export const ReconfigureContinuesToNewSetup: Story = {
 export const DeactivateRejectsBadCode: Story = {
   args: { modalType: 'deactivate' },
   play: async ({ canvasElement, args }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await submitCode(canvas, '000000')
 
@@ -256,7 +252,7 @@ export const DeactivateRefusedForSuperuser: Story = {
   args: { modalType: 'deactivate' },
   parameters: { msw: { handlers: [mfaDeactivateRefusedMock(), ...mfaMocks(state)] } },
   play: async ({ canvasElement, args }) => {
-    const canvas = within(canvasElement)
+    const canvas = withinModal(canvasElement)
 
     await submitCode(canvas, VALID_CODE)
 

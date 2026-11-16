@@ -7,8 +7,6 @@ import Modal from '#/components/common/modal'
 import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { ProjectSettings } from '#/project/ProjectSettings'
-// This should either be more generic or else be it's own component in the account directory.
-import MFAModals from './mfaModals'
 
 /**
  * Custom modal component for displaying complex modals.
@@ -44,15 +42,6 @@ class BigModal extends React.Component {
     switch (type) {
       case MODAL_TYPES.NEW_FORM:
         // title is set by formEditors
-        break
-
-      // TODO: Make a better generic modal component
-      // See: https://github.com/kobotoolbox/kpi/issues/3643
-      case MODAL_TYPES.MFA_MODALS:
-        // Size and title will depend on its props
-        this.setState({
-          modalClass: 'modal--custom-header modal--mfa-setup',
-        })
         break
 
       default:
@@ -98,9 +87,6 @@ class BigModal extends React.Component {
               onSetModalTitle={this.setModalTitle}
               initialTemplateUid={this.props.params.initialTemplateUid}
             />
-          )}
-          {this.props.params.type === MODAL_TYPES.MFA_MODALS && (
-            <MFAModals onModalClose={this.onModalClose} {...this.props.params} />
           )}
         </Modal.Body>
       </Modal>
