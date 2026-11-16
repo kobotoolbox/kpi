@@ -260,8 +260,7 @@ class RepostgresRebuildAttachmentsTestCase(TestCase):
         # `root_uuid` directory as it does in production. A shared id would reuse
         # the persistent test storage dir and make Django suffix the stored name
         instance = create_instance(
-            self.user.username,
-            io.BytesIO(
+            xml_file=io.BytesIO(
                 submission_xml(
                     version_uid=self.version_1,
                     instance_id=f'uuid:{uuid_module.uuid4()}',

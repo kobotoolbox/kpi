@@ -6,11 +6,9 @@ from io import StringIO
 from typing import Union
 
 from django.apps import apps
-from django.conf import settings
-from django.db.models import Count, F, Q
+from django.db.models import Q
 from django.db.models.query import QuerySet
 
-from kobo.apps.accounts.mfa.utils import mfa_is_active_expression
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import ASSET_TYPE_SURVEY
@@ -165,20 +163,6 @@ def flatten_settings_inplace(settings: dict) -> None:
             settings[k] = v['value']
         if not v:
             settings[k] = ''
-
-
-def get_user_data(filtered_queryset: QuerySet) -> QuerySet:
-    vals = USER_FIELDS + (METADATA,)
-    return (
-        filtered_queryset.exclude(pk=settings.ANONYMOUS_USER_ID)
-        .annotate(
-            mfa_is_active=mfa_is_active_expression(),
-            metadata=F('extra_details__data'),
-            asset_count=Count('assets'),
-        )
-        .values(*vals)
-        .order_by('id')
-    )
 
 
 def get_q(countries: list[str], export_type: str) -> QuerySet:

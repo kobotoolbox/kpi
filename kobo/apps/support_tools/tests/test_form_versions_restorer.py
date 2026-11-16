@@ -592,8 +592,7 @@ class FormVersionsRestorerTestCase(TestCase):
 
         xml = submission_xml(version_uid, instance_id=instance_id)
         instance = create_instance(
-            self.user.username,
-            io.BytesIO(xml.encode()),
+            xml_file=io.BytesIO(xml.encode()),
             media_files=[],
             request=self.request,
             check_usage_limits=False,

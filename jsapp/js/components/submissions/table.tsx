@@ -1,6 +1,7 @@
 import './table.scss'
 import { Stack } from '@mantine/core'
-import isEqual from 'lodash.isequal'
+import cx from 'classnames'
+import { isEqual, throttle } from 'lodash-es'
 import React from 'react'
 import Markdown from 'react-markdown'
 import ReactTable from 'react-table'
@@ -11,6 +12,7 @@ import { flattenErrorBody } from '#/api/flattenErrorBody'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'
+import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import Checkbox from '#/components/common/checkbox'
@@ -22,6 +24,7 @@ import { AudioDurationsProvider } from '#/components/submissions/AudioDurationsC
 import BulkProcessingBanner from '#/components/submissions/BulkProcessingBanner'
 import DataTableCell from '#/components/submissions/DataTableCell'
 import TableDropdownFilter from '#/components/submissions/TableDropdownFilter'
+import TablePagination from '#/components/submissions/TablePagination'
 import TableTextFilter from '#/components/submissions/TableTextFilter'
 import {
   getVisibleBulkProcessingSubmissionUuidsToRefresh,
@@ -30,12 +33,13 @@ import {
   isBulkProcessingCellInProgress,
 } from '#/components/submissions/bulkProcessingUtils'
 import ColumnsHideDropdown from '#/components/submissions/columnsHideDropdown'
+import { goToSubmission } from '#/components/submissions/single/submissionRouting'
+import type { SubmissionListPosition } from '#/components/submissions/single/submissionRouting'
 import { hasAnyUnacceptedAutomaticContent } from '#/components/submissions/submissionUtils'
 import type {
   DataTableSelectedRows,
   ReactTableInstance,
   ReactTableState,
-  SubmissionPageName,
   TableColumn,
 } from '#/components/submissions/table.types'
 import TableBulkCheckbox from '#/components/submissions/tableBulkCheckbox'
@@ -45,18 +49,19 @@ import {
   CELLS_WIDTH_OVERRIDES,
   DATA_TABLE_SETTINGS,
   DEFAULT_DATA_CELL_WIDTH,
+  MAX_FROZEN_WIDTH_RATIO,
   SUBMISSION_ACTIONS_ID,
-  SortValues,
+  type SortValues,
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import tableStore from '#/components/submissions/tableStore'
-import type { TableStoreData } from '#/components/submissions/tableStore'
 import {
   buildColumnRowFinder,
   buildFilterQuery,
   getAllDataColumnsWithAliases,
   getColumnHXLTags,
   getColumnLabel,
+  getTableSort,
   getVisibleAudioXpaths,
   isTableColumnFilterableByDropdown,
   isTableColumnFilterableByTextInput,
@@ -73,7 +78,7 @@ import {
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
 import ValidationStatusDropdown from '#/components/submissions/validationStatusDropdown'
-import { EnketoActions, GROUP_TYPES_BEGIN, MODAL_TYPES, QUESTION_TYPES } from '#/constants'
+import { EnketoActions, GROUP_TYPES_BEGIN, QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type {
   AssetResponse,
@@ -89,8 +94,6 @@ import type {
 import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
-import type { PageStateStoreState } from '#/pageState.store'
 import { addDefaultUuidPrefix, getSubmissionRootUuid, notify, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
@@ -102,11 +105,19 @@ import { openTableSettingsModal } from './openTableSettingsModal'
 const DEFAULT_PAGE_SIZE = 30
 const ROW_REFRESH_ERROR_NOTIFY_COOLDOWN_MS = 60 * 1000
 
+/** A page of rows, and the list it was taken from. */
+interface DisplayedList extends Omit<SubmissionListPosition, 'index'> {
+  /** Where the page starts in the list. */
+  start: number
+}
+
 interface DataTableProps {
   asset: AssetResponse
   activeBulkActions?: BulkActionResponse[]
   hasActiveBulkActionsCreatedByCurrentUser?: boolean
   currentUsername?: string
+  /** From `useTableSettings`, so changes re-render the table. */
+  tableSettings: Readonly<AssetTableSettings>
 }
 
 interface DataTableState {
@@ -127,13 +138,14 @@ interface DataTableState {
   /** A list of rows that are selected. */
   selectedRows: DataTableSelectedRows
   selectAll: boolean
-  submissionPager?: SubmissionPageName
   /** state of react-table table */
   fetchState?: ReactTableState
   /** instance data of react-table table */
   fetchInstance?: ReactTableInstance
   lastChecked: string | null
   shiftSelection: DataTableSelectedRows
+  /** Too wide frozen columns don't stay in place, see `positionFrozenColumns`. */
+  areFrozenColumnsTooWide: boolean
 }
 
 /**
@@ -151,12 +163,18 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   frozenLeftRef = 0
 
-  /** We store it for future checks. */
-  previousTableSettings: AssetTableSettings = {}
-
   private lastRowRefreshErrorNotifiedAt = 0
 
   private unlisteners: Function[] = []
+
+  /** What each request asked for, so its rows can be matched to it when they arrive. */
+  private readonly requestedLists = new WeakMap<GetSubmissionsOptions, DisplayedList>()
+
+  /**
+   * Where the rows on display came from, saved with the rows rather than when asked for: a newer request (a sort
+   * change, say) may be under way. Handed to a record the user opens, to step through the rows the way they're listed.
+   */
+  private displayedList?: DisplayedList
 
   constructor(props: DataTableProps) {
     super(props)
@@ -165,7 +183,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       submissions: [],
       columns: [],
       isFullscreen: false,
-      pageSize: 30,
+      pageSize: DEFAULT_PAGE_SIZE,
       currentPage: 0,
       error: false,
       errorNumber: null,
@@ -177,17 +195,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       resultsTotal: 0,
       selectedRows: {},
       selectAll: false,
-      submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
+      areFrozenColumnsTooWide: false,
     }
   }
 
   componentDidMount() {
-    this.previousTableSettings = tableStore.getTableSettings()
     this.unlisteners.push(
-      tableStore.listen(this.onTableStoreChange.bind(this), this),
-      pageState.listen(this.onPageStateUpdated.bind(this)),
       actions.resources.updateSubmissionValidationStatus.completed.listen(
         this.onSubmissionValidationStatusChange.bind(this),
       ),
@@ -195,7 +210,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         this.onSubmissionValidationStatusChange.bind(this),
       ),
       actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions.bind(this)),
-      actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted.bind(this)),
+      actions.resources.duplicateSubmission.completed.listen(this.refreshSubmissions.bind(this)),
       // Note: this action is not async, so we don't need to listen for `completed`
       actions.resources.refreshTableSubmissions.listen(this.refreshSubmissions.bind(this)),
       actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted.bind(this)),
@@ -205,6 +220,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted.bind(this)),
       actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted.bind(this)),
     )
+
+    // A narrower table may no longer fit the frozen columns.
+    const onWindowResize = throttle(() => this.positionFrozenColumns(), 100)
+    window.addEventListener('resize', onWindowResize)
+    this.unlisteners.push(() => {
+      onWindowResize.cancel()
+      window.removeEventListener('resize', onWindowResize)
+    })
   }
 
   componentWillUnmount() {
@@ -239,6 +262,22 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // from API, and we might need to display more columns.
       this._prepColumns(this.state.submissions)
     }
+
+    const prevTableSettings = prevProps.tableSettings
+    const newTableSettings = this.props.tableSettings
+    if (!isEqual(prevTableSettings[DATA_TABLE_SETTINGS.SORT_BY], newTableSettings[DATA_TABLE_SETTINGS.SORT_BY])) {
+      // A new sort needs new submissions, which rebuild the columns too.
+      this.refreshSubmissions()
+    } else if (!isEqual(prevTableSettings, newTableSettings)) {
+      // Other settings (e.g. a hidden or frozen column) only change how existing
+      // data is presented, so rebuilding the columns is enough.
+      this._prepColumns(this.state.submissions)
+    }
+
+    // Re-renders may change frozen columns or drop the classes added in there.
+    // ReactTable renders new columns in its own update after this one, so we
+    // wait a frame.
+    window.requestAnimationFrame(() => this.positionFrozenColumns())
   }
 
   /** @param submissionRootUuids - From `getSubmissionRootUuid`, matching what bulk actions report. */
@@ -335,31 +374,27 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const filter = instance.state.filtered
     let filterQueryString = ''
     // sort comes from outside react-table
-    const sort = []
+    const sort = getTableSort(tableStore.getSortBy())
+    const list: DisplayedList = { start: page, sort }
 
     if (filter.length && this.props.asset.content?.survey) {
       const filterQuery = buildFilterQuery(this.props.asset.content?.survey, instance.state.filtered)
       if (filterQuery.queryString) {
         filterQueryString = `&query=${filterQuery.queryString}`
       }
+      list.filterQuery = filterQuery.queryObj
     }
 
-    const sortBy = tableStore.getSortBy()
-    if (sortBy !== null) {
-      sort.push({
-        id: sortBy.fieldId,
-        desc: sortBy.value === SortValues.DESCENDING,
-      })
-    }
-
-    actions.submissions.getSubmissions({
+    const options: GetSubmissionsOptions = {
       uid: this.props.asset.uid,
       pageSize: pageSize,
       page: page,
       sort: sort,
       fields: [],
       filter: filterQueryString,
-    })
+    }
+    this.requestedLists.set(options, list)
+    actions.submissions.getSubmissions(options)
   }
 
   onGetSubmissionsCompleted(
@@ -367,27 +402,34 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     /** The parameters that the call was made with. */
     options: GetSubmissionsOptions,
   ) {
+    // The action passes back the very `options` object it was called with. Other tables get the response too, e.g. one
+    // that has unmounted since, so we skip what we didn't ask for.
+    const list = this.requestedLists.get(options)
+    if (!list) {
+      return
+    }
+
     const results = response.results
+    const lastPage = Math.max(Math.ceil(response.count / this.state.pageSize) - 1, 0)
+
     if (results && results.length > 0) {
-      if (this.state.submissionPager === 'next') {
-        this.submissionModalProcessing(String(results[0]._id), results)
-      }
-      if (this.state.submissionPager === 'prev') {
-        this.submissionModalProcessing(String(results[results.length - 1]._id), results)
-      }
+      this.displayedList = list
       this.setState(
         {
           loading: false,
           selectedRows: {},
           selectAll: false,
           submissions: results,
-          submissionPager: undefined,
           resultsTotal: response.count,
         },
         () => {
           this._prepColumns(results)
         },
       )
+    } else if (lastPage < this.state.currentPage && this.state.fetchInstance) {
+      // We asked for a page past the end - deleting the only row of the last page
+      // is enough to shrink the table. Drop to the last page there is.
+      this.state.fetchInstance.onPageChange(lastPage)
     } else if (options.filter?.length) {
       // if there are no results, but there is some filtering applied, we don't
       // want to display the "no data" message
@@ -408,7 +450,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   // The table view needs to handle the following errors differently:
   // - a 500 gets its own panel in `render()`, built from the status alone
   // - anything else shows the backend's message in the middle of the table, when there is one to show
-  onGetSubmissionsFailed(error: FailResponse) {
+  onGetSubmissionsFailed(error: FailResponse, options: GetSubmissionsOptions) {
+    // Like in `onGetSubmissionsCompleted`, it's not ours if we didn't ask for it.
+    if (!this.requestedLists.has(options)) {
+      return
+    }
+
     if (error?.status) {
       this.setState({ errorNumber: error.status })
 
@@ -582,10 +629,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
 
       const elClassNames = ['rt-sub-actions', 'is-frozen']
-      const frozenColumn = tableStore.getFrozenColumn()
-      if (!frozenColumn) {
-        elClassNames.push('is-last-frozen')
-      }
 
       return {
         Header: () => (
@@ -654,7 +697,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               iconName='view'
               size='sm'
               onClick={() => {
-                this.launchSubmissionModal(row.original._id)
+                this.goToSubmission(row.original)
               }}
             />
 
@@ -887,9 +930,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       return false
     })
 
-    // NOTE: frozen column stays where it is on the list, it is being moved to
-    // the beginning of table using CSS styling.
-    const frozenColumn = tableStore.getFrozenColumn()
+    // NOTE: frozen columns stay where they are on the list, they are being
+    // moved to the beginning of table using CSS styling.
+    const frozenColumns = tableStore.getFrozenColumns()
 
     columnsToRender.forEach((col: TableColumn) => {
       const columnQuestion = col.question
@@ -908,28 +951,24 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         col.Filter = TableTextFilter
       }
 
-      // Ensure frozen columns stay correctly aligned to the left, even after
-      // scrolling or reloads.
-      if (col.className?.includes('frozen')) {
-        col.style = { ...col.style, left: this.frozenLeftRef }
+      if (frozenColumns.includes(col.id)) {
+        col.className = cx('is-frozen', col.className)
+        col.headerClassName = cx('is-frozen', col.headerClassName)
       }
 
-      if (frozenColumn === col.id) {
-        col.className = col.className ? `is-frozen is-last-frozen ${col.className}` : 'is-frozen is-last-frozen'
-        col.headerClassName = col.headerClassName
-          ? `is-frozen is-last-frozen ${col.headerClassName}`
-          : 'is-frozen is-last-frozen'
+      // Ensure frozen columns stay correctly aligned to the left, even after
+      // scrolling or reloads. Header and filter cells use `headerStyle`.
+      if (col.className?.includes('is-frozen')) {
         col.style = { ...col.style, left: this.frozenLeftRef }
+        col.headerStyle = { ...col.headerStyle, left: this.frozenLeftRef }
       }
     })
 
     // prepare list of selected columns, if configured
     const selectedColumnsIds = tableStore.getSelectedColumns()
     if (selectedColumnsIds) {
-      // always include frozenColumn, if set
-      if (frozenColumn && !selectedColumnsIds.includes(frozenColumn)) {
-        selectedColumnsIds.unshift(frozenColumn)
-      }
+      // always include frozen columns
+      selectedColumnsIds.unshift(...frozenColumns.filter((id) => !selectedColumnsIds.includes(id)))
 
       columnsToRender = columnsToRender.filter((el) => {
         // always include checkbox column
@@ -938,6 +977,14 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         }
         return Boolean(el.id && selectedColumnsIds.includes(el.id) !== false)
       })
+    }
+
+    // Only the last frozen column (the checkbox one if none) gets the border and
+    // shadow. CSS `order` keeps list order, so last here is last on screen.
+    const lastFrozenColumn = [...columnsToRender].reverse().find((col) => col.className?.includes('is-frozen'))
+    if (lastFrozenColumn) {
+      lastFrozenColumn.className = cx(lastFrozenColumn.className, 'is-last-frozen')
+      lastFrozenColumn.headerClassName = cx(lastFrozenColumn.headerClassName, 'is-last-frozen')
     }
 
     this.setState({
@@ -972,32 +1019,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     }
   }
 
-  onDuplicateSubmissionCompleted({}, sid: string, duplicatedSubmission: SubmissionResponse) {
-    // Load fresh table of submissions
-    if (this.state.fetchInstance) {
-      this.fetchSubmissions(this.state.fetchInstance)
-    }
-    // Open submission modal
-    this.submissionModalProcessing(sid, this.state.submissions, true, duplicatedSubmission)
-  }
-
-  onTableStoreChange(newData: TableStoreData) {
-    // If sort setting changed, we definitely need to get new submissions (which
-    // will rebuild columns)
-    if (
-      JSON.stringify(this.previousTableSettings[DATA_TABLE_SETTINGS.SORT_BY]) !==
-      JSON.stringify(newData.tableSettings[DATA_TABLE_SETTINGS.SORT_BY])
-    ) {
-      this.refreshSubmissions()
-    } else if (!isEqual(this.previousTableSettings, newData.tableSettings)) {
-      // Other settings (e.g. a hidden or frozen column) only change how existing
-      // data is presented, so rebuilding the columns is enough.
-      this._prepColumns(this.state.submissions)
-    }
-
-    this.previousTableSettings = newData.tableSettings
-  }
-
   /** Uses `fetchData` but with past instance. */
   fetchDataForCurrentInstance() {
     if (this.state.fetchState && this.state.fetchInstance) {
@@ -1017,37 +1038,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.fetchSubmissions(tableInstance)
   }
 
-  /**
-   * Opens submission modal
-   * @param {object} row
-   */
-  launchSubmissionModal(sid: string) {
-    this.submissionModalProcessing(sid, this.state.submissions)
-  }
+  /** Opens the record in a modal over the table, which stays as it is underneath. */
+  goToSubmission(submission: SubmissionResponse) {
+    const list = this.displayedList
+    const listPosition = list && {
+      filterQuery: list.filterQuery,
+      sort: list.sort,
+      index: list.start + this.state.submissions.indexOf(submission),
+    }
 
-  /**
-   * Opens (or updates data in an opened) submission modal
-   */
-  submissionModalProcessing(
-    sid: string,
-    submissions: SubmissionResponse[],
-    isDuplicated = false,
-    duplicatedSubmission: SubmissionResponse | null = null,
-  ) {
-    const ids = submissions.map((item) => item._id)
-
-    pageState.showModal({
-      type: MODAL_TYPES.SUBMISSION,
-      sid: sid,
-      asset: this.props.asset,
-      ids: ids,
-      isDuplicated: isDuplicated,
-      duplicatedSubmission: duplicatedSubmission,
-      tableInfo: {
-        currentPage: this.state.currentPage,
-        pageSize: this.state.pageSize,
-        resultsTotal: this.state.resultsTotal,
-      },
+    goToSubmission(this.props.asset.uid, getSubmissionRootUuid(submission), {
+      state: { asModal: true, listPosition },
     })
   }
 
@@ -1060,30 +1061,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
   launchEditSubmission(sid: string) {
     enketoHandler.openSubmission(this.props.asset.uid, sid, EnketoActions.edit)
-  }
-
-  onPageStateUpdated(newPageState: PageStateStoreState) {
-    // This function serves purpose only for Submission Modal and only when
-    // user reaches the end of currently loaded submissions in the table with
-    // the "next" button (and similarly with "prev" button).
-    if (newPageState.modal && newPageState.modal.type === MODAL_TYPES.SUBMISSION && !newPageState.modal.sid) {
-      // HACK: this is our way of forcing `react-table` to switch page. There is
-      // a way to manually control pagination, but it would require some
-      // refactoring to happen. This hack (i.e. using internal `setState` of
-      // `react-table` component) will most definitely not work when we upgrade
-      // `react-table` to v7, but since that major version is a huge overhaul,
-      // we would be refactoring everything regardless.
-      let page = 0
-      if (newPageState.modal.page === 'next') {
-        page = this.state.currentPage + 1
-      } else if (newPageState.modal.page === 'prev') {
-        page = this.state.currentPage - 1
-      }
-      const fetchInstance = this.state.fetchInstance
-      fetchInstance?.setState({ page: page })
-
-      this.setState({ submissionPager: newPageState.modal.page }, this.fetchDataForCurrentInstance.bind(this))
-    }
   }
 
   /**
@@ -1214,21 +1191,38 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     // We need this check, because when scrolling vertically, the scrollLeft
     // property is always `0` (which seems like a browser bug).
     if (this.tableScrollTop === eventTarget.scrollTop) {
-      const left = eventTarget.scrollLeft > 0 ? eventTarget.scrollLeft : 0
-      const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen')
-
-      if (left >= 1) {
-        $frozenColumnCells.addClass('is-scrolled-horizontally')
-      } else {
-        $frozenColumnCells.removeClass('is-scrolled-horizontally')
-      }
-
-      $frozenColumnCells.css({ left: left })
-
-      // Save the reference position for the frozen column's left offset.
-      this.frozenLeftRef = left
+      this.positionFrozenColumns()
     } else {
       this.tableScrollTop = eventTarget.scrollTop
+    }
+  }
+
+  /** Keeps frozen columns in place while scrolling, unless they are too wide. */
+  positionFrozenColumns() {
+    const tableEl = $('.ReactTable .rt-table')[0]
+    if (!tableEl) {
+      return
+    }
+
+    const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen')
+    const frozenWidth = $('.ReactTable .rt-thead.-header .is-frozen')
+      .toArray()
+      .reduce((sum, el) => sum + el.offsetWidth, 0)
+    // Too wide frozen columns would cover everything, so we let them scroll
+    // like regular ones.
+    const isPinned = frozenWidth <= tableEl.clientWidth * MAX_FROZEN_WIDTH_RATIO
+    const left = isPinned && tableEl.scrollLeft > 0 ? tableEl.scrollLeft : 0
+
+    $frozenColumnCells.toggleClass('is-scrolled-horizontally', left >= 1)
+    $frozenColumnCells.toggleClass('is-unpinned', !isPinned)
+    $frozenColumnCells.css({ left: left })
+
+    // Save the reference position for the frozen column's left offset.
+    this.frozenLeftRef = left
+
+    // Only on change, as this runs on every scroll.
+    if (this.state.areFrozenColumnsTooWide === isPinned) {
+      this.setState({ areFrozenColumnsTooWide: !isPinned })
     }
   }
 
@@ -1286,6 +1280,13 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             activeBulkActions={this.props.activeBulkActions || []}
             hasActiveBulkActionsCreatedByCurrentUser={Boolean(this.props.hasActiveBulkActionsCreatedByCurrentUser)}
           />
+          {this.state.areFrozenColumnsTooWide && (
+            <Alert type='warning' iconName='warning'>
+              {t(
+                "Frozen fields don't fit in the table, so they scroll with the other fields. Make the window wider or unfreeze some fields.",
+              )}
+            </Alert>
+          )}
         </Stack>
 
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
@@ -1331,7 +1332,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           <ReactTable
             data={this.state.submissions}
             columns={this.state.columns}
+            onResizedChange={() => this.positionFrozenColumns()}
             defaultPageSize={DEFAULT_PAGE_SIZE}
+            PaginationComponent={TablePagination}
             pageSizeOptions={[10, 30, 50, 100, 200, 500]}
             minRows={0}
             className={tableClasses.join(' ')}

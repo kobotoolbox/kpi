@@ -1,5 +1,3 @@
-# The levels of Django's `--verbosity`, which a message is logged at
-QUIET = 0
 NORMAL = 1
 VERBOSE = 2
 DEBUG = 3

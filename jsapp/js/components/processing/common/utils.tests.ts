@@ -3,12 +3,18 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
+import { submissionWithAttachmentsWithUnicode } from '#/components/submissions/submissionUtils.mocks'
 import { QUESTION_TYPES } from '#/constants'
+import { ProcessingTab } from '../routes.utils'
 import {
+  StaticDisplays,
+  getAvailableTabsForQuestionType,
   getBlockedTargetLanguages,
+  getDefaultDisplaysForTab,
   getSuggestedLanguages,
   getTranslationSourceLanguages,
   hasAnalysisSource,
+  isNlpSupported,
 } from './utils'
 
 // Mock AdvancedFeatureResponse objects for tests
@@ -257,6 +263,7 @@ describe('hasAnalysisSource', () => {
   })
   const TEXT = QUESTION_TYPES.text.id
   const AUDIO = QUESTION_TYPES.audio.id
+  const IMAGE = QUESTION_TYPES.image.id
 
   /** Builds a submission whose answer at `XPATH` is the given value (omitted when `undefined`). */
   function buildSubmission(answer?: string): DataResponse {
@@ -273,6 +280,27 @@ describe('hasAnalysisSource', () => {
     chai.expect(hasAnalysisSource(TEXT, buildSubmission('   '), buildSupplement([]), XPATH)).to.equal(false)
   })
 
+  const PHOTO_SUBMISSION = submissionWithAttachmentsWithUnicode as unknown as DataResponse
+  const PHOTO_XPATH = submissionWithAttachmentsWithUnicode._attachments[0].question_xpath
+  const DELETED_PHOTO_SUBMISSION = {
+    ...submissionWithAttachmentsWithUnicode,
+    _attachments: [{ ...submissionWithAttachmentsWithUnicode._attachments[0], is_deleted: true }],
+  } as unknown as DataResponse
+
+  it('is true for an image question with a photo, even without a transcript', () => {
+    chai.expect(hasAnalysisSource(IMAGE, PHOTO_SUBMISSION, buildSupplement([]), PHOTO_XPATH)).to.equal(true)
+  })
+
+  it('is false for an image question whose photo was deleted', () => {
+    chai.expect(hasAnalysisSource(IMAGE, DELETED_PHOTO_SUBMISSION, buildSupplement([]), PHOTO_XPATH)).to.equal(false)
+  })
+
+  it('is false for an image question without a photo', () => {
+    chai.expect(hasAnalysisSource(IMAGE, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
+    // A file name alone isn't enough, the photo itself is what gets analyzed.
+    chai.expect(hasAnalysisSource(IMAGE, buildSubmission('photo.jpg'), buildSupplement([]), XPATH)).to.equal(false)
+  })
+
   it('is false for an audio question without a transcript', () => {
     chai.expect(hasAnalysisSource(AUDIO, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
   })
@@ -284,5 +312,57 @@ describe('hasAnalysisSource', () => {
   it('falls back to the transcript check when the question type is unknown', () => {
     chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([]), XPATH)).to.equal(false)
     chai.expect(hasAnalysisSource(undefined, buildSubmission(), buildSupplement([TRANSCRIPT]), XPATH)).to.equal(true)
+  })
+})
+
+describe('isNlpSupported', () => {
+  it('is true for audio, background audio, text and image questions', () => {
+    chai.expect(isNlpSupported(QUESTION_TYPES.audio.id)).to.equal(true)
+    chai.expect(isNlpSupported(QUESTION_TYPES['background-audio'].id)).to.equal(true)
+    chai.expect(isNlpSupported(QUESTION_TYPES.text.id)).to.equal(true)
+    chai.expect(isNlpSupported(QUESTION_TYPES.image.id)).to.equal(true)
+  })
+
+  it('is false for other question types and an unknown type', () => {
+    chai.expect(isNlpSupported(QUESTION_TYPES.video.id)).to.equal(false)
+    chai.expect(isNlpSupported(QUESTION_TYPES.file.id)).to.equal(false)
+    chai.expect(isNlpSupported(QUESTION_TYPES.select_one.id)).to.equal(false)
+    chai.expect(isNlpSupported(undefined)).to.equal(false)
+  })
+})
+
+describe('getDefaultDisplaysForTab', () => {
+  it('only keeps the response display of the question type', () => {
+    chai
+      .expect(getDefaultDisplaysForTab(ProcessingTab.Analysis, QUESTION_TYPES.audio.id))
+      .to.deep.equal([StaticDisplays.Audio, StaticDisplays.Data, StaticDisplays.Transcript])
+    chai
+      .expect(getDefaultDisplaysForTab(ProcessingTab.Analysis, QUESTION_TYPES.text.id))
+      .to.deep.equal([StaticDisplays.Text, StaticDisplays.Data, StaticDisplays.Transcript])
+    chai
+      .expect(getDefaultDisplaysForTab(ProcessingTab.Analysis, QUESTION_TYPES.image.id))
+      .to.deep.equal([StaticDisplays.Image, StaticDisplays.Data, StaticDisplays.Transcript])
+  })
+
+  it('is empty without a tab', () => {
+    chai.expect(getDefaultDisplaysForTab(undefined, QUESTION_TYPES.image.id)).to.deep.equal([])
+  })
+})
+
+describe('getAvailableTabsForQuestionType', () => {
+  it('has all three tabs for audio questions', () => {
+    chai
+      .expect(getAvailableTabsForQuestionType(QUESTION_TYPES.audio.id))
+      .to.deep.equal([ProcessingTab.Transcript, ProcessingTab.Translations, ProcessingTab.Analysis])
+  })
+
+  it('has no Transcript for text questions', () => {
+    chai
+      .expect(getAvailableTabsForQuestionType(QUESTION_TYPES.text.id))
+      .to.deep.equal([ProcessingTab.Translations, ProcessingTab.Analysis])
+  })
+
+  it('only has Analysis for image questions', () => {
+    chai.expect(getAvailableTabsForQuestionType(QUESTION_TYPES.image.id)).to.deep.equal([ProcessingTab.Analysis])
   })
 })

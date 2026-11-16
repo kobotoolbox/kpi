@@ -17,7 +17,7 @@ module.exports = {
       httpClient: 'fetch',
       // Generate mocks in separate .msw.ts files to avoid bundling faker/msw in production
       // With mode: 'tags-split', mocks are generated separately from runtime code
-      mock: true,
+      mock: { generators: [{ type: 'msw' }] },
       indexFiles: false,
       // Disable built-in biome, as it is running before `afterAllFilesWrite`
       // scripts - we run it manually after post-processing
@@ -29,6 +29,7 @@ module.exports = {
       override: {
         operationName: operationName, // Note: drop the annoying `ApiV2` prefix for everything.
         enumGenerationType: 'const', // Weirdly, 'enum' generates wrong imports.
+        aliasCombinedTypes: true, // Note: keep v7 behavior of named types for anyOf/oneOf/allOf parts.
         mutator: {
           path: './orval.mutator.ts', // Note: authentication is injected here.
           name: 'fetchWithAuth',
@@ -66,7 +67,6 @@ module.exports = {
         'node scripts/orval-fix-referenced-additional-properties.js',
         'node scripts/orval-fix-mock-factory-type-assertions.js',
         'node scripts/orval-make-trailing-slash-optional.js',
-        'node scripts/orval-remove-mock-delays.js',
         'npx biome check --write --unsafe jsapp/js/api/react-query jsapp/js/api/models',
       ],
     },

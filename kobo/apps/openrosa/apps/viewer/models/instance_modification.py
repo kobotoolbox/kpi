@@ -11,15 +11,10 @@ class InstanceModification(AbstractTimeStampedModel):
 
     action = models.CharField(max_length=50)
 
-    instance = models.ForeignKey(Instance, null=False,
-                                 related_name="modifications", on_delete=models.CASCADE)
+    instance = models.ForeignKey(
+        Instance, null=False, related_name='modifications', on_delete=models.CASCADE
+    )
     xpath = models.CharField(max_length=50)
 
     class Meta:
-        app_label = "viewer"
-
-    def process_doc(self, doc):
-        if self.action == "delete":
-            doc.pop(self.xpath)
-
-        return doc
+        app_label = 'viewer'

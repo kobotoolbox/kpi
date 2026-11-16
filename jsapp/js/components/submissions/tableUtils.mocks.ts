@@ -1,8 +1,8 @@
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { ANY_ROW_TYPE_NAMES, AssetTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 
-export const assetWithBgAudioAndNLP = getApiV2AssetsRetrieveResponseMock({
+export const assetWithBgAudioAndNLP = getAssetsRetrieveResponseMock({
   uid: 'am5q2MmVckuLBXPKsbHjEt',
   name: 'text and media projekt',
   asset_type: AssetTypeName.survey,
@@ -204,7 +204,7 @@ export const assetWithBgAudioAndNLP = getApiV2AssetsRetrieveResponseMock({
   effective_permissions: [{ codename: 'change_submissions' }],
 }) as unknown as AssetResponse
 
-export const assetWithNestedGroupsAndNLP = getApiV2AssetsRetrieveResponseMock({
+export const assetWithNestedGroupsAndNLP = getAssetsRetrieveResponseMock({
   uid: 'aRai4qmXVG4eukrzpHXAQC',
   name: 'Project with audio inside nested group',
   asset_type: AssetTypeName.survey,
@@ -345,7 +345,7 @@ export const assetWithStartGeopoint = {
  * Nothing reserves those names: the Form Builder only de-duplicates against the
  * other questions of the survey, and an uploaded XLSForm is free to use them.
  */
-export const assetWithQuestionsNamedAfterMeta = getApiV2AssetsRetrieveResponseMock({
+export const assetWithQuestionsNamedAfterMeta = getAssetsRetrieveResponseMock({
   uid: 'aQuEsTiOnSnAmEdAfTeRmEtA',
   asset_type: AssetTypeName.survey,
   content: {

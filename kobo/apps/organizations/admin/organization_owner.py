@@ -1,8 +1,13 @@
 from django.contrib import admin, messages
 from django.db import transaction
+from django.utils import timezone
 from organizations.base_admin import BaseOrganizationOwnerAdmin, BaseOwnerInline
 
 from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
+from kobo.apps.project_ownership.models import (
+    InviteStatusChoices,
+    OrgOwnershipTransferInvite,
+)
 from ..models import OrganizationOwner
 
 
@@ -44,11 +49,21 @@ class OrgOwnerAdmin(BaseOrganizationOwnerAdmin):
             old_user_id = OrganizationOwner.objects.filter(
                 pk=obj.pk
             ).values_list('organization_user__user_id', flat=True)[0]
+            new_user_id = obj.organization_user.user_id
 
         with transaction.atomic():
             super().save_model(request, obj, form, change)
 
             if change:
+                if old_user_id != new_user_id:
+                    OrgOwnershipTransferInvite.objects.filter(
+                        sender_id=old_user_id,
+                        status=InviteStatusChoices.PENDING,
+                    ).update(
+                        status=InviteStatusChoices.CANCELLED,
+                        date_modified=timezone.now(),
+                    )
+
                 transaction.on_commit(
                     lambda: transfer_member_data_ownership_to_org.delay(
                         old_user_id

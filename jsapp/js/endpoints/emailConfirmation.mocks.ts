@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { getApiV2EmailConfirmationsCreateMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
+import { getEmailConfirmationsCreateMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 
 /**
  * Mocks for `/api/v2/email-confirmations/`, the "send me another confirmation email" endpoint.
@@ -14,7 +14,7 @@ const EMAIL_CONFIRMATION_URL = '*/api/v2/email-confirmations{/}?'
  * held by nobody. The `detail` is quoted from the backend's `EMAIL_CONFIRMATION_REQUESTED_DETAIL`.
  */
 export const emailConfirmationRequestedMock = () =>
-  getApiV2EmailConfirmationsCreateMockHandler({
+  getEmailConfirmationsCreateMockHandler({
     detail: 'If that email address needs confirming, a new confirmation email has been sent to it.',
   })
 

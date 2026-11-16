@@ -25,13 +25,3 @@ class AttachmentAudioDurationRequestSerializer(serializers.Serializer):
                 )
             )
         return value
-
-
-class AttachmentAudioDurationItemSerializer(serializers.Serializer):
-    uid = serializers.CharField()
-    seconds = serializers.IntegerField(allow_null=True)
-
-
-class AttachmentAudioDurationResponseSerializer(serializers.Serializer):
-    attachments = AttachmentAudioDurationItemSerializer(many=True)
-    total = serializers.IntegerField()

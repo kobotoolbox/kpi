@@ -1,6 +1,6 @@
 import { http, HttpResponse, delay } from 'msw'
 import type { SocialAppDetail } from '#/api/models/socialAppDetail'
-import { getApiV2SocialAppsRetrieveMockHandler } from '#/api/react-query/configuration/msw'
+import { getSocialAppsRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
  * Handlers for `/api/v2/social-apps/{provider_id}/`, the provider detail endpoint.
@@ -14,7 +14,7 @@ const SOCIAL_APP_URL = '*/api/v2/social-apps/:providerId{/}?'
 
 /** A configured provider, public or hidden - the endpoint resolves both. */
 export const makeSocialAppMock = (override?: Partial<SocialAppDetail>) =>
-  getApiV2SocialAppsRetrieveMockHandler({ provider_id: 'example-org', name: 'Example Organization', ...override })
+  getSocialAppsRetrieveMockHandler({ provider_id: 'example-org', name: 'Example Organization', ...override })
 
 /** No provider answers to this `provider_id`: a typo in a hand-passed link, or a provider since removed. */
 export const socialAppNotFoundMock = () =>

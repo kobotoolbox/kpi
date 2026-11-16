@@ -4,11 +4,13 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.trackers.models import NLPUsageCounter
+from kpi.constants import LIMITED_COUNT_MANY
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -245,3 +247,12 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         url = reverse(self._get_endpoint('asset-usage-list'))
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
+
+    @override_settings(API_LIMITED_COUNT_MAX=0)
+    def test_list_count_is_capped(self):
+        self.__create_asset()
+        url = reverse(self._get_endpoint('asset-usage-list'))
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == LIMITED_COUNT_MANY
+        assert len(response.data['results']) > 0

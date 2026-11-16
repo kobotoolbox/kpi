@@ -37,7 +37,7 @@ const authRouting = (outlet: React.ReactNode) =>
 /** Placeholder card content. The input gives the tab-order assertions something to land on. */
 const stubForm = (
   <Stack gap='md'>
-    <Title order={1} size='h3'>
+    <Title order={1} size='h3' ta='center'>
       Sign in please
     </Title>
     <TextInput label='Email address' />

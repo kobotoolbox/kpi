@@ -22,10 +22,12 @@
 {% endblock %}
 
 {% comment %}
-  Empty on purpose: `kpi_simple.css` boxes `body` into an 800px column, which would
+  No `kpi_simple.css` on purpose: it boxes `body` into an 800px column, which would
   crop the full-bleed background. Mantine's `baseline.css` covers the reset instead.
 {% endcomment %}
-{% block head_stylesheets %}{% endblock %}
+{% block head_stylesheets %}
+  {% render_bundle 'errorApp' 'css' %}
+{% endblock %}
 
 {% comment %}
   Branding travels as data attributes, so the app makes no API calls. `config` comes

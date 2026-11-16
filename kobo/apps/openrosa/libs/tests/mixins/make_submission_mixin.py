@@ -99,10 +99,10 @@ class MakeSubmissionMixin:
             with open(path, 'rb') as xml_submission_file:
 
                 error, instance = safe_create_instance(
-                    username=username,
                     xml_file=xml_submission_file,
                     media_files=[media_file],
                     request=request,
+                    owner_username=username,
                 )
 
             if assert_success:

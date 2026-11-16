@@ -17,6 +17,12 @@ export interface FormViewSideTab {
   icon: string
   path: string
   isDisabled?: boolean
+  /**
+   * Keeps the tab highlighted on routes nested under its own, e.g. a submission
+   * record under the table. Off by default: the Settings tabs sit inside one
+   * another's paths and would light up together.
+   */
+  matchesNestedRoutes?: boolean
 }
 
 export interface FormViewSideTabsProps extends WithRouterProps {
@@ -33,6 +39,9 @@ export function getFormDataTabs(assetUid: string): FormViewSideTab[] {
       label: t('Table'),
       icon: 'k-icon k-icon-table',
       path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
+      // A submission record lives under the table, and reading one still counts as
+      // browsing the table.
+      matchesNestedRoutes: true,
     },
     {
       label: t('Reports'),
@@ -190,7 +199,7 @@ class FormViewSideTabs extends Reflux.Component<typeof Reflux.Store, FormViewSid
                 className={className}
                 data-path={item.path}
                 onClick={this.triggerRefresh}
-                end
+                end={!item.matchesNestedRoutes}
               >
                 <i className={`k-icon ${item.icon}`} />
                 <span className='form-view__tab-name'>{item.label}</span>

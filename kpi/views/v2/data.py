@@ -31,6 +31,8 @@ from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     InvalidAction,
+    InvalidImageDimensions,
+    InvalidImageFile,
     InvalidXPath,
     ManualQualNotFound,
     SubsequenceAcceptanceError,
@@ -115,13 +117,6 @@ from kpi.utils.xml import (
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
-        ),
-        OpenApiParameter(
-            name='id',
-            type=int,
-            location=OpenApiParameter.PATH,
-            required=False,
-            description='ID of the data (when applicable)',
         ),
     ],
 )
@@ -637,6 +632,12 @@ class DataViewSet(
             )
         except AttachmentNotFoundException:
             raise serializers.ValidationError({'detail': 'Attachment not found'})
+        except InvalidImageDimensions:
+            raise serializers.ValidationError(
+                {'detail': 'Image cannot be rescaled for LLM analysis'}
+            )
+        except InvalidImageFile:
+            raise serializers.ValidationError({'detail': 'Corrupted image file'})
 
         return Response(supplemental_data)
 

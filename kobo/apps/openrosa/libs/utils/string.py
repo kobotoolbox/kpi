@@ -6,13 +6,6 @@ def base64_encodestring(obj):
     return base64.encodebytes(obj.encode()).decode()
 
 
-def base64_decodestring(obj):
-    if isinstance(obj, str):
-        obj = obj.encode()
-
-    return base64.b64decode(obj).decode()
-
-
 def dict_lists2strings(d: dict) -> dict:
     """
     Convert lists in a dict to joined strings.
@@ -28,8 +21,3 @@ def dict_lists2strings(d: dict) -> dict:
             d[k] = dict_lists2strings(v)
 
     return d
-
-
-def str2bool(v):
-    return v.lower() in (
-        'yes', 'true', 't', '1') if isinstance(v, str) else v

@@ -1,9 +1,9 @@
 import type { FilesResponse } from '#/api/models/filesResponse'
 import {
-  getApiV2AssetsFilesCreateMockHandler,
-  getApiV2AssetsFilesCreateResponseMock,
-  getApiV2AssetsFilesDestroyMockHandler,
-  getApiV2AssetsFilesListMockHandler,
+  getAssetsFilesCreateMockHandler,
+  getAssetsFilesCreateResponseMock,
+  getAssetsFilesDestroyMockHandler,
+  getAssetsFilesListMockHandler,
 } from '#/api/react-query/survey-data/msw'
 
 /**
@@ -69,7 +69,7 @@ export function createFormMediaItem(index: number, overrides: Partial<FormMediaI
   const assetUid = overrides.asset?.match(/\/assets\/([^/]+)\//)?.[1] ?? 'mock-asset-uid'
 
   return {
-    ...getApiV2AssetsFilesCreateResponseMock({
+    ...getAssetsFilesCreateResponseMock({
       uid,
       url: `/api/v2/assets/${assetUid}/files/${uid}/`,
       asset: `/api/v2/assets/${assetUid}/`,
@@ -110,7 +110,7 @@ export function formMediaHandlers(
 
   return [
     // GET list - returns current items
-    getApiV2AssetsFilesListMockHandler(async ({ params }) => {
+    getAssetsFilesListMockHandler(async ({ params }) => {
       if (params.uidAsset !== assetUid) {
         return undefined as any
       }
@@ -123,7 +123,7 @@ export function formMediaHandlers(
     }),
 
     // POST create - adds item to list
-    getApiV2AssetsFilesCreateMockHandler(async ({ params, request }) => {
+    getAssetsFilesCreateMockHandler(async ({ params, request }) => {
       if (params.uidAsset !== assetUid) {
         return undefined as any
       }
@@ -163,7 +163,7 @@ export function formMediaHandlers(
     }),
 
     // DELETE - removes item from list
-    getApiV2AssetsFilesDestroyMockHandler(async ({ params }) => {
+    getAssetsFilesDestroyMockHandler(async ({ params }) => {
       if (params.uidAsset !== assetUid) {
         return
       }

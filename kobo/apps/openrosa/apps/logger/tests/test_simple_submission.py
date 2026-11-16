@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from pyxform import SurveyElementBuilder
 
@@ -49,14 +50,22 @@ class TestSimpleSubmission(TestCase):
             f'</instanceID></meta>'
             f'</start_time>'
         )
+        request = RequestFactory().post('/')
+        request.user = self.user
         try:
-            create_instance(self.user.username, TempFileProxy(st_xml), [])
+            create_instance(
+                xml_file=TempFileProxy(st_xml),
+                media_files=[],
+                request=request,
+                owner_username=self.user.username,
+            )
         except DuplicateInstanceError:
             pass
 
-    def _submit_simple_yes(self, request=None):
+    def _submit_simple_yes(self, user=None):
+        request = RequestFactory().post('/')
+        request.user = user or self.user
         return create_instance(
-            username=self.user.username,
             xml_file=TempFileProxy(
                 f"<?xml version='1.0' ?>"
                 f'<yes_or_no id="yes_or_no">'
@@ -68,6 +77,7 @@ class TestSimpleSubmission(TestCase):
             ),
             media_files=[],
             request=request,
+            owner_username=self.user.username,
         )
 
     def setUp(self):
@@ -141,7 +151,7 @@ class TestSimpleSubmission(TestCase):
         request = RequestFactory().post('/')
         request.user = self.user
         error, instance = safe_create_instance(
-            self.user.username, TempFileProxy(xml), None, None, request=request
+            xml_file=TempFileProxy(xml), media_files=[], request=request
         )
         # No `DjangoUnicodeDecodeError` errors are raised anymore.
         # An `InvalidXMLCharacterError` is raised instead
@@ -162,16 +172,14 @@ class TestSimpleSubmission(TestCase):
             )
 
     def test_parsed_instance_submitted_by_value(self):
-        class MockRequest:
-            pass
-
-        request = MockRequest()
-        request.user = self.user
-        instance = self._submit_simple_yes(request=request)
+        instance = self._submit_simple_yes()
         assert instance.parsed_instance.submitted_by == self.user.username
 
         instance.delete()
-        instance = self._submit_simple_yes(request=None)
+        # Anonymous submissions need a form that does not require authentication
+        self.xform1.require_auth = False
+        self.xform1.save(update_fields=['require_auth'])
+        instance = self._submit_simple_yes(user=AnonymousUser())
         assert instance.parsed_instance.submitted_by is None
 
     def test_rejects_invalid_xml_char_in_text_submission(self):
@@ -188,8 +196,10 @@ class TestSimpleSubmission(TestCase):
             '</yes_or_no>'
         ).format(str(uuid.uuid4()))
 
+        request = RequestFactory().post('/')
+        request.user = self.user
         error, instance = safe_create_instance(
-            self.user.username, TempFileProxy(invalid_char_xml), None, None
+            xml_file=TempFileProxy(invalid_char_xml), media_files=[], request=request
         )
         text = 'unsupported or invisible characters'
         self.assertContains(error, text, status_code=400)

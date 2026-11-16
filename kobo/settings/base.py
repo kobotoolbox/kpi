@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
@@ -810,106 +811,118 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
 }
 
-CONSTANCE_CONFIG_FIELDSETS = {
-    'General Options': (
-        'REGISTRATION_OPEN',
-        'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
-        'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
-        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
-        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
-        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
-        'SHOW_KOBOTOOLBOX_LOGO',
-        'AUTH_SERVER_TAG',
-        'TERMS_OF_SERVICE_URL',
-        'LAST_TOS_UPDATE',
-        'PRIVACY_POLICY_URL',
-        'SOURCE_CODE_URL',
-        'SUPPORT_EMAIL',
-        'SUPPORT_URL',
-        'ACADEMY_URL',
-        'COMMUNITY_URL',
-        'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
-        'EXPORT_RETENTION',
-        'EXPOSE_GIT_REV',
-        'FRONTEND_MIN_RETRY_TIME',
-        'FRONTEND_MAX_RETRY_TIME',
-        'USE_TEAM_LABEL',
-        'ORGANIZATION_INVITE_EXPIRY',
-        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
-        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
-        'MASS_EMAIL_TEST_EMAILS',
-        'USAGE_LIMIT_ENFORCEMENT',
-        'USER_REPORTS_PAGE_SIZE_LIMIT',
-        'ENKETO_USE_INTERNAL_OPENROSA_URL',
-    ),
-    'Rest Services': (
-        'ALLOW_UNSECURED_HOOK_ENDPOINTS',
-        'HOOK_MAX_RETRIES',
-    ),
-    'Natural language processing': (
-        'ASR_MT_INVITEE_USERNAMES',
-        'ASR_MT_GOOGLE_PROJECT_ID',
-        'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_REGION',
-        'ASR_LANGUAGE_CODE_OVERRIDES',
-        'ASR_MT_GOOGLE_CREDENTIALS',
-        'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
-        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
-    ),
-    'Security': (
-        'SSRF_ALLOWED_IP_ADDRESS',
-        'SSRF_DENIED_IP_ADDRESS',
-        'MFA_ISSUER_NAME',
-        'MFA_ENABLED',
-        'MFA_LOCALIZED_HELP_TEXT',
-        'SUPERUSER_AUTH_ENFORCEMENT',
-        'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
-    ),
-    'Metadata options': (
-        'USER_METADATA_FIELDS',
-        'PROJECT_METADATA_FIELDS',
-        'SECTOR_CHOICES',
-        'OPERATIONAL_PURPOSE_CHOICES',
-    ),
-    'Password Validation': (
-        'ENABLE_PASSWORD_ENTROPY_METER',
-        'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
-        'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
-        'ENABLE_COMMON_PASSWORD_VALIDATION',
-        'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
-        'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
-        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
-        'MINIMUM_PASSWORD_LENGTH',
-        'PASSWORD_USER_ATTRIBUTES',
-        'PASSWORD_CUSTOM_CHARACTER_RULES',
-        'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
-        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
-    ),
-    'Transfer project ownership': (
-        'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
-        'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
-        'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
-        'PROJECT_OWNERSHIP_INVITE_EXPIRY',
-        'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
-        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
-    ),
-    'Trash bin': (
-        'ACCOUNT_TRASH_RETENTION',
-        'ATTACHMENT_TRASH_RETENTION',
-        'PROJECT_TRASH_RETENTION',
-        'OVER_LIMIT_ATTACHMENT_RETENTION',
-        'AUTO_DELETE_ATTACHMENTS',
-        'ALLOW_SELF_ACCOUNT_DELETION',
-    ),
-    'Regular maintenance settings': (
-        'ASSET_SNAPSHOT_DAYS_RETENTION',
-        'IMPORT_TASK_DAYS_RETENTION',
-        'SUBMISSION_HISTORY_RETENTION',
-    ),
-}
+CONSTANCE_CONFIG_FIELDSETS = OrderedDict(
+    {
+        'Registration': (
+            'REGISTRATION_OPEN',
+            'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
+            'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+            'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+            'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+            'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+            'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
+        ),
+        'Security': (
+            'SSRF_ALLOWED_IP_ADDRESS',
+            'SSRF_DENIED_IP_ADDRESS',
+            'MFA_ISSUER_NAME',
+            'MFA_ENABLED',
+            'MFA_LOCALIZED_HELP_TEXT',
+            'SUPERUSER_AUTH_ENFORCEMENT',
+        ),
+        'Password Validation': (
+            'ENABLE_PASSWORD_ENTROPY_METER',
+            'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
+            'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
+            'ENABLE_COMMON_PASSWORD_VALIDATION',
+            'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
+            'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+            'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
+            'MINIMUM_PASSWORD_LENGTH',
+            'PASSWORD_USER_ATTRIBUTES',
+            'PASSWORD_CUSTOM_CHARACTER_RULES',
+            'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+            'CUSTOM_PASSWORD_GUIDANCE_TEXT',
+        ),
+        'Transfer project ownership': (
+            'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
+            'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
+            'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
+            'PROJECT_OWNERSHIP_INVITE_EXPIRY',
+            'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
+            'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
+        ),
+        'Natural language processing': (
+            'ASR_MT_INVITEE_USERNAMES',
+            'ASR_MT_GOOGLE_PROJECT_ID',
+            'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
+            'ASR_MT_GOOGLE_REGION',
+            'ASR_LANGUAGE_CODE_OVERRIDES',
+            'ASR_MT_GOOGLE_CREDENTIALS',
+            'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+            'AUTOMATIC_QA_REQUESTS_PER_SECOND',
+        ),
+        'Mass emails': (
+            'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+            'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
+            'MASS_EMAIL_TEST_EMAILS',
+        ),
+        'Metadata options': (
+            'USER_METADATA_FIELDS',
+            'PROJECT_METADATA_FIELDS',
+            'SECTOR_CHOICES',
+            'OPERATIONAL_PURPOSE_CHOICES',
+        ),
+        'Usage limits': (
+            'USAGE_LIMIT_ENFORCEMENT',
+            'OVER_LIMIT_ATTACHMENT_RETENTION',
+            'AUTO_DELETE_ATTACHMENTS',
+        ),
+        'Trash bin': (
+            'ACCOUNT_TRASH_RETENTION',
+            'ATTACHMENT_TRASH_RETENTION',
+            'PROJECT_TRASH_RETENTION',
+            'ALLOW_SELF_ACCOUNT_DELETION',
+        ),
+        'Regular maintenance settings': (
+            'ASSET_SNAPSHOT_DAYS_RETENTION',
+            'IMPORT_TASK_DAYS_RETENTION',
+            'SUBMISSION_HISTORY_RETENTION',
+            'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+            'EXPORT_RETENTION',
+        ),
+        'Rest Services': (
+            'ALLOW_UNSECURED_HOOK_ENDPOINTS',
+            'HOOK_MAX_RETRIES',
+        ),
+        'Organizations': (
+            'USE_TEAM_LABEL',
+            'ORGANIZATION_INVITE_EXPIRY',
+        ),
+        'Legal and support links': (
+            'SHOW_KOBOTOOLBOX_LOGO',
+            'AUTH_SERVER_TAG',
+            'TERMS_OF_SERVICE_URL',
+            'LAST_TOS_UPDATE',
+            'PRIVACY_POLICY_URL',
+            'SOURCE_CODE_URL',
+            'SUPPORT_EMAIL',
+            'SUPPORT_URL',
+            'ACADEMY_URL',
+            'COMMUNITY_URL',
+        ),
+        'General Options': (
+            'EXPOSE_GIT_REV',
+            'FRONTEND_MIN_RETRY_TIME',
+            'FRONTEND_MAX_RETRY_TIME',
+            'USER_REPORTS_PAGE_SIZE_LIMIT',
+            'ENKETO_USE_INTERNAL_OPENROSA_URL',
+        ),
+    }
+)
 
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -1109,7 +1122,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.LimitedCountPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1216,7 +1229,7 @@ SPECTACULAR_SETTINGS = {
             'name': 'Manage projects and library content',
             'description': (
                 'Create, organize, and manage projects, assets '
-                '(projects/library content), and tags',
+                '(projects/library content), and tags'
             ),
         },
         {
@@ -1435,6 +1448,27 @@ BULK_ACTION_STATUS_POLL_INTERVAL = env.int(
 BULK_ACTION_STUCK_THRESHOLD = env.int(
     'BULK_ACTION_STUCK_THRESHOLD',
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
+)
+
+# The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
+# than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
+TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
+    'TRANSCRIPTION_SILENCE_MIN_DURATION',
+    0.5,
+)
+
+# Loudness thresholds, in dBFS, tried in order until every cut has a pause to
+# land in. Recording levels differ enormously between files, so no single
+# threshold finds the pauses in all of them
+TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
+
+# Longest a single silence detection pass may run. It streams the whole
+# recording out of storage, so allow for a slow download, but never let a web
+# request hang on it for ever
+TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
+    'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
+    300,
 )
 
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
@@ -1909,13 +1943,40 @@ ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 # Accounts can share an email, so login stays username-only: allauth rejects
 # `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
-ACCOUNT_RATE_LIMITS = False
+ACCOUNT_RATE_LIMITS = {
+    # Brute force. Per username ("key") and per IP. Also applies to wrong
+    # MFA codes, per user. 10 matches the "5-10 failures, 15-minute lockout"
+    # in the issue; 30 per IP tolerates a few people mistyping behind one
+    # address while capping a spray from one IP at 120 guesses an hour.
+    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'),
+    # All login POSTs per IP, successful or not. Set loosely so a
+    # training room behind one address is not blocked. '' turns it off.
+    'login': env.str('ALLAUTH_LOGIN_RATE_LIMIT', '40/m/ip'),
+    # Account creation spam. Default.
+    'signup': env.str('ALLAUTH_SIGNUP_RATE_LIMIT', '20/m/ip'),
+    # Reset emails per IP, and per address so one inbox cannot be flooded.
+    # Defaults.
+    'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT', '20/m/ip,5/m/key'),
+    'reset_password_from_key': env.str(
+        'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT', '20/m/ip'
+    ),
+    # Per logged-in user, so shared IPs are unaffected. Defaults.
+    'reauthenticate': env.str('ALLAUTH_REAUTHENTICATE_RATE_LIMIT', '10/m/user'),
+    'change_password': env.str('ALLAUTH_CHANGE_PASSWORD_RATE_LIMIT', '5/m/user'),
+    'manage_email': env.str('ALLAUTH_MANAGE_EMAIL_RATE_LIMIT', '10/m/user'),
+    # Off: /api/v2/email-confirmations/ already has its own per-address
+    # throttle (EMAIL_CONFIRMATION_REQUESTS_PER_HOUR).
+    'confirm_email': '',
+}
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.
 # changing the email address) demands it again
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
+# Use X-Forwarded-For as the primary source of truth for client IPs
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
+
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -2530,6 +2591,9 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+# Same, for the XPaths of a single form version. A version never changes, so
+# its entry can live much longer than the one that merges all versions
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 30 * 86400
 
 # Cache time-to-live (in seconds) for the survey question types and default
 # language used by NLP actions

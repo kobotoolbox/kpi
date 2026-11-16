@@ -42,7 +42,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
 )
 from kobo.apps.organizations.constants import UsageType
 from kpi.constants import PERM_ADD_SUBMISSIONS
-from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.tests.utils.fuzzy_int import FuzzyInt
 
 
 class TestXFormSubmissionApi(TestAbstractViewSet):
@@ -56,7 +56,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
         response = self.view(request)
         self.assertEqual(response.status_code, 401)
         auth = DigestAuth('bob', 'bobbob')
-        request.META.update(auth(request.META, response))
+        request = self.factory.head('/submission', **auth(request.META, response))
         response = self.view(request)
         self.validate_openrosa_head_response(response)
 

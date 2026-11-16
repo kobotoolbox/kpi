@@ -96,7 +96,9 @@ export default function FormMapWrapper(props: FormMapWrapperProps) {
     setPageCount(count)
     // Pages past the new count are dropped, so if it goes back up they have to be walked one at a time again
     setPageProgress((progress) => {
-      return { ...progress, count: Math.min(progress.count, count) }
+      const nextCount = Math.min(progress.count, count)
+      // Same object when nothing changed, so React skips the re-render (a new one loops with FormMap's update)
+      return nextCount === progress.count ? progress : { ...progress, count: nextCount }
     })
   }
 

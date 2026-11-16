@@ -3,13 +3,13 @@ import { useState } from 'react'
 import DocumentTitle from 'react-document-title'
 import AuthAside, { shouldRenderAuthAside } from '#/auth/AuthContainer/AuthAside'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
+import AuthServerBrand from '#/auth/AuthContainer/AuthServerBrand'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import MfaForm, { type MfaOutcome } from '#/auth/MfaForm/MfaForm'
 import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
 import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
-import { PATHS } from '#/router/routerConstants'
 import { isPlainClick } from '#/utils'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import LoginForm, { type LoginOutcome } from './LoginForm'
@@ -107,21 +107,6 @@ function MfaExpiredPanel({ onRestart }: { onRestart: () => void }) {
   )
 }
 
-/** allauth accepted the password and then asked for a step that is not built yet - verifying a phone, say. */
-function AnotherStepRequiredPanel() {
-  return (
-    <Stack gap='md' ta='center'>
-      <Title order={1} size='h3'>
-        {t('One more step')}
-      </Title>
-      <Text>{t('This account needs an extra verification step, which is not available on this page yet.')}</Text>
-      <ButtonNew component='a' href={PATHS.MFA_AUTHENTICATE} size='lg' fullWidth>
-        {t('Continue signing in')}
-      </ButtonNew>
-    </Stack>
-  )
-}
-
 export interface LoginRouteProps {
   /** What to do once the session exists */
   onAuthenticated?: (url: string) => void
@@ -156,11 +141,13 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
         text={environment?.authConfiguration.supporting_text}
       />
     )
+    // Same rule as the aside: only on the cards that still hold a form.
+    const brand = <AuthServerBrand authConfiguration={environment?.authConfiguration} />
 
     // Not an ending: the password was accepted and there is a second factor still to fill in.
     if (outcome?.kind === 'mfaRequired') {
       return (
-        <AuthCard aside={aside}>
+        <AuthCard aside={aside} brand={brand}>
           <MfaForm onOutcome={handleOutcome} />
         </AuthCard>
       )
@@ -172,12 +159,11 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
           {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel continueUrl={destinationUrl} />}
           {outcome.kind === 'emailVerificationRequired' && <EmailVerificationRequiredPanel />}
           {outcome.kind === 'mfaExpired' && <MfaExpiredPanel onRestart={() => setOutcome(null)} />}
-          {outcome.kind === 'unsupportedStep' && <AnotherStepRequiredPanel />}
         </AuthCard>
       )
     }
     return (
-      <AuthCard aside={aside}>
+      <AuthCard aside={aside} brand={brand}>
         <LoginForm
           socialApps={environment?.socialApps}
           // Only a definite "no" hides the signup link - the same setting the signup screen itself goes by, so

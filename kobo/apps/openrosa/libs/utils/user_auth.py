@@ -1,18 +1,12 @@
 # coding: utf-8
-import re
 
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request as DRFRequest
 
-from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
-from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.openrosa.apps.main.models import UserProfile
-from kobo.apps.openrosa.libs.utils.string import base64_encodestring
-from kpi.constants import PERM_CHANGE_ASSET, PERM_DELETE_SUBMISSIONS, PERM_VIEW_ASSET
+from kpi.constants import PERM_VIEW_ASSET
 
 
 class HttpResponseNotAuthorized(HttpResponse):
@@ -25,47 +19,6 @@ class HttpResponseNotAuthorized(HttpResponse):
         )
 
 
-def check_and_set_user(request, username):
-    if username != request.user.username:
-        return HttpResponseRedirect('/%s' % username)
-    content_user = None
-    try:
-        content_user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return HttpResponseRedirect('/')
-    return content_user
-
-
-def set_profile_data(data, content_user):
-    # create empty profile if none exists
-    profile, created = UserProfile.objects.get_or_create(user=content_user)
-    location = ''
-    if profile.city:
-        location = profile.city
-    if profile.country:
-        if profile.city:
-            location += ', '
-        location += profile.country
-    forms = content_user.xforms.filter(shared__exact=1)
-    num_forms = forms.count()
-    user_instances = profile.num_of_submissions
-    home_page = profile.home_page
-    if home_page and re.match('http', home_page) is None:
-        home_page = 'http://%s' % home_page
-
-    data.update(
-        {
-            'location': location,
-            'user_instances': user_instances,
-            'home_page': home_page,
-            'num_forms': num_forms,
-            'forms': forms,
-            'profile': profile,
-            'content_user': content_user,
-        }
-    )
-
-
 def has_permission(xform, owner, request, shared=False):
     # PERM_VIEW_ASSET covers holders of PERM_CHANGE_ASSET too: the asset model
     # declares change_asset → view_asset in its IMPLIED_PERMISSIONS mapping.
@@ -76,53 +29,6 @@ def has_permission(xform, owner, request, shared=False):
         or owner == user
         or user.has_perm(PERM_VIEW_ASSET, xform.asset)
     )
-
-
-def has_delete_data_permission(xform, owner, request):
-    user = request.user
-    return owner == user or user.has_perm(PERM_DELETE_SUBMISSIONS, xform.asset)
-
-
-def has_edit_permission(xform, owner, request):
-    user = request.user
-    return owner == user or user.has_perm(PERM_CHANGE_ASSET, xform.asset)
-
-
-def check_and_set_user_and_form(username, id_string, request):
-    xform = get_object_or_404(
-        XForm, user__username=username, id_string=id_string
-    )
-    owner = User.objects.get(username=username)
-    return (
-        [xform, owner]
-        if has_permission(xform, owner, request)
-        else [False, False]
-    )
-
-
-def check_and_set_form_by_id_string(username, id_string, request):
-    xform = get_object_or_404(
-        XForm, user__username=username, id_string=id_string
-    )
-    return xform if has_permission(xform, xform.user, request) else False
-
-
-def check_and_set_form_by_id(pk, request):
-    xform = get_object_or_404(XForm, pk=pk)
-    return xform if has_permission(xform, xform.user, request) else False
-
-
-def get_xform_and_perms(username, id_string, request):
-    xform = get_object_or_404(
-        XForm, user__username=username, id_string=id_string
-    )
-    is_owner = xform.user == request.user
-    can_edit = is_owner or request.user.has_perm(PERM_CHANGE_ASSET, xform.asset)
-    can_view = can_edit or request.user.has_perm(PERM_VIEW_ASSET, xform.asset)
-    can_delete_data = is_owner or request.user.has_perm(
-        PERM_DELETE_SUBMISSIONS, xform.asset
-    )
-    return [xform, is_owner, can_edit, can_view, can_delete_data]
 
 
 def helper_auth_helper(request):
@@ -154,12 +60,6 @@ def helper_auth_helper(request):
                 # `DEFAULT_AUTHENTICATION_CLASSES` are ordered and the
                 # first match wins; don't look any further
                 break
-
-
-def http_auth_string(username, password):
-    credentials = base64_encodestring('%s:%s' % (username, password)).strip()
-    auth_string = 'Basic %s' % credentials
-    return auth_string
 
 
 def add_cors_headers(response):

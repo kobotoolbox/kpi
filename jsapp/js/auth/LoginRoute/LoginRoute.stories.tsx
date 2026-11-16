@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { RequestHandler } from 'msw'
 import { reactRouterOutlet, reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { AuthServerTagEnum } from '#/api/models/authServerTagEnum'
 import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { type Canvas, field, findField, findProviderButtons } from '#/auth/authStoryHelpers'
 import { ROOT_URL } from '#/constants'
@@ -10,12 +11,15 @@ import {
   loginAuthenticatedMock,
   loginEmailVerificationRequiredMock,
   loginErrorsMock,
+  loginUnhandledStepMock,
 } from '#/endpoints/allauth.mocks'
 import { emailConfirmationRequestedMock } from '#/endpoints/emailConfirmation.mocks'
-import { makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
+import { makeAuthConfigurationMock, makeEnvironmentMock, socialAppsMock } from '#/endpoints/environment.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { AUTH_ROUTES, ROUTES } from '#/router/routerConstants'
 import { setAnonymousProfileForStories } from '#/stores/profile.mocks'
+// Stand-in for an uploaded organization logo, served offline.
+import logoUrl from '../../../img/kobologo_symbol.svg'
 import LoginRoute from './LoginRoute'
 
 const CREDENTIALS = {
@@ -150,6 +154,47 @@ export const SingleSignOnProviders: Story = {
   },
 }
 
+const LOGO_SELECTOR = `img[src="${logoUrl}"]`
+
+/** Global server: a blue tag, and the logo stays hidden because the tag wins. */
+export const GlobalServerTag: Story = {
+  parameters: {
+    msw: {
+      handlers: storyHandlers({
+        environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.global, logo_url: logoUrl }),
+      }),
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    const tag = await canvas.findByText('Global server')
+    expect(tag.closest('[data-variant]')).toHaveAttribute('data-variant', 'blue-light')
+    expect(canvasElement.querySelector(LOGO_SELECTOR)).not.toBeInTheDocument()
+  },
+}
+
+/** EU server: a teal tag. */
+export const EuServerTag: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeAuthConfigurationMock({ server_tag: AuthServerTagEnum.eu }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    const tag = await within(canvasElement).findByText('EU server')
+    expect(tag.closest('[data-variant]')).toHaveAttribute('data-variant', 'teal-light')
+  },
+}
+
+/** Private server: no tag, so the organization logo shows. */
+export const OrganizationLogo: Story = {
+  parameters: {
+    msw: { handlers: storyHandlers({ environment: makeAuthConfigurationMock({ logo_url: logoUrl }) }) },
+  },
+  play: async ({ canvasElement }) => {
+    await waitFor(() => expect(canvasElement.querySelector(LOGO_SELECTOR)).toBeInTheDocument())
+  },
+}
+
 /** Nothing filled in, form submitted - both fields show errors and nothing is sent. */
 export const ClientValidation: Story = {
   play: async ({ canvasElement }) => {
@@ -223,6 +268,20 @@ export const EmailVerificationRequired: Story = {
     // Hedged on both counts, and the field keeps the address for a second attempt.
     await canvas.findByText(/a new link has been requested for it/)
     expect(canvas.getByLabelText('Email')).toHaveValue(CREDENTIALS.email)
+  },
+}
+
+/** Right password, then a step this screen has no form for. Says so, rather than blaming the password. */
+export const UnhandledLoginStep: Story = {
+  parameters: { msw: { handlers: storyHandlers({ login: loginUnhandledStepMock() }) } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    await fillForm(canvas)
+    await submit(canvas)
+
+    await canvas.findByText('Your account needs a login step that is not available here. Please contact support.')
+    expect(canvas.queryByText('Something went wrong. Please try again later.')).not.toBeInTheDocument()
   },
 }
 

@@ -85,7 +85,7 @@ class TestImportingDatabase(TestBase):
         request = self.factory.post('/')
         request.user = self.user
         import_instances_from_zip(
-            os.path.join(DB_FIXTURES_PATH, 'bulk_submission.zip'), self.user, request
+            os.path.join(DB_FIXTURES_PATH, 'bulk_submission.zip'), request
         )
 
         instance_count = Instance.objects.count()
@@ -103,7 +103,7 @@ class TestImportingDatabase(TestBase):
         request = self.factory.post('/')
         request.user = self.user
         total, success, errors = import_instances_from_zip(
-            os.path.join(CUR_DIR, 'Water_Translated_2011_03_10.xml'), self.user, request
+            os.path.join(CUR_DIR, 'Water_Translated_2011_03_10.xml'), request
         )
         self.assertEqual(total, 0)
         self.assertEqual(success, 0)

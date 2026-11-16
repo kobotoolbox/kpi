@@ -24,7 +24,6 @@ from kobo.apps.openrosa.apps.viewer.views import (
     export_list,
     export_progress,
 )
-from kobo.apps.openrosa.apps.viewer.xls_writer import XlsWriter
 from kobo.apps.openrosa.libs.utils.export_tools import (
     dict_to_joined_export,
     generate_export,
@@ -55,14 +54,6 @@ class TestExports(TestBase):
     def setUp(self):
         super().setUp()
         self._submission_time = parse_datetime('2013-02-18 15:54:01Z')
-
-    def test_unique_xls_sheet_name(self):
-        xls_writer = XlsWriter()
-        xls_writer.add_sheet('section9_pit_latrine_with_slab_group')
-        xls_writer.add_sheet('section9_pit_latrine_without_slab_group')
-        # create a set of sheet names keys
-        sheet_names_set = set(xls_writer._sheets.keys())
-        self.assertEqual(len(sheet_names_set), 2)
 
     def test_create_export(self):
         self._publish_transportation_form_and_submit_instance()

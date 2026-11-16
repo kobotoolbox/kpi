@@ -1,7 +1,7 @@
 import { http, HttpResponse, type PathParams } from 'msw'
 import { endpoints } from '#/api.endpoints'
 import type { ProjectHistoryLogResponse } from '#/api/models/projectHistoryLogResponse'
-import { getApiV2ProjectHistoryLogsListResponseMock } from '#/api/react-query/server-logs-superusers/msw'
+import { getProjectHistoryLogsListResponseMock } from '#/api/react-query/server-logs-superusers/msw'
 import {
   type ActivityLogsItem,
   AuditActions,
@@ -15,7 +15,7 @@ export const mockAssetUid = 'a1234567890bcdEFGhijkl'
  * Creates a mock history log item using Orval's generated mock.
  *
  * Since the API doesn't have a single-item retrieve endpoint, Orval only generates
- * getApiV2ProjectHistoryLogsListResponseMock (which returns a paginated list).
+ * getProjectHistoryLogsListResponseMock (which returns a paginated list).
  * This helper extracts a single item from that list and merges overrides.
  *
  * Note: ActivityLogsItem extends ProjectHistoryLogResponse with typed action/metadata.
@@ -26,7 +26,7 @@ type AssetHistoryLogOverrides = Partial<Omit<ActivityLogsItem, 'metadata'>> & {
 
 const createHistoryLog = (overrides: AssetHistoryLogOverrides = {}): ActivityLogsItem => {
   // Get a sample log from Orval's list mock
-  const sampleList = getApiV2ProjectHistoryLogsListResponseMock()
+  const sampleList = getProjectHistoryLogsListResponseMock()
   const baseLog = sampleList.results[0] as ProjectHistoryLogResponse
 
   const { metadata, ...rest } = overrides

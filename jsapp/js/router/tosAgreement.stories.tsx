@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse, delay } from 'msw'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
-import { getApiV2TermsOfServiceListMockHandler } from '#/api/react-query/other/msw'
+import { getTermsOfServiceListMockHandler } from '#/api/react-query/other/msw'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import TOSAgreement from './tosAgreement.component'
 
@@ -12,7 +12,7 @@ import TOSAgreement from './tosAgreement.component'
 
 // A minimal announcement so the form gets past its loading guard. Without a message whose slug is
 // `terms_of_service` the form would spin forever.
-const termsOfServiceMock = getApiV2TermsOfServiceListMockHandler([
+const termsOfServiceMock = getTermsOfServiceListMockHandler([
   {
     url: 'http://kf.kobo.local/api/v2/terms-of-service/terms_of_service/',
     slug: 'terms_of_service',

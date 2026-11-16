@@ -72,7 +72,7 @@ function ConfirmPanel({ providerId, providerName }: ConfirmPanelProps) {
   return (
     <Stack gap='xl'>
       <Stack gap='xs'>
-        <Title order={1} size='h3'>
+        <Title order={1} size='h3' ta='center'>
           {/* Substituted rather than interpolated, so translators get one stable string per screen. */}
           {t('Log in with ##provider##').replace('##provider##', () => providerName)}
         </Title>
@@ -123,6 +123,7 @@ function ProviderLoginPanels({ providerId }: { providerId: string }) {
     query: {
       // The same key the hook would have defaulted to; the generated options type asks for it outright.
       queryKey: getSocialAppsRetrieveQueryKey(providerId),
+      enabled: !!providerId,
       // A 404 is an answer about the provider, not a transport failure - retrying it only delays the panel.
       retry: false,
     },

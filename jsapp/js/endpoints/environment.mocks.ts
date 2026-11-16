@@ -3,7 +3,7 @@ import type { AuthConfiguration } from '#/api/models/authConfiguration'
 import { AuthThemeEnum } from '#/api/models/authThemeEnum'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import type { SocialApp } from '#/api/models/socialApp'
-import { getApiV2EnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
+import { getEnvironmentRetrieveMockHandler } from '#/api/react-query/configuration/msw'
 
 /**
  * Production-like environment configuration for testing.
@@ -497,7 +497,7 @@ export const socialAppsMock: SocialApp[] = [
  * {@link environmentResponse}'s copy of it first.
  */
 export const makeEnvironmentMock = (override?: Partial<EnvironmentResponse>) =>
-  getApiV2EnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
+  getEnvironmentRetrieveMockHandler({ ...environmentResponse, ...override })
 
 export const makeAuthConfigurationMock = (
   authConfiguration: Partial<AuthConfiguration>,

@@ -47,7 +47,7 @@ class TestBulkSubmissionAttachments(TestBase):
 
         request = self.factory.post('/')
         request.user = self.user
-        import_instances_from_zip(ZIP_FILE_PATH, self.user, request)
+        import_instances_from_zip(ZIP_FILE_PATH, request)
 
         queryset = Instance.objects
 

@@ -1,5 +1,5 @@
 import type { OrganizationResponse } from '#/api/models/organizationResponse'
-import { getApiV2OrganizationsRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
+import { getOrganizationsRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 import { meMockResponse } from './me.mocks'
 
 /**
@@ -10,7 +10,7 @@ import { meMockResponse } from './me.mocks'
 const organizationMock = (override?: Partial<OrganizationResponse>) => {
   const id = override?.id ?? meMockResponse.organization?.uid ?? 'default-org-id'
 
-  return getApiV2OrganizationsRetrieveMockHandler({
+  return getOrganizationsRetrieveMockHandler({
     id,
     url: `http://kf.kobo.local/api/v2/organizations/${id}/`,
     name: 'mocked organization',

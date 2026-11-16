@@ -75,6 +75,8 @@ export default function StandaloneUILanguageSelector(props: StandaloneUILanguage
 
   const currentCode = currentLang()
   const currentLanguage = findCurrentLanguage(languages, currentCode)
+  // Only show two letters
+  const shortCode = currentCode.slice(0, 2).toUpperCase()
 
   const errorMessage = t('Could not change the language. Please try again.')
 
@@ -118,14 +120,13 @@ export default function StandaloneUILanguageSelector(props: StandaloneUILanguage
               { [styles['toggle--onCustomBackground']]: props.hasCustomBackground },
               props.className,
             )}
-            aria-label={t('Interface language: ##language##').replace(
-              '##language##',
-              currentLanguage?.label ?? currentCode,
-            )}
+            // The accessible name must contain the visible text
+            aria-label={t('##code## – Interface language: ##language##')
+              .replace('##code##', shortCode)
+              .replace('##language##', currentLanguage?.label ?? currentCode)}
           >
             <KoboIcon icon={IconWorld} size='xs' />
-            {/* Only show two letters */}
-            {currentCode.slice(0, 2).toUpperCase()}
+            {shortCode}
           </button>
         </Menu.Target>
 

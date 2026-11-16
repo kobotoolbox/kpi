@@ -124,7 +124,7 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
        * When dealing with more than one list and/or item, better name them specifically.
        */
       mutation: {
-        onMutate: async ({ uidOrganization, guid, data }) => {
+        onMutate: async ({ uidOrganization, guid, data = {} }) => {
           // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
           const invitesSnapshots: [readonly unknown[], unknown][] = []
 
@@ -236,7 +236,7 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
        * Good simple example for optimistic update approach. Note that usually have to handle 1 list and 1 item.
        */
       mutation: {
-        onMutate: async ({ uidOrganization, username, data: { role } }) => {
+        onMutate: async ({ uidOrganization, username, data: { role } = {} }) => {
           if (!role) return
 
           const listSnapshots = await optimisticallyUpdatePaginatedList<organizationsMembersListResponse>(

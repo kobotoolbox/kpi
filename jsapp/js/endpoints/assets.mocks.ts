@@ -1,6 +1,6 @@
 import {
-  getApiV2AssetsListMockHandler,
-  getApiV2AssetsRetrieveResponseMock,
+  getAssetsListMockHandler,
+  getAssetsRetrieveResponseMock,
 } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { AssetTypeName, QuestionTypeName } from '#/constants'
 import type { AssetResponse, PaginatedResponse } from '#/dataInterface'
@@ -18,7 +18,7 @@ import { mockTemplates } from './assets.templates'
  * Note that default response contains only 2 results.
  */
 const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
-  getApiV2AssetsListMockHandler(async (info) => {
+  getAssetsListMockHandler(async (info) => {
     const searchParams = new URL(info.request.url).searchParams
     const limit = searchParams.get('limit') !== null ? Number(searchParams.get('limit')) : undefined
     const query = searchParams.get('q')
@@ -50,7 +50,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
   next: null,
   previous: null,
   results: [
-    getApiV2AssetsRetrieveResponseMock({
+    getAssetsRetrieveResponseMock({
       uid: 'abam8JiJ3hHTW3EYp6Tpb5',
       name: 'minimal asset first',
       owner__username: 'zefir',
@@ -76,7 +76,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
         translations: [null],
       },
     }),
-    getApiV2AssetsRetrieveResponseMock({
+    getAssetsRetrieveResponseMock({
       uid: 'abam8JiJ3hHTW3EYp6Tpb4',
       name: 'minimal asset second',
       owner__username: 'zefir',
