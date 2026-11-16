@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { recordEntries } from '#/utils'
 import permConfig from './permConfig'
 import {
@@ -101,7 +101,7 @@ function getPermissionCheckboxPairs(permCodename: PermissionCodename) {
  * Returns updated state object
  */
 function applyValidityRulesForCheckbox(checkboxName: CheckboxNameAll, stateObj: UserAssetPermsEditorState) {
-  let output = clonedeep(stateObj)
+  let output = cloneDeep(stateObj)
 
   // Step 1: Only apply the rules for checked checkboxes
   if (output[checkboxName] === false) {
@@ -164,7 +164,7 @@ function applyValidityRulesForCheckbox(checkboxName: CheckboxNameAll, stateObj: 
  */
 export function applyValidityRules(stateObj: UserAssetPermsEditorState, assignablePerms: AssignablePermsMap) {
   // Step 1: Avoid mutation
-  let output = clonedeep(stateObj)
+  let output = cloneDeep(stateObj)
 
   // Step 2: Enable all checkboxes (make them not disabled) before applying
   // the rules

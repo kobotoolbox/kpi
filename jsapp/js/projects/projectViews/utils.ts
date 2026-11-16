@@ -18,9 +18,14 @@ export function isFilterConditionValueRequired(conditionName?: FilterConditionNa
   return true
 }
 
+/** Filter value as a list, so single and multiple values are handled the same way. */
+export function getFilterValues(filter: ProjectsFilterDefinition): string[] {
+  return ([] as string[]).concat(filter.value ?? []).filter(Boolean)
+}
+
 /** Checks for a full `YYYY-MM-DD` date. Filters saved before the date picker may hold partial ones like `2026-11`. */
-export function isValidFilterDate(value?: string) {
-  return !!value && moment(value, 'YYYY-MM-DD', true).isValid()
+export function isValidFilterDate(value: ProjectsFilterDefinition['value']): value is string {
+  return typeof value === 'string' && moment(value, 'YYYY-MM-DD', true).isValid()
 }
 
 export function isConditionAvailableForFilter(conditionName: FilterConditionName, fieldName: ProjectFieldName) {
@@ -39,7 +44,7 @@ export function removeIncorrectFilters(filters: ProjectsFilterDefinition[]) {
       filter.fieldName &&
       filter.condition &&
       isConditionAvailableForFilter(filter.condition, filter.fieldName) &&
-      (!isValueRequired || (isValueRequired && filter.value)) &&
+      (!isValueRequired || getFilterValues(filter).length > 0) &&
       (!PROJECT_FIELDS[filter.fieldName].isDate || isValidFilterDate(filter.value))
     ) {
       // We rewrite filter object to avoid including value if a non-value
@@ -67,34 +72,39 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
     const fieldDefinition = PROJECT_FIELDS[filter.fieldName]
     const conditionDefinition = FILTER_CONDITIONS[filter.condition]
 
-    // Filtering by `ownerUsername` should filter on both the owner and organization name
-    if (filter.fieldName === 'ownerUsername') {
-      const ownerNameQuery = conditionDefinition.filterQuery
-        .replace('<field>', 'search_field__owner_username')
-        .replace('<term>', `"${filter.value}"`)
-      const orgNameQuery = conditionDefinition.filterQuery
-        .replace('<field>', 'search_field__organization_name')
-        .replace('<term>', `"${filter.value}"`)
-      return `(${ownerNameQuery} OR ${orgNameQuery})`
-    }
-
-    if (conditionDefinition.requiresValue && filter.value) {
-      let query = conditionDefinition.filterQuery
-        .replaceAll('<field>', fieldDefinition.apiFilteringName)
-        // wrapping term in quotes to make it work with spaces
-        .replace('<term>', `"${filter.value}"`)
-      if (fieldDefinition.isDate) {
-        // The user's midnight, not UTC's, so results match the dates shown in the table.
-        const dayStart = moment(filter.value, 'YYYY-MM-DD')
-        query = query
-          .replace('<dayStart>', `"${dayStart.toISOString(true)}"`)
-          .replace('<dayEnd>', `"${dayStart.add(1, 'day').toISOString(true)}"`)
-      }
-      return query
-    } else if (!conditionDefinition.requiresValue) {
+    if (!conditionDefinition.requiresValue) {
       return conditionDefinition.filterQuery.replace('<field>', fieldDefinition.apiFilteringName)
     }
 
-    return ''
+    const buildQuery = (field: string, term: string) => {
+      const query = conditionDefinition.filterQuery
+        // Date conditions use the field twice
+        .replaceAll('<field>', field)
+        // wrapping term in quotes to make it work with spaces
+        .replace('<term>', `"${term}"`)
+      if (!fieldDefinition.isDate) {
+        return query
+      }
+      // The user's midnight, not UTC's, so results match the dates shown in the table.
+      const dayStart = moment(term, 'YYYY-MM-DD')
+      return query
+        .replace('<dayStart>', `"${dayStart.toISOString(true)}"`)
+        .replace('<dayEnd>', `"${dayStart.add(1, 'day').toISOString(true)}"`)
+    }
+
+    const valueQueries = getFilterValues(filter).map((term) => {
+      // Filtering by `ownerUsername` should filter on both the owner and organization name
+      if (filter.fieldName === 'ownerUsername') {
+        return `(${buildQuery('search_field__owner_username', term)} OR ${buildQuery('search_field__organization_name', term)})`
+      }
+      return buildQuery(fieldDefinition.apiFilteringName, term)
+    })
+
+    if (valueQueries.length === 1) {
+      return valueQueries[0]
+    }
+    // "Is" matches any of the values, "Is not" must match none of them.
+    const joiner = conditionDefinition.filterQuery.startsWith('NOT ') ? ' AND ' : ' OR '
+    return `(${valueQueries.join(joiner)})`
   })
 }
