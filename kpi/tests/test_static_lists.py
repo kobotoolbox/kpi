@@ -18,3 +18,11 @@ def test_country_labels_are_clean():
 
 def test_kosovo_is_kept():
     assert dict(COUNTRIES)['XKX'] == 'Kosovo'
+
+
+def test_country_names_are_current():
+    countries = dict(COUNTRIES)
+    assert countries['CZE'] == 'Czechia'
+    assert countries['SWZ'] == 'Eswatini'
+    assert countries['MKD'] == 'North Macedonia'
+    assert countries['TUR'] == 'Türkiye'
