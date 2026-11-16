@@ -851,6 +851,43 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
             versions[0]['_data']['error'], str(UsageLimitExceededException())
         )
 
+    def test_start_bulk_item_job_fails_its_running_version_when_cancelled(self):
+        """
+        Test that cancelling the batch during a quota wait ends the version the
+        first attempt saved as failed, once the queued retry finds the item
+        cancelled
+        """
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        service_class = Mock()
+        service_class.return_value.process_data.side_effect = GoogleQuotaExceededError()
+
+        with patch.object(
+            AutomaticGoogleTranscriptionAction,
+            'get_nlp_service_class',
+            return_value=service_class,
+        ), patch('kobo.apps.subsequences.actions.base.celery_app') as celery_app:
+            celery_app.current_worker_task = object()
+            with patch.object(
+                start_bulk_item_job, 'retry', return_value=Retry()
+            ), self.assertRaises(Retry):
+                start_bulk_item_job(item.pk)
+
+        self.bulk_action.cancel()
+        # The queued retry, once the quota wait is over
+        start_bulk_item_job.apply(args=(item.pk,), retries=1, throw=True)
+
+        item.refresh_from_db()
+        self.assertEqual(item.status, BulkActionItemStatus.CANCELLED)
+        versions = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content[self.question_xpath][self.action_id]['_versions']
+        self.assertEqual(
+            [v['_data']['status'] for v in versions], ['failed', 'in_progress']
+        )
+        self.assertEqual(versions[0]['_data']['error'], 'Bulk action cancelled')
+
     def test_start_bulk_item_job_marks_item_failed_when_submission_lookup_raises(
         self,
     ):

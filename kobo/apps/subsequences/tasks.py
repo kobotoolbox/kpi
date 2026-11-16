@@ -281,6 +281,12 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                 return
             item.status = BulkActionItemStatus.IN_PROGRESS
         elif item.status != BulkActionItemStatus.IN_PROGRESS:
+            if item.status == BulkActionItemStatus.CANCELLED and self.request.retries:
+                # Cancelled during a quota wait: nothing else ends the
+                # `in_progress` version the first attempt kept
+                SubmissionSupplement.fail_bulk_launch(
+                    item.parent, item.submission_root_uuid, 'Bulk action cancelled'
+                )
             return
 
         # If a real Google operation is already in flight, skip `revise_data` and

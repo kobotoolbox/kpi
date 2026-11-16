@@ -210,9 +210,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         End as `failed` the `in_progress` version `bulk_action` saved on this
         submission, if it is still the latest one
 
-        A bulk item that fails before its result lands (e.g. its retry after a
-        quota error is refused for the usage limit) leaves nothing else to
-        finish that version
+        A bulk item that fails or is cancelled before its result lands (e.g.
+        during a quota wait, its retry refused for the usage limit) leaves
+        nothing else to finish that version
         """
         asset = bulk_action.asset
         question_xpath, params = bulk_action.question_xpath, bulk_action.params
