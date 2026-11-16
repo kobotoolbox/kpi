@@ -27,7 +27,7 @@ interface KoboModalProps {
 }
 
 /**
- * @deprecated use `import { Modal } from '@mantine/core'` instead.
+ * @deprecated use `import ModalNew from '#/components/common/ModalNew'` instead.
  */
 export default function KoboModal(props: KoboModalProps) {
   const modalSize: KoboModalSize = props.size || DEFAULT_SIZE
