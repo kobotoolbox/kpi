@@ -93,7 +93,7 @@ export default function StepProjectDetails({
           <Button type='primary' size='l' isSubmit onClick={onSubmit} label={t('Save Changes')} />
         </div>
       )}
-      <div className={styles.inputWrapper}>
+      <div className={cx(styles.inputWrapper, styles.scrollArea)}>
         {/* Project Name */}
         <div className={styles.input}>
           <TextInput
@@ -195,28 +195,6 @@ export default function StepProjectDetails({
           fieldClassName={styles.input}
         />
 
-        {(context === PROJECT_SETTINGS_CONTEXTS.NEW || context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
-          <div className={styles.modalFooter}>
-            {/* Don't allow going back if asset already exist */}
-            {!formAsset && <BackButton previousStep={previousStep} isDisabled={isSubmitPending} onClick={onBack} />}
-
-            <Button
-              type='primary'
-              size='l'
-              isSubmit
-              onClick={onSubmit}
-              isDisabled={isSubmitPending}
-              label={
-                <>
-                  {isSubmitPending && t('Please wait…')}
-                  {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
-                  {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
-                </>
-              }
-            />
-          </div>
-        )}
-
         {userCan('manage_asset', formAsset) && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
           <div className={styles.input}>
             <div className={cx(styles.input, styles.inputInline)}>
@@ -253,6 +231,28 @@ export default function StepProjectDetails({
           </div>
         )}
       </div>
+
+      {(context === PROJECT_SETTINGS_CONTEXTS.NEW || context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
+        <div className={styles.modalFooter}>
+          {/* Don't allow going back if asset already exist */}
+          {!formAsset && <BackButton previousStep={previousStep} isDisabled={isSubmitPending} onClick={onBack} />}
+
+          <Button
+            type='primary'
+            size='l'
+            isSubmit
+            onClick={onSubmit}
+            isDisabled={isSubmitPending}
+            label={
+              <>
+                {isSubmitPending && t('Please wait…')}
+                {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+                {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
+              </>
+            }
+          />
+        </div>
+      )}
     </form>
   )
 }

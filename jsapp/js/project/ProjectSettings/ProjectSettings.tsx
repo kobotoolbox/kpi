@@ -13,7 +13,6 @@ import { NAME_MAX_LENGTH, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import { type ImportErrorResponse, applyFileToAsset, applyUrlToAsset } from '#/dropzone.utils'
-import pageState from '#/pageState.store'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
@@ -172,9 +171,9 @@ export default function ProjectSettings(props: ProjectSettingsProps) {
 
   // Shows the step in the modal title, e.g. "Create project: Upload XLSForm"
   useEffect(() => {
-    if (onSetModalTitle && steps.current) {
-      onSetModalTitle(`${getBaseTitle(context)}: ${getStepTitle(steps.current)}`)
-    }
+    const baseTitle = getBaseTitle(context)
+    // No step yet while an initial template is being cloned
+    onSetModalTitle?.(steps.current ? `${baseTitle}: ${getStepTitle(steps.current)}` : baseTitle)
   }, [steps.current, context, onSetModalTitle])
 
   // Listeners subscribe once, so they go through a ref to reach the latest handlers
@@ -359,12 +358,11 @@ export default function ProjectSettings(props: ProjectSettingsProps) {
    */
 
   function goToFormBuilder(assetUid: string) {
-    pageState.hideModal()
+    props.onRequestClose?.()
     navigate(`/forms/${assetUid}/edit`)
   }
 
   function goToFormLanding() {
-    pageState.hideModal()
     props.onRequestClose?.()
 
     const targetUid = formAsset?.uid || routeAssetUid
@@ -375,8 +373,8 @@ export default function ProjectSettings(props: ProjectSettingsProps) {
     navigate(ROUTES.FORM_LANDING.replace(':uid', targetUid))
   }
 
+  // Only reached from /settings (archive, delete), so there is no modal to close
   function goToProjectsList() {
-    pageState.hideModal()
     navigate(ROUTES.FORMS)
   }
 
@@ -507,7 +505,7 @@ export default function ProjectSettings(props: ProjectSettingsProps) {
           // Special case: if this was an auto-applied template from initialTemplateUid,
           // close the modal since the user was directed here for that specific template
           if (initialTemplateUid === templateUid) {
-            pageState.hideModal()
+            props.onRequestClose?.()
           }
         }
       })

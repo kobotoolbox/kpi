@@ -31,7 +31,9 @@ export default function StepChooseTemplate({
 }: StepChooseTemplateProps) {
   return (
     <form className={cx(styles.chooseTemplate, modalStyle)}>
-      <TemplatesList onSelectTemplate={onTemplateChange} />
+      <div className={styles.scrollArea}>
+        <TemplatesList onSelectTemplate={onTemplateChange} />
+      </div>
 
       <footer className={styles.modalFooter}>
         <BackButton previousStep={previousStep} isDisabled={isBackDisabled} onClick={onBack} />

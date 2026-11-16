@@ -35,6 +35,6 @@ export interface ProjectSettingsProps {
   onProjectDetailsChange?: (data: { fieldName: string; fieldValue: string | string[] | null }) => void
   /** Optional callback to update the modal title as user navigates between steps */
   onSetModalTitle?: (title: string) => void
-  /** Close the mantine modal wrapper. Currently exists alongside legcaly modal management through pageState. */
+  /** Closes the wrapping modal (NEW and REPLACE contexts) */
   onRequestClose?: () => void
 }

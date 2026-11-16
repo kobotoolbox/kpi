@@ -1,14 +1,14 @@
-import React, { lazy, Suspense } from 'react'
+import React, { lazy, Suspense, useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
 import LibrarySidebar from '#/components/library/librarySidebar'
 import HelpBubble from '#/components/support/helpBubble'
+import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
+import ProjectSettingsModal from '#/project/ProjectSettings/ProjectSettingsModal'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
-import { MODAL_TYPES } from '../constants'
 import SidebarFormsList from '../sidebar/SidebarFormsList'
 import profileStore from '../stores/profile'
 import Icon from './common/icon'
@@ -31,13 +31,14 @@ export default function Drawer() {
   const location = useLocation()
   const isAccount = location.pathname.startsWith(ROUTES.ACCOUNT_ROOT)
   const isLibrary = location.pathname.startsWith(ROUTES.LIBRARY)
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
+
+  // The drawer stays mounted across pages, so close the modal when the user goes Back
+  useEffect(() => setIsNewProjectModalOpen(false), [location.pathname])
 
   function openNewFormModal(evt: React.MouseEvent<HTMLButtonElement>) {
     evt.preventDefault()
-    pageState.showModal({
-      type: MODAL_TYPES.NEW_FORM,
-      disableBackdropClose: true,
-    })
+    setIsNewProjectModalOpen(true)
   }
 
   // no sidebar for not logged in users
@@ -98,6 +99,12 @@ export default function Drawer() {
           </a>
         )}
       </bem.KDrawer__secondaryIcons>
+
+      <ProjectSettingsModal
+        opened={isNewProjectModalOpen}
+        onClose={() => setIsNewProjectModalOpen(false)}
+        context={PROJECT_SETTINGS_CONTEXTS.NEW}
+      />
     </bem.KDrawer>
   )
 }
