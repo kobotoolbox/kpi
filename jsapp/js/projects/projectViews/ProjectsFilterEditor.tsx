@@ -21,7 +21,16 @@ interface ProjectsFilterEditorProps {
   excludedFields?: ProjectFieldName[]
 }
 
-const COUNTRIES = envStore.data.country_choices
+/** Known values for a field, if any. Env choices are read on render, as they load after import. */
+const getValueOptions = (fieldName?: ProjectFieldName) => {
+  if (fieldName === 'sector') {
+    return envStore.data.sector_choices
+  }
+  if (fieldName === 'countries') {
+    return envStore.data.country_choices
+  }
+  return fieldName && PROJECT_FIELDS[fieldName].valueOptions
+}
 
 /**
  * This component renders a single (editable) filter row. It has few dropdowns,
@@ -93,7 +102,7 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
       return <div />
     }
 
-    const valueOptions = props.filter.fieldName && PROJECT_FIELDS[props.filter.fieldName].valueOptions
+    const valueOptions = getValueOptions(props.filter.fieldName)
     if (valueOptions) {
       return (
         <MultiSelect
@@ -111,21 +120,6 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
     }
 
     const textValue = typeof props.filter.value === 'string' ? props.filter.value : ''
-    if (props.filter.fieldName === 'countries') {
-      return (
-        <Select
-          size='sm'
-          clearable
-          placeholder={t('Country')}
-          value={textValue || null}
-          data={COUNTRIES}
-          onChange={(code) => {
-            onFilterValueChange(code || '')
-          }}
-        />
-      )
-    }
-
     return (
       <TextInput
         value={textValue}

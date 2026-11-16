@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
+import { seedEnvStore } from '#/envStore.mocks'
 import ProjectsFilterForm from './ProjectsFilterForm'
 
 const meta: Meta<typeof ProjectsFilterForm> = {
@@ -18,6 +19,8 @@ const meta: Meta<typeof ProjectsFilterForm> = {
       </div>
     ),
   ],
+  // Editor reads env choices on render, so wait for them
+  beforeEach: seedEnvStore({}),
   // TODO: improve our button - `light` variant text fails AA contrast
   parameters: { a11y: { config: { rules: [{ id: 'color-contrast', enabled: false }] } } },
 }
@@ -35,7 +38,13 @@ export const WithFilters: Story = {
       { fieldName: 'status', condition: 'is', value: ['deployed', 'draft', 'archived'] },
       // Saved before status became a multiselect
       { fieldName: 'status', condition: 'isNot', value: 'draft' },
+      { fieldName: 'sector', condition: 'contains', value: ['Environment', 'Information / Media'] },
+      // Saved before country became a multiselect
+      { fieldName: 'countries', condition: 'is', value: 'POL' },
     ],
+  },
+  play: async ({ canvasElement }) => {
+    await expect(await within(canvasElement).findByText('Poland')).toBeInTheDocument()
   },
 }
 
@@ -70,6 +79,22 @@ export const ApplyManyStatuses: Story = {
 
     await expect(args.onApply).toHaveBeenCalledWith([
       { fieldName: 'status', condition: 'is', value: ['deployed', 'draft'] },
+    ])
+  },
+}
+
+export const ApplyManyCountries: Story = {
+  play: async ({ args, canvasElement }) => {
+    await pickOptions(canvasElement, 'Select field', 'Countries')
+    await pickOptions(canvasElement, 'Select condition', 'Contains')
+    await pickOptions(canvasElement, 'Select values', 'Albania')
+    // Long list, so search it
+    await userEvent.keyboard('pola')
+    await userEvent.click(await within(canvasElement.ownerDocument.body).findByRole('option', { name: 'Poland' }))
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Apply' }))
+
+    await expect(args.onApply).toHaveBeenCalledWith([
+      { fieldName: 'countries', condition: 'contains', value: ['ALB', 'POL'] },
     ])
   },
 }
