@@ -27,11 +27,23 @@ from kpi.utils.urls import exclude_routes, is_request_for_html, replace_route_vi
 from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
-# allauth's headless routes, without its email management (`/me/emails/` is
-# the only way to change an email address), and with KPI's views where KPI
-# adds rules of its own
+# allauth's templated pages that would bypass KPI's rules for changing the email
+# address (`/me/emails/` is the only way), the password (`PATCH /me/`) or turning
+# 2FA off (allauth's headless TOTP endpoint), by name. They are excluded from
+# allauth's routes, but their names are kept, which allauth reverses, for routes
+# redirecting to the matching page of the frontend
+ALLAUTH_PAGE_REDIRECTS = {
+    'account_email': ('accounts/email/', '/#/account/settings'),
+    'account_change_password': ('accounts/password/change/', '/#/account/security'),
+    'mfa_deactivate_totp': ('accounts/2fa/totp/deactivate/', '/#/account/security'),
+}
+
+# allauth's headless routes, without the ones bypassing the rules above, and
+# with KPI's views where KPI adds rules of its own
 HEADLESS_URLPATTERNS = replace_route_views(
-    exclude_routes(headless_urls.urlpatterns, {'manage_email'}),
+    exclude_routes(
+        headless_urls.urlpatterns, {'manage_email', 'account:change_password'}
+    ),
     {
         'mfa:authenticate': HeadlessMfaAuthenticateView,
         'mfa:reauthenticate': HeadlessMfaReauthenticateView,
@@ -113,19 +125,15 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
-    # `/me/emails/` is the only way to change an email address, so allauth's
-    # email management is excluded below. The page keeps its name, which allauth
-    # reverses
-    path(
-        'accounts/email/',
-        RedirectView.as_view(url='/#/account/settings', permanent=False),
-        name='account_email',
-    ),
+    *[
+        path(route, RedirectView.as_view(url=url, permanent=False), name=name)
+        for name, (route, url) in ALLAUTH_PAGE_REDIRECTS.items()
+    ],
     # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
     # from allauth's
     path(
         'accounts/',
-        include(exclude_routes(allauth_urls.urlpatterns, {'account_email'})),
+        include(exclude_routes(allauth_urls.urlpatterns, set(ALLAUTH_PAGE_REDIRECTS))),
     ),
     path('api/v2/allauth/', include((HEADLESS_URLPATTERNS, 'headless'))),
     re_path(

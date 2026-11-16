@@ -54,4 +54,9 @@
   </div>
 </div>
 {% render_bundle 'errorApp' 'js' %}
+
+{% if google_analytics_token %}
+  <!-- Google tag (gtag.js). The setup is in `/jsapp/js/googleAnalytics.ts` -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{google_analytics_token}}"></script>
+{% endif %}
 {% endblock %}
