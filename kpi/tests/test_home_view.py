@@ -1,4 +1,5 @@
 from django.urls import reverse
+from rest_framework import status
 
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -11,14 +12,12 @@ class HomeViewCacheTestCase(BaseTestCase):
 
     fixtures = ['test_data']
 
-    def _assert_not_stored(self, response):
-        assert response.status_code == 200
+    def test_authenticated_response_is_not_stored(self):
+        self.client.login(username='someuser', password='someuser')
+        response = self.client.get(reverse('kpi-root'))
+        assert response.status_code == status.HTTP_200_OK
         cache_control = {
             directive.strip() for directive in response['Cache-Control'].split(',')
         }
         expected = {'no-store', 'no-cache', 'must-revalidate', 'private'}
         assert expected.issubset(cache_control)
-
-    def test_authenticated_response_is_not_stored(self):
-        self.client.login(username='someuser', password='someuser')
-        self._assert_not_stored(self.client.get(reverse('kpi-root')))
