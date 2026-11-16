@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from allauth.account.models import EmailAddress
+from allauth.core.exceptions import ReauthenticationRequired
 from allauth.headless.internal.restkit.response import ErrorResponse
 from allauth.headless.mfa.response import (
     RecoveryCodesNotFoundResponse,
@@ -60,6 +61,7 @@ from .mfa.utils import has_hashed_migrated_codes
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
+    did_recently_reauthenticate_with_mfa,
     is_session_authenticated,
     reauthentication_required,
     reauthentication_required_response,
@@ -439,9 +441,16 @@ class SocialAppView(generics.RetrieveAPIView):
 
 class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
     """
-    Refuses to turn MFA off when the MFA adapter forbids it (superusers while
-    `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
-    `can_delete_authenticator()` in its templated form, not in headless mode
+    Adds two rules to turning MFA off:
+
+    - Refused when the MFA adapter forbids it (superusers while
+      `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
+      `can_delete_authenticator()` in its templated form, not in headless mode
+    - Needs a recent re-authentication with a 2FA code, but not the password.
+      The request has no body: the code the frontend asks for only reaches the
+      backend through `mfa:reauthenticate`, and allauth accepts any recent
+      re-authentication, including one with the password alone. allauth's own
+      check still runs afterwards
     """
 
     def delete(self, request, *args, **kwargs):
@@ -453,6 +462,9 @@ class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
                 exception=adapter.validation_error('cannot_delete_authenticator'),
                 status=HTTPStatus.FORBIDDEN,
             )
+        if authenticator and not did_recently_reauthenticate_with_mfa(request):
+            # Answered by allauth's 401 listing the flows to go through
+            raise ReauthenticationRequired
         return super().delete(request, *args, **kwargs)
 
 
