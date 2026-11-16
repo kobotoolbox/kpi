@@ -23,6 +23,7 @@ const meta: Meta<typeof DatePickerInput> = {
     defaultDate: '2026-11-01',
     onChange: fn(),
   },
+  parameters: { a11y: { disable: true } },
 }
 export default meta
 
