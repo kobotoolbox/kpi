@@ -10,13 +10,13 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
+import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
   EXPORT_FORMATS,
   ExportStatusName,
   type ExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
-import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
 import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
 import { formatTime, notify } from '#/utils'
