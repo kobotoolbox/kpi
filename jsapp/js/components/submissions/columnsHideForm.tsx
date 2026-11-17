@@ -16,6 +16,7 @@ export interface ColumnsHideFormProps {
   bulkActions: BulkActionResponse[]
   showGroupName: boolean
   translationIndex: number
+  hiddenCount: number | null
 }
 
 interface ColumnsHideFormPropsInternal extends ColumnsHideFormProps {
