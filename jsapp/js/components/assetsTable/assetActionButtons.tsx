@@ -11,7 +11,6 @@ import { actions } from '#/actions'
 import { assetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import {
   cloneAsset,
-  cloneAssetAsSurvey,
   manageAssetLanguages,
   manageAssetSettings,
   manageAssetSharing,
@@ -24,9 +23,10 @@ import type { ButtonType } from '#/components/common/button'
 import managedCollectionsStore from '#/components/library/managedCollectionsStore'
 import type { ManagedCollectionsStoreData } from '#/components/library/managedCollectionsStore'
 import { userCan } from '#/components/permissions/utils'
-import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
+import { ACCESS_TYPES, ASSET_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
+import ProjectSettingsModal from '#/project/ProjectSettings/ProjectSettingsModal'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -44,6 +44,7 @@ interface AssetActionButtonsProps extends WithRouterProps {
 interface AssetActionButtonsState {
   managedCollections: AssetResponse[]
   isSubscribePending: boolean
+  isNewProjectModalOpen: boolean
 }
 
 class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetActionButtonsState> {
@@ -54,6 +55,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     this.state = {
       managedCollections: managedCollectionsStore.data.collections,
       isSubscribePending: false,
+      isNewProjectModalOpen: false,
     }
     autoBind(this)
   }
@@ -134,8 +136,9 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     cloneAsset(this.props.asset)
   }
 
+  /** Goes through the wizard, so the new project still gets its details */
   cloneAsSurvey() {
-    cloneAssetAsSurvey(this.props.asset.uid)
+    this.setState({ isNewProjectModalOpen: true })
   }
 
   /** Pass `null` to remove from collection. */
@@ -230,6 +233,16 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
     return (
       <menu className='asset-action-buttons'>
         {this.renderSubButton()}
+
+        {/* Mounted only while open: a closed modal still adds a portal, and there is one of these per table row */}
+        {this.state.isNewProjectModalOpen && (
+          <ProjectSettingsModal
+            opened
+            onClose={() => this.setState({ isNewProjectModalOpen: false })}
+            context={PROJECT_SETTINGS_CONTEXTS.NEW}
+            initialTemplateUid={this.props.asset.uid}
+          />
+        )}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id && (
           <Link to={this.getFormBuilderLink()}>

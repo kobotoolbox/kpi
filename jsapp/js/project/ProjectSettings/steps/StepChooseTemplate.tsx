@@ -1,6 +1,6 @@
 import cx from 'classnames'
 import React from 'react'
-import Button from '#/components/common/button'
+import Button from '#/components/common/ButtonNew'
 import TemplatesList from '#/components/templatesList'
 import styles from '../ProjectSettings.module.scss'
 import BackButton from '../components/BackButton'
@@ -31,18 +31,16 @@ export default function StepChooseTemplate({
 }: StepChooseTemplateProps) {
   return (
     <form className={cx(styles.chooseTemplate, modalStyle)}>
-      <TemplatesList onSelectTemplate={onTemplateChange} />
+      <div className={styles.scrollArea}>
+        <TemplatesList onSelectTemplate={onTemplateChange} />
+      </div>
 
       <footer className={styles.modalFooter}>
         <BackButton previousStep={previousStep} isDisabled={isBackDisabled} onClick={onBack} />
 
-        <Button
-          type='primary'
-          size='l'
-          onClick={onApplyTemplate}
-          isDisabled={!chosenTemplateUid || isApplyTemplatePending}
-          label={applyTemplateButton}
-        />
+        <Button size='lg' onClick={onApplyTemplate} disabled={!chosenTemplateUid || isApplyTemplatePending}>
+          {applyTemplateButton}
+        </Button>
       </footer>
     </form>
   )

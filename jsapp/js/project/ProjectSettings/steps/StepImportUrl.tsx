@@ -1,6 +1,6 @@
 import React from 'react'
+import Button from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
-import Button from '#/components/common/button'
 import envStore from '#/envStore'
 import styles from '../ProjectSettings.module.scss'
 import BackButton from '../components/BackButton'
@@ -57,14 +57,9 @@ export default function StepImportUrl({
       <footer className={styles.modalFooter}>
         <BackButton previousStep={previousStep} isDisabled={isBackDisabled} onClick={onBack} />
 
-        <Button
-          type='primary'
-          size='l'
-          isSubmit
-          onClick={onImportFromURL}
-          isDisabled={!importUrlButtonEnabled}
-          label={importUrlButton}
-        />
+        <Button type='submit' size='lg' onClick={onImportFromURL} disabled={!importUrlButtonEnabled}>
+          {importUrlButton}
+        </Button>
       </footer>
     </form>
   )

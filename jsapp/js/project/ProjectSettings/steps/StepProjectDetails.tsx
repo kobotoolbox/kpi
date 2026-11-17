@@ -2,11 +2,11 @@ import cx from 'classnames'
 import React from 'react'
 import { queryClient } from '#/api/queryClient'
 import { getOrganizationsRetrieveQueryKey } from '#/api/react-query/user-team-organization-usage'
+import Button from '#/components/common/ButtonNew'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
 import Textarea from '#/components/common/Textarea'
-import Button from '#/components/common/button'
 import ExtraProjectMetadataFields from '#/components/modalForms/ExtraProjectMetadataFields'
 import { userCan } from '#/components/permissions/utils'
 import { PROJECT_SETTINGS_CONTEXTS } from '#/constants'
@@ -90,10 +90,12 @@ export default function StepProjectDetails({
     <form onSubmit={onSubmit} className={cx(styles.projectDetails, modalStyle ?? styles.projectDetailsView)}>
       {context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
         <div className={styles.saveChanges}>
-          <Button type='primary' size='l' isSubmit onClick={onSubmit} label={t('Save Changes')} />
+          <Button type='submit' size='lg' onClick={onSubmit}>
+            {t('Save Changes')}
+          </Button>
         </div>
       )}
-      <div className={styles.inputWrapper}>
+      <div className={cx(styles.inputWrapper, styles.scrollArea)}>
         {/* Project Name */}
         <div className={styles.input}>
           <TextInput
@@ -195,37 +197,19 @@ export default function StepProjectDetails({
           fieldClassName={styles.input}
         />
 
-        {(context === PROJECT_SETTINGS_CONTEXTS.NEW || context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
-          <div className={styles.modalFooter}>
-            {/* Don't allow going back if asset already exist */}
-            {!formAsset && <BackButton previousStep={previousStep} isDisabled={isSubmitPending} onClick={onBack} />}
-
-            <Button
-              type='primary'
-              size='l'
-              isSubmit
-              onClick={onSubmit}
-              isDisabled={isSubmitPending}
-              label={
-                <>
-                  {isSubmitPending && t('Please wait…')}
-                  {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
-                  {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
-                </>
-              }
-            />
-          </div>
-        )}
-
         {userCan('manage_asset', formAsset) && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
           <div className={styles.input}>
             <div className={cx(styles.input, styles.inputInline)}>
               {isArchived() && (
-                <Button type='secondary' size='l' label={t('Unarchive Project')} onClick={onUnarchiveProject} />
+                <Button variant='light' size='lg' onClick={onUnarchiveProject}>
+                  {t('Unarchive Project')}
+                </Button>
               )}
 
               {isArchivable() && (
-                <Button type='secondary' size='l' label={t('Archive Project')} onClick={onArchiveProject} />
+                <Button variant='light' size='lg' onClick={onArchiveProject}>
+                  {t('Archive Project')}
+                </Button>
               )}
             </div>
 
@@ -244,15 +228,25 @@ export default function StepProjectDetails({
 
         {userCanViewDeleteButton && context === PROJECT_SETTINGS_CONTEXTS.EXISTING && (
           <div className={styles.input}>
-            <Button
-              type='danger'
-              size='l'
-              label={formAsset!.deployment__submission_count > 0 ? t('Delete Project and Data') : t('Delete Project')}
-              onClick={onDeleteProject}
-            />
+            <Button variant='danger' size='lg' onClick={onDeleteProject}>
+              {formAsset!.deployment__submission_count > 0 ? t('Delete Project and Data') : t('Delete Project')}
+            </Button>
           </div>
         )}
       </div>
+
+      {(context === PROJECT_SETTINGS_CONTEXTS.NEW || context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (
+        <div className={styles.modalFooter}>
+          {/* Don't allow going back if asset already exist */}
+          {!formAsset && <BackButton previousStep={previousStep} isDisabled={isSubmitPending} onClick={onBack} />}
+
+          <Button type='submit' size='lg' onClick={onSubmit} disabled={isSubmitPending}>
+            {isSubmitPending && t('Please wait…')}
+            {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
+            {!isSubmitPending && context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
+          </Button>
+        </div>
+      )}
     </form>
   )
 }

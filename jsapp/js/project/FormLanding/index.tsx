@@ -19,12 +19,12 @@ import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
-import { COLLECTION_METHODS, CollectionMethodName } from '#/constants'
+import { COLLECTION_METHODS, CollectionMethodName, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import type { AssetResponse, PermissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
-import { openReplaceProjectModal } from '#/project/ProjectSettings/openReplaceProjectModal'
+import ProjectSettingsModal from '#/project/ProjectSettings/ProjectSettingsModal'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
 import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -46,6 +46,7 @@ type FormLandingState = Partial<AssetResponse> & {
   anonymousPermissions: PermissionResponse[]
   /** Toggled by `mixins.dmix`'s `toggleDeploymentHistory`. */
   historyExpanded?: boolean
+  isReplaceModalOpen: boolean
 }
 
 /** The `mixins.dmix` methods this component calls. Hand-written, as `mixins.tsx` doesn't export its own types. */
@@ -92,6 +93,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
       selectedCollectMethod: CollectionMethodName.offline_url,
       anonymousSubmissions: false,
       anonymousPermissions: [],
+      isReplaceModalOpen: false,
     }
   }
 
@@ -250,10 +252,7 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
   handleReplaceFormClick(evt: React.MouseEvent<HTMLElement>) {
     evt.preventDefault()
-    const asset = this.getAsset()
-    if (asset) {
-      openReplaceProjectModal({ asset })
-    }
+    this.setState({ isReplaceModalOpen: true })
   }
 
   isCurrentVersionDeployed(asset: AssetResponse) {
@@ -642,6 +641,12 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
       <DocumentTitle title={`${docTitle} | ${t('Form')} | KoboToolbox`}>
         <bem.FormView m='form'>
           <LimitNotifications />
+          <ProjectSettingsModal
+            opened={this.state.isReplaceModalOpen}
+            onClose={() => this.setState({ isReplaceModalOpen: false })}
+            context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
+            formAsset={asset}
+          />
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
               <bem.FormView__cell m='label'>

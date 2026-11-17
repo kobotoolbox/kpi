@@ -4,9 +4,8 @@ import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import Modal from '#/components/common/modal'
-import { MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
+import { MODAL_TYPES } from '#/constants'
 import pageState from '#/pageState.store'
-import { ProjectSettings } from '#/project/ProjectSettings'
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals'
 
@@ -20,7 +19,7 @@ import MFAModals from './mfaModals'
  *
  * ```
  * pageState.showModal({
- *   type: MODAL_TYPES.NEW_FORM
+ *   type: MODAL_TYPES.MFA_MODALS
  * });
  * ```
  *
@@ -42,10 +41,6 @@ class BigModal extends React.Component {
   componentDidMount() {
     var type = this.props.params.type
     switch (type) {
-      case MODAL_TYPES.NEW_FORM:
-        // title is set by formEditors
-        break
-
       // TODO: Make a better generic modal component
       // See: https://github.com/kobotoolbox/kpi/issues/3643
       case MODAL_TYPES.MFA_MODALS:
@@ -58,13 +53,6 @@ class BigModal extends React.Component {
       default:
         console.error(`Unknown modal type: "${type}"!`)
     }
-  }
-
-  /**
-   * @param {string} title
-   */
-  setModalTitle(title) {
-    this.setState({ title: title })
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -84,7 +72,6 @@ class BigModal extends React.Component {
       <Modal
         open
         onClose={this.onModalClose}
-        title={this.state.title}
         className={this.state.modalClass}
         isDuplicated={this.props.params.isDuplicated}
         customModalHeader={this.props.params.customModalHeader}
@@ -92,13 +79,6 @@ class BigModal extends React.Component {
         disableEscClose={this.props.params.disableEscClose}
       >
         <Modal.Body>
-          {this.props.params.type === MODAL_TYPES.NEW_FORM && (
-            <ProjectSettings
-              context={PROJECT_SETTINGS_CONTEXTS.NEW}
-              onSetModalTitle={this.setModalTitle}
-              initialTemplateUid={this.props.params.initialTemplateUid}
-            />
-          )}
           {this.props.params.type === MODAL_TYPES.MFA_MODALS && (
             <MFAModals onModalClose={this.onModalClose} {...this.props.params} />
           )}

@@ -13,7 +13,6 @@ import alertify from 'alertifyjs'
 import { escape } from 'lodash-es'
 import toast from 'react-hot-toast'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import pageState from '#/pageState.store'
 import profileStore from '#/stores/profile'
 import { actions } from './actions'
 import { renderJSXMessage } from './alertify'
@@ -23,7 +22,7 @@ import myLibraryStore from './components/library/myLibraryStore'
 import { openLibraryAssetModal } from './components/modalForms/openLibraryAssetModal'
 import { openSharingModal } from './components/permissions/openSharingModal'
 import { userCan } from './components/permissions/utils'
-import { ASSET_TYPES, MODAL_TYPES } from './constants'
+import { ASSET_TYPES } from './constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
 import { openFormLanguagesModal } from './project/FormLanguagesManager'
 import { router } from './router/legacy'
@@ -276,17 +275,6 @@ export function cloneAssetAsTemplate(sourceUid: string, sourceName: string) {
     targetType: ASSET_TYPES.template.id,
     promptTitle: t('Create new template from this project'),
     promptMessage: t('Enter the name of the new template.'),
-  })
-}
-
-/** To be used when creating a project from template. */
-export function cloneAssetAsSurvey(sourceUid: string) {
-  // Open the NEW_FORM modal with the template pre-selected
-  // This ensures that metadata is properly collected during project creation
-  pageState.showModal({
-    type: MODAL_TYPES.NEW_FORM,
-    initialTemplateUid: sourceUid,
-    disableBackdropClose: true,
   })
 }
 
