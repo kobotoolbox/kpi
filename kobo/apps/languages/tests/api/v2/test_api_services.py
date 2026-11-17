@@ -2,6 +2,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.languages.models.transcription import TranscriptionService
+from kobo.apps.languages.models.translation import TranslationService
 from .base import BaseApiTestCase
 
 
@@ -45,7 +47,7 @@ class TranscriptionServiceListApiTestCase(BaseApiTestCase):
 
     def test_sort(self):
         """
-        Should sort by name ASC
+        Should sort by name ASC when priorities are equal
         """
         response = self.client.get(
             reverse(self._get_endpoint('transcription_service-list'))
@@ -56,6 +58,33 @@ class TranscriptionServiceListApiTestCase(BaseApiTestCase):
             expected_names,
             [service['name'] for service in response.data['results']],
         )
+
+    def test_sort_by_priority(self):
+        """
+        Should sort by priority ASC before name
+        """
+        TranscriptionService.objects.filter(code='msft').update(priority=1)
+        response = self.client.get(
+            reverse(self._get_endpoint('transcription_service-list'))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [service['name'] for service in response.data['results']] == [
+            'Microsoft',
+            'Google',
+        ]
+
+    def test_priority_is_exposed(self):
+        """
+        Should include the priority of each service
+        """
+        response = self.client.get(
+            reverse(self._get_endpoint('transcription_service-list'))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [service['priority'] for service in response.data['results']] == [
+            100,
+            100,
+        ]
 
 
 class TranslationServiceListApiTestCase(BaseApiTestCase):
@@ -98,7 +127,7 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
 
     def test_sort(self):
         """
-        Should sort by name ASC
+        Should sort by name ASC when priorities are equal
         """
         response = self.client.get(
             reverse(self._get_endpoint('translation_service-list'))
@@ -109,3 +138,30 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
             expected_names,
             [service['name'] for service in response.data['results']],
         )
+
+    def test_sort_by_priority(self):
+        """
+        Should sort by priority ASC before name
+        """
+        TranslationService.objects.filter(code='msft').update(priority=1)
+        response = self.client.get(
+            reverse(self._get_endpoint('translation_service-list'))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [service['name'] for service in response.data['results']] == [
+            'Microsoft',
+            'Google',
+        ]
+
+    def test_priority_is_exposed(self):
+        """
+        Should include the priority of each service
+        """
+        response = self.client.get(
+            reverse(self._get_endpoint('translation_service-list'))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [service['priority'] for service in response.data['results']] == [
+            100,
+            100,
+        ]

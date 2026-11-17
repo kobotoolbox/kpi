@@ -12301,7 +12301,7 @@ paths:
 
         Search can be made with `q` parameter to search for the term in names and codes.
 
-        Results are order by name.
+        Results are ordered by priority (lower values first), then by name.
       parameters:
       - name: limit
         required: false
@@ -12404,7 +12404,7 @@ paths:
 
         Search can be made with `q` parameter to search for the term in names and codes.
 
-        Results are ordered by name.
+        Results are ordered by priority (lower values first), then by name.
 
       parameters:
       - name: limit
@@ -19431,6 +19431,8 @@ components:
                 type: string
               name:
                 type: string
+              priority:
+                type: integer
           readOnly: true
         translation_services:
           type: array
@@ -19441,6 +19443,8 @@ components:
                 type: string
               name:
                 type: string
+              priority:
+                type: integer
           readOnly: true
         url:
           type: string
@@ -24437,6 +24441,11 @@ components:
         code:
           type: string
           maxLength: 10
+        priority:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: Lower values come first
       required:
       - code
       - name
@@ -24485,6 +24494,11 @@ components:
         code:
           type: string
           maxLength: 10
+        priority:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: Lower values come first
       required:
       - code
       - name

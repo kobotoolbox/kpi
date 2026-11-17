@@ -13,4 +13,5 @@
 export type LanguageListTranscriptionServicesItem = {
   code?: string
   name?: string
+  priority?: number
 }
