@@ -20,11 +20,6 @@ $c-sorted-light-bg: color.adjust(colors.$kobo-light-teal, $lightness: 8%);
 $c-sorted-dark-bg: color.adjust(colors.$kobo-light-teal, $lightness: 4%);
 $c-sorted-hover-bg: color.adjust(colors.$kobo-light-teal, $lightness: 6%);
 
-.form-view__sidetabs + .form-view.form-view--table {
-  overflow-x: hidden;
-  overflow-y: auto; // needed for columnsHideDropdown on smaller screens
-}
-
 .form-view.form-view--table {
   padding: 0 15px;
   position: relative;
