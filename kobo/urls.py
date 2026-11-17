@@ -5,7 +5,6 @@ from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView
@@ -19,11 +18,13 @@ from kobo.apps.accounts.views import (
     HeadlessMfaAuthenticateView,
     HeadlessMfaReauthenticateView,
 )
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
 )
 from kpi.utils.urls import exclude_routes, is_request_for_html, replace_route_views
+from kpi.views.error_pages import render_500_page, render_error_page
 from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
 
@@ -129,6 +130,11 @@ urlpatterns = [
         path(route, RedirectView.as_view(url=url, permanent=False), name=name)
         for name, (route, url) in ALLAUTH_PAGE_REDIRECTS.items()
     ],
+    path(
+        'accounts/social/provisioning/',
+        SocialAccountProvisioningHTMLView.as_view(),
+        name='socialaccount_provisioning',
+    ),
     # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
     # from allauth's
     path(
@@ -159,14 +165,14 @@ if settings.ENABLE_METRICS:
 
 def render404(request: HttpRequest, exception):
     if is_request_for_html(request):
-        return render(request, 'custom_404.html', status=404)
+        return render_error_page(request, 404)
     # fall back to a basic JSON response if a data route is being requested
     return HttpResponse('Resource not found (404)', status=status.HTTP_404_NOT_FOUND)
 
 
 def render500(request: HttpRequest):
     if is_request_for_html(request):
-        return render(request, 'custom_500.html', status=500)
+        return render_500_page(request)
     # fall back to the DRF 500 handler if a data route is being requested
     return server_error(request)
 
