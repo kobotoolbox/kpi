@@ -8,7 +8,7 @@
  */
 
 import type * as Sentry from '@sentry/react'
-import random from 'lodash.random'
+import { random } from 'lodash-es'
 import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Accept } from 'react-dropzone'

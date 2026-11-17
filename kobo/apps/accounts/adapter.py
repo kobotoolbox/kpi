@@ -8,16 +8,19 @@ from allauth.core.internal.httpkit import is_headless_request
 from allauth.headless.adapter import DefaultHeadlessAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.helpers import render_authentication_error
-from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from allauth.socialaccount.providers.base.constants import AuthProcess
 from constance import config
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import MultipleObjectsReturned
 from django.db import transaction
+from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 
+from kobo.apps.kobo_scim.models import IdentityProvider
 from .models import SocialAppManagedDomain
 from .signup_fields import SIGNUP_EXTRA_FIELD_NAMES
 
@@ -148,7 +151,18 @@ class AccountAdapter(DefaultAccountAdapter):
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
+    def is_scim_enabled(self, request, sociallogin):
+        app = getattr(sociallogin.provider, 'app', None)
+        if app is None:
+            try:
+                app = self.get_app(request, sociallogin.account.provider)
+            except (SocialApp.DoesNotExist, MultipleObjectsReturned):
+                return False
+        return IdentityProvider.objects.filter(social_app=app, is_active=True).exists()
+
     def is_open_for_signup(self, request, sociallogin):
+        if self.is_scim_enabled(request, sociallogin):
+            return False
         email = sociallogin.user.email
         domain = email.split('@')[1].lower()
         app = getattr(sociallogin.provider, 'app', None)
@@ -163,11 +177,49 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return config.REGISTRATION_OPEN or managed_domain
 
     def pre_social_login(self, request, sociallogin):
-        """Allow only one linked SSO account per user."""
-        # Only the connect flow links a new provider; login/signup are exempt.
+        """
+        Redirect first-time logins for SCIM-enabled IdPs to the provisioning wait
+        screen, and allow only one linked SSO account per user during the connect flow.
+        """
+        # Handle SCIM provisioning race condition for first-time login
         if sociallogin.state.get('process') != AuthProcess.CONNECT:
+            if not sociallogin.is_existing and self.is_scim_enabled(
+                request, sociallogin
+            ):
+                if getattr(sociallogin, 'provider', None) is None:
+                    sociallogin.provider = self.get_provider(
+                        request, sociallogin.account.provider
+                    )
+                email = sociallogin.user.email
+                if (
+                    email
+                    and get_user_model().objects.filter(email__iexact=email).exists()
+                ):
+                    sociallogin.lookup()
+                    if sociallogin.is_existing:
+                        return
+                    raise ImmediateHttpResponse(
+                        render_authentication_error(
+                            request,
+                            sociallogin.account.provider,
+                            error='email_taken',
+                            extra_context={
+                                'state': sociallogin.state,
+                                'error_message': (
+                                    self.error_messages['email_taken']
+                                    % sociallogin.provider.name
+                                ),
+                            },
+                        )
+                    )
+                request.session['scim_pending_sociallogin'] = sociallogin.serialize()
+                request.session['scim_provisioning_start'] = timezone.now().timestamp()
+                raise ImmediateHttpResponse(
+                    HttpResponseRedirect(resolve_url('socialaccount_provisioning'))
+                )
             return
 
+        # Only the connect flow links a new provider; login/signup are exempt.
         user = request.user
         if not user.is_authenticated:
             return
