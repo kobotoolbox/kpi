@@ -5,6 +5,10 @@ import chai from 'chai'
 
 var mockedActions: any
 
+jest.mock('#/stores/profile', () => ({
+  __esModule: true,
+  default: { currentAccount: { username: 'testuser' } },
+}))
 jest.mock('#/actions', () => {
   // Keep the mock small. Pulling in the real actions module would drag unrelated Reflux setup
   // into a test that only cares about bridge routing.
@@ -146,7 +150,11 @@ describe('reflux bridge route flow', () => {
       status: 204,
       headers: new Headers(),
     })
-    bridgeOrvalSuccessToLegacyActions(bulkUrl, config, { data: {}, status: 204, headers: new Headers() })
+    bridgeOrvalSuccessToLegacyActions(
+      bulkUrl,
+      { ...config, body: JSON.stringify({ username: 'testuser' }) },
+      { data: {}, status: 204, headers: new Headers() },
+    )
 
     chai.expect(mockedActions.permissions.removeAssetPermission.completed.mock.calls).to.deep.equal([
       ['abc123', undefined],

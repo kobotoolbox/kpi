@@ -120,8 +120,8 @@ export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
     matches: ({ assetUid }) => Boolean(assetUid),
     run: ({ assetUid, requestBody }) => {
       if (assetUid) {
-        const isNonOwner = requestBody?.username === profileStore.currentAccount.username
-        actions.permissions.removeAssetPermission.completed(assetUid, isNonOwner)
+        const isRemovingSelf = requestBody?.username === profileStore.currentAccount.username
+        actions.permissions.removeAssetPermission.completed(assetUid, isRemovingSelf)
       }
     },
   },
