@@ -1,7 +1,6 @@
 /*
  * NOTE: before using this file to check if route matches current route, please
- * try using react router way (we have it set up in `mixins.tsx` as
- * `contextRouter` methods)
+ * try using react router way (`useLocation` and `matchPath`).
  *
  * This file has a list of functions that allows for simple checking if given
  * route matches current route. It uses hashHistory from react router and a list
