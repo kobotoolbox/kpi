@@ -146,6 +146,7 @@ interface DataTableState {
   shiftSelection: DataTableSelectedRows
   /** Too wide frozen columns don't stay in place, see `positionFrozenColumns`. */
   areFrozenColumnsTooWide: boolean
+  hiddenCount: number | null
 }
 
 /**
@@ -198,6 +199,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       lastChecked: null,
       shiftSelection: {},
       areFrozenColumnsTooWide: false,
+      hiddenCount: null,
     }
   }
 
@@ -272,6 +274,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // Other settings (e.g. a hidden or frozen column) only change how existing
       // data is presented, so rebuilding the columns is enough.
       this._prepColumns(this.state.submissions)
+      this.hiddenCount()
     }
 
     // Re-renders may change frozen columns or drop the classes added in there.
@@ -424,6 +427,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         },
         () => {
           this._prepColumns(results)
+          this.hiddenCount()
         },
       )
     } else if (lastPage < this.state.currentPage && this.state.fetchInstance) {
@@ -567,6 +571,17 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       })
     } else {
       openBulkApproveModal(commonProps)
+    }
+  }
+
+  /**
+   * Updates the hidden field count
+   */
+  private hiddenCount() {
+    const hiddenCount = tableStore.getHiddenCount(this.props.asset, this.state.submissions)
+
+    if (hiddenCount !== this.state.hiddenCount) {
+      this.setState({ hiddenCount })
     }
   }
 
@@ -1296,6 +1311,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           */}
           <ColumnsHideDropdown
             asset={this.props.asset}
+            hiddenCount={this.state.hiddenCount}
             submissions={this.state.submissions}
             bulkActions={this.props.activeBulkActions || []}
             showGroupName={this.state.showGroupName}
