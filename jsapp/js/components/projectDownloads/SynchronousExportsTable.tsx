@@ -1,4 +1,4 @@
-import { Anchor, Box, Flex, Group, Pill, type PillProps, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { Anchor, Box, Flex, Group, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
 import React from 'react'
 import { useAssetsExportSettingsList } from '#/api/react-query/survey-data'
@@ -6,7 +6,8 @@ import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
-import { EXPORT_FORMATS, EXPORT_TYPES, ExportTypeName } from '#/components/projectDownloads/exportsConstants'
+import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
+import { EXPORT_FORMATS, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
 import { isExportSettingEnabled } from '#/components/projectDownloads/exportsUtils'
 import envStore from '#/envStore'
 import { copyToClipboard, formatDate, getLangAsObject, notify } from '#/utils'
@@ -56,28 +57,6 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
     }
 
     return language
-  }
-
-  function renderTypeBadge(exportType: ExportTypeName | undefined) {
-    const exportTypeVariants: Record<ExportTypeName, NonNullable<PillProps['variant']>> = {
-      [ExportTypeName.xls]: 'blue-light',
-      [ExportTypeName.xls_legacy]: 'blue-light',
-      [ExportTypeName.csv]: 'teal-light',
-      [ExportTypeName.csv_legacy]: 'teal-light',
-      [ExportTypeName.geojson]: 'teal-light',
-      [ExportTypeName.kml]: 'teal-light',
-      [ExportTypeName.spss_labels]: 'gray-light',
-      [ExportTypeName.zip_legacy]: 'amber-light',
-    }
-
-    const label = exportType ? (EXPORT_TYPES[exportType]?.label ?? t('Unknown format')) : t('Unknown format')
-    const variant = exportType ? exportTypeVariants[exportType] : 'gray-light'
-
-    return (
-      <Pill variant={variant} size='sm'>
-        {label}
-      </Pill>
-    )
   }
 
   return (
@@ -132,7 +111,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             '',
           ]}
           body={savedSettings.map((setting) => [
-            renderTypeBadge(setting.export_settings.type as ExportTypeName),
+            <ExportTypeBadge exportType={setting.export_settings.type as ExportTypeName} />,
             setting.name,
             formatDate(setting.date_modified, true, 'LL'),
             renderLanguage(setting.export_settings.lang || ''),
