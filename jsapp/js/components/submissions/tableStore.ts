@@ -359,6 +359,16 @@ class TableStore {
     }
     return showHXLTags
   }
+
+  getHiddenCount(asset: AssetResponse, submissions: SubmissionResponse[]) {
+    const hideableColumns = this.getHideableColumns(asset, submissions)
+    const selectedColumns = this.getSelectedColumns()
+    if (selectedColumns?.length === undefined) {
+      return null
+    } else {
+      return hideableColumns.length - selectedColumns.length
+    }
+  }
 }
 
 const tableStore = new TableStore()
