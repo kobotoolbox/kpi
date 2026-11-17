@@ -87,7 +87,7 @@ export default class AssetInfoBox extends React.Component<AssetInfoBoxProps, Ass
           {this.state.areDetailsVisible && (
             <bem.AssetInfoBox__cell>
               <label>{t('Owner')}</label>
-              {assetUtils.getAssetOwnerDisplayName(this.props.asset.owner_label)}
+              {this.props.asset.owner_label}
             </bem.AssetInfoBox__cell>
           )}
 

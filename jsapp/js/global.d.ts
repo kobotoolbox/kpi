@@ -287,6 +287,8 @@ declare module '*.module.css'
 interface Window {
   isStorybook?: boolean
   expect?: Function
+  /** Google Analytics queue, see `googleAnalytics.ts`. */
+  dataLayer: unknown[]
 }
 
 /**

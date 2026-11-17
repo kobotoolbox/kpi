@@ -7,9 +7,11 @@ from kobo.apps.audit_log.urls import router as audit_log_router
 from kobo.apps.audit_log.views import ProjectHistoryLogViewSet
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningView
 from kobo.apps.languages.urls import router as language_router
 from kobo.apps.organizations.views import (
     OrganizationMemberViewSet,
+    OrganizationOwnershipTransferViewSet,
     OrganizationViewSet,
     OrgMembershipInviteViewSet,
 )
@@ -226,6 +228,11 @@ router_api_v2.register(
     OrgMembershipInviteViewSet,
     basename='organization-invites',
 )
+router_api_v2.register(
+    r'organizations/(?P<uid_organization>[^/.]+)/ownership-transfers',
+    OrganizationOwnershipTransferViewSet,
+    basename='organization-ownership-transfers',
+)
 
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'project-views', ProjectViewViewSet)
@@ -304,6 +311,11 @@ kobo_scim_url_patterns = [
     path(
         'scim/v2/',
         include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
+    ),
+    path(
+        'social-accounts/provisioning/',
+        SocialAccountProvisioningView.as_view(),
+        name='social-account-provisioning',
     ),
 ]
 

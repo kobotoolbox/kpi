@@ -1,6 +1,6 @@
 import type { ExportSettingSettings } from '#/dataInterface'
 import { ExportTypeName } from './exportsConstants'
-import { preserveApiOnlySettings } from './exportsUtils'
+import { isExportSettingEnabled, preserveApiOnlySettings } from './exportsUtils'
 
 function buildSettings(overrides: Partial<ExportSettingSettings> = {}): ExportSettingSettings {
   return {
@@ -64,5 +64,16 @@ describe('preserveApiOnlySettings', () => {
     preserveApiOnlySettings(formSettings, savedSettings)
 
     chai.expect(formSettings).to.not.have.property('submission_ids')
+  })
+})
+
+describe('isExportSettingEnabled', () => {
+  it('normalizes boolean and string values', () => {
+    chai.expect(isExportSettingEnabled(true)).to.equal(true)
+    chai.expect(isExportSettingEnabled(false)).to.equal(false)
+    chai.expect(isExportSettingEnabled('true')).to.equal(true)
+    chai.expect(isExportSettingEnabled('TRUE')).to.equal(true)
+    chai.expect(isExportSettingEnabled('false')).to.equal(false)
+    chai.expect(isExportSettingEnabled(undefined)).to.equal(false)
   })
 })

@@ -3,7 +3,7 @@ from allauth.socialaccount.admin import SocialAccountAdmin as BaseSocialAccountA
 from allauth.socialaccount.admin import SocialAppAdmin, SocialAppForm
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.utils import unquote
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from kobo.apps.accounts.constants import MAX_DISPLAYED_SSO_PROVIDERS
 from kobo.apps.accounts.models import (
     EmailAddressAdmin,
     EmailContent,
@@ -26,10 +27,32 @@ from kobo.apps.accounts.utils import (
     DEFAULT_IN_APP_MESSAGE_BODY,
     DEFAULT_IN_APP_MESSAGE_FIELDS,
     SOCIAL_APP_IDENTIFIER,
+    get_hidden_public_social_app_names,
     user_is_managed_by_sso,
     users_needing_update,
 )
 from kobo.apps.help.models import InAppMessage
+
+
+def warn_about_hidden_sso_providers(request: HttpRequest) -> None:
+    """
+    Tell the admin which public providers get no button on the login and
+    registration screens. Saving is never blocked: more providers are allowed,
+    they just aren't all shown
+    """
+    hidden_names = get_hidden_public_social_app_names()
+    if not hidden_names:
+        return
+    messages.warning(
+        request,
+        _(
+            'Only the first %(max)d public SSO providers, oldest first, are shown '
+            'on the login and registration screens. Not shown: %(names)s. To '
+            'choose which ones are shown, untick "Is public" in Social app custom '
+            'data for the providers you want to hide.'
+        )
+        % {'max': MAX_DISPLAYED_SSO_PROVIDERS, 'names': ', '.join(hidden_names)},
+    )
 
 
 @admin.register(EmailContent)
@@ -46,6 +69,11 @@ class RequireProviderIdSocialAppForm(SocialAppForm):
         super(SocialAppForm, self).__init__(*args, **kwargs)
         # require the provider_id in the admin, since we can't make it required on allauth's model
         self.fields['provider_id'].required = True
+        self.fields['name'].help_text = _(
+            'Only the first %(max)d public providers, oldest first, are shown as '
+            'buttons on the login and registration screens. To hide a provider, '
+            'give it a Social app custom data entry with "Is public" unticked.'
+        ) % {'max': MAX_DISPLAYED_SSO_PROVIDERS}
 
     def clean_provider_id(self):
         reserved_keywords = ['kobo']
@@ -78,9 +106,15 @@ class RequireProviderIdSocialAppForm(SocialAppForm):
 
 class RequireProviderIdSocialAppAdmin(SocialAppAdmin):
     form = RequireProviderIdSocialAppForm
+    # same order as the SSO buttons on the login and registration screens
+    ordering = ('id',)
 
     class Meta:
         proxy = True
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        warn_about_hidden_sso_providers(request)
 
 
 class DomainInline(admin.TabularInline):
@@ -298,6 +332,7 @@ class SocialAppCustomDataAdmin(admin.ModelAdmin):
                     obj.in_app_message.last_editor = request.user
                     obj.in_app_message.save()
         super().save_model(request, obj, form, change)
+        warn_about_hidden_sso_providers(request)
 
     def save_related(self, request: HttpRequest, form, formsets, change) -> None:
         instance = formsets[0].instance

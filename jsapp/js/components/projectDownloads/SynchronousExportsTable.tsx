@@ -7,6 +7,7 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
 import { EXPORT_FORMATS, EXPORT_TYPES, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
+import { isExportSettingEnabled } from '#/components/projectDownloads/exportsUtils'
 import envStore from '#/envStore'
 import { copyToClipboard, formatDate, getLangAsObject, notify } from '#/utils'
 
@@ -114,14 +115,14 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             formatDate(setting.date_modified, true, 'LL'),
             renderLanguage(setting.export_settings.lang || ''),
             <Text key='include-groups' ta='center'>
-              {setting.export_settings.hierarchy_in_labels ? (
+              {isExportSettingEnabled(setting.export_settings.hierarchy_in_labels) ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
               ) : (
                 '–'
               )}
             </Text>,
             <Text key='multiple-versions' ta='center'>
-              {setting.export_settings.fields_from_all_versions ? (
+              {isExportSettingEnabled(setting.export_settings.fields_from_all_versions) ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
               ) : (
                 '–'

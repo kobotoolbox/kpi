@@ -36,6 +36,7 @@ export interface PatchedCurrentUser {
   extra_details?: PatchedCurrentUserExtraDetails
   current_password?: string
   new_password?: string
+  mfa_code?: string
   readonly git_rev?: string
   readonly social_accounts?: readonly SocialAccount[]
   readonly validated_password?: boolean

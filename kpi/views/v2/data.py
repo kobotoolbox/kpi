@@ -31,6 +31,8 @@ from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     InvalidAction,
+    InvalidImageDimensions,
+    InvalidImageFile,
     InvalidXPath,
     ManualQualNotFound,
     SubsequenceAcceptanceError,
@@ -630,6 +632,14 @@ class DataViewSet(
             )
         except AttachmentNotFoundException:
             raise serializers.ValidationError({'detail': 'Attachment not found'})
+        except InvalidImageDimensions:
+            raise serializers.ValidationError(
+                {'detail': 'Image cannot be rescaled for LLM analysis'}
+            )
+        except InvalidImageFile:
+            raise serializers.ValidationError(
+                {'detail': 'Invalid image type or corrupted image file'}
+            )
 
         return Response(supplemental_data)
 
