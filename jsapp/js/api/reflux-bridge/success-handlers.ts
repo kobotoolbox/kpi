@@ -1,5 +1,6 @@
 import { actions } from '#/actions'
 import { endpoints } from '#/api.endpoints'
+import profileStore from '#/stores/profile'
 import type { BridgeSuccessHandler } from './shared'
 import { SpecializedAssetPatchField, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
 
@@ -117,9 +118,10 @@ export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
     endpoint: 'DELETE /api/v2/assets/:uid/permission-assignments/bulk/',
     refluxAction: 'actions.permissions.removeAssetPermission.completed (bulk)',
     matches: ({ assetUid }) => Boolean(assetUid),
-    run: ({ assetUid }) => {
+    run: ({ assetUid, requestBody }) => {
       if (assetUid) {
-        actions.permissions.removeAssetPermission.completed(assetUid, true)
+        const isNonOwner = requestBody?.username === profileStore.currentAccount.username
+        actions.permissions.removeAssetPermission.completed(assetUid, isNonOwner)
       }
     },
   },
