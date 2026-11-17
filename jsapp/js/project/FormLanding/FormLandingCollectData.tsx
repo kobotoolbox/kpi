@@ -1,18 +1,17 @@
 import { Box, Stack, Text } from '@mantine/core'
 import { useState } from 'react'
-import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
+import AnonymousSubmissionSettings from '#/components/permissions/AnonymousSubmissionSettings'
 import { COLLECTION_METHODS, CollectionMethodName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import CollectMethodSelector from '#/project/collectMethodSelector.component'
+import { ANON_USERNAME_URL } from '#/users/utils'
 import { copyToClipboard, notify } from '#/utils'
 
 interface FormLandingCollectDataProps {
   asset: AssetResponse
-  anonymousSubmissionsEnabled: boolean
   canEdit: boolean
-  onAnonymousSubmissionsChange: () => void
 }
 
 function getCollectMethodLink(asset: AssetResponse, method: CollectionMethodName): string | null {
@@ -22,12 +21,7 @@ function getCollectMethodLink(asset: AssetResponse, method: CollectionMethodName
   return asset.deployment__links[method] || null
 }
 
-export default function FormLandingCollectData({
-  asset,
-  anonymousSubmissionsEnabled,
-  canEdit,
-  onAnonymousSubmissionsChange,
-}: FormLandingCollectDataProps) {
+export default function FormLandingCollectData({ asset, canEdit }: FormLandingCollectDataProps) {
   const [selectedMethod, setSelectedMethod] = useState(CollectionMethodName.offline_url)
   const selectedMethodLink = getCollectMethodLink(asset, selectedMethod)
 
@@ -134,10 +128,11 @@ export default function FormLandingCollectData({
 
         {canEdit && (
           <Box className='form-view__cell form-view__cell--padding form-view__cell--anonymous-submissions form-view__cell--bordertop'>
-            <AnonymousSubmission
-              checked={anonymousSubmissionsEnabled}
-              disabled={false}
-              onChange={onAnonymousSubmissionsChange}
+            <AnonymousSubmissionSettings
+              assetUid={asset.uid}
+              publicPerms={asset.permissions.filter((perm) => perm.user === ANON_USERNAME_URL)}
+              // Already behind `canEdit`, so the toggle is always usable here.
+              userCanShare
             />
           </Box>
         )}

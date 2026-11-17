@@ -5,11 +5,7 @@ import DocumentTitle from 'react-document-title'
 import toast from 'react-hot-toast'
 import { useNavigate, useParams } from 'react-router-dom'
 import { actions } from '#/actions'
-import {
-  useAssetsPermissionAssignmentsBulkDestroy,
-  useAssetsPermissionAssignmentsCreate,
-  useAssetsPermissionAssignmentsDestroy,
-} from '#/api/react-query/manage-permissions'
+import { useAssetsPermissionAssignmentsBulkDestroy } from '#/api/react-query/manage-permissions'
 import {
   getAssetsListQueryKey,
   getAssetsRetrieveQueryKey,
@@ -21,8 +17,6 @@ import {
 import { parsed } from '#/assetParserUtils'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { openKoboConfirmModal } from '#/components/common/openKoboConfirmModal'
-import permConfig from '#/components/permissions/permConfig'
-import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import { ASSET_TYPES, AssetTypeName } from '#/constants'
@@ -30,7 +24,6 @@ import type { AssetResponse } from '#/dataInterface'
 import { openFormLanguagesModal } from '#/project/FormLanguagesManager'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
-import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify } from '#/utils'
 import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
 import FormLandingActions from './FormLandingActions'
@@ -47,14 +40,6 @@ export type FormLandingCloneAssetType = AssetTypeName.survey | AssetTypeName.tem
 export type FormLandingPromptState =
   | { type: 'unarchive' }
   | { type: 'clone'; assetType: FormLandingCloneAssetType; versionUid?: string }
-
-/**
- * URL of the permission that lets anonymous users submit data to a project. This is a function rather than a module
- * constant, because `permConfig` throws when asked before the app has fetched its config.
- */
-function getAnonCanAddSubmissionsPermUrl() {
-  return permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions)?.url
-}
 
 export default function FormLanding() {
   // Fallback for getting uid from URL, needed without WithRouter wrapper
@@ -97,18 +82,8 @@ export default function FormLanding() {
   }, [queryClient, uid])
 
   const asset = assetQuery.data?.status === 200 ? parsed({ ...assetQuery.data.data }) : undefined
-  const anonymousPermissionUrl = getAnonCanAddSubmissionsPermUrl()
-  const anonymousSubmissionPermission = asset?.permissions.find(
-    (permission) => permission.user === buildUserUrl(ANON_USERNAME) && permission.permission === anonymousPermissionUrl,
-  )
 
   const createAssetMutation = useAssetsCreate({
-    mutation: { onSettled: invalidateAssetQueries },
-  })
-  const createPermissionMutation = useAssetsPermissionAssignmentsCreate({
-    mutation: { onSettled: invalidateAssetQueries },
-  })
-  const destroyPermissionMutation = useAssetsPermissionAssignmentsDestroy({
     mutation: { onSettled: invalidateAssetQueries },
   })
   const bulkDestroyPermissionMutation = useAssetsPermissionAssignmentsBulkDestroy({
@@ -124,27 +99,6 @@ export default function FormLanding() {
   const deploymentUpdateMutation = useAssetsDeploymentPartialUpdate({
     mutation: { onSettled: invalidateAssetQueries },
   })
-
-  const updateAssetAnonymousSubmissions = () => {
-    if (!uid) return
-    if (anonymousSubmissionPermission) {
-      const assignmentUid = anonymousSubmissionPermission.url.split('/').filter(Boolean).at(-1)
-      if (!assignmentUid) {
-        notify.error(t('Failed to update permissions'))
-        return
-      }
-      destroyPermissionMutation.mutate({ uidAsset: uid, uidPermissionAssignment: assignmentUid })
-      return
-    }
-    if (!anonymousPermissionUrl) {
-      notify.error(t('Failed to update permissions'))
-      return
-    }
-    createPermissionMutation.mutate({
-      uidAsset: uid,
-      data: { user: buildUserUrl(ANON_USERNAME), permission: anonymousPermissionUrl },
-    })
-  }
 
   const callUnarchiveAsset = () => setPrompt({ type: 'unarchive' })
 
@@ -313,12 +267,7 @@ export default function FormLanding() {
             <FormLandingHistory asset={asset} onClone={(versionUid) => cloneAsset(AssetTypeName.survey, versionUid)} />
           )}
           {asset.deployed_versions.count > 0 && asset.deployment__active && isLoggedIn && (
-            <FormLandingCollectData
-              asset={asset}
-              anonymousSubmissionsEnabled={Boolean(anonymousSubmissionPermission)}
-              canEdit={userCanEdit}
-              onAnonymousSubmissionsChange={updateAssetAnonymousSubmissions}
-            />
+            <FormLandingCollectData asset={asset} canEdit={userCanEdit} />
           )}
         </Box>
       </DocumentTitle>
