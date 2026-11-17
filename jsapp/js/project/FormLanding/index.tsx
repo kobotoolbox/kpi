@@ -259,7 +259,6 @@ export default function FormLanding() {
       { uidAsset: loadedAsset.uid },
       {
         onSuccess: () => navigate(ROUTES.FORMS),
-        onError: () => notify.error(t('Failed to remove permissions')),
       },
     )
   }
