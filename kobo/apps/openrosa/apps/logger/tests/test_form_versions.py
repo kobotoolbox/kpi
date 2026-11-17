@@ -1019,6 +1019,34 @@ class TestAttachmentsAcrossFormVersions(TestCase):
         attachment = Attachment.all_objects.get(instance=instance)
         assert attachment.delete_status is None
 
+    def test_file_of_a_deleted_question_is_kept_and_listed_on_edit(self):
+        """
+        The deployed version no longer has the media question. An edit that
+        only changes a text answer leaves the file untouched, so it stays
+        attached to the submission.
+        """
+
+        instance = self._submit_with_photo(MEDIA_QUESTION, 'first.jpg')
+        self._redeploy_without_the_media_question()
+
+        xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        edit_submission_xml(xml_parsed, 'q1', 'edited')
+        edit_submission_xml(xml_parsed, 'meta/deprecatedID', f'uuid:{instance.uuid}')
+        edit_submission_xml(
+            xml_parsed, 'meta/instanceID', f'uuid:{uuid_module.uuid4()}'
+        )
+        edited = self._submit(xml_tostring(xml_parsed))
+
+        assert self._delete_statuses(instance) == {'first.jpg': None}
+        assert [
+            attachment['media_file_basename']
+            for attachment in edited.parsed_instance.to_dict_for_mongo()['_attachments']
+        ] == ['first.jpg']
+        assert (
+            MEDIA_QUESTION
+            in Asset.objects.get(pk=self.asset.pk).get_all_attachment_xpaths()
+        )
+
     def test_replaced_attachment_is_still_soft_deleted(self):
         """
         Widening the accepted names must not stop an edit from retiring the

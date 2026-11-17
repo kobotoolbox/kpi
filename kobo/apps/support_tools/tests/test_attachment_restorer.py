@@ -16,6 +16,11 @@ from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteSta
 # The XML builders live with the tests of the rule this replays. Copying them
 # here would let the two drift apart, which is what
 # `get_submission_media_basenames()` exists to prevent
+from kobo.apps.openrosa.apps.logger.tests.test_background_audio_attachments import (
+    ENKETO_BACKGROUND_AUDIO,
+    background_audio_submission_xml,
+    background_audio_xform_xml,
+)
 from kobo.apps.openrosa.apps.logger.tests.test_form_versions import (
     FORM_UUID,
     MEDIA_QUESTION,
@@ -109,6 +114,39 @@ class AttachmentRestorerTestCase(TestCase):
 
         self.xform.refresh_from_db()
         assert self.xform.attachment_storage_bytes == size
+
+    def test_a_background_audio_file_the_submission_references_comes_back(self):
+        """
+        Enketo names the recording after the question, so a background audio
+        question named other than `background-audio` gives a file that no name
+        pattern recognizes. Its `binary` bind is what says that it holds one.
+        """
+
+        XForm.objects.filter(pk=self.xform.pk).update(xml=background_audio_xform_xml())
+        self.xform.refresh_from_db()
+
+        instance = create_instance(
+            self.user.username,
+            io.BytesIO(
+                background_audio_submission_xml(
+                    self.version_1, background_audio=ENKETO_BACKGROUND_AUDIO
+                ).encode()
+            ),
+            media_files=[
+                SimpleUploadedFile(
+                    ENKETO_BACKGROUND_AUDIO, b'webm', content_type='audio/webm'
+                )
+            ],
+            request=self.request,
+            check_usage_limits=False,
+        )
+        attachment = Attachment.all_objects.get(instance=instance)
+        self._kill(attachment)
+
+        self._restore()
+
+        attachment.refresh_from_db()
+        assert attachment.delete_status is None
 
     def test_a_file_the_submission_does_not_reference_stays_dead(self):
         instance, attachment = self._submit_with_photo('first.jpg')
