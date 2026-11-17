@@ -13,10 +13,10 @@ import { userCan } from '#/components/permissions/utils'
 import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
   EXPORT_FORMATS,
-  EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
+import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import { openDeleteExportModal } from '#/components/projectDownloads/openDeleteExportModal'
 import type { AssetResponse, ExportDataLang, ExportDataResponse } from '#/dataInterface'
 import { formatTime, notify } from '#/utils'
@@ -188,7 +188,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       const exportType = exportData.data.type
 
       return [
-        EXPORT_TYPES[exportType]?.label || t('Unknown format'),
+        <ExportTypeBadge exportType={exportType} />,
         exportData.data.name || '–',
         formatTime(exportData.date_created),
         renderLanguage(exportData.data.lang),
