@@ -19,6 +19,7 @@ from kobo.apps.accounts.views import (
     HeadlessMfaAuthenticateView,
     HeadlessMfaReauthenticateView,
 )
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
@@ -129,6 +130,11 @@ urlpatterns = [
         path(route, RedirectView.as_view(url=url, permanent=False), name=name)
         for name, (route, url) in ALLAUTH_PAGE_REDIRECTS.items()
     ],
+    path(
+        'accounts/social/provisioning/',
+        SocialAccountProvisioningHTMLView.as_view(),
+        name='socialaccount_provisioning',
+    ),
     # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
     # from allauth's
     path(
