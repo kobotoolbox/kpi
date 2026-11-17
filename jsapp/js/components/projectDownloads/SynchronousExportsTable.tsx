@@ -1,4 +1,4 @@
-import { Anchor, Box, Flex, Group, Text, UnstyledButton } from '@mantine/core'
+import { Anchor, Box, Flex, Group, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
 import React from 'react'
 import { useAssetsExportSettingsList } from '#/api/react-query/survey-data'
@@ -118,14 +118,24 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
               {isExportSettingEnabled(setting.export_settings.hierarchy_in_labels) ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
               ) : (
-                '–'
+                <>
+                  <Text span aria-hidden>
+                    –
+                  </Text>
+                  <VisuallyHidden>{t('No')}</VisuallyHidden>
+                </>
               )}
             </Text>,
             <Text key='multiple-versions' ta='center'>
               {isExportSettingEnabled(setting.export_settings.fields_from_all_versions) ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
               ) : (
-                '–'
+                <>
+                  <Text span aria-hidden>
+                    –
+                  </Text>
+                  <VisuallyHidden>{t('No')}</VisuallyHidden>
+                </>
               )}
             </Text>,
             <Menu key={setting.uid} withinPortal={false} closeOnItemClick position='bottom-end' offset={2}>
