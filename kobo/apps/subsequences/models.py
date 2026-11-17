@@ -27,7 +27,7 @@ from .constants import (
     SUBMISSION_UUID_FIELD,
     Action,
 )
-from .exceptions import GoogleQuotaExceededError, InvalidAction, InvalidXPath
+from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 from .utils.time import utc_datetime_to_js_str
 
@@ -145,14 +145,12 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                         action_data,
                         in_progress_created_upfront=in_progress_created_upfront,
                     )
-                except GoogleQuotaExceededError:
-                    # Retried later by Celery as the same launch: its
-                    # `in_progress` version stays, with its start time
-                    raise
                 except Exception:
                     if in_progress_created_upfront:
-                        # The launch was refused (e.g. usage limit reached): the
-                        # request fails as it always has
+                        # The launch was refused (e.g. usage limit reached) or
+                        # put off (quota exceeded, retried later by Celery): the
+                        # request fails as it always has, and the action is put
+                        # back as it was
                         SubmissionSupplement._undo_upfront_write(
                             asset, submission_uuid, action_path, previous_data
                         )
@@ -201,62 +199,6 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 )
 
         return supplemental_data
-
-    @staticmethod
-    def fail_bulk_launch(
-        bulk_action: 'SubsequenceBulkAction', submission_root_uuid: str, error: str
-    ) -> None:
-        """
-        End as `failed` the `in_progress` version `bulk_action` saved on this
-        submission, if it is still the latest one
-
-        A bulk item that fails or is cancelled before its result lands (e.g.
-        during a quota wait, its retry refused for the usage limit) leaves
-        nothing else to finish that version
-        """
-        asset = bulk_action.asset
-        question_xpath, params = bulk_action.question_xpath, bulk_action.params
-        submission_uuid = remove_uuid_prefix(submission_root_uuid)
-        supplement = SubmissionSupplement.objects.filter(
-            asset=asset, submission_uuid=submission_uuid
-        ).first()
-        feature = asset.advanced_features_set.filter(
-            question_xpath=question_xpath, action=bulk_action.action_id
-        ).first()
-        if not supplement or not feature:
-            return
-
-        action = feature.to_action()
-        action_supplemental_data = supplement.content.get(question_xpath, {}).get(
-            action.ID, {}
-        )
-        action_path, localized_data = SubmissionSupplement._locate_action(
-            action, question_xpath, params, action_supplemental_data
-        )
-        latest_version = (localized_data.get(action.VERSION_FIELD) or [{}])[0]
-        latest_data = latest_version.get(action.VERSION_DATA_FIELD, {})
-        if (
-            latest_data.get('status') != 'in_progress'
-            or latest_data.get('bulk_action_uid') != bulk_action.uid
-        ):
-            return
-
-        new_action_supplemental_data = action.get_new_action_supplemental_data(
-            action_supplemental_data,
-            {**latest_data, 'status': 'failed', 'error': error},
-            latest_version.get(action.DEPENDENCY_FIELD),
-        )
-        _, new_data = SubmissionSupplement._locate_action(
-            action, question_xpath, params, new_action_supplemental_data
-        )
-        SubmissionSupplement._update_if_latest_version(
-            asset,
-            submission_uuid,
-            action_path,
-            [action.UUID_FIELD],
-            latest_version[action.UUID_FIELD],
-            UpdateJSONFieldAttributes('content', path=action_path, updates=new_data),
-        )
 
     @staticmethod
     def _locate_action(
@@ -316,12 +258,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         copy the caller returns, is kept in sync with what was saved
         """
         date_modified = utc_datetime_to_js_str(timezone.now())
-        if SubmissionSupplement._update_if_latest_version(
+        if SubmissionSupplement._update_while_in_progress(
             asset,
             submission_uuid,
             action_path,
-            ['_data', 'status'],
-            'in_progress',
             UpdateJSONFieldAttributes(
                 'content', path=[*action_path, '_dateModified'], updates=date_modified
             ),
@@ -348,39 +288,28 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         else:
             content = RemoveJSONFieldAttribute('content', action_path)
 
-        SubmissionSupplement._update_if_latest_version(
-            asset,
-            submission_uuid,
-            action_path,
-            ['_data', 'status'],
-            'in_progress',
-            content,
+        SubmissionSupplement._update_while_in_progress(
+            asset, submission_uuid, action_path, content
         )
 
     @staticmethod
-    def _update_if_latest_version(
-        asset: 'kpi.Asset',
-        submission_uuid: str,
-        action_path: list[str],
-        version_key_path: list[str],
-        expected: str,
-        content,
+    def _update_while_in_progress(
+        asset: 'kpi.Asset', submission_uuid: str, action_path: list[str], content
     ) -> bool:
         """
-        Apply the `content` expression if the value at `version_key_path` in the
-        action's latest version is `expected`, and tell whether it was applied
+        Apply the `content` expression while the action's latest version is
+        still `in_progress`, and tell whether it was applied
 
         A targeted JSON update, never a rewrite of `content`: it cannot erase an
-        edit made on the same submission meanwhile, and the condition leaves a
-        version landing in between untouched
+        edit made on the same submission meanwhile. The condition on the status
+        leaves a result or a deletion landing in between untouched
         """
-        *parent_keys, key = [*action_path, '_versions', '0', *version_key_path]
-        latest_version_value = 'content'
-        for parent_key in parent_keys:
-            latest_version_value = KeyTransform(parent_key, latest_version_value)
+        latest_version_data = 'content'
+        for key in [*action_path, '_versions', '0', '_data']:
+            latest_version_data = KeyTransform(key, latest_version_data)
 
         updated = SubmissionSupplement.objects.filter(
-            Exact(KeyTextTransform(key, latest_version_value), expected),
+            Exact(KeyTextTransform('status', latest_version_data), 'in_progress'),
             asset=asset,
             submission_uuid=submission_uuid,
         ).update(content=content)
