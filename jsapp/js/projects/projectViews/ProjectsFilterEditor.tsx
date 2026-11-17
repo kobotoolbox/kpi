@@ -1,5 +1,6 @@
 import React from 'react'
 import ActionIcon from '#/components/common/ActionIcon'
+import DatePickerInput from '#/components/common/DatePickerInput'
 import MultiSelect from '#/components/common/MultiSelect'
 import Select from '#/components/common/Select'
 import TextInput from '#/components/common/TextInput'
@@ -9,7 +10,7 @@ import { recordValues } from '#/utils'
 import styles from './ProjectsFilterEditor.module.scss'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
-import { getFilterValues, isFilterConditionValueRequired } from './utils'
+import { getFilterValues, isFilterConditionValueRequired, isValidFilterDate } from './utils'
 
 interface ProjectsFilterEditorProps {
   filter: ProjectsFilterDefinition
@@ -106,6 +107,18 @@ export default function ProjectsFilterEditor(props: ProjectsFilterEditorProps) {
           onChange={onFilterValueChange}
           // In a portal, so the modal doesn't clip it. This replaces the theme's comboboxProps, so zIndex is set again.
           comboboxProps={{ withinPortal: true, zIndex: KOBO_Z_INDEX.dropdown }}
+        />
+      )
+    }
+
+    if (props.filter.fieldName && PROJECT_FIELDS[props.filter.fieldName].isDate) {
+      return (
+        <DatePickerInput
+          size='sm'
+          clearable
+          placeholder={t('Select date')}
+          value={isValidFilterDate(props.filter.value) ? props.filter.value : null}
+          onChange={(date) => onFilterValueChange(date || '')}
         />
       )
     }

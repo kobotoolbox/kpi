@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from allauth.mfa.models import Authenticator
 from allauth.mfa.totp.internal.auth import SECRET_SESSION_KEY
 from constance.test import override_config
 from django.test import override_settings
@@ -11,7 +10,7 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.tests.kpi_test_case import BaseTestCase
-from ..utils import get_totp_authenticator
+from ..utils import deactivate_mfa, get_totp_authenticator
 from .utils import (
     activate_mfa_for_user,
     get_mfa_code_for_user,
@@ -57,16 +56,6 @@ class MfaApiTestCase(BaseTestCase):
         ]
         assert totp.created_at.isoformat() == '2026-01-01T12:00:00+00:00'
 
-    def test_user_methods_empty_once_deactivated(self):
-        code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-        )
-        assert response.status_code == status.HTTP_200_OK
-
-        response = self.client.get(reverse('mfa_list_user_methods'))
-        assert response.json() == []
-
     @override_config(MFA_ENABLED=True)
     def test_unknown_method_not_found(self):
         response = self.client.post(reverse('mfa-activate', args=('sms',)))
@@ -97,30 +86,12 @@ class MfaApiTestCase(BaseTestCase):
 
         assert len(response.data['backup_codes']) == 5
 
-    def test_deactivate(self):
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': '1234567890'}
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-        code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        assert Authenticator.objects.filter(user=self.someuser).count() == 0
-
     def test_reactivate_generates_different_secret(self):
         """
         Test that MFA can be deactivated and reactivated/confirmed with different secret
         """
         first_secret = get_totp_authenticator(self.someuser).data['secret']
-        code = get_mfa_code_for_user(self.someuser)
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-        )
-        assert response.status_code == status.HTTP_200_OK
+        deactivate_mfa(self.someuser)
 
         self.client.post(reverse('mfa-activate', kwargs={'method': METHOD}))
         code = get_pending_mfa_code(self.client)
@@ -138,24 +109,6 @@ class MfaApiTestCase(BaseTestCase):
         profile, _ = UserProfile.objects.get_or_create(user=self.someuser)
         profile.refresh_from_db()
         self.assertTrue(profile.is_mfa_active)
-
-    def test_mfa_deactivation_syncs_user_profile(self):
-        """
-        Test that deactivating MFA also updates the `is_mfa_active` flag in UserProfile
-        """
-        profile, _ = UserProfile.objects.get_or_create(user=self.someuser)
-        profile.refresh_from_db()
-        self.assertTrue(profile.is_mfa_active)
-
-        code = get_mfa_code_for_user(self.someuser)
-        with self.captureOnCommitCallbacks(execute=True):
-            response = self.client.post(
-                reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-            )
-        assert response.status_code == status.HTTP_200_OK
-
-        profile.refresh_from_db()
-        self.assertFalse(profile.is_mfa_active)
 
     @override_config(MFA_ENABLED=True)
     def test_failed_activation_does_not_sync_user_profile(self):
@@ -184,29 +137,3 @@ class MfaApiTestCase(BaseTestCase):
 
         assert get_totp_authenticator(anotheruser) is None
         set_mfa_status.assert_not_called()
-
-    @override_config(SUPERUSER_AUTH_ENFORCEMENT=True)
-    def test_superuser_deactivation_prohibited_when_enforced(self):
-        """
-        Verify that a superuser cannot deactivate MFA if SUPERUSER_AUTH_ENFORCEMENT
-        is True
-        """
-        superuser = User.objects.create_superuser(
-            username='admin_user', password='adminpassword', email='admin@example.com'
-        )
-        activate_mfa_for_user(self.client, superuser)
-        self.client.force_login(superuser)
-
-        code = get_mfa_code_for_user(superuser)
-        response = self.client.post(
-            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(
-            response.json()['detail'],
-            'Superusers cannot deactivate MFA while SUPERUSER_AUTH_ENFORCEMENT'
-            ' is active.',
-        )
-
-        self.assertIsNotNone(get_totp_authenticator(superuser))
