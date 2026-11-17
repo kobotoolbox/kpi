@@ -17,7 +17,6 @@ $mfa-paragraph-spacing: 18px;
 
 .mfa-modal {
   padding: 30px 60px 0; // bottom padding is handled by footer
-  height: 100%;
   display: flex;
   flex-direction: column;
 
@@ -32,13 +31,13 @@ $mfa-paragraph-spacing: 18px;
   font-size: 18px !important;
 }
 
-.mfa-modal__body {
-  flex: 1;
-}
-
 .mfa-modal__p {
   &.mfa-modal__p--align-right {
     text-align: right;
+  }
+
+  &.mfa-modal__p--align-center {
+    text-align: center;
   }
 }
 
@@ -110,22 +109,5 @@ $mfa-paragraph-spacing: 18px;
     width: 40%;
     margin-left: auto;
     order: 2;
-  }
-}
-
-.mfa-modal.mfa-modal--step-manual,
-.mfa-modal.mfa-modal--step-backup,
-.mfa-modal.mfa-modal--step-qr {
-  .mfa-modal__body {
-    display: flex;
-    flex-direction: column;
-
-    .mfa-modal__codes-wrapper,
-    .mfa-modal__qrcode-wrapper {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      flex: 1;
-    }
   }
 }

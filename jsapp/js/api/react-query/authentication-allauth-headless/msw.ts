@@ -26,8 +26,6 @@ import { AuthenticatorType } from '../../models/authenticatorType'
 
 import type { AuthenticatorsResponse } from '../../models/authenticatorsResponse'
 
-import type { ChangePasswordBody } from '../../models/changePasswordBody'
-
 import type { ConfigurationResponse } from '../../models/configurationResponse'
 
 import type { ConfirmLoginCodeBody } from '../../models/confirmLoginCodeBody'
@@ -3788,44 +3786,6 @@ export const getAllauthAppV1TokensRefreshPostMockHandler = (
   )
 }
 
-export const getAllauthBrowserV1AccountPasswordChangePostMockHandler = (
-  overrideResponse?:
-    | unknown
-    | ((info: Parameters<HttpResponseResolver<PathParams, ChangePasswordBody>>[0]) => Promise<unknown> | unknown),
-  options?: RequestHandlerOptions,
-) => {
-  return http.post<PathParams, ChangePasswordBody>(
-    '*/api/v2/allauth/browser/v1/account/password/change',
-    async (info: Parameters<HttpResponseResolver<PathParams, ChangePasswordBody>>[0]) => {
-      if (typeof overrideResponse === 'function') {
-        await overrideResponse(info)
-      }
-
-      return new HttpResponse(null, { status: 200 })
-    },
-    options,
-  )
-}
-
-export const getAllauthAppV1AccountPasswordChangePostMockHandler = (
-  overrideResponse?:
-    | unknown
-    | ((info: Parameters<HttpResponseResolver<PathParams, ChangePasswordBody>>[0]) => Promise<unknown> | unknown),
-  options?: RequestHandlerOptions,
-) => {
-  return http.post<PathParams, ChangePasswordBody>(
-    '*/api/v2/allauth/app/v1/account/password/change',
-    async (info: Parameters<HttpResponseResolver<PathParams, ChangePasswordBody>>[0]) => {
-      if (typeof overrideResponse === 'function') {
-        await overrideResponse(info)
-      }
-
-      return new HttpResponse(null, { status: 200 })
-    },
-    options,
-  )
-}
-
 export const getAllauthBrowserV1AuthSessionsGetMockHandler = (
   overrideResponse?:
     | SessionsResponse
@@ -3980,8 +3940,6 @@ export const getAuthenticationAllauthHeadlessMock = () => [
   getAllauthAppV1AuthSessionGetMockHandler(),
   getAllauthAppV1AuthSessionDeleteMockHandler(),
   getAllauthAppV1TokensRefreshPostMockHandler(),
-  getAllauthBrowserV1AccountPasswordChangePostMockHandler(),
-  getAllauthAppV1AccountPasswordChangePostMockHandler(),
   getAllauthBrowserV1AuthSessionsGetMockHandler(),
   getAllauthBrowserV1AuthSessionsDeleteMockHandler(),
   getAllauthAppV1AuthSessionsGetMockHandler(),

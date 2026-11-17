@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import type { EmailAddress } from '#/api/models/emailAddress'
+import type { Flow } from '#/api/models/flow'
 import { getMeEmailsListMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
 
 /**
@@ -46,3 +47,18 @@ export const userEmailsRemovedMock = (emails: EmailAddress[]) =>
 
 export const userEmailInvalidMock = () =>
   http.post(EMAILS_URL, () => HttpResponse.json({ email: ['Enter a valid email address.'] }, { status: 400 }))
+
+/**
+ * KPI's refusal while the session is too old to change the address. Falls through to the handler behind it once
+ * `isReauthenticated()` says so.
+ */
+export const userEmailReauthenticationRequiredMock = (flows: Flow[], isReauthenticated: () => boolean) =>
+  http.post(EMAILS_URL, () => {
+    if (isReauthenticated()) {
+      return undefined
+    }
+    return HttpResponse.json(
+      { detail: 'Re-authentication is required for this action.', code: 'reauthentication_required', flows },
+      { status: 403 },
+    )
+  })

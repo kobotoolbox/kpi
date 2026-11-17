@@ -1,8 +1,17 @@
 import chai from 'chai'
 import type { ProjectsFilterDefinition } from './constants'
-import { buildQueriesFromFilters, removeIncorrectFilters } from './utils'
+import { buildQueriesFromFilters, getFilterValues, removeIncorrectFilters } from './utils'
 
 describe('projectViewsUtils', () => {
+  describe('getFilterValues', () => {
+    it('should return a list of non-empty values', () => {
+      chai.expect(getFilterValues({ value: 'draft' })).to.deep.equal(['draft'])
+      chai.expect(getFilterValues({ value: ['draft', 'archived'] })).to.deep.equal(['draft', 'archived'])
+      chai.expect(getFilterValues({ value: '' })).to.deep.equal([])
+      chai.expect(getFilterValues({})).to.deep.equal([])
+    })
+  })
+
   describe('removeIncorrectFilters', () => {
     it('should return only correct filters', () => {
       const dirty: ProjectsFilterDefinition[] = [
@@ -10,8 +19,15 @@ describe('projectViewsUtils', () => {
         { fieldName: 'sector', condition: 'isEmptyObject' },
         // this one is ok, just the value should be dropped
         { fieldName: 'countries', condition: 'isNotEmptyObject', value: 'Bar' },
+        { fieldName: 'dateDeployed', condition: 'isOnOrAfter', value: '2026-11-11' },
+        { fieldName: 'status', condition: 'is', value: ['draft', 'archived'] },
         // all bad below
+        // partial date, saved before the date picker
+        { fieldName: 'dateModified', condition: 'isOn', value: '2026-11' },
+        // text condition, saved before the date picker
+        { fieldName: 'dateModified', condition: 'contains', value: '2026-11-11' },
         { fieldName: 'languages', condition: 'contains', value: '' },
+        { fieldName: 'status', condition: 'is', value: [] },
         { condition: 'isNot', value: 'Fum' },
         { fieldName: 'ownerUsername', value: 'Baz' },
         { fieldName: 'ownerUsername', condition: 'isEmpty' },
@@ -24,6 +40,8 @@ describe('projectViewsUtils', () => {
         { fieldName: 'name', condition: 'is', value: 'Foo' },
         { fieldName: 'sector', condition: 'isEmptyObject' },
         { fieldName: 'countries', condition: 'isNotEmptyObject' },
+        { fieldName: 'dateDeployed', condition: 'isOnOrAfter', value: '2026-11-11' },
+        { fieldName: 'status', condition: 'is', value: ['draft', 'archived'] },
       ]
       const test = removeIncorrectFilters(dirty)
       chai.expect(test).to.deep.equal(clean)
@@ -102,11 +120,56 @@ describe('projectViewsUtils', () => {
           in: { fieldName: 'languages', condition: 'is', value: 'foo' },
           out: 'summary__languages[]__iexact:"foo"',
         },
+        {
+          in: { fieldName: 'status', condition: 'is', value: 'draft' },
+          out: '_deployment_status__iexact:"draft"',
+        },
+        {
+          in: { fieldName: 'status', condition: 'is', value: ['draft'] },
+          out: '_deployment_status__iexact:"draft"',
+        },
+        {
+          in: { fieldName: 'status', condition: 'is', value: ['draft', 'archived'] },
+          out: '(_deployment_status__iexact:"draft" OR _deployment_status__iexact:"archived")',
+        },
+        {
+          in: { fieldName: 'status', condition: 'isNot', value: ['draft', 'archived'] },
+          out: '(NOT _deployment_status__iexact:"draft" AND NOT _deployment_status__iexact:"archived")',
+        },
       ]
       cases.forEach((testCase) => {
         it(`should build "${testCase.out}" query from filter`, () => {
           const test = buildQueriesFromFilters([testCase.in])
           chai.expect(test).to.deep.equal([testCase.out])
+        })
+      })
+    })
+
+    describe('should build date queries in local time', () => {
+      // The offset depends on the machine's timezone, so we only check that there is one.
+      const midnight = (day: string) => `"${day}T00:00:00\\.000[+-]\\d{2}:\\d{2}"`
+      const cases: Array<{ in: ProjectsFilterDefinition; out: RegExp }> = [
+        {
+          in: { fieldName: 'dateModified', condition: 'isOn', value: '2026-11-11' },
+          out: new RegExp(
+            `^date_modified__gte:${midnight('2026-11-11')} AND date_modified__lt:${midnight('2026-11-12')}$`,
+          ),
+        },
+        {
+          in: { fieldName: 'dateDeployed', condition: 'isOnOrAfter', value: '2026-11-11' },
+          out: new RegExp(`^date_deployed__gte:${midnight('2026-11-11')}$`),
+        },
+        {
+          // "On or before" includes the whole picked day.
+          in: { fieldName: 'dateDeployed', condition: 'isOnOrBefore', value: '2026-12-31' },
+          out: new RegExp(`^date_deployed__lt:${midnight('2027-01-01')}$`),
+        },
+      ]
+      cases.forEach((testCase) => {
+        it(`should build ${testCase.in.condition} query`, () => {
+          const test = buildQueriesFromFilters([testCase.in])
+          chai.expect(test).to.have.length(1)
+          chai.expect(test[0]).to.match(testCase.out)
         })
       })
     })
