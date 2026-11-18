@@ -7,7 +7,6 @@ import { recordValues } from './utils'
 export enum FeatureFlag {
   exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
   authRedesignEnabled = 'authRedesignEnabled',
-  synchronousExportsEnabled = 'synchronousExportsEnabled',
   transferTeamOwnershipEnabled = 'transferTeamOwnershipEnabled',
   nlpImageActionsEnabled = 'nlpImageActionsEnabled',
 }
