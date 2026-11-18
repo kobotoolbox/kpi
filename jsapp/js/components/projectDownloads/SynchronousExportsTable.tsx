@@ -1,5 +1,5 @@
 import { Anchor, Box, Flex, Group, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
-import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
+import { IconArrowUpRight, IconCheck, IconChevronDown, IconHelpCircleFilled, IconLink } from '@tabler/icons-react'
 import React from 'react'
 import { useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
@@ -67,14 +67,15 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             {t('Synchronous exports')}
           </Text>
           <ActionIcon
-            icon={IconInfoCircle}
             size='sm'
             variant='transparent'
             tooltip={t(
               'Synchronous exports provide a link to current project data as a CSV or XLSX file that updates as new data is submitted. To generate a synchronous export, save export settings in Advanced options.',
             )}
             aria-label={t('About synchronous exports')}
-          />
+          >
+            <KoboIcon icon={IconHelpCircleFilled} color='var(--mantine-color-gray-2)' size='sm' />
+          </ActionIcon>
         </Group>
         {envStore.isReady && envStore.data.support_url && (
           <Anchor
@@ -142,7 +143,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             <Menu key={setting.uid} closeOnItemClick position='bottom-end' offset={2}>
               <Menu.Target>
                 <UnstyledButton aria-label={t('Copy synchronous export link')}>
-                  <Group gap={4} align='center'>
+                  <Group gap={4} align='center' wrap='nowrap'>
                     <ActionIcon
                       component='span'
                       icon={IconLink}
