@@ -21,4 +21,9 @@ export interface TranslationService {
    * @maximum 32767
    */
   priority?: number
+  /**
+   * ID of the action that calls this service, null when no action does
+   * @nullable
+   */
+  readonly action_id: string | null
 }

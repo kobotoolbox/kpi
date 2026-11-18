@@ -16927,7 +16927,7 @@
         "/api/v2/transcription-services/": {
             "get": {
                 "operationId": "api_v2_transcription_services_list",
-                "description": "## List the transcription services accessible to requesting user.\n\nSearch can be made with `q` parameter to search for the term in names and codes.\n\nResults are ordered by priority (lower values first), then by name.\n",
+                "description": "## List the transcription services accessible to requesting user.\n\nSearch can be made with `q` parameter to search for the term in names and codes.\n\nResults are ordered by priority (lower values first), then by name.\n\nEach service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -17085,7 +17085,7 @@
         "/api/v2/translation-services/": {
             "get": {
                 "operationId": "api_v2_translation_services_list",
-                "description": "## List the translation services accessible to requesting (authenticated) user.\n\nSearch can be made with `q` parameter to search for the term in names and codes.\n\nResults are ordered by priority (lower values first), then by name.\n\n",
+                "description": "## List the translation services accessible to requesting (authenticated) user.\n\nSearch can be made with `q` parameter to search for the term in names and codes.\n\nResults are ordered by priority (lower values first), then by name.\n\nEach service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -26846,6 +26846,13 @@
                                 },
                                 "priority": {
                                     "type": "integer"
+                                },
+                                "action_id": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
                                 }
                             }
                         },
@@ -26864,6 +26871,13 @@
                                 },
                                 "priority": {
                                     "type": "integer"
+                                },
+                                "action_id": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "nullable": true
                                 }
                             }
                         },
@@ -33886,9 +33900,18 @@
                         "maximum": 32767,
                         "minimum": 0,
                         "description": "Lower values come first"
+                    },
+                    "action_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "ID of the action that calls this service, null when no action does",
+                        "readOnly": true
                     }
                 },
                 "required": [
+                    "action_id",
                     "code",
                     "name"
                 ]
@@ -33959,9 +33982,18 @@
                         "maximum": 32767,
                         "minimum": 0,
                         "description": "Lower values come first"
+                    },
+                    "action_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "ID of the action that calls this service, null when no action does",
+                        "readOnly": true
                     }
                 },
                 "required": [
+                    "action_id",
                     "code",
                     "name"
                 ]

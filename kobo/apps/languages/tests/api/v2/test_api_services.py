@@ -86,6 +86,22 @@ class TranscriptionServiceListApiTestCase(BaseApiTestCase):
             100,
         ]
 
+    def test_action_id_is_exposed(self):
+        """
+        Should include the action ID of each service, null without an action
+        """
+        response = self.client.get(
+            reverse(self._get_endpoint('transcription_service-list'))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert {
+            service['code']: service['action_id']
+            for service in response.data['results']
+        } == {
+            'goog': 'automatic_google_transcription',
+            'msft': None,
+        }
+
 
 class TranslationServiceListApiTestCase(BaseApiTestCase):
 
@@ -165,3 +181,19 @@ class TranslationServiceListApiTestCase(BaseApiTestCase):
             100,
             100,
         ]
+
+    def test_action_id_is_exposed(self):
+        """
+        Should include the action ID of each service, null without an action
+        """
+        response = self.client.get(
+            reverse(self._get_endpoint('translation_service-list'))
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert {
+            service['code']: service['action_id']
+            for service in response.data['results']
+        } == {
+            'goog': 'automatic_google_translation',
+            'msft': None,
+        }

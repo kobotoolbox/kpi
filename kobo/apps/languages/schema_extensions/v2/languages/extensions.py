@@ -6,6 +6,7 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kpi.schema_extensions.v2.generic.schema import NULLABLE_STRING_SCHEMA
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -30,6 +31,7 @@ class ServicesFieldExtension(OpenApiSerializerFieldExtension):
                     'code': build_basic_type(OpenApiTypes.STR),
                     'name': build_basic_type(OpenApiTypes.STR),
                     'priority': build_basic_type(OpenApiTypes.INT),
+                    'action_id': NULLABLE_STRING_SCHEMA,
                 }
             )
         )

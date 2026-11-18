@@ -34,7 +34,7 @@ from kpi.exceptions import (
     XPathNotFoundException,
 )
 from kpi.utils.log import logging
-from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
+from ...constants import GOOGLE_CACHE_TIMEOUT
 from ...exceptions import (
     AudioTooLongError,
     GoogleQuotaExceededError,
@@ -532,7 +532,7 @@ class GoogleTranscriptionService(GoogleService):
         """
         try:
             transcription_lang_service = TranscriptionService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranscriptionService.DoesNotExist:
             raise GoogleTranscriptionServiceNotConfigured(
