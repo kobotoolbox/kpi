@@ -15,6 +15,7 @@
 
 import { MantineProvider } from '@mantine/core'
 import { createRoot } from 'react-dom/client'
+import { setupGoogleAnalytics } from '#/googleAnalytics'
 // Only the Mantine styles these pages use. The whole `@mantine/core/styles.css`
 // would add roughly 28KB gzipped.
 import '@mantine/core/styles/baseline.css'
@@ -24,6 +25,8 @@ import '@mantine/core/styles/Paper.css'
 import '@mantine/core/styles/Anchor.css'
 import ErrorPage, { type ErrorCode } from './ErrorPage'
 import { errorTheme } from './errorTheme'
+
+setupGoogleAnalytics()
 
 const MOUNT_NODE_ID = 'kobo-error-app'
 const SUPPORTED_ERROR_CODES: ErrorCode[] = [404, 500]

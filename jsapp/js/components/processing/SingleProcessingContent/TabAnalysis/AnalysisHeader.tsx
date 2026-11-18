@@ -1,6 +1,6 @@
 import { Badge, Group, Switch } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'

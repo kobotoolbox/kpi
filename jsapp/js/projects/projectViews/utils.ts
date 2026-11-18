@@ -1,3 +1,4 @@
+import moment from 'moment'
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
 
@@ -22,6 +23,11 @@ export function getFilterValues(filter: ProjectsFilterDefinition): string[] {
   return ([] as string[]).concat(filter.value ?? []).filter(Boolean)
 }
 
+/** Checks for a full `YYYY-MM-DD` date. Filters saved before the date picker may hold partial ones like `2026-11`. */
+export function isValidFilterDate(value: ProjectsFilterDefinition['value']): value is string {
+  return typeof value === 'string' && moment(value, 'YYYY-MM-DD', true).isValid()
+}
+
 export function isConditionAvailableForFilter(conditionName: FilterConditionName, fieldName: ProjectFieldName) {
   const fieldDefinition = PROJECT_FIELDS[fieldName]
   return fieldDefinition.availableConditions.includes(conditionName)
@@ -38,7 +44,8 @@ export function removeIncorrectFilters(filters: ProjectsFilterDefinition[]) {
       filter.fieldName &&
       filter.condition &&
       isConditionAvailableForFilter(filter.condition, filter.fieldName) &&
-      (!isValueRequired || getFilterValues(filter).length > 0)
+      (!isValueRequired || getFilterValues(filter).length > 0) &&
+      (!PROJECT_FIELDS[filter.fieldName].isDate || isValidFilterDate(filter.value))
     ) {
       // We rewrite filter object to avoid including value if a non-value
       // condition was selected.
@@ -69,11 +76,21 @@ export function buildQueriesFromFilters(filters: ProjectsFilterDefinition[]) {
       return conditionDefinition.filterQuery.replace('<field>', fieldDefinition.apiFilteringName)
     }
 
-    const buildQuery = (field: string, term: string) =>
-      conditionDefinition.filterQuery
-        .replace('<field>', field)
+    const buildQuery = (field: string, term: string) => {
+      const query = conditionDefinition.filterQuery
+        // Date conditions use the field twice
+        .replaceAll('<field>', field)
         // wrapping term in quotes to make it work with spaces
         .replace('<term>', `"${term}"`)
+      if (!fieldDefinition.isDate) {
+        return query
+      }
+      // The user's midnight, not UTC's, so results match the dates shown in the table.
+      const dayStart = moment(term, 'YYYY-MM-DD')
+      return query
+        .replace('<dayStart>', `"${dayStart.toISOString(true)}"`)
+        .replace('<dayEnd>', `"${dayStart.add(1, 'day').toISOString(true)}"`)
+    }
 
     const valueQueries = getFilterValues(filter).map((term) => {
       // Filtering by `ownerUsername` should filter on both the owner and organization name

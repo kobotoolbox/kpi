@@ -20,8 +20,8 @@ from rest_framework.views import APIView
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
 from ..forms import LoginForm
-from .flows import activate_totp, deactivate_totp, regenerate_codes
-from .permissions import EnforceSuperuserMFA, IsMfaEnabled
+from .flows import activate_totp, regenerate_codes
+from .permissions import IsMfaEnabled
 from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
 from .utils import MFA_METHOD_NAME, get_totp_authenticator
 
@@ -135,19 +135,6 @@ class MfaMethodConfirmView(APIView):
         toto, recovery_codes = activate_totp(request, method)
         backup_codes = recovery_codes.get_unused_codes()
         return Response({'backup_codes': backup_codes})
-
-
-class MfaMethodDeactivateView(APIView):
-    permission_classes = (IsAuthenticated, IsMfaEnabled, EnforceSuperuserMFA)
-
-    @staticmethod
-    def post(request: Request, method: str) -> Response:
-        serializer = MfaCodeSerializer(
-            data=request.data, context={'user': request.user, 'method': method}
-        )
-        serializer.is_valid(raise_exception=True)
-        deactivate_totp(request, method)
-        return Response({})
 
 
 class MfaMethodRegenerateCodesView(APIView):

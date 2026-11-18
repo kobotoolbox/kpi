@@ -1,4 +1,4 @@
-import findIndex from 'lodash.findindex'
+import { findIndex } from 'lodash-es'
 import { when } from 'mobx'
 import Reflux from 'reflux'
 import { actions } from '#/actions'

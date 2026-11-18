@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import { useSyncExternalStore } from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import {
@@ -85,7 +85,7 @@ class TableStore {
   getTableSettings(): AssetTableSettings {
     // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
     // prepends the frozen columns to the selected columns).
-    return clonedeep(this.getTableSettingsSnapshot())
+    return cloneDeep(this.getTableSettingsSnapshot())
   }
 
   /**
