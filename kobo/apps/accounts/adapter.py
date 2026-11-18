@@ -82,20 +82,10 @@ class AccountAdapter(DefaultAccountAdapter):
         ):
             return default_url
 
-        try:
-            social_account = self._resolve_active_social_account(request)
-            if not social_account:
-                return default_url
-            return (
-                self._get_rp_initiated_logout_url(request, social_account)
-                or default_url
-            )
-        except Exception:
-            logging.error(
-                'Unexpected error resolving RP-initiated logout URL',
-                exc_info=True,
-            )
+        social_account = self._resolve_active_social_account(request)
+        if not social_account:
             return default_url
+        return self._get_rp_initiated_logout_url(request, social_account) or default_url
 
     def _resolve_active_social_account(self, request):
         """
@@ -233,8 +223,11 @@ class AccountAdapter(DefaultAccountAdapter):
         try:
             resp = requests.get(well_known_url, timeout=5)
             resp.raise_for_status()
-            endpoint = resp.json().get('end_session_endpoint')
-            value = endpoint or ''
+            data = resp.json()
+            endpoint = (
+                data.get('end_session_endpoint') if isinstance(data, dict) else None
+            )
+            value = endpoint if isinstance(endpoint, str) else ''
         except (requests.exceptions.RequestException, ValueError):
             logging.error(
                 'Failed to retrieve OIDC discovery metadata from %s',
