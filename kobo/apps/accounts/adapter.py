@@ -195,13 +195,11 @@ class AccountAdapter(DefaultAccountAdapter):
                 # do not trigger RP-initiated logout.
                 return None
 
-            active_provider = (
-                social_record.get('provider')
-                or request.session.get('socialaccount_provider')
+            active_provider = social_record.get('provider') or request.session.get(
+                'socialaccount_provider'
             )
-            active_uid = (
-                social_record.get('uid')
-                or request.session.get('socialaccount_uid')
+            active_uid = social_record.get('uid') or request.session.get(
+                'socialaccount_uid'
             )
         else:
             active_provider = request.session.get('socialaccount_provider')
