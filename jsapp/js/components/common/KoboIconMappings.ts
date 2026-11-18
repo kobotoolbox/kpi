@@ -1,18 +1,9 @@
+// Only pick icons by name here. Looping over this import (e.g. `Object.entries`) bundles all ~6,000 icons.
 import * as TablerIcons from '@tabler/icons-react'
 import type { IconProps as SvgIconProps, TablerIcon } from '@tabler/icons-react'
 import type { ComponentType } from 'react'
 import type { IconName } from '#/k-icons'
 import { resolveLegacySvgIconByName } from './IconLegacySvgMappings'
-
-const tablerIconEntries = Object.entries(TablerIcons).filter(
-  (entry): entry is [string, TablerIcon] =>
-    entry[0].startsWith('Icon') &&
-    (typeof entry[1] === 'function' || (typeof entry[1] === 'object' && entry[1] !== null)),
-)
-
-const tablerIconToNameMap = new Map<TablerIcon, string>(
-  tablerIconEntries.map(([exportName, icon]) => [icon, exportName]),
-)
 
 export const LegacyIconToTablerIconMap: Record<IconName, TablerIcon | undefined> = {
   alert: TablerIcons.IconAlertCircleFilled,
@@ -223,16 +214,4 @@ export function resolveIconComponentByLegacyName(legacyIconName: IconName): Comp
   }
 
   return resolveLegacySvgIconByName(legacyIconName)
-}
-
-export function getLegacyIconsCatalog() {
-  return Object.entries(LegacyIconToTablerIconMap)
-    .map(([legacyName, icon]) => {
-      return {
-        legacyName: legacyName as IconName,
-        tablerIconName: icon ? tablerIconToNameMap.get(icon) : undefined,
-        icon,
-      }
-    })
-    .sort((a, b) => a.legacyName.localeCompare(b.legacyName))
 }

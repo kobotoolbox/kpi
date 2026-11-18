@@ -12,14 +12,3 @@ def utc_datetime_to_js_str(dt: datetime.datetime) -> str:
     if dt.utcoffset() or not dt.tzinfo:
         raise NotImplementedError('Only UTC datetimes are supported')
     return dt.isoformat().replace('+00:00', 'Z')
-
-
-def js_str_to_datetime(js_str: str) -> datetime.datetime:
-    """
-    Return a `datetime` from a string following the simplification of the ISO
-    8601 format used by JavaScript
-
-    TODO: trash this in favor of `dateutil.parser.parse` (and eventual support
-    by `datetime` itself)?
-    """
-    return datetime.datetime.fromisoformat(js_str.replace('Z', '+00:00'))

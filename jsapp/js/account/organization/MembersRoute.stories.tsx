@@ -2,12 +2,14 @@ import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import organizationMock from '#/endpoints/organization.mocks'
-import organizationMembersMock from '#/endpoints/organizationMembers.mocks'
+import organizationMembersMock, { buildMember } from '#/endpoints/organizationMembers.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { RequireOrg } from '#/router/RequireOrg'
 import ToasterConfig from '#/toasterConfig'
-import MembersRoute, { TOO_SHORT_WARNING } from './MembersRoute'
+import MembersRoute from './MembersRoute'
 
 /**
  * Nothing on this route asks for in-app messages, but `helpBubbleStore` does on load, and unmocked it 404s against the
@@ -17,6 +19,20 @@ import MembersRoute, { TOO_SHORT_WARNING } from './MembersRoute'
 const helpBubbleMock = http.get('*/help/in_app_messages{/}?', () =>
   HttpResponse.json({ count: 0, next: null, previous: null, results: [] }),
 )
+
+/**
+ * Returns the cell of `username`'s row that sits under the `columnLabel` header. Both security columns render an
+ * icon-only badge, so there is no text to search for - the column has to be found by position.
+ */
+function cellUnderColumn(canvas: ReturnType<typeof within>, username: string, columnLabel: string) {
+  const columnIndex = canvas
+    .getAllByRole('columnheader')
+    .findIndex((header: HTMLElement) => header.textContent?.trim() === columnLabel)
+  expect(columnIndex).toBeGreaterThan(-1)
+
+  const row = canvas.getByText(username).closest('tr')
+  return row!.children[columnIndex]
+}
 
 /** Types into the search box and waits for the debounce to commit. */
 async function search(canvas: ReturnType<typeof within>, phrase: string) {
@@ -44,7 +60,7 @@ const meta: Meta<typeof MembersRoute> = {
   decorators: [
     (Story) => (
       <RequireOrg>
-        {/* The real app mounts this in `BasicLayout`; without it `notify()` output has nowhere to render. */}
+        {/* The real app mounts this in `app.jsx`; without it `notify()` output has nowhere to render. */}
         <ToasterConfig />
         <Story />
       </RequireOrg>
@@ -67,6 +83,33 @@ export const Default: Story = {
     await canvas.findByText('alice')
     expect(canvas.getByText('bob')).toBeInTheDocument()
     expect(canvas.getByRole('textbox', { name: /search members/i })).toHaveAttribute('placeholder', 'Search members')
+  },
+}
+
+/**
+ * The SSO column belongs to every team, including one on a server with no SSO provider configured - which is the case
+ * here, as the global `/environment` mock ships an empty `social_apps`. Members who have connected an SSO account get
+ * the active badge anyway, everyone else reads as inactive.
+ */
+export const SsoColumnWithoutSsoProvider: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        organizationMock(),
+        organizationMembersMock([
+          buildMember('alice', 'Alice Alvarez', { user__has_sso_enabled: true }),
+          buildMember('bob', 'Bob Brown', { user__has_sso_enabled: false }),
+        ]),
+        helpBubbleMock,
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByText('alice')
+
+    expect(cellUnderColumn(canvas, 'alice', 'SSO').querySelector('.k-icon-check')).toBeInTheDocument()
+    expect(cellUnderColumn(canvas, 'bob', 'SSO').querySelector('.k-icon-minus')).toBeInTheDocument()
   },
 }
 
@@ -94,7 +137,7 @@ export const SearchPhraseTooShort: Story = {
     // Nothing was filtered out, and crucially neither an error nor a nag surfaced.
     expect(canvas.getByText('bob')).toBeInTheDocument()
     expect(canvas.getByText('alice')).toBeInTheDocument()
-    expect(canvas.queryByText(TOO_SHORT_WARNING)).not.toBeInTheDocument()
+    expect(canvas.queryByText(TOO_SHORT_SEARCH_WARNING)).not.toBeInTheDocument()
   },
 }
 
@@ -107,7 +150,7 @@ export const SearchPhraseTooShortWarnsOnEnter: Story = {
     const input = await search(canvas, 'al')
     await userEvent.type(input, '{enter}')
 
-    await canvas.findByText(TOO_SHORT_WARNING)
+    await canvas.findByText(TOO_SHORT_SEARCH_WARNING)
     // The list is still all of them - the warning explains the lack of filtering, it isn't an error.
     expect(canvas.getByText('bob')).toBeInTheDocument()
   },
@@ -158,6 +201,46 @@ export const SearchRejectedByBackend: Story = {
 
     await canvas.findByText(/could not search the members list/i)
     expect(canvas.getByRole('textbox', { name: /search members/i })).toBeInTheDocument()
+  },
+}
+
+/**
+ * A member with a pending ownership transfer (always an admin, as the backend
+ * requires) shows a different badge, a disabled role selector, and
+ * "Resend invitation" / "Cancel invitation" in the actions menu.
+ * The `pending_transfer` field is cast because it is not yet in the generated type.
+ */
+export const PendingOwnerTransfer: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        organizationMock(),
+        organizationMembersMock([
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          buildMember('matt90', 'Matthew Sungur', { role: MemberRoleEnum.admin, pending_transfer: true } as any),
+          buildMember('alice', 'Alice Alvarez'),
+        ]),
+        helpBubbleMock,
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await canvas.findByText('Matthew Sungur')
+
+    const mattRow = canvas.getByText('Matthew Sungur').closest('tr')!
+
+    // Badge shows "Pending owner" instead of "Active"
+    expect(within(mattRow).getByText('Pending owner')).toBeInTheDocument()
+
+    // Role selector is disabled
+    expect(within(mattRow).getByDisplayValue('Admin')).toBeDisabled()
+
+    // Actions menu shows transfer-specific items
+    await userEvent.click(within(mattRow).getByRole('button'))
+    const page = within(canvasElement.ownerDocument.body)
+    await page.findByText('Resend invitation')
+    expect(page.getByText('Cancel invitation')).toBeInTheDocument()
   },
 }
 

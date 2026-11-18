@@ -1,8 +1,8 @@
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { ANY_ROW_TYPE_NAMES, AssetTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 
-export const assetWithBgAudioAndNLP = getApiV2AssetsRetrieveResponseMock({
+export const assetWithBgAudioAndNLP = getAssetsRetrieveResponseMock({
   uid: 'am5q2MmVckuLBXPKsbHjEt',
   name: 'text and media projekt',
   asset_type: AssetTypeName.survey,
@@ -204,7 +204,7 @@ export const assetWithBgAudioAndNLP = getApiV2AssetsRetrieveResponseMock({
   effective_permissions: [{ codename: 'change_submissions' }],
 }) as unknown as AssetResponse
 
-export const assetWithNestedGroupsAndNLP = getApiV2AssetsRetrieveResponseMock({
+export const assetWithNestedGroupsAndNLP = getAssetsRetrieveResponseMock({
   uid: 'aRai4qmXVG4eukrzpHXAQC',
   name: 'Project with audio inside nested group',
   asset_type: AssetTypeName.survey,
@@ -311,6 +311,97 @@ export const assetWithNestedGroupsAndNLP = getApiV2AssetsRetrieveResponseMock({
       },
     ],
     settings: {},
+    translated: ['label'],
+    translations: [null],
+  },
+  effective_permissions: [{ codename: 'change_submissions' }],
+}) as unknown as AssetResponse
+
+/**
+ * `assetWithBgAudioAndNLP` with `start-geopoint` enabled, deliberately placed
+ * after the form questions while that mock's other meta questions sit before
+ * them - a meta question has to land in the same spot among the columns no
+ * matter where the form definition carries it.
+ */
+export const assetWithStartGeopoint = {
+  ...assetWithBgAudioAndNLP,
+  content: {
+    ...assetWithBgAudioAndNLP.content,
+    survey: [
+      ...(assetWithBgAudioAndNLP.content?.survey || []),
+      {
+        name: 'start-geopoint',
+        type: ANY_ROW_TYPE_NAMES['start-geopoint'],
+        $kuid: 'hT2sVnPqL',
+        $xpath: 'start-geopoint',
+        $autoname: 'start-geopoint',
+      },
+    ],
+  },
+} as unknown as AssetResponse
+
+/**
+ * A form with ordinary questions that happen to be named after meta questions.
+ * Nothing reserves those names: the Form Builder only de-duplicates against the
+ * other questions of the survey, and an uploaded XLSForm is free to use them.
+ */
+export const assetWithQuestionsNamedAfterMeta = getAssetsRetrieveResponseMock({
+  uid: 'aQuEsTiOnSnAmEdAfTeRmEtA',
+  asset_type: AssetTypeName.survey,
+  content: {
+    survey: [
+      {
+        name: 'audit',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'aUd1TqUeSt',
+        label: ['Who audited this site?'],
+        $xpath: 'audit',
+        $autoname: 'audit',
+        required: false,
+      },
+      {
+        name: 'start-geopoint',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'gEoQuEsT1',
+        label: ['Where did you start?'],
+        $xpath: 'start-geopoint',
+        $autoname: 'start-geopoint',
+        required: false,
+      },
+      {
+        name: 'What_did_you_see',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'sAwQuEsT1',
+        label: ['What did you see?'],
+        $xpath: 'What_did_you_see',
+        $autoname: 'What_did_you_see',
+        required: false,
+      },
+      // These two are last on purpose: the meta questions of those names are
+      // pulled to the front, and these must not be.
+      {
+        name: 'end',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'eNdQuEsT1',
+        label: ['Which end of the village?'],
+        $xpath: 'end',
+        $autoname: 'end',
+        required: false,
+      },
+      {
+        name: 'start',
+        type: ANY_ROW_TYPE_NAMES.text,
+        $kuid: 'sTaRtQuEs',
+        label: ['Who started the meeting?'],
+        $xpath: 'start',
+        $autoname: 'start',
+        required: false,
+      },
+    ],
+    settings: {
+      version: '1 (2026-09-15 10:00:00)',
+      id_string: 'questions_named_after_meta',
+    },
     translated: ['label'],
     translations: [null],
   },

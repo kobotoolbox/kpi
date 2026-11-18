@@ -151,6 +151,13 @@ def merge_allauth_headless_schema(result, generator, request, public):
             # Optionally rewrite tags to group them under something specific.
             for method, operation in cloned_spec.items():
                 if isinstance(operation, dict):
+                    # `{client}` is no longer in the path, so drop its parameter
+                    if client and 'parameters' in operation:
+                        operation['parameters'] = [
+                            param
+                            for param in operation['parameters']
+                            if param.get('$ref') != '#/components/parameters/Client'
+                        ]
                     operation['tags'] = ['Authentication (Allauth Headless)']
                     if 'operationId' not in operation:
                         # e.g., turn `/api/v2/allauth/browser/v1/auth/login` + `post`

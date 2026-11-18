@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}
+Plain-text alternative to `email_confirmation_resend_message.html`.
+
+Escaping off, since there is no markup here: a name like O'Connor would otherwise arrive as O&#x27;Connor.
+{% endcomment %}
+{% autoescape off %}
+{% blocktrans trimmed with first_name=user.first_name|default:user.username %}Hi {{ first_name }},{% endblocktrans %}
+
+{% blocktrans trimmed %}Since you were unable to use your previous account activation link, here is a new link to activate your KoboToolbox account:{% endblocktrans %}
+
+{{ activate_url }}
+
+{% blocktrans trimmed count hours=expire_hours %}For security reasons, this link will expire in {{ hours }} hour.{% plural %}For security reasons, this link will expire in {{ hours }} hours.{% endblocktrans %}
+
+{% blocktrans trimmed %}Thanks for being part of the KoboToolbox community!{% endblocktrans %}
+{% blocktrans trimmed %}The KoboToolbox Team{% endblocktrans %}
+{% endautoescape %}

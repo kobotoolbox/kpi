@@ -17,6 +17,8 @@ staticfiles
 .cache
 .sass-cache
 webpack-stats.json
+webpack-bundle-report.json
+webpack-bundle-sizes.json
 sensitive_data.json
 test/compiled/*
 .idea/
@@ -29,7 +31,8 @@ env
 public
 .venv
 storybook-static
-emails
+debug-storybook.log
+/emails/
 .claude/
 
 # Ignore locale build files.
@@ -39,3 +42,5 @@ locale/en/LC_MESSAGES/*.po
 
 # We post changelog in github releases, but generate it here. Let's not accidentally commit it.
 CHANGELOG.md
+
+kobo/apps/openapi_validator/scripts/openapi_errors.csv

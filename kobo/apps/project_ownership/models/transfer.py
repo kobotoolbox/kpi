@@ -160,11 +160,14 @@ class Transfer(AbstractTimeStampedModel):
                             self._reassign_project_permissions(
                                 update_deployment=True
                             )
-                            deployment.rename_enketo_id_key(
-                                previous_owner_username, old_id_string
-                            )
 
                         self._sent_in_app_messages()
+                        # Redis is not transactional: keep this last in the
+                        # KoboCAT transaction (committed first) so that a Redis
+                        # failure rolls back both databases.
+                        deployment.transfer_enketo_links(
+                            previous_owner_username, old_id_string
+                        )
 
                     # Update `is_excluded_from_projects_list` flag
                     self._update_project_exclusion_flag()

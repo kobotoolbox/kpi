@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react'
-
 import cx from 'classnames'
 import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
+import React, { useState, useEffect } from 'react'
 import Dropzone from 'react-dropzone'
 import OrgInviteAcceptedBanner from '#/account/organization/invites/OrgInviteAcceptedBanner'
 import OrgInviteModalWrapper from '#/account/organization/invites/OrgInviteModalWrapper'
@@ -14,12 +13,12 @@ import ProjectOwnershipTransferModalWithBanner from '#/components/permissions/tr
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import { dropImportXLSForms } from '#/dropzone.utils'
 import ProjectsTable from '#/projects/projectsTable/projectsTable'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { notify, validFileTypes } from '#/utils'
 import customViewStore, { PAGE_SIZE } from './customViewStore'
+import ProjectsFilter from './projectViews/ProjectsFilter'
 import projectViewsStore from './projectViews/projectViewsStore'
 import ProjectsFieldsSelector from './projectViews/projectsFieldsSelector'
-import ProjectsFilter from './projectViews/projectsFilter'
 import ViewSwitcher from './projectViews/viewSwitcher'
 import ProjectBulkActions from './projectsTable/projectBulkActions'
 import ProjectQuickActions from './projectsTable/projectQuickActions'
@@ -53,7 +52,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
   const [projectViews] = useState(projectViewsStore)
   const [customView] = useState(customViewStore)
   const [selectedRows, setSelectedRows] = useState<string[]>([])
-  const session = useSession()
+  const profile = useProfile()
   const [organization] = useOrganizationAssumed()
 
   useEffect(() => {
@@ -128,8 +127,8 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
 
             <OrgInviteModalWrapper />
 
-            {session.currentLoggedAccount && (
-              <OrgInviteAcceptedBanner username={session.currentLoggedAccount.username} organization={organization} />
+            {profile.currentLoggedAccount && (
+              <OrgInviteAcceptedBanner username={profile.currentLoggedAccount.username} organization={organization} />
             )}
 
             <LimitNotifications pageCanShowModal />
@@ -183,7 +182,7 @@ function UniversalProjectsRoute(props: UniversalProjectsRouteProps) {
               assets={customView.assets}
               // refreshing session will result in refreshing table, so while that is pending
               // we want to show a loading spinner
-              isLoading={!customView.isFirstLoadComplete || session.isPending}
+              isLoading={!customView.isFirstLoadComplete || profile.isPending}
               highlightedFields={getFilteredFieldsNames()}
               visibleFields={getTableVisibleFields()}
               orderableFields={props.defaultOrderableFields}

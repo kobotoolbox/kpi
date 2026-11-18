@@ -11,6 +11,7 @@ import { DividerThemeKobo } from './Divider'
 import { DropzoneThemeKobo } from './Dropzone'
 import { InputThemeKobo } from './Input'
 import { InputBaseThemeKobo } from './InputBase'
+import { InputWrapperThemeKobo } from './InputWrapper'
 import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
@@ -153,6 +154,10 @@ export const themeKobo = createTheme({
 
   spacing: {
     xxs: '8px',
+    // Mantine's scale jumps 20px -> 32px, leaving no 24px rung for our designs. `xl` fills it and
+    // `xxl` keeps the 32px that used to be `xl`, so both values stay reachable.
+    xl: rem(24),
+    xxl: rem(32),
   },
 
   other: {
@@ -173,6 +178,7 @@ export const themeKobo = createTheme({
     Dropzone: DropzoneThemeKobo,
     Input: InputThemeKobo,
     InputBase: InputBaseThemeKobo,
+    InputWrapper: InputWrapperThemeKobo,
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Modal: ModalThemeKobo,

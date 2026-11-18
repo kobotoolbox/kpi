@@ -1,5 +1,7 @@
 from datetime import timedelta
+from typing import TYPE_CHECKING
 
+from constance import config
 from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
@@ -7,44 +9,90 @@ from django_request_cache import cache_for_request
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
+from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
+
+if TYPE_CHECKING:
+    from kobo.apps.stripe.models import ExceededLimitCounter
 
 
 @requires_stripe
 def check_exceeded_limit(user, usage_type: UsageType, **kwargs):
     """
-    Checks whether user's org has exceeded its limits for a given
-    usage type and updates ExceededLimitCounters accordingly. Uses
-    cached key to avoid running checks more than once within
-    the ENDPOINT_CACHE_DURATION
+    Check a single usage type against its limit.
+
+    Thin wrapper around `check_exceeded_limits` kept for callers that work with
+    one usage type. Returns the created/updated counter, or None when the check
+    is gated or the limit is not exceeded.
+    """
+    return check_exceeded_limits(user, [usage_type]).get(usage_type)
+
+
+@requires_stripe
+def check_exceeded_limits(
+    user,
+    usage_types: list[UsageType],
+    **kwargs,
+) -> 'dict[UsageType, ExceededLimitCounter]':
+    """
+    Check whether user's org has exceeded its limits for the given usage types
+    and update ExceededLimitCounters accordingly.
+
+    Uses a cached key per usage type to avoid running checks more than once
+    within the ENDPOINT_CACHE_DURATION. Fresh usage balances are computed at most
+    once per call, and only when a usage type passes its gate.
     """
     org = user.organization
     if org.is_mmo:
         user = org.owner_user_object
 
-    cache_key = f'{user.id}_checked_exceeded_{usage_type}_limit'
+    ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
+    balances = None
+    counters = {}
 
-    if cache.get(cache_key, None):
+    for usage_type in usage_types:
+        cache_key = f'{user.id}_checked_exceeded_{usage_type}_limit'
+
+        if cache.get(cache_key, None):
+            continue
+
+        if balances is None:
+            balances = _get_usage_balances(user)
+
+        balance = balances[usage_type]
+
+        if balance and balance['exceeded']:
+            counter, created = ExceededLimitCounter.objects.get_or_create(
+                user=user,
+                limit_type=usage_type,
+            )
+
+            if not created and counter.date_modified.date() < timezone.now().date():
+                delta = timezone.now().date() - counter.date_modified.date()
+                counter.days += delta.days
+                counter.save()
+
+            counters[usage_type] = counter
+
+        cache.set(cache_key, True, settings.ENDPOINT_CACHE_DURATION)
+
+    return counters
+
+
+def raise_if_usage_limit_exceeded(
+    user: 'kobo_auth.User', usage_type: UsageType
+) -> None:
+    """
+    Raise `UsageLimitExceededException` if `user` has exceeded their
+    `usage_type` limit, when limits are enforced
+    """
+    if not settings.STRIPE_ENABLED or not config.USAGE_LIMIT_ENFORCEMENT:
         return
 
-    ExceededLimitCounter = kwargs['exceeded_limit_counter_model']
-    balances = _get_usage_balances(user)
-    balance = balances[usage_type]
-    counter = None
-
+    calculator = ServiceUsageCalculator(user)
+    balance = calculator.get_usage_balances()[usage_type]
     if balance and balance['exceeded']:
-        counter, created = ExceededLimitCounter.objects.get_or_create(
-            user=user,
-            limit_type=usage_type,
-        )
-
-        if not created and counter.date_modified.date() < timezone.now().date():
-            delta = timezone.now().date() - counter.date_modified.date()
-            counter.days += delta.days
-            counter.save()
-
-    cache.set(cache_key, True, settings.ENDPOINT_CACHE_DURATION)
-    return counter
+        raise UsageLimitExceededException()
 
 
 @requires_stripe

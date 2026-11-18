@@ -3,12 +3,13 @@ import math
 import re
 from collections.abc import Callable, Generator, Iterator
 from io import StringIO
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import formpack
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
+from django.urls import reverse
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
 from rest_framework.exceptions import ErrorDetail, ParseError
@@ -17,9 +18,12 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
-from kpi.paginators import DefaultPagination
 from kpi.utils.autoname import HandleDuplicatesOptions
 from kpi.utils.xml import add_xml_declaration
+
+if TYPE_CHECKING:
+    # A runtime import is circular: DRF loads this module from its views
+    from rest_framework.views import APIView
 
 
 class BasicHTMLRenderer(renderers.BaseRenderer):
@@ -43,7 +47,8 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
         if resolver_match:
             url_pattern_clean = self._clean_route(resolver_match.route)
 
-        data = self._materialize_results_preview(data, request=request)
+        view = renderer_context.get('view') if renderer_context else None
+        data = self._materialize_results_preview(data, request=request, view=view)
 
         try:
             pretty = json.dumps(data, indent=2, cls=DjangoJSONEncoder)
@@ -51,6 +56,7 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             pretty = str(data)
 
         context = {
+            'docs_url': self.get_docs_url(),
             'pretty': pretty,
             'q_param': url_pattern_clean or '',
             'root': resolver_match.url_name == 'api-root',
@@ -58,6 +64,9 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
 
         tpl = get_template(self.template_name)
         return tpl.render(context)
+
+    def get_docs_url(self) -> str:
+        return reverse('swagger-ui')
 
     @classmethod
     def _clean_route(cls, raw: str | None) -> str | None:
@@ -77,19 +86,9 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
         return s
 
     @staticmethod
-    def _extract_raw_route(resolver) -> str | None:
-        """
-        Try to get the raw route/regex from ResolverMatch across Django versions.
-
-        """
-
-        if not resolver:
-            return None
-
-        return resolver.route
-
-    @staticmethod
-    def _materialize_results_preview(data: Any, request: Request | None) -> Any:
+    def _materialize_results_preview(
+        data: Any, request: Request | None, view: 'APIView | None' = None
+    ) -> Any:
 
         if not isinstance(data, dict) or 'results' not in data:
             return data
@@ -100,17 +99,13 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
 
         default_limit = 20
 
+        # Read the limit with the view's own paginator query param
+        paginator = getattr(view, 'paginator', None)
         try:
-            limit = (
-                int(
-                    request.query_params.get(
-                        DefaultPagination.limit_query_param, default_limit
-                    )
-                )
-                if request
-                else default_limit
+            limit = int(
+                request.query_params.get(paginator.limit_query_param, default_limit)
             )
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             limit = default_limit
 
         items = []
@@ -316,8 +311,8 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
     def _get_xml(cls, data):
 
         # Submissions are wrapped in `<item>` nodes.
-        results = data.pop('results', False)
-        if not results:
+        results = data.pop('results', None)
+        if results is None:
             return dict2xml(data, wrap=cls.root_tag_name, newlines=False)
 
         submissions_parent_node = 'results'

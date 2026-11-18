@@ -1,11 +1,12 @@
 import pytest
 from django.conf import settings
-from django.db.models import Exists
+from django.db.models import Exists, Field, Q
 from django.test import TestCase
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.exceptions import (
+    QueryParserBadSyntax,
     QueryParserNotSupportedFieldLookup,
     QueryParserTooManyRelationalFilters,
 )
@@ -318,3 +319,76 @@ class TestToManyLeafAsExists(TestCase):
         query = ' OR '.join(f'tags__name:t{i}' for i in range(limit))
         # exactly at the cap must not raise
         _parse(query)
+
+
+# Lookups that stay dict keys inside a `field[]__` list rather than becoming
+# Django lookups: `q=` cannot carry the list values they expect.
+_LIST_VALUE_LOOKUPS = ['in', 'range']
+
+# `Field.class_lookups` also carries kpi's own `in_array` (a JSONB array lookup
+# registered globally in `kpi/utils/django_orm_helper.py`): not a Django
+# built-in and list-valued, so it stays out of the reserved set.
+_NON_DJANGO_LOOKUPS = {'in_array'}
+
+# Scalar-list lookups `get_q_for_list` actually supports (see its docstring);
+# the rest of `DJANGO_FIELD_LOOKUPS` must be rejected after `[]__`.
+_SUPPORTED_SCALAR_LIST_LOOKUPS = {'contains', 'icontains', 'iexact'}
+
+
+def test_django_field_lookups_match_django_registry():
+    # Catches drift when a Django upgrade adds a base field lookup
+    assert QueryParseActions.DJANGO_FIELD_LOOKUPS == (
+        frozenset(Field.class_lookups) - set(_LIST_VALUE_LOOKUPS) - _NON_DJANGO_LOOKUPS
+    )
+
+
+@pytest.mark.parametrize(
+    'lookup',
+    sorted(QueryParseActions.DJANGO_FIELD_LOOKUPS - _SUPPORTED_SCALAR_LIST_LOOKUPS),
+)
+def test_unsupported_lookup_after_list_is_rejected(lookup):
+    # Reserved but not implemented by `get_q_for_list`: reject, never read as
+    # a dict key that silently matches nothing
+    with pytest.raises(QueryParserNotSupportedFieldLookup):
+        parse(
+            f'summary__languages[]__{lookup}:eng',
+            default_field_lookups=['name__icontains'],
+            model=Asset,
+        )
+
+
+def test_lookup_after_list_cannot_be_chained():
+    # A reserved lookup followed by more segments is a syntax error
+    with pytest.raises(QueryParserBadSyntax):
+        parse(
+            'summary__languages[]__istartswith__icontains:eng',
+            default_field_lookups=['name__icontains'],
+            model=Asset,
+        )
+
+
+@pytest.mark.parametrize('key', _LIST_VALUE_LOOKUPS)
+def test_in_and_range_stay_dict_keys(key):
+    # Deliberately not reserved, see ticket: treated as a JSON dict key
+    q = parse(
+        f'summary__languages[]__{key}:eng',
+        default_field_lookups=['name__icontains'],
+        model=Asset,
+    )
+    assert q == Q(summary__languages__contains=[{key: 'eng'}])
+
+
+def test_supported_lookups_after_list():
+    # Pin the frontend `is`/`contains` conditions on scalar list fields
+    def _q(query):
+        return parse(query, default_field_lookups=['name__icontains'], model=Asset)
+
+    assert _q('summary__languages[]__icontains:eng') == Q(
+        summary__languages__icontains='eng'
+    )
+    assert _q('summary__languages[]__iexact:eng') == (
+        Q(summary__languages__icontains='eng') & Q(summary__languages__1__isnull=True)
+    )
+    assert _q('summary__languages[]__contains:eng') == Q(
+        summary__languages__contains='eng'
+    )

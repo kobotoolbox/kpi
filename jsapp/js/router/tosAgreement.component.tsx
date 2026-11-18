@@ -1,9 +1,7 @@
-import React from 'react'
-
-import { RequireOrg } from '#/router/RequireOrg'
+import DocumentTitle from 'react-document-title'
+import AuthCard from '#/auth/AuthContainer/AuthCard'
+import AuthPageFrame from '#/auth/AuthContainer/AuthPageFrame'
 import TOSForm from '#/tos/tosForm.component'
-import BasicLayout from './basicLayout.component'
-import styles from './tosAgreement.module.scss'
 
 /**
  * This is a route blocker component to be used for accounts that have not
@@ -12,14 +10,12 @@ import styles from './tosAgreement.module.scss'
  */
 export default function TOSAgreement() {
   return (
-    <BasicLayout>
-      <div className={styles.root}>
-        {/* `TOSForm` reads the organization (to hide org fields from MMO
-            members), so it must be a descendant of `RequireOrg`. */}
-        <RequireOrg>
+    <DocumentTitle title={`${t('Terms of Service')} | KoboToolbox`}>
+      <AuthPageFrame>
+        <AuthCard>
           <TOSForm />
-        </RequireOrg>
-      </div>
-    </BasicLayout>
+        </AuthCard>
+      </AuthPageFrame>
+    </DocumentTitle>
   )
 }

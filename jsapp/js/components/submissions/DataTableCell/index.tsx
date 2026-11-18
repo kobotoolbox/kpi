@@ -1,17 +1,25 @@
 import { Text } from '@mantine/core'
-import type { CellInfo } from 'react-table'
-import { getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
+import { isInRepeatGroup } from '#/components/processing/common/questionType'
+import { isNlpSupported } from '#/components/processing/common/utils'
+import { getCellPreviewText, getColumnLabel, getSelectResponseLabel } from '#/components/submissions/tableUtils'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   META_QUESTION_TYPES,
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
-import type { AssetResponse, SubmissionAttachment, SurveyChoice, SurveyRow } from '#/dataInterface'
+import type { AnyRowTypeName } from '#/constants'
+import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { formatTimeDateShort, recordKeys } from '#/utils'
-import { getMediaAttachment } from '../submissionUtils'
+import {
+  findAttachmentByQuestionXpaths,
+  getMediaAttachment,
+  inferAttachmentQuestionType,
+} from '../submissionMediaUtils'
 import { TABLE_MEDIA_TYPES } from '../tableConstants'
 import AudioCell from './AudioCell'
+import styles from './DataTableCell.module.scss'
 import MediaCell from './MediaCell'
 import RepeatGroupCell from './RepeatGroupCell'
 import SupplementalDetailsCell from './SupplementalDetailsCell'
@@ -19,8 +27,21 @@ import TextCell from './TextCell'
 
 interface DataTableCellProps {
   asset: AssetResponse
-  reactTableRow: CellInfo
+  /** The whole submission the row stands for, as several cell types look beyond their own response. */
+  submissionData: SubmissionResponse
   columnKey: string
+  /**
+   * The response stored under `columnKey`. Deliberately loose, as each branch below narrows it
+   * by question type.
+   */
+  columnValue: any
+  /** Zero-based position of the submission among the rendered rows, shown to the user as `+ 1`. */
+  submissionIndex: number
+  /**
+   * The other paths this column stands for, dropped as duplicates of it when their question
+   * moved between groups. Pre-move submissions file their attachments under those.
+   */
+  legacyAttachmentPaths?: string[]
   question?: SurveyRow
   choices: SurveyChoice[]
   showGroupName: boolean
@@ -30,22 +51,25 @@ interface DataTableCellProps {
 }
 
 export default function DataTableCell(props: DataTableCellProps) {
-  // Table settings encode the "XML Values" display option as a negative
-  // translation index (see `TableSettings`).
+  // Table settings encode the "Question & choice names" display option as
+  // a negative translation index (see `TableSettings`).
   const shouldShowSelectLabels = props.translationIndex > -1
-  const submission = props.reactTableRow.original
-  const submissionIndex = props.reactTableRow.index + 1
   const columnName = getColumnLabel(props.asset, props.columnKey, props.showGroupName, props.translationIndex)
+  const isNlpImageActionsEnabled = useFeatureFlag(FeatureFlag.nlpImageActionsEnabled)
+
+  // TODO: drop the image check along with `FeatureFlag.nlpImageActionsEnabled` once NLP for images is complete.
+  const hasProcessingAction = (questionType: AnyRowTypeName | undefined) =>
+    isNlpSupported(questionType) && (questionType !== QUESTION_TYPES.image.id || isNlpImageActionsEnabled)
 
   const shouldRenderUndefinedNestedKeyAsRepeat = (() => {
-    if (props.reactTableRow.value !== undefined || !props.columnKey.includes('/')) {
+    if (props.columnValue !== undefined || !props.columnKey.includes('/')) {
       return false
     }
 
     const keyPathSegments = props.columnKey.split('/')
     for (let i = keyPathSegments.length - 1; i >= 1; i--) {
       const parentPath = keyPathSegments.slice(0, i).join('/')
-      if (Array.isArray(submission[parentPath])) {
+      if (Array.isArray(props.submissionData[parentPath])) {
         return true
       }
     }
@@ -55,7 +79,7 @@ export default function DataTableCell(props: DataTableCellProps) {
 
   if (
     props.isBulkProcessingInProgress &&
-    props.reactTableRow.value === undefined &&
+    props.columnValue === undefined &&
     props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
   ) {
     return (
@@ -73,42 +97,49 @@ export default function DataTableCell(props: DataTableCellProps) {
   // formatted as the string "null".
   if (
     !props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP) &&
-    props.reactTableRow.value !== null &&
-    (typeof props.reactTableRow.value === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
+    props.columnValue !== null &&
+    (typeof props.columnValue === 'object' || shouldRenderUndefinedNestedKeyAsRepeat)
   ) {
-    return <RepeatGroupCell submissionData={submission} rowName={props.columnKey} />
+    return (
+      <RepeatGroupCell
+        submissionData={props.submissionData}
+        rowName={props.columnKey}
+        // Processing doesn't support repeat groups, so NLP supported questions get a disabled way into it.
+        showDisabledProcessingAction={
+          hasProcessingAction(props.question?.type) &&
+          isInRepeatGroup(props.asset, props.columnKey, props.submissionData)
+        }
+      />
+    )
   }
 
-  if (props.question && props.question.type && props.reactTableRow.value) {
-    if (recordKeys(TABLE_MEDIA_TYPES).includes(props.question.type)) {
-      let mediaAttachment = null
+  // `question_xpath` was recorded when the submission came in, so it finds the file even
+  // after a rename, a move or a removal.
+  const attachment = findAttachmentByQuestionXpaths(props.submissionData, [
+    props.columnKey,
+    ...(props.legacyAttachmentPaths ?? []),
+  ])
 
-      const attachmentIndex: number = submission._attachments.findIndex(
-        (attachment: SubmissionAttachment) => attachment.media_file_basename === props.reactTableRow.value,
-      )
+  // The row goes first where there is one: it alone tells `background-audio` from `audio`,
+  // and a `file` question holding a photo from an `image` one.
+  const questionType = props.question?.type ?? (attachment && inferAttachmentQuestionType(attachment))
+  // The attachment's path is also the one the processing view has to open at.
+  const questionXpath = attachment?.question_xpath ?? props.question?.$xpath
 
-      if (props.question.type !== QUESTION_TYPES.text.id && submission._attachments[attachmentIndex]) {
-        mediaAttachment = getMediaAttachment(
-          submission,
-          props.reactTableRow.value,
-          submission._attachments[attachmentIndex].question_xpath,
-        )
-      }
+  if (questionType && props.columnValue) {
+    if (recordKeys(TABLE_MEDIA_TYPES).includes(questionType)) {
+      const mediaAttachment =
+        attachment === undefined
+          ? null
+          : getMediaAttachment(props.submissionData, props.columnValue, attachment.question_xpath)
 
-      if (
-        props.question.type === QUESTION_TYPES.audio.id ||
-        props.question.type === QUESTION_TYPES['background-audio'].id
-      ) {
-        if (mediaAttachment !== null && props.question.$xpath !== undefined) {
-          const audioXpath =
-            typeof mediaAttachment === 'string' || !mediaAttachment.question_xpath
-              ? props.question.$xpath
-              : mediaAttachment.question_xpath
+      if (questionType === QUESTION_TYPES.audio.id || questionType === QUESTION_TYPES['background-audio'].id) {
+        if (mediaAttachment !== null && questionXpath !== undefined) {
           return (
             <AudioCell
               assetUid={props.asset.uid}
-              xpath={audioXpath}
-              submissionData={submission}
+              xpath={questionXpath}
+              submissionData={props.submissionData}
               mediaAttachment={mediaAttachment}
               questionLabel={columnName}
             />
@@ -116,16 +147,18 @@ export default function DataTableCell(props: DataTableCellProps) {
         }
       }
 
-      if (mediaAttachment !== null && props.question.$xpath !== undefined) {
+      if (mediaAttachment !== null && questionXpath !== undefined) {
         return (
           <MediaCell
-            questionType={props.question.type}
+            questionType={questionType}
             mediaAttachment={mediaAttachment}
-            displayValue={props.reactTableRow.value}
-            submissionIndex={submissionIndex}
+            displayValue={props.columnValue}
+            submissionIndex={props.submissionIndex + 1}
             submissionTotal={props.submissionCount}
-            submission={submission}
+            submission={props.submissionData}
             asset={props.asset}
+            xpath={questionXpath}
+            showProcessingAction={hasProcessingAction(questionType)}
           />
         )
       }
@@ -133,34 +166,29 @@ export default function DataTableCell(props: DataTableCellProps) {
 
     if (
       shouldShowSelectLabels &&
-      (props.question.type === QUESTION_TYPES.select_one.id ||
-        props.question.type === QUESTION_TYPES.select_multiple.id)
+      (questionType === QUESTION_TYPES.select_one.id || questionType === QUESTION_TYPES.select_multiple.id)
     ) {
       return (
         <span className='trimmed-text'>
           {getSelectResponseLabel({
-            value: props.reactTableRow.value,
-            questionType: props.question.type,
-            listName: props.question.select_from_list_name,
+            value: props.columnValue,
+            questionType,
+            listName: props.question?.select_from_list_name,
             choices: props.choices,
             translationIndex: props.translationIndex,
           })}
         </span>
       )
     }
-    if (props.question.type === META_QUESTION_TYPES.start || props.question.type === META_QUESTION_TYPES.end) {
-      return <span className='trimmed-text'>{formatTimeDateShort(props.reactTableRow.value)}</span>
+    if (questionType === META_QUESTION_TYPES.start || questionType === META_QUESTION_TYPES.end) {
+      return <span className='trimmed-text'>{formatTimeDateShort(props.columnValue)}</span>
     }
   }
 
   if (props.columnKey === ADDITIONAL_SUBMISSION_PROPS._submission_time) {
     // Empty check keeps an absent date an empty cell, as `moment` formats those
     // as "Invalid date".
-    return (
-      <span className='trimmed-text'>
-        {props.reactTableRow.value ? formatTimeDateShort(props.reactTableRow.value) : ''}
-      </span>
-    )
+    return <span className='trimmed-text'>{props.columnValue ? formatTimeDateShort(props.columnValue) : ''}</span>
   }
 
   if (props.question?.type === QUESTION_TYPES.text.id) {
@@ -168,31 +196,43 @@ export default function DataTableCell(props: DataTableCellProps) {
       <TextCell
         assetUid={props.asset.uid}
         xpath={props.question.$xpath}
-        submissionData={submission}
-        text={props.reactTableRow.value}
+        submissionData={props.submissionData}
+        text={props.columnValue}
         questionLabel={columnName}
       />
     )
   }
 
   if (
-    props.reactTableRow.value === undefined &&
+    props.columnValue === undefined &&
     props.question === undefined &&
     props.columnKey.startsWith(SUPPLEMENTAL_DETAILS_PROP)
   ) {
     return (
       <SupplementalDetailsCell
         asset={props.asset}
-        submission={submission}
+        submission={props.submissionData}
         columnKey={props.columnKey}
         columnName={columnName}
       />
     )
   }
 
+  // Responses of any length land here, and there is no dialog to read one in full, so a response too long for the
+  // line gets a second, print-only copy. Printing un-trims these cells, and Safari only loses text on a trimmed line.
+  const preview = getCellPreviewText(props.columnValue)
+  const isTrimmed = preview !== props.columnValue
+
   return (
     <span className='trimmed-text' dir='auto'>
-      {props.reactTableRow.value}
+      {isTrimmed ? (
+        <>
+          <span className={styles.screenOnly}>{preview}</span>
+          <span className={styles.printOnly}>{props.columnValue}</span>
+        </>
+      ) : (
+        preview
+      )}
     </span>
   )
 }

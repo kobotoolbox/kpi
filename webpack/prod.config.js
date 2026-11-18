@@ -2,26 +2,14 @@ const path = require('path')
 const webpack = require('webpack')
 const WebpackCommon = require('./webpack.common')
 const TerserPlugin = require('terser-webpack-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
+const { BundleReportPlugin } = require('./bundleReportPlugin')
 
 const publicPath = (process.env.KPI_PREFIX === '/' ? '' : process.env.KPI_PREFIX || '') + '/static/compiled/'
 
 const prodConfig = WebpackCommon({
   mode: 'production',
   optimization: {
-    splitChunks: {
-      cacheGroups: {
-        commons: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
-          // Every entry but `errorApp` shares one `vendors` chunk. The error
-          // pages have to render when the main app can't load, so they must not
-          // depend on that (multi-MB) shared chunk - see
-          // `scripts/check_error_bundle_isolation.js`, which fails the build if
-          // this coupling ever comes back.
-          chunks: (chunk) => chunk.name !== 'errorApp',
-        },
-      },
-    },
     // Speed up the minify step with swc
     // https://webpack.js.org/plugins/terser-webpack-plugin/#swc
     minimizer: [
@@ -29,6 +17,7 @@ const prodConfig = WebpackCommon({
         minify: TerserPlugin.swcMinify,
         terserOptions: {},
       }),
+      new CssMinimizerPlugin(),
     ],
   },
   entry: {
@@ -46,6 +35,7 @@ const prodConfig = WebpackCommon({
       filename: '[file].map',
       exclude: /vendors.*.*/,
     }),
+    new BundleReportPlugin(),
   ],
   // mainly for hiding stylelint output
   stats: {

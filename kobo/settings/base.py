@@ -1,7 +1,7 @@
 import logging
 import os
-import subprocess
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
@@ -15,9 +15,13 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
+from kpi.constants import (
+    AUTH_SERVER_TAG_CHOICES,
+    PERM_DELETE_ASSET,
+    PERM_MANAGE_ASSET,
+)
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
-from .utils import constance_env, dj_stripe_request_callback_method
+from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
 env = environ.Env()
 
@@ -62,7 +66,13 @@ if SESSION_COOKIE_DOMAIN:
     trusted_domains = [
         f'{public_request_scheme}://*{SESSION_COOKIE_DOMAIN}',
     ]
-    CSRF_TRUSTED_ORIGINS = trusted_domains
+else:
+    trusted_domains = []
+CSRF_TRUSTED_ORIGINS = env.list(
+    # Separate multiple origins with commas, and do not use spaces
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    default=trusted_domains,
+)
 ENKETO_CSRF_COOKIE_NAME = env.str('ENKETO_CSRF_COOKIE_NAME', '__csrf')
 
 # Limit sessions to 1 week (the default is 2 weeks)
@@ -106,6 +116,7 @@ INSTALLED_APPS = (
     'allauth.socialaccount.providers.openid_connect',
     'allauth.usersessions',
     'allauth.mfa',
+    'allauth.headless',
     'hub.HubAppConfig',
     'import_export',
     'import_export_celery',
@@ -171,6 +182,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
+    'kobo.apps.openapi_validator.middleware.OpenAPIValidationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -192,6 +204,13 @@ if os.environ.get('DEFAULT_FROM_EMAIL'):
 # `django.conf.settings.THE_SETTING`
 
 CONSTANCE_CONFIG = {
+    # Temporary?: give Enketo `KOBOCAT_INTERNAL_URL` instead of the public URL, so its
+    # server-side calls (form, manifest, media, submissions) stay inside the cluster
+    'ENKETO_USE_INTERNAL_OPENROSA_URL': (
+        env.bool('CONSTANCE_ENKETO_USE_INTERNAL_OPENROSA_URL', False),
+        'Save the internal domain name instead of the public one as the '
+        'OpenRosa server URL in Enketo',
+    ),
     'REGISTRATION_OPEN': (
         True,
         'Allow new users to register accounts for themselves',
@@ -230,6 +249,13 @@ CONSTANCE_CONFIG = {
         'Show the KoboToolbox logo on the sign-in and account creation pages. '
         'Turn this off to display only the logo uploaded under '
         'Configuration files',
+    ),
+    'AUTH_SERVER_TAG': (
+        '',
+        'Server name tag shown at the top of the sign-in and account creation '
+        'cards. Leave as None on private servers to show the logo uploaded '
+        'under Configuration files instead',
+        'server_tag_choice',
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'LAST_TOS_UPDATE': (
@@ -768,6 +794,13 @@ CONSTANCE_ADDITIONAL_FIELDS = {
             ),
         },
     ],
+    'server_tag_choice': [
+        'django.forms.fields.ChoiceField',
+        {
+            'choices': [('', 'None')] + AUTH_SERVER_TAG_CHOICES,
+            'required': False,
+        },
+    ],
     'disabled': [
         'django.forms.fields.CharField',
         {'disabled': True, 'required': False},
@@ -778,104 +811,118 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
 }
 
-CONSTANCE_CONFIG_FIELDSETS = {
-    'General Options': (
-        'REGISTRATION_OPEN',
-        'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
-        'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
-        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
-        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
-        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
-        'SHOW_KOBOTOOLBOX_LOGO',
-        'TERMS_OF_SERVICE_URL',
-        'LAST_TOS_UPDATE',
-        'PRIVACY_POLICY_URL',
-        'SOURCE_CODE_URL',
-        'SUPPORT_EMAIL',
-        'SUPPORT_URL',
-        'ACADEMY_URL',
-        'COMMUNITY_URL',
-        'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
-        'EXPORT_RETENTION',
-        'EXPOSE_GIT_REV',
-        'FRONTEND_MIN_RETRY_TIME',
-        'FRONTEND_MAX_RETRY_TIME',
-        'USE_TEAM_LABEL',
-        'ORGANIZATION_INVITE_EXPIRY',
-        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
-        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
-        'MASS_EMAIL_TEST_EMAILS',
-        'USAGE_LIMIT_ENFORCEMENT',
-        'USER_REPORTS_PAGE_SIZE_LIMIT',
-    ),
-    'Rest Services': (
-        'ALLOW_UNSECURED_HOOK_ENDPOINTS',
-        'HOOK_MAX_RETRIES',
-    ),
-    'Natural language processing': (
-        'ASR_MT_INVITEE_USERNAMES',
-        'ASR_MT_GOOGLE_PROJECT_ID',
-        'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_REGION',
-        'ASR_LANGUAGE_CODE_OVERRIDES',
-        'ASR_MT_GOOGLE_CREDENTIALS',
-        'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
-        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
-    ),
-    'Security': (
-        'SSRF_ALLOWED_IP_ADDRESS',
-        'SSRF_DENIED_IP_ADDRESS',
-        'MFA_ISSUER_NAME',
-        'MFA_ENABLED',
-        'MFA_LOCALIZED_HELP_TEXT',
-        'SUPERUSER_AUTH_ENFORCEMENT',
-        'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
-    ),
-    'Metadata options': (
-        'USER_METADATA_FIELDS',
-        'PROJECT_METADATA_FIELDS',
-        'SECTOR_CHOICES',
-        'OPERATIONAL_PURPOSE_CHOICES',
-    ),
-    'Password Validation': (
-        'ENABLE_PASSWORD_ENTROPY_METER',
-        'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
-        'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
-        'ENABLE_COMMON_PASSWORD_VALIDATION',
-        'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
-        'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
-        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
-        'MINIMUM_PASSWORD_LENGTH',
-        'PASSWORD_USER_ATTRIBUTES',
-        'PASSWORD_CUSTOM_CHARACTER_RULES',
-        'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
-        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
-    ),
-    'Transfer project ownership': (
-        'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
-        'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
-        'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
-        'PROJECT_OWNERSHIP_INVITE_EXPIRY',
-        'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
-        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
-    ),
-    'Trash bin': (
-        'ACCOUNT_TRASH_RETENTION',
-        'ATTACHMENT_TRASH_RETENTION',
-        'PROJECT_TRASH_RETENTION',
-        'OVER_LIMIT_ATTACHMENT_RETENTION',
-        'AUTO_DELETE_ATTACHMENTS',
-        'ALLOW_SELF_ACCOUNT_DELETION',
-    ),
-    'Regular maintenance settings': (
-        'ASSET_SNAPSHOT_DAYS_RETENTION',
-        'IMPORT_TASK_DAYS_RETENTION',
-        'SUBMISSION_HISTORY_RETENTION',
-    ),
-}
+CONSTANCE_CONFIG_FIELDSETS = OrderedDict(
+    {
+        'Registration': (
+            'REGISTRATION_OPEN',
+            'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
+            'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+            'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+            'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+            'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+            'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
+        ),
+        'Security': (
+            'SSRF_ALLOWED_IP_ADDRESS',
+            'SSRF_DENIED_IP_ADDRESS',
+            'MFA_ISSUER_NAME',
+            'MFA_ENABLED',
+            'MFA_LOCALIZED_HELP_TEXT',
+            'SUPERUSER_AUTH_ENFORCEMENT',
+        ),
+        'Password Validation': (
+            'ENABLE_PASSWORD_ENTROPY_METER',
+            'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
+            'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
+            'ENABLE_COMMON_PASSWORD_VALIDATION',
+            'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
+            'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+            'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
+            'MINIMUM_PASSWORD_LENGTH',
+            'PASSWORD_USER_ATTRIBUTES',
+            'PASSWORD_CUSTOM_CHARACTER_RULES',
+            'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+            'CUSTOM_PASSWORD_GUIDANCE_TEXT',
+        ),
+        'Transfer project ownership': (
+            'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
+            'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
+            'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
+            'PROJECT_OWNERSHIP_INVITE_EXPIRY',
+            'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
+            'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
+        ),
+        'Natural language processing': (
+            'ASR_MT_INVITEE_USERNAMES',
+            'ASR_MT_GOOGLE_PROJECT_ID',
+            'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
+            'ASR_MT_GOOGLE_REGION',
+            'ASR_LANGUAGE_CODE_OVERRIDES',
+            'ASR_MT_GOOGLE_CREDENTIALS',
+            'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+            'AUTOMATIC_QA_REQUESTS_PER_SECOND',
+        ),
+        'Mass emails': (
+            'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+            'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
+            'MASS_EMAIL_TEST_EMAILS',
+        ),
+        'Metadata options': (
+            'USER_METADATA_FIELDS',
+            'PROJECT_METADATA_FIELDS',
+            'SECTOR_CHOICES',
+            'OPERATIONAL_PURPOSE_CHOICES',
+        ),
+        'Usage limits': (
+            'USAGE_LIMIT_ENFORCEMENT',
+            'OVER_LIMIT_ATTACHMENT_RETENTION',
+            'AUTO_DELETE_ATTACHMENTS',
+        ),
+        'Trash bin': (
+            'ACCOUNT_TRASH_RETENTION',
+            'ATTACHMENT_TRASH_RETENTION',
+            'PROJECT_TRASH_RETENTION',
+            'ALLOW_SELF_ACCOUNT_DELETION',
+        ),
+        'Regular maintenance settings': (
+            'ASSET_SNAPSHOT_DAYS_RETENTION',
+            'IMPORT_TASK_DAYS_RETENTION',
+            'SUBMISSION_HISTORY_RETENTION',
+            'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+            'EXPORT_RETENTION',
+        ),
+        'Rest Services': (
+            'ALLOW_UNSECURED_HOOK_ENDPOINTS',
+            'HOOK_MAX_RETRIES',
+        ),
+        'Organizations': (
+            'USE_TEAM_LABEL',
+            'ORGANIZATION_INVITE_EXPIRY',
+        ),
+        'Legal and support links': (
+            'SHOW_KOBOTOOLBOX_LOGO',
+            'AUTH_SERVER_TAG',
+            'TERMS_OF_SERVICE_URL',
+            'LAST_TOS_UPDATE',
+            'PRIVACY_POLICY_URL',
+            'SOURCE_CODE_URL',
+            'SUPPORT_EMAIL',
+            'SUPPORT_URL',
+            'ACADEMY_URL',
+            'COMMUNITY_URL',
+        ),
+        'General Options': (
+            'EXPOSE_GIT_REV',
+            'FRONTEND_MIN_RETRY_TIME',
+            'FRONTEND_MAX_RETRY_TIME',
+            'USER_REPORTS_PAGE_SIZE_LIMIT',
+            'ENKETO_USE_INTERNAL_OPENROSA_URL',
+        ),
+    }
+)
 
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -995,6 +1042,16 @@ DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
 # Maximum page size for API responses. Currently applies to submission lists only,
 # but will likely be extended to all endpoints in the future
 MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
+# Capped API list counts (`LimitedCountPagination` and the MongoDB submission
+# list count): stop counting rows past this limit and report 'many' instead.
+# The high default keeps the feature inert until it is deliberately lowered
+# (DEV-2781).
+API_LIMITED_COUNT_MAX = env.int('API_LIMITED_COUNT_MAX', 100_000_000)
+# Timeout applied to the capped count query alone (env var in seconds, stored
+# in milliseconds): the Postgres statement_timeout, or the MongoDB maxTimeMS
+# for submission counts. On expiry the count is reported as 'unknown'. 0
+# disables it, leaving only the connection-wide timeouts (DEV-1705).
+API_LIMITED_COUNT_TIMEOUT = env.int('API_LIMITED_COUNT_TIMEOUT', 0) * 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1015,7 +1072,6 @@ MARKDOWNX_UPLOAD_URLS_PATH = reverse_lazy('markdownx-uploader-image-upload')
 MARKDOWNX_UPLOAD_CONTENT_TYPES = [
     'image/jpeg',
     'image/png',
-    'image/svg+xml',
     'image/gif',
     'image/webp',
 ]
@@ -1066,7 +1122,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.LimitedCountPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1128,6 +1184,7 @@ SPECTACULAR_SETTINGS = {
         'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
+        'AuthServerTagEnum': 'kpi.constants.AUTH_SERVER_TAG_CHOICES',
         'AuthThemeEnum': 'kpi.constants.AUTH_THEME_CHOICES',
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
         'InviteeRoleEnum': 'kpi.schema_extensions.v2.members.schema.ROLE_CHOICES_PAYLOAD_ENUM',  # noqa
@@ -1172,7 +1229,7 @@ SPECTACULAR_SETTINGS = {
             'name': 'Manage projects and library content',
             'description': (
                 'Create, organize, and manage projects, assets '
-                '(projects/library content), and tags',
+                '(projects/library content), and tags'
             ),
         },
         {
@@ -1262,7 +1319,7 @@ OPENROSA_REST_FRAMEWORK = {
         # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
         'rest_framework.renderers.JSONRenderer',
         'rest_framework_jsonp.renderers.JSONPRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
+        'kobo.apps.openrosa.libs.renderers.renderers.OpenRosaBasicHTMLRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
         'rest_framework_csv.renderers.CSVRenderer',
     ],
@@ -1393,6 +1450,27 @@ BULK_ACTION_STUCK_THRESHOLD = env.int(
     BULK_ACTION_STATUS_POLL_INTERVAL * 10,
 )
 
+# The shortest quiet run that counts as a pause worth cutting at. Gaps shorter
+# than this are the spaces between words, where a cut would split a sentence.
+# Think of it as asking: "Is this silence long enough to count as a pause?"
+TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
+    'TRANSCRIPTION_SILENCE_MIN_DURATION',
+    0.5,
+)
+
+# Loudness thresholds, in dBFS, tried in order until every cut has a pause to
+# land in. Recording levels differ enormously between files, so no single
+# threshold finds the pauses in all of them
+TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
+
+# Longest a single silence detection pass may run. It streams the whole
+# recording out of storage, so allow for a slow download, but never let a web
+# request hang on it for ever
+TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
+    'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
+    300,
+)
+
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
@@ -1431,9 +1509,7 @@ ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
 ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
-ENKETO_FLUSH_CACHE_ENDPOINT = 'api/v2/survey/cache'
-# How long to wait before flushing an individual preview from Enketo's cache
-ENKETO_FLUSH_CACHED_PREVIEW_DELAY = 1800  # seconds
+ENKETO_TIMEOUT = 5  # seconds
 
 # Content Security Policy (CSP)
 # CSP should "just work" by allowing any possible configuration
@@ -1712,18 +1788,23 @@ CELERY_BEAT_SCHEDULE = {
         'task': (
             'kobo.apps.openrosa.apps.logger.tasks.fix_stale_submissions_suspended_flag'
         ),
-        'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
+        'schedule': crontab(minute='*/15'),
         'description': (
-            'Unlock accounts left suspended by a storage recount or a trash bin'
-            ' deletion which died'
+            'Unlock accounts left suspended by a process which died before'
+            ' releasing them'
         ),
-        'options': {'queue': 'kpi_long_running_tasks_queue'},
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
-    'sync-storage-counters': {
-        'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
-        'schedule': crontab(minute=30, hour=0, day_of_week=0),
+    'recount-drifted-storage-counters': {
+        'task': (
+            'kobo.apps.openrosa.apps.logger.tasks.recount_drifted_storage_counters'
+        ),
+        # A run lasts about as long as the soft time limit, and a single one
+        # runs at a time: a short interval starts the next one soon after
+        'schedule': crontab(minute='*/15'),
         'description': (
-            'Synchronize out of sync attachment storage bytes of profile and projects'
+            'Recount the storage counters of projects which may have drifted, in'
+            ' turns, until every one of them was checked, then start over'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
@@ -1760,9 +1841,12 @@ if STRIPE_ENABLED:
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
+    # Small and frequent runs: each one queues at most
+    # `AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN` users, and each user gets at most
+    # `AUTO_DELETE_ATTACHMENTS_MAX_PER_USER` attachments trashed per run
     CELERY_BEAT_SCHEDULE['attachment-cleanup-for-users-exceeding-limits'] = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     }
 
@@ -1840,6 +1924,9 @@ CELERY_BEAT_RELOAD_INTERVAL = env.int('CELERY_BEAT_RELOAD_INTERVAL', 15)  # 15 s
 ACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.AccountAdapter'
 ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+# Adds our extra fields to every signup form, including the headless API's;
+# must point to a module that does not import `allauth.account.forms`
+ACCOUNT_SIGNUP_FORM_CLASS = 'kobo.apps.accounts.signup_fields.SignupExtraFieldsForm'
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
@@ -1853,14 +1940,43 @@ ACCOUNT_FORMS = {
 }
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
+# Accounts can share an email, so login stays username-only: allauth rejects
+# `email` in `ACCOUNT_LOGIN_METHODS` unless emails are unique
 ACCOUNT_UNIQUE_EMAIL = False
-ACCOUNT_RATE_LIMITS = False
+ACCOUNT_RATE_LIMITS = {
+    # Brute force. Per username ("key") and per IP. Also applies to wrong
+    # MFA codes, per user. 10 matches the "5-10 failures, 15-minute lockout"
+    # in the issue; 30 per IP tolerates a few people mistyping behind one
+    # address while capping a spray from one IP at 120 guesses an hour.
+    'login_failed': env.str('ALLAUTH_LOGIN_FAILED_RATE_LIMIT', '30/15m/ip,10/15m/key'),
+    # All login POSTs per IP, successful or not. Set loosely so a
+    # training room behind one address is not blocked. '' turns it off.
+    'login': env.str('ALLAUTH_LOGIN_RATE_LIMIT', '40/m/ip'),
+    # Account creation spam. Default.
+    'signup': env.str('ALLAUTH_SIGNUP_RATE_LIMIT', '20/m/ip'),
+    # Reset emails per IP, and per address so one inbox cannot be flooded.
+    # Defaults.
+    'reset_password': env.str('ALLAUTH_RESET_PASSWORD_RATE_LIMIT', '20/m/ip,5/m/key'),
+    'reset_password_from_key': env.str(
+        'ALLAUTH_RESET_PASSWORD_FROM_KEY_RATE_LIMIT', '20/m/ip'
+    ),
+    # Per logged-in user, so shared IPs are unaffected. Defaults.
+    'reauthenticate': env.str('ALLAUTH_REAUTHENTICATE_RATE_LIMIT', '10/m/user'),
+    'change_password': env.str('ALLAUTH_CHANGE_PASSWORD_RATE_LIMIT', '5/m/user'),
+    'manage_email': env.str('ALLAUTH_MANAGE_EMAIL_RATE_LIMIT', '10/m/user'),
+    # Off: /api/v2/email-confirmations/ already has its own per-address
+    # throttle (EMAIL_CONFIRMATION_REQUESTS_PER_HOUR).
+    'confirm_email': '',
+}
 ACCOUNT_SESSION_REMEMBER = True
 # How long a re-authentication remains valid before a sensitive action (e.g.
 # changing the email address) demands it again
 ACCOUNT_REAUTHENTICATION_TIMEOUT = env.int(
     'ACCOUNT_REAUTHENTICATION_TIMEOUT', 300  # 5 minutes
 )
+# Use X-Forwarded-For as the primary source of truth for client IPs
+ALLAUTH_TRUSTED_PROXY_COUNT = 1
+
 SOCIALACCOUNT_ADAPTER = 'kobo.apps.accounts.adapter.SocialAccountAdapter'
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False
@@ -1886,6 +2002,8 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX = ''
 # Enable serving django-allauth Headless OpenAPI specs (we ingest these into
 # DRF-Spectacular)
 HEADLESS_SERVE_SPECIFICATION = True
+# Adds `has_validated_password` to the user payload on the session endpoint
+HEADLESS_ADAPTER = 'kobo.apps.accounts.adapter.HeadlessAdapter'
 
 
 EMAIL_BACKEND = os.environ.get(
@@ -2117,22 +2235,7 @@ if start_port := env.int('METRICS_START_PORT', None):
     )
 
 
-""" Try to identify the running codebase for informational purposes """
-# Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
-GIT_REV = {}
-for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
-):
-    try:
-        GIT_REV[git_rev_key] = subprocess.check_output(
-            git_command, stderr=subprocess.STDOUT).strip()
-    except (OSError, subprocess.CalledProcessError) as e:
-        GIT_REV[git_rev_key] = False
-if GIT_REV['branch'] == 'HEAD':
-    GIT_REV['branch'] = False
+GIT_REV = get_git_rev(BASE_DIR)
 
 
 """
@@ -2247,6 +2350,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 # The maximum size (in bytes) that an upload will be before it gets streamed
 # to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
+# Maximum allowed size (in bytes) of the `choices` sheet in an XLSForm
+MAX_CHOICES_SIZE_BYTES = env.int('MAX_CHOICES_SIZE_BYTES', 2 * 1024 * 1024)
 
 # OpenRosa setting in bytes
 OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
@@ -2454,6 +2560,20 @@ MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
 MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
 
+# Number of attachments `auto_delete_excess_attachments` moves to trash per user
+# and per run. A user still over their limit gets the next ones on a later run
+AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
+    'AUTO_DELETE_ATTACHMENTS_MAX_PER_USER', 100
+)
+# Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
+# Users take turns, the next run continues with the following ones.
+# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
+# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
+# on every schedule reload, so raising this grows Beat's work too.
+AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
+    'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
+)
+
 # Number of times a trash bin task that failed on a transient (infrastructure)
 # error is automatically restarted before it requires manual intervention
 TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
@@ -2461,8 +2581,6 @@ TRASH_BIN_MAX_AUTO_RESTARTS = env.int('TRASH_BIN_MAX_AUTO_RESTARTS', 10)
 # How long a trash bin object stays locked while it is being deleted. Must be
 # greater than or equal to the Celery hard time limit of the task
 TRASH_BIN_DELETION_LOCK_TTL = CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
-# Serializes the bookkeeping of `suspend_submissions()`, a few Redis round-trips
-SUBMISSIONS_SUSPENSION_LOCK_TTL = 10  # seconds
 
 # Number of transfer log records rendered inline on a transfer admin page
 PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
@@ -2473,6 +2591,9 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+# Same, for the XPaths of a single form version. A version never changes, so
+# its entry can live much longer than the one that merges all versions
+ATTACHMENT_XPATHS_VERSION_CACHE_TTL = 30 * 86400
 
 # Cache time-to-live (in seconds) for the survey question types and default
 # language used by NLP actions
@@ -2494,6 +2615,9 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
     'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
+AUTOQA_GEMMA_MODEL_AIP_ARN = env.str(
+    'AUTOQA_GEMMA_MODEL_AIP_ARN', default='google.gemma-3-27b-it'
+)
 
 # 24 months x 31 days/month = 744 default
 PROJECT_HISTORY_LOG_LIFESPAN = env.int('PROJECT_HISTORY_LOG_LIFESPAN', 744)
@@ -2504,3 +2628,13 @@ ACCESS_LOG_LIFESPAN = env.int('ACCESS_LOG_LIFESPAN', 744)
 LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS = env.int(
     'LAST_PROJECT_ACTIVITY_THROTTLE_SECONDS', 3600  # seconds
 )
+
+# OpenAPI schema validation runs under the test settings only: the middleware
+# refuses to load anywhere else, whatever these say. See
+# kobo/apps/openapi_validator/README.md
+OPENAPI_VALIDATION = False
+OPENAPI_SCHEMA_PATH = 'static/openapi/schema_v2.json'
+
+# Do not change these variables here. Override them in `testing.py`
+OPENAPI_VALIDATION_STRICT = False
+OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False

@@ -5,7 +5,8 @@ import RESTServicesList from './RESTServicesList'
 
 interface RESTServicesProps {
   asset: AssetResponse
-  hookUid: string
+  /** Absent when we are looking at the list of all the services */
+  hookUid?: string
 }
 
 /**
@@ -17,9 +18,9 @@ interface RESTServicesProps {
 export default function RESTServices({ asset, hookUid }: RESTServicesProps) {
   const docTitle = asset.name || t('Untitled')
   return (
-    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+    <DocumentTitle title={`${docTitle} | ${t('Settings')} | ${t('REST Services')} | KoboToolbox`}>
       <div className='rest-services form-view form-view--rest-services'>
-        {hookUid && <RESTServiceLogs assetUid={asset.uid} hookUid={hookUid} />}
+        {hookUid && <RESTServiceLogs asset={asset} hookUid={hookUid} />}
         {!hookUid && <RESTServicesList assetUid={asset.uid} />}
       </div>
     </DocumentTitle>

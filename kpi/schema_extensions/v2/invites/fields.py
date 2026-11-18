@@ -4,10 +4,6 @@ from kobo.apps.organizations.models import OrganizationInviteStatusChoices
 from ..members.schema import ROLE_CHOICES_PAYLOAD_ENUM
 
 
-class InviteesRoleEnumField(serializers.CharField):
-    pass
-
-
 class InviteesField(serializers.ListField):
     pass
 

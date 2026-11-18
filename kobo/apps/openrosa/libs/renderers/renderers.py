@@ -1,17 +1,28 @@
 # coding: utf-8
 import io
 
+from django.conf import settings
+from django.urls import reverse
 from django.utils.encoding import smart_str
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework.negotiation import DefaultContentNegotiation
 from rest_framework.renderers import (
     BaseRenderer,
-    StaticHTMLRenderer,
     TemplateHTMLRenderer,
 )
 from rest_framework_xml.renderers import XMLRenderer
 
-from kpi.renderers import MediaFileRenderer
+from kpi.renderers import BasicHTMLRenderer, MediaFileRenderer
+
+
+class OpenRosaBasicHTMLRenderer(BasicHTMLRenderer):
+    """
+    Point to the OpenRosa API documentation, which is always served on the
+    KPI domain.
+    """
+
+    def get_docs_url(self) -> str:
+        return settings.KOBOFORM_URL + reverse('swagger-ui-openrosa')
 
 
 class XLSRenderer(BaseRenderer):
@@ -135,26 +146,3 @@ class TemplateXMLRenderer(TemplateHTMLRenderer):
 
         return super().render(
             data, accepted_media_type, renderer_context)
-
-
-class StaticXMLRenderer(StaticHTMLRenderer):
-    format = 'xml'
-    media_type = 'text/xml'
-
-
-class InstanceContentNegotiation(DefaultContentNegotiation):
-
-    def filter_renderers(self, renderers, format):
-        """
-        Removes `rest_framework_xml.renderers.XMLRenderer` from the renderers list to
-        prioritize `RawXMLRenderer`.
-        Useful to display xml of Instance without any parsing.
-
-        :param renderers: list
-        :param format: str
-        :return: list
-        """
-        renderers = [renderer for renderer in renderers
-                     if renderer.format == format and
-                     isinstance(renderer, XMLRenderer) is False]
-        return renderers

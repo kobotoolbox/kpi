@@ -1,16 +1,20 @@
-import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
-import { useState } from 'react'
-import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { useAssetsAttachmentsDestroy } from '#/api/react-query/survey-data'
-import ActionIcon from '#/components/common/ActionIcon'
-import Button from '#/components/common/ButtonNew'
+import Menu from '#/components/common/Menu'
+import MenuItemProcessing from '#/components/common/MenuItemProcessing'
+import MoreActionsMenu from '#/components/common/MoreActionsMenu'
 import Icon from '#/components/common/icon'
-import { userHasPermForSubmission } from '#/components/permissions/utils'
+import {
+  getRepeatGroupProcessingUnavailableMessage,
+  isInRepeatGroup,
+} from '#/components/processing/common/questionType'
+import { isNlpSupported } from '#/components/processing/common/utils'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
+import { getSubmissionRootUuid } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
+import AttachmentDeleteModal from './AttachmentDeleteModal'
+import { useAttachmentActions } from './useAttachmentActions'
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
@@ -22,6 +26,14 @@ interface AttachmentActionsDropdownProps {
    * possibly in other places in UI.
    */
   onDeleted?: () => void
+  /**
+   * Also offer an entry (e.g. "Translate & analyze") that opens Processing for this
+   * response's question, when NLP processing supports its type.
+   * Off by default.
+   */
+  showProcessingAction?: boolean
+  /** Leaves out the "Delete" entry. Off by default. */
+  hideDeleteAction?: boolean
 }
 
 /**
@@ -29,114 +41,65 @@ interface AttachmentActionsDropdownProps {
  * provided attachment. Delete option would display a safety check modal.
  */
 export default function AttachmentActionsDropdown(props: AttachmentActionsDropdownProps) {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
-  const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
-  const removeAttachmentMutation = useAssetsAttachmentsDestroy()
-
-  const attachment = (props.submission._attachments as any as _DataResponseAttachmentsItem[]).find(
-    (item) => item.uid === props.attachmentUid,
+  const { attachment, questionXpath, questionType, userCanChangeSubmission, ...deleteModal } = useAttachmentActions(
+    props.asset,
+    props.submission,
+    props.attachmentUid,
   )
-  if (!attachment) {
-    return null
-  }
+  const isNlpImageActionsEnabled = useFeatureFlag(FeatureFlag.nlpImageActionsEnabled)
 
   // Safety check, ideally parent component should not render this component if attachment is deleted.
-  if (attachment.is_deleted) {
+  if (!attachment || !questionXpath) {
     return null
   }
 
-  const handleConfirmDelete = async () => {
-    setIsDeletePending(true)
-
-    try {
-      await removeAttachmentMutation.mutateAsync({ uidAsset: props.asset.uid, id: attachment.uid as any }) // TODO: number or string?
-      setIsDeleteModalOpen(false)
-      notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
-      props.onDeleted?.()
-    } finally {
-      setIsDeletePending(false)
-    }
-  }
-
-  // We find the question that the attachment belongs to, to determine the text to display in the modal.
-  const questionType = props.asset.content?.survey?.find((row) => row.$xpath === attachment.question_xpath)?.type
-  let attachmentTypeName = t('attachment')
-  if (questionType === QuestionTypeName.audio) {
-    attachmentTypeName = t('audio recording')
-  } else if (questionType === QuestionTypeName.video) {
-    attachmentTypeName = t('video recording')
-  } else if (questionType === QuestionTypeName.image) {
-    attachmentTypeName = t('image')
-  } else if (questionType === QuestionTypeName['background-audio']) {
-    attachmentTypeName = t('background audio recording')
-  }
-
-  const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submission)
+  // TODO: drop the image check along with `FeatureFlag.nlpImageActionsEnabled` once NLP for images is complete.
+  const isProcessingActionShown =
+    props.showProcessingAction &&
+    isNlpSupported(questionType) &&
+    (questionType !== QuestionTypeName.image || isNlpImageActionsEnabled)
 
   return (
     <span className={styles.attachmentActionsDropdown}>
       {/* We don't use portal here, as opening this inside SubmissionModal causes the menu to open in weird place */}
-      <Menu withinPortal={false} closeOnClickOutside closeOnItemClick position='bottom-end'>
-        <Menu.Target>
-          <span style={{ position: 'relative' }}>
-            <ActionIcon size='md' variant='transparent' iconName='more' />
-          </span>
-        </Menu.Target>
-
-        <Menu.Dropdown>
-          <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
-            {t('Download')}
-          </Menu.Item>
-          {userCanChangeSubmission && (
-            <>
-              <Menu.Divider />
-              <Menu.Item
-                variant='danger'
-                onClick={() => setIsDeleteModalOpen(true)}
-                leftSection={<Icon name='trash' />}
-              >
-                {t('Delete')}
-              </Menu.Item>
-            </>
-          )}
-        </Menu.Dropdown>
-      </Menu>
-
-      <Modal
-        opened={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false)
-        }}
-        title={t('Delete ##attachment_type##').replace('##attachment_type##', attachmentTypeName)}
-      >
-        {/* We don't want "x" button to get focus (see https://mantine.dev/core/modal/#initial-focus) */}
-        <FocusTrap.InitialFocus />
-
-        <Stack>
-          <p>
-            {t('Are you sure you want to delete this ##attachment_type##?').replace(
-              '##attachment_type##',
-              attachmentTypeName,
-            )}
-          </p>
-
-          <Group justify='flex-end'>
-            <Button variant='light' size='lg' onClick={() => setIsDeleteModalOpen(false)} disabled={isDeletePending}>
-              {t('Cancel')}
-            </Button>
-
-            <Button
-              variant='danger'
-              size='lg'
-              onClick={handleConfirmDelete}
-              loading={isDeletePending}
-              disabled={!userCanChangeSubmission}
-            >
+      <MoreActionsMenu>
+        {isProcessingActionShown && (
+          <>
+            <MenuItemProcessing
+              assetUid={props.asset.uid}
+              xpath={questionXpath}
+              submissionEditId={getSubmissionRootUuid(props.submission)}
+              questionType={questionType}
+              disabledReason={
+                isInRepeatGroup(props.asset, attachment.question_xpath, props.submission)
+                  ? getRepeatGroupProcessingUnavailableMessage()
+                  : undefined
+              }
+            />
+            <Menu.Divider />
+          </>
+        )}
+        <Menu.Item component='a' href={attachment!.download_url} leftSection={<Icon name='download' />}>
+          {t('Download')}
+        </Menu.Item>
+        {userCanChangeSubmission && !props.hideDeleteAction && (
+          <>
+            <Menu.Divider />
+            <Menu.Item variant='danger' onClick={deleteModal.openDeleteModal} leftSection={<Icon name='trash' />}>
               {t('Delete')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+            </Menu.Item>
+          </>
+        )}
+      </MoreActionsMenu>
+
+      <AttachmentDeleteModal
+        assetUid={props.asset.uid}
+        attachment={attachment}
+        questionType={questionType}
+        opened={deleteModal.isDeleteModalOpen}
+        onClose={deleteModal.closeDeleteModal}
+        onDeleted={props.onDeleted}
+      />
     </span>
   )
 }

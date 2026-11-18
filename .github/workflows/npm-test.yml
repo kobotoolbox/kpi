@@ -1,6 +1,10 @@
 name: npm-test
 
 on: workflow_call
+
+permissions:
+  contents: read
+
 jobs:
   read-playwright-version:
     name: 'Read Playwright Version'
@@ -79,6 +83,32 @@ jobs:
       # must not end up sharing a chunk with it
       - name: Check error pages bundle stays self-contained
         run: npm run lint:error-bundle
+
+      # main's sizes at the PR's base commit, so the check below can show what changed. Only that exact commit:
+      # PRs into other branches, or whose base main's CI hasn't saved yet, go without rather than getting a
+      # comparison against the wrong code.
+      - name: Restore main's bundle sizes
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        uses: actions/cache/restore@v6
+        with:
+          path: bundle-sizes-base.json
+          key: bundle-sizes-${{ github.event.pull_request.base.sha }}
+
+      # Catches bundle bloat and dev-only code in the build
+      - name: Check bundle size
+        run: npm run lint:bundle-size
+        env:
+          BUNDLE_SIZE_BASE: bundle-sizes-base.json
+
+      - name: Keep main's bundle sizes for PRs to compare against
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: cp webpack-bundle-sizes.json bundle-sizes-base.json
+      - name: Save main's bundle sizes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v6
+        with:
+          path: bundle-sizes-base.json
+          key: bundle-sizes-${{ github.sha }}
 
       # Check for ESLint messages (errors only)
       - name: Check ESLint, errors only

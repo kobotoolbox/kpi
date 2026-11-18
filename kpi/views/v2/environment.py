@@ -1,6 +1,4 @@
 import constance
-from allauth.account import app_settings as allauth_account_settings
-from allauth.socialaccount.models import SocialApp
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import MultipleObjectsReturned
@@ -14,6 +12,7 @@ from rest_framework.views import APIView
 from hub.models.configuration_file import ConfigurationFile, ConfigurationFileSlug
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
+from kobo.apps.accounts.utils import get_public_social_apps
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
 from kpi.constants import AUTH_THEME_CUSTOM, AUTH_THEME_DEFAULT
@@ -175,9 +174,11 @@ class EnvironmentView(APIView):
     def process_other_configs(request):
         data = {}
         social_apps = (
-            SocialApp.objects.select_related('custom_data')
+            # oldest first: the frontend shows buttons for the first
+            # `MAX_DISPLAYED_SSO_PROVIDERS` only, in this order
+            get_public_social_apps()
+            .select_related('custom_data')
             .prefetch_related('custom_data__domains')
-            .filter(Q(custom_data__is_public=True) | Q(custom_data__isnull=True))
             # managed iff there exists a related SocialAppCustomData object with
             # managed=True
             .annotate(
@@ -269,19 +270,13 @@ class EnvironmentView(APIView):
                 ),
                 'background_image_url': background_image_url,
                 'show_kobotoolbox_logo': constance.config.SHOW_KOBOTOOLBOX_LOGO,
+                'server_tag': constance.config.AUTH_SERVER_TAG or None,
                 'logo_url': configuration_files.get(ConfigurationFileSlug.LOGO),
                 'supporting_image_url': configuration_files.get(
                     ConfigurationFileSlug.LOGIN_SUPPORTING_IMAGE
                 ),
                 'supporting_text': (
                     markdownify(supporting_text) if supporting_text else ''
-                ),
-                # Reported, not configured: follows allauth's accepted
-                # login methods, so the form never offers a credential the
-                # server would reject
-                'allow_login_with_username': (
-                    allauth_account_settings.LoginMethod.USERNAME
-                    in allauth_account_settings.LOGIN_METHODS
                 ),
             }
         }
@@ -302,4 +297,7 @@ class EnvironmentView(APIView):
         return (line.strip('\r') for line in value.split('\n'))
 
     def static_configs(self, request):
-        return {'open_rosa_server': settings.KOBOCAT_URL}
+        return {
+            'open_rosa_server': settings.KOBOCAT_URL,
+            'limited_count_max_rows': settings.API_LIMITED_COUNT_MAX,
+        }

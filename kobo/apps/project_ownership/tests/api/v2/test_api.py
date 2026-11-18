@@ -1,5 +1,6 @@
 # flake8: noqa: E501
 import uuid
+from collections import ChainMap
 from unittest.mock import MagicMock, patch
 
 from constance.test import override_config
@@ -10,7 +11,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
-from kobo.apps.openrosa.libs.utils.image_tools import image_url
+from kobo.apps.openrosa.libs.tests.utils import image_url
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_ownership.models.choices import (
     TransferStatusErrorLevelChoices,
@@ -395,7 +396,10 @@ class ProjectOwnershipTransferDataAPITestCase(BaseAssetTestCase):
         MagicMock()
     )
     @override_settings(
-        CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}}
+        CACHES=ChainMap(
+            {'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}},
+            settings.CACHES,
+        )
     )
     @override_config(PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES=True)
     def test_account_usage_transferred_to_new_user(self):

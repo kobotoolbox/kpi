@@ -8,7 +8,7 @@ import {
 } from '#/api/react-query/survey-data'
 import { BULK_ACTIONS_MAX_POLL_INTERVAL, BULK_ACTIONS_MIN_POLL_INTERVAL } from '#/constants'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { getEstimatedTranscriptionDurationSeconds } from '#/utils'
 
 interface UseDataTableBulkActionsResult {
@@ -82,16 +82,14 @@ export function getBulkActionsPollingIntervalMs(activeBulkActions: BulkActionRes
  */
 export function useDataTableBulkActions(assetUid: string): UseDataTableBulkActionsResult {
   const isBulkProcessingEnabled = envStore.data.asr_mt_features_enabled
-  const session = useSession()
+  const profile = useProfile()
   // While session is loading we avoid making user-specific decisions.
-  const currentUsername = session.isPending ? undefined : session.currentLoggedAccount?.username
-  const effectiveAssetUid = isBulkProcessingEnabled ? assetUid : ''
-
-  // Empty uid disables the query in Orval/react-query options.
-  const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(effectiveAssetUid, undefined, {
+  const currentUsername = profile.isPending ? undefined : profile.currentLoggedAccount?.username
+  const bulkActionsListQuery = useAssetsAdvancedFeaturesBulkActionsList(assetUid, undefined, {
     query: {
       // The generated query options in this codebase require explicit queryKey.
-      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(effectiveAssetUid, undefined),
+      queryKey: getAssetsAdvancedFeaturesBulkActionsListQueryKey(assetUid, undefined),
+      enabled: isBulkProcessingEnabled && !!assetUid,
       refetchInterval: (query) => {
         if (!isBulkProcessingEnabled) {
           return false

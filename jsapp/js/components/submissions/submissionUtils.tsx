@@ -1,17 +1,25 @@
-import clonedeep from 'lodash.clonedeep'
-import get from 'lodash.get'
+import { cloneDeep, get } from 'lodash-es'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
+import {
+  type SurveyFlatPaths,
+  findRowByXpath,
+  getRowName,
+  getSurveyFlatPaths,
+  getTranslatedRowLabel,
+  isRowSpecialLabelHolder,
+} from '#/assetUtils'
 import {
   type SubmissionAnalysisResponse,
   isDisplayableSupplementalField,
 } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
+import { EXCLUDED_COLUMNS, LAST_COLUMNS_ORDER } from '#/components/submissions/tableConstants'
 import { getBackgroundAudioQuestionName, getColumnLabel } from '#/components/submissions/tableUtils'
 import {
   CHOICE_LISTS,
   GROUP_TYPES_BEGIN,
   MATRIX_PAIR_PROPS,
+  META_QUESTION_TYPES,
   QUESTION_TYPES,
   RANK_LEVEL_TYPE,
   SCORE_ROW_TYPE,
@@ -21,6 +29,7 @@ import {
 import type { AnyRowTypeName, QuestionTypeName } from '#/constants'
 import type {
   AnalysisFormJsonField,
+  AssetContent,
   AssetResponse,
   SubmissionAttachment,
   SubmissionResponse,
@@ -29,9 +38,9 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '#/dataInterface'
-import { recordEntries, recordKeys } from '#/utils'
+import { recordEntries, recordKeys, recordValues } from '#/utils'
 import { getRepeatGroupAnswers } from './repeatGroupUtils'
-import { getMediaAttachment } from './submissionMediaUtils'
+import { findAttachmentByQuestionXpath, getMediaAttachment, inferAttachmentQuestionType } from './submissionMediaUtils'
 export {
   getRepeatGroupAnswerTree,
   getRepeatGroupAnswers,
@@ -126,7 +135,7 @@ export class DisplayResponse {
     this.label = label
     this.name = name
     this.xpath = xpath
-    if (data) {
+    if (isAnswered(data)) {
       this.data = data
     }
     if (listName) {
@@ -158,6 +167,40 @@ function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
     sortedBySource[field.source].push(expandedPath)
   })
   return sortedBySource
+}
+
+function addSupplementalDetailRows(
+  asset: AssetResponse,
+  submissionData: DataResponse | SubmissionResponse,
+  supplementalDetailKeys: { [key: string]: string[] },
+  sourceKey: string,
+  children: Array<DisplayResponse | DisplayGroup>,
+) {
+  supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
+    // Create a unique xpath for the analysis/verification question
+    const specificXpath = sdKey.replace('_supplementalDetails/', '')
+
+    children.push(
+      new DisplayResponse(
+        // type
+        // TODO: should we aim at this being analysis question type name?
+        null,
+        // label
+        getColumnLabel(asset, sdKey, false),
+        // name
+        sdKey,
+        // xpath
+        specificXpath,
+        // listName
+        undefined,
+        // data
+        getSupplementalDetailsContent(submissionData, sdKey),
+      ),
+    )
+
+    // Check for nested supplemental details (e.g. qualVerification for a qual question)
+    addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, specificXpath, children)
+  })
 }
 
 function addXpathNode(parentGroup: DisplayGroup, repeatIndex: number | null, currentRowData: any) {
@@ -197,6 +240,9 @@ export function getSubmissionDisplayData(
   const flatPaths = getSurveyFlatPaths(survey, true)
 
   const supplementalDetailKeys = sortAnalysisFormJsonKeys(asset.analysis_form_json?.additional_fields || [])
+
+  /** Keys whose answers got displayed, so `addUnaccountedAnswers` sees the rest. */
+  const displayedKeys = new Set<string>()
 
   /**
    * Recursively generates a nested architecture of survey with data.
@@ -241,7 +287,14 @@ export function getSubmissionDisplayData(
         continue
       }
 
-      let rowData = getRowData(rowName, survey, parentData as DataResponse | SubmissionResponse)
+      const scopedData = parentData as DataResponse | SubmissionResponse
+      // Note where this row's answer came from, so leftovers can be picked up later.
+      const rowDataKey = findSubmissionKeyForRow(rowName, survey, scopedData)
+      if (rowDataKey !== undefined) {
+        displayedKeys.add(rowDataKey)
+      }
+
+      let rowData = getRowData(rowName, survey, scopedData)
 
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
@@ -281,6 +334,7 @@ export function getSubmissionDisplayData(
                 matrixGroupObj,
                 getRowName(item),
                 parentData,
+                displayedKeys,
               )
             }
           })
@@ -342,44 +396,167 @@ export function getSubmissionDisplayData(
         const rowObj = new DisplayResponse(row.type, rowLabel, rowName, xpath.join('/'), rowListName, rowData)
         parentGroup.children.push(rowObj)
 
+        // This row's own path only; earlier versions of it get their own row from
+        // `addUnaccountedAnswers`.
         const rowxpath = flatPaths[rowName]
 
-        /**
-         * Recursively add qual related rows to output. Looks for the source key in the list of all possible keys.
-         */
-        const addSupplementalDetails = (sourceKey: string) => {
-          supplementalDetailKeys[sourceKey]?.forEach((sdKey: string) => {
-            // Create a unique xpath for the analysis/verification question
-            const specificXpath = sdKey.replace('_supplementalDetails/', '')
-
-            parentGroup.children.push(
-              new DisplayResponse(
-                // type
-                // TODO: should we aim at this being analysis question type name?
-                null,
-                // label
-                getColumnLabel(asset, sdKey, false),
-                // name
-                sdKey,
-                // xpath
-                specificXpath,
-                // listName
-                undefined,
-                // data
-                getSupplementalDetailsContent(submissionData, sdKey),
-              ),
-            )
-
-            // Check for nested supplemental details (e.g. qualVerification for a qual question)
-            addSupplementalDetails(specificXpath)
-          })
-        }
-
-        addSupplementalDetails(rowxpath)
+        addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, rowxpath, parentGroup.children)
       }
     }
   }
   traverseSurvey(output, submissionData)
+
+  addUnaccountedAnswers(output, asset, translationIndex, submissionData, displayedKeys)
+
+  return output
+}
+
+/**
+ * Meta questions missing from `META_QUESTION_TYPES` that old enough forms carry:
+ * two since deprecated, plus legacy aliases of `deviceid` and `phonenumber`. From
+ * `q.hiddenTypes()` in `jsapp/xlform/src/model.aliases.coffee`.
+ */
+const UNMODELED_META_QUESTION_NAMES = ['simserial', 'subscriberid', 'imei', 'phone_number']
+
+/**
+ * Submission keys that are never an answer, so they must not become rows here:
+ * the technical ones Data Table drops too, the metadata ones the modal renders on
+ * its own (see `getMetadataColumns`), and the meta questions nobody answers.
+ */
+const NON_RESPONSE_SUBMISSION_KEYS = new Set<string>([
+  ...EXCLUDED_COLUMNS,
+  ...LAST_COLUMNS_ORDER,
+  ...recordValues(META_QUESTION_TYPES),
+  ...UNMODELED_META_QUESTION_NAMES,
+])
+
+/**
+ * Adds a row for every answer stored under a path not included in current form.
+ */
+function addUnaccountedAnswers(
+  output: DisplayGroup,
+  asset: AssetResponse,
+  /** for choosing label to display */
+  translationIndex: number,
+  submissionData: DataResponse | SubmissionResponse,
+  /** The keys `traverseSurvey` already displayed. */
+  displayedKeys: Set<string>,
+) {
+  const assetContent = asset.content
+  if (!assetContent) {
+    return
+  }
+
+  const flatPaths = getSurveyFlatPaths(assetContent.survey ?? [], true)
+  const supplementalDetailKeys = sortAnalysisFormJsonKeys(asset.analysis_form_json?.additional_fields || [])
+
+  for (const [key, value] of Object.entries(submissionData)) {
+    if (displayedKeys.has(key) || NON_RESPONSE_SUBMISSION_KEYS.has(key)) {
+      continue
+    }
+
+    // Back end's own properties (e.g. `_index`) are never answers. Only the first
+    // segment counts, as a leaf may start with one - `group/_1st_choice`.
+    if (key.split('/')[0].startsWith('_')) {
+      continue
+    }
+
+    // Anything not a plain value is a group, whose answers are rows of their own.
+    // NOTE: leaves out renames inside a repeat group, as those keys sit in its items.
+    if ((typeof value !== 'string' && typeof value !== 'number') || value === '') {
+      continue
+    }
+
+    // With no row left, an attachment's mimetype is all there is to type the answer by.
+    const row = findRowForUnaccountedAnswer(assetContent, key)
+    const attachment = row ? undefined : findAttachmentByQuestionXpath(submissionData, key)
+    const type = row?.type ?? (attachment && inferAttachmentQuestionType(attachment)) ?? null
+    const label = getColumnLabel(asset, key, false, translationIndex)
+    const group = findGroupForUnaccountedAnswer(output, key, row, flatPaths)
+
+    // Name and xpath are both the key - the path that finds the file too.
+    group.children.push(new DisplayResponse(type, label, key, key, getRowListName(row), value))
+
+    // NLP content sits under the same old path as the answer, which the traversal of the
+    // current form never reaches.
+    addSupplementalDetailRows(asset, submissionData, supplementalDetailKeys, key, group.children)
+  }
+}
+
+function findRowForUnaccountedAnswer(assetContent: AssetContent, key: string): SurveyRow | undefined {
+  const exactMatch = findRowByXpath(assetContent, key)
+  if (exactMatch) {
+    return exactMatch
+  }
+
+  const leafName = key.split('/').at(-1)
+  const leafMatches = (assetContent.survey ?? []).filter((row) => getRowName(row) === leafName)
+  return leafMatches.length === 1 ? leafMatches[0] : undefined
+}
+
+/** The path of whatever holds the given path, empty string for the root level. */
+function getParentPath(path: string) {
+  return path.split('/').slice(0, -1).join('/')
+}
+
+/**
+ * Finds the display tree group standing for a given group path, or nothing when the
+ * path doesn't lead to exactly one.
+ *
+ * Repeat and matrix groups are skipped with their contents: a repeat renders one
+ * group per submitted item, so one path leads to as many groups as there are items.
+ */
+function findDisplayGroupByPath(root: DisplayGroup, path: string): DisplayGroup | undefined {
+  const matches: DisplayGroup[] = []
+
+  const searchGroup = (group: DisplayGroup, groupPath: string) => {
+    if (groupPath === path) {
+      matches.push(group)
+    }
+
+    for (const child of group.children) {
+      if (child instanceof DisplayGroup && child.type === DISPLAY_GROUP_TYPES.group_regular && child.name) {
+        searchGroup(child, groupPath === '' ? child.name : `${groupPath}/${child.name}`)
+      }
+    }
+  }
+  searchGroup(root, '')
+
+  // Two matches leave no way to tell which was meant, and no placement beats a wrong one.
+  return matches.length === 1 ? matches[0] : undefined
+}
+
+/**
+ * Picks the group to show an unaccounted answer in, defaulting to the root.
+ *
+ * The answer's own path goes first, as it names the group it was given in, which may
+ * still be there - a question renamed inside an untouched group. Failing that, the
+ * group holding the question today - a renamed group, otherwise left empty.
+ */
+function findGroupForUnaccountedAnswer(
+  output: DisplayGroup,
+  /** The submission key the answer is stored under. */
+  key: string,
+  /** The current form's row for this answer, if any is left. */
+  row: SurveyRow | undefined,
+  flatPaths: SurveyFlatPaths,
+): DisplayGroup {
+  const groupPaths = [getParentPath(key)]
+  if (row) {
+    groupPaths.push(getParentPath(flatPaths[getRowName(row)] ?? ''))
+  }
+
+  for (const groupPath of groupPaths) {
+    // An empty path means the root level, which is what we fall back to anyway.
+    if (groupPath === '') {
+      continue
+    }
+
+    const group = findDisplayGroupByPath(output, groupPath)
+    if (group) {
+      return group
+    }
+  }
 
   return output
 }
@@ -400,6 +577,8 @@ function populateMatrixData(
   matrixRowName: string,
   /** The submissionData scoped by parent (useful for repeat groups). */
   parentData: SubmissionResponseValue,
+  /** Collects the keys displayed here, see `addUnaccountedAnswers`. */
+  displayedKeys: Set<string>,
 ) {
   // This should not happen, as the only DisplayGroup with null name will be of
   // the group_root type, but we need this for the types.
@@ -435,12 +614,16 @@ function populateMatrixData(
       // [PATH/]MATRIX_CHOICE/MATRIX_CHOICE_QUESTION
       let questionData: SubmissionResponseValue = null
       const dataProp = `${matrixGroupPath}_${matrixRowName}/${matrixGroup.name}_${matrixRowName}_${questionName}`
-      if (submissionData[dataProp]) {
+      if (isAnswered(submissionData[dataProp])) {
         questionData = submissionData[dataProp]
       } else if (parentData !== null && typeof parentData === 'object' && dataProp in parentData) {
         // Note: If Matrix question is inside a repeat group, the data is stored
         // elsewhere :tableflip:
         questionData = (parentData as { [key: string]: SubmissionResponseValue })[dataProp]
+      }
+
+      if (isAnswered(questionData)) {
+        displayedKeys.add(dataProp)
       }
 
       const questionObj = new DisplayResponse(
@@ -457,6 +640,37 @@ function populateMatrixData(
 }
 
 /**
+ * Tells an answer from no answer. Truthiness won't do: `0` is an answer, and taking
+ * it for none blanks the row and has `addUnaccountedAnswers` add a duplicate.
+ */
+function isAnswered(value: SubmissionResponseValue) {
+  return value !== undefined && value !== null && value !== ''
+}
+
+/**
+ * Tells which submission key holds a given row's answer, or `undefined` when none
+ * does. Not for groups, whose data is assembled from their children (see
+ * `getRowData`). Split out so the traversal can record what got displayed.
+ */
+function findSubmissionKeyForRow(
+  name: string,
+  survey: SurveyRow[],
+  data: DataResponse | SubmissionResponse | null,
+): string | undefined {
+  // Inside a repeat group the caller only casts the current item to a submission.
+  if (data === null || typeof data !== 'object') {
+    return undefined
+  }
+
+  const path = getSurveyFlatPaths(survey, true)[name]
+
+  if (isAnswered(data[path])) {
+    return path
+  }
+  return undefined
+}
+
+/**
  * Returns data for given row, works for groups too. Returns `null` for no
  * answer, array for repeat groups and object for regular groups
  */
@@ -469,14 +683,15 @@ export function getRowData(
     return null
   }
 
+  const answerKey = findSubmissionKeyForRow(name, survey, data)
+  if (answerKey !== undefined) {
+    return data[answerKey]
+  }
+
   const flatPaths = getSurveyFlatPaths(survey, true)
   const path = flatPaths[name]
 
-  if (data[path]) {
-    return data[path]
-  } else if (data[name]) {
-    return data[name]
-  } else if (path) {
+  if (path) {
     // we don't really know here if this is a repeat or a regular group
     // so we let the data be the guide (possibly not trustworthy)
     const repeatRowData = getRepeatGroupAnswers(data, path)
@@ -668,7 +883,7 @@ export function markAttachmentAsDeleted(
   submissionData: DataResponse | SubmissionResponse,
   targetAttachmentUid: string,
 ): DataResponse | SubmissionResponse {
-  const data = clonedeep(submissionData)
+  const data = cloneDeep(submissionData)
   const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
   data._attachments.forEach((attachment) => {
     if (
@@ -687,7 +902,7 @@ export function markAttachmentAsDeleted(
  * Removes empty objects (and arrays) from the given object recursively without mutating the original object.
  */
 export function removeEmptyObjects(originalObj: { [key: string]: any }) {
-  let obj = clonedeep(originalObj)
+  let obj = cloneDeep(originalObj)
   if (typeof obj !== 'object' || obj === null) {
     return obj
   }
@@ -708,7 +923,7 @@ export function removeEmptyObjects(originalObj: { [key: string]: any }) {
  * objects in it (nested), you can end up with an empty object as an final outcome.
  */
 export function removeEmptyFromSupplementalDetails(supplementalDetails: SubmissionSupplementalDetails) {
-  const details = clonedeep(supplementalDetails)
+  const details = cloneDeep(supplementalDetails)
 
   // Step 1: Remove responses to qual questions that are:
   // a) "no response" or "response removed", i.e. empty string, `null`, empty array, etc.
@@ -896,4 +1111,9 @@ export function hasAnyUnacceptedAutomaticContent(
   columnKey: string,
 ): boolean {
   return submissions.some((submission) => hasUnacceptedAutomaticContent(submission, columnKey))
+}
+
+/** Strips repeat-instance indices (e.g. `[2]`) to get the static survey xpath. */
+export function stripRepeatIndices(xpath: string): string {
+  return xpath.replace(/\[\d+\]/g, '')
 }

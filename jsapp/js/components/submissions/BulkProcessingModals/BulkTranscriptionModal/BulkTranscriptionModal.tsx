@@ -1,4 +1,5 @@
-import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { Anchor, Checkbox, Group, Stack, Text } from '@mantine/core'
+import { IconHelpCircleFilled } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -23,8 +24,9 @@ import { hasTranscriptInAnyLanguage } from '#/components/submissions/bulkProcess
 import { useCalculateAudioDuration } from '#/components/submissions/useCalculateAudioDuration.hook'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { formatTimeFromSeconds, getSubmissionRootUuid, notify } from '#/utils'
+import ActionIcon from '../../../common/ActionIcon'
 import ButtonNew from '../../../common/ButtonNew'
 import LanguageSelector from '../../../languages/LanguageSelector'
 import type { LanguageCode } from '../../../languages/languagesStore'
@@ -59,6 +61,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
   const [selectedRegion, setSelectedRegion] = useState<LanguageCode | null>(null)
+  const [autoAccept, setAutoAccept] = useState(false)
   const queryClient = useQueryClient()
 
   const { mutate: createBulkTranscription, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
@@ -95,8 +98,8 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
   const serviceCode = 'goog'
 
   // Get organization ID to check ASR limits
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),
@@ -231,6 +234,7 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
         action_id: ActionIdEnum.automatic_google_transcription,
         question_xpath: sourceRowPath,
         submission_uuids: eligibleSubmissionUuids,
+        auto_accept: autoAccept,
         params: {
           language: selectedLanguage!,
           locale: selectedRegion || undefined,
@@ -289,6 +293,22 @@ export function BulkTranscriptionModal(props: BulkTranscriptionModalProps) {
               serviceType='transcription'
               onRegionChange={handleRegionChange}
               titleOverride={t('Select a region')}
+            />
+          </Group>
+
+          <Group gap='xs'>
+            <Checkbox
+              checked={autoAccept}
+              onChange={(event) => setAutoAccept(event.currentTarget.checked)}
+              label={t('Automatically approve resulting transcriptions')}
+            />
+            <ActionIcon
+              size='sm'
+              variant='transparent'
+              icon={IconHelpCircleFilled}
+              aria-label={t('About automatic approval')}
+              tooltip={t('All generated transcripts will be approved automatically without requiring manual review')}
+              style={{ cursor: 'default' }}
             />
           </Group>
 

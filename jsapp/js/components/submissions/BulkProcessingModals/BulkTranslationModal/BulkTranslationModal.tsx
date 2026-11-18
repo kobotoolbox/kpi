@@ -1,4 +1,5 @@
-import { Anchor, Group, Stack, Text } from '@mantine/core'
+import { Anchor, Checkbox, Group, Stack, Text } from '@mantine/core'
+import { IconHelpCircleFilled } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -25,8 +26,9 @@ import { getBlockedBulkTranslationLanguages } from '#/components/submissions/bul
 import { getSupplementalDetailsContent } from '#/components/submissions/submissionUtils'
 import type { SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import { useSession } from '#/stores/useSession'
+import { useProfile } from '#/stores/useProfile'
 import { notify } from '#/utils'
+import ActionIcon from '../../../common/ActionIcon'
 import BulkProcessingAlerts from '../alerts/BulkProcessingAlerts'
 import { useBulkProcessingAlerts } from '../alerts/useBulkProcessingAlerts'
 
@@ -46,6 +48,7 @@ export interface BulkTranslationModalProps {
 export function BulkTranslationModal(props: BulkTranslationModalProps) {
   const [showWarningModal, setShowWarningModal] = useState<boolean>(props.showWarningModal)
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode | null>(null)
+  const [autoAccept, setAutoAccept] = useState(false)
   const queryClient = useQueryClient()
 
   const { mutate: createBulkTranslation, isPending } = useAssetsAdvancedFeaturesBulkActionsCreate({
@@ -83,8 +86,8 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
   })
 
   // Get organization ID to check ASR limits
-  const session = useSession()
-  const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
+  const profile = useProfile()
+  const organizationId = profile.isPending ? undefined : profile.currentLoggedAccount?.organization?.uid
   const { data, isLoading: isLoadingUsage } = useOrganizationsServiceUsageRetrieve(organizationId!, {
     query: {
       queryKey: getOrganizationsServiceUsageRetrieveQueryKey(organizationId!),
@@ -160,6 +163,7 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
         action_id: ActionIdEnum.automatic_google_translation,
         question_xpath: sourceRowPath,
         submission_uuids: eligibleSubmissionUuids,
+        auto_accept: autoAccept,
         params: {
           language: selectedLanguage!,
         },
@@ -199,6 +203,22 @@ export function BulkTranslationModal(props: BulkTranslationModalProps) {
               hiddenLanguages={hiddenLanguages}
               // Smaller message to fit in the modal
               nothingFoundMessage={t('I cannot find my language')}
+            />
+          </Group>
+
+          <Group gap='xs'>
+            <Checkbox
+              checked={autoAccept}
+              onChange={(event) => setAutoAccept(event.currentTarget.checked)}
+              label={t('Automatically approve resulting translations')}
+            />
+            <ActionIcon
+              size='sm'
+              variant='transparent'
+              icon={IconHelpCircleFilled}
+              aria-label={t('About automatic approval')}
+              tooltip={t('All generated translations will be approved automatically without requiring manual review')}
+              style={{ cursor: 'default' }}
             />
           </Group>
 

@@ -1,21 +1,57 @@
+from allauth import urls as allauth_urls
+from allauth.headless import urls as headless_urls
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView
+from markdownx.views import MarkdownifyView
 from rest_framework import status
 from rest_framework.exceptions import server_error
 
+from kobo.apps.accounts.views import (
+    HeadlessManageRecoveryCodesView,
+    HeadlessManageTOTPView,
+    HeadlessMfaAuthenticateView,
+    HeadlessMfaReauthenticateView,
+)
+from kobo.apps.kobo_scim.provisioning import SocialAccountProvisioningHTMLView
 from kpi.utils.spectacular_processing import (
     OpenRosaAPISchemaGenerator,
     V2APISchemaGenerator,
 )
-from kpi.utils.urls import is_request_for_html
+from kpi.utils.urls import exclude_routes, is_request_for_html, replace_route_views
+from kpi.views.error_pages import render_500_page, render_error_page
 from kpi.views.v1_api_gone import v1_api_gone_view
 from kpi.views.v2.swagger_ui import ExtendedSwaggerUIView
+
+# allauth's templated pages that would bypass KPI's rules for changing the email
+# address (`/me/emails/` is the only way), the password (`PATCH /me/`) or turning
+# 2FA off (allauth's headless TOTP endpoint), by name. They are excluded from
+# allauth's routes, but their names are kept, which allauth reverses, for routes
+# redirecting to the matching page of the frontend
+ALLAUTH_PAGE_REDIRECTS = {
+    'account_email': ('accounts/email/', '/#/account/settings'),
+    'account_change_password': ('accounts/password/change/', '/#/account/security'),
+    'mfa_deactivate_totp': ('accounts/2fa/totp/deactivate/', '/#/account/security'),
+}
+
+# allauth's headless routes, without the ones bypassing the rules above, and
+# with KPI's views where KPI adds rules of its own
+HEADLESS_URLPATTERNS = replace_route_views(
+    exclude_routes(
+        headless_urls.urlpatterns, {'manage_email', 'account:change_password'}
+    ),
+    {
+        'mfa:authenticate': HeadlessMfaAuthenticateView,
+        'mfa:reauthenticate': HeadlessMfaReauthenticateView,
+        'mfa:manage_totp': HeadlessManageTOTPView,
+        'mfa:manage_recovery_codes': HeadlessManageRecoveryCodesView,
+    },
+)
 
 admin.autodiscover()
 admin.site.login = staff_member_required(admin.site.login, login_url=settings.LOGIN_URL)
@@ -90,15 +126,33 @@ urlpatterns = [
     # Disable admin login form
     re_path(r'^admin/', admin.site.urls),
     path('', include('kobo.apps.accounts.mfa.urls')),
-    path('accounts/', include('allauth.urls')),  # Must be after kpi.url, login
-    path('api/v2/allauth/', include('allauth.headless.urls')),
+    *[
+        path(route, RedirectView.as_view(url=url, permanent=False), name=name)
+        for name, (route, url) in ALLAUTH_PAGE_REDIRECTS.items()
+    ],
+    path(
+        'accounts/social/provisioning/',
+        SocialAccountProvisioningHTMLView.as_view(),
+        name='socialaccount_provisioning',
+    ),
+    # After `kobo.apps.accounts.mfa.urls`, whose `accounts/login/` takes over
+    # from allauth's
+    path(
+        'accounts/',
+        include(exclude_routes(allauth_urls.urlpatterns, set(ALLAUTH_PAGE_REDIRECTS))),
+    ),
+    path('api/v2/allauth/', include((HEADLESS_URLPATTERNS, 'headless'))),
     re_path(
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),
     ),
     path('', include('kpi.urls')),
     path('', include('kobo.apps.openrosa.apps.main.urls')),
-    path('markdownx/', include('markdownx.urls')),
+    path(
+        'markdownx/markdownify/',
+        user_passes_test(lambda u: u.is_superuser)(MarkdownifyView.as_view()),
+        name='markdownx_markdownify',
+    ),
     path('markdownx-uploader/', include('kobo.apps.markdownx_uploader.urls')),
     path('help/', include('kobo.apps.help.urls')),
 ]
@@ -111,14 +165,14 @@ if settings.ENABLE_METRICS:
 
 def render404(request: HttpRequest, exception):
     if is_request_for_html(request):
-        return render(request, 'custom_404.html', status=404)
+        return render_error_page(request, 404)
     # fall back to a basic JSON response if a data route is being requested
     return HttpResponse('Resource not found (404)', status=status.HTTP_404_NOT_FOUND)
 
 
 def render500(request: HttpRequest):
     if is_request_for_html(request):
-        return render(request, 'custom_500.html', status=500)
+        return render_500_page(request)
     # fall back to the DRF 500 handler if a data route is being requested
     return server_error(request)
 

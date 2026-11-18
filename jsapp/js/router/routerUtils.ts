@@ -10,10 +10,7 @@
 
 import envStore from '#/envStore'
 import { PATHS, PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
-import sessionStore from '#/stores/session'
-// import session from '../stores/session';
-// import {when} from 'mobx';
-// import {redirectDocument} from 'react-router';
+import profileStore from '#/stores/profile'
 
 /**
  * Returns login url with a `next` parameter - after logging in, the  app will
@@ -42,71 +39,64 @@ export function getCurrentPath(): string {
   return route.length > 1 ? route[1] : ''
 }
 
-/**
- * Redirects to `getLoginUrl()` if a page that requires authentication
- * is navigated to.
- *
- * NOTE: This was previously commented out because `redirectDocument` required
- * react-router ≥ 6.19.1 and upgrading at that time caused build errors.
- * We are now on react-router v7 where `redirectDocument` is available.
- * The function body is kept commented because migrating auth to a route loader
- * requires attaching a `loader` to every protected route — a larger refactor.
- * When that migration is done, uncomment the imports at the top of this file
- * (session, when, redirectDocument) and restore this function.
- */
-// export const authLoader = async () => {
-//   await when(() => session.isAuthStateKnown);
-//   if (!session.isLoggedIn) {
-//     return redirectDocument(getLoginUrl());
-//   }
-//   return null;
-// };
-
 /*
- * A list of functions that match routes defined in constants
+ * A list of functions that match routes defined in constants.
+ * All functions in this section are deprecated — use React Router's `useLocation` hook
+ * and compare `location.pathname` directly instead. See projectTopTabs for an example.
  */
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isRootRoute(): boolean {
   // Cannot rely on `window.location.pathname` while hash router still in use
   return getCurrentPath() === ROUTES.ROOT
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isLibraryRoute(): boolean {
   return getCurrentPath() === ROUTES.LIBRARY
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isMyLibraryRoute(): boolean {
   return getCurrentPath() === ROUTES.MY_LIBRARY
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isPublicCollectionsRoute(): boolean {
   return getCurrentPath() === ROUTES.PUBLIC_COLLECTIONS
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isNewLibraryItemRoute(): boolean {
   return getCurrentPath() === ROUTES.NEW_LIBRARY_ITEM
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isLibraryItemRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isEditLibraryItemRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isNewLibraryChildRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.NEW_LIBRARY_CHILD.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isLibraryItemJsonRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM_JSON.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isLibraryItemXformRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM_XFORM.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isAnyProjectsViewRoute() {
   return (
     getCurrentPath() === PROJECTS_ROUTES.MY_PROJECTS ||
@@ -115,90 +105,93 @@ export function isAnyProjectsViewRoute() {
   )
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormJsonRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_JSON.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormXformRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_XFORM.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormEditRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_EDIT.replace(':uid', uid)
 }
 
-export function isFormSummaryRoute(uid: string): boolean {
-  return getCurrentPath() === ROUTES.FORM_SUMMARY.replace(':uid', uid)
-}
-
-export function isFormLandingRoute(uid: string): boolean {
-  return getCurrentPath() === ROUTES.FORM_LANDING.replace(':uid', uid)
-}
-
-/** Note that this is `false` for sub-routes of `FORM_DATA`. */
+/**
+ * Note that this is `false` for sub-routes of `FORM_DATA`.
+ * @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern.
+ */
 export function isFormDataRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_DATA.replace(':uid', uid)
 }
 
-/** If on `forms/<uid>/data/…` route */
-export function isAnyFormDataRoute(uid: string) {
-  return getCurrentPath().startsWith(ROUTES.FORM_DATA.replace(':uid', uid))
-}
-
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormReportRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_REPORT.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormTableRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_TABLE.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormDownloadsRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_DOWNLOADS.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormGalleryRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_GALLERY.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormMapRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_MAP.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormMapByRoute(uid: string, viewby: string): boolean {
   return getCurrentPath() === ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby)
 }
 
-/** Note that this is `false` for sub-routes of `FORM_SETTINGS`. */
+/**
+ * Note that this is `false` for sub-routes of `FORM_SETTINGS`.
+ * @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern.
+ */
 export function isFormSettingsRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_SETTINGS.replace(':uid', uid)
 }
 
-/** If on `forms/<uid>/settings/…` route */
-export function isAnyFormSettingsRoute(uid: string) {
-  return getCurrentPath().startsWith(ROUTES.FORM_SETTINGS.replace(':uid', uid))
-}
-
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormMediaRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_MEDIA.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormSharingRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_SHARING.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormRestRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_REST.replace(':uid', uid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormRestHookRoute(uid: string, hookUid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_REST_HOOK.replace(':uid', uid).replace(':hookUid', hookUid)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isFormResetRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid)
 }
@@ -207,16 +200,19 @@ export function isFormResetRoute(uid: string): boolean {
  * Additional functions
  */
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isAnyFormsRoute(): boolean {
   return getCurrentPath().startsWith(ROUTES.FORMS)
 }
 
+/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isAnyLibraryRoute(): boolean {
   return getCurrentPath().startsWith(ROUTES.LIBRARY)
 }
 
 /**
  * Checks if on any `/library/asset/…` route.
+ * @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern.
  */
 export function isAnyLibraryItemRoute(): boolean {
   // disregard the `:uid` parameter in url, as we are interested in any asset uid
@@ -225,6 +221,7 @@ export function isAnyLibraryItemRoute(): boolean {
 
 /**
  * Checks if on any `/forms/…` route.
+ * @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern.
  */
 export function isAnyFormRoute(): boolean {
   // disregard the `:uid` parameter in url, as we are interested in any asset uid
@@ -232,7 +229,8 @@ export function isAnyFormRoute(): boolean {
 }
 
 /**
- * Returns asset uid from path if there is any
+ * Returns asset uid from path if there is any.
+ * @deprecated Use React Router's `useParams` hook instead.
  */
 export function getRouteAssetUid() {
   if (isAnyFormRoute()) {
@@ -252,9 +250,9 @@ export function getRouteAssetUid() {
  */
 export function isInvalidatedPasswordRouteBlockerActive() {
   return (
-    sessionStore.isLoggedIn &&
-    'validated_password' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.validated_password === false
+    profileStore.isLoggedIn &&
+    'validated_password' in profileStore.currentAccount &&
+    profileStore.currentAccount.validated_password === false
   )
 }
 
@@ -262,10 +260,10 @@ export function isInvalidatedPasswordRouteBlockerActive() {
 export function isTOSAgreementRouteBlockerActive() {
   return (
     envStore.data.terms_of_service__sitewidemessage__exists &&
-    sessionStore.isLoggedIn &&
+    profileStore.isLoggedIn &&
     // We check for email, because `currentAccount` can be two different things
-    'email' in sessionStore.currentAccount &&
-    sessionStore.currentAccount.accepted_tos !== true
+    'email' in profileStore.currentAccount &&
+    profileStore.currentAccount.accepted_tos !== true
   )
 }
 
@@ -274,6 +272,9 @@ export function isTOSAgreementRouteBlockerActive() {
  * displays some UI requiring user to take action and blocks any navigation,
  * thus blocking user from using any part of the app. E.g. `TOSAgreement` when
  * user have not accepted the new TOS yet.
+ *
+ * `ProfileDetails` is deliberately absent: its screen has no account menu to ask this, and the answer needs the
+ * organization as well as `/environment` - which is `useProfileDetailsBlockerState`, a hook, not a plain function.
  */
 export function isAnyRouteBlockerActive() {
   return isInvalidatedPasswordRouteBlockerActive() || isTOSAgreementRouteBlockerActive()

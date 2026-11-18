@@ -17,11 +17,12 @@ export enum ProcessingTab {
   Analysis = 'analysis',
 }
 
-const TabToRouteMap: Map<ProcessingTab, string> = new Map([
-  [ProcessingTab.Transcript, PROCESSING_ROUTES.TRANSCRIPT],
-  [ProcessingTab.Translations, PROCESSING_ROUTES.TRANSLATIONS],
-  [ProcessingTab.Analysis, PROCESSING_ROUTES.ANALYSIS],
-])
+/** The route of each tab, e.g. for `goToTabRoute`. */
+export const TAB_ROUTES: Record<ProcessingTab, string> = {
+  [ProcessingTab.Transcript]: PROCESSING_ROUTES.TRANSCRIPT,
+  [ProcessingTab.Translations]: PROCESSING_ROUTES.TRANSLATIONS,
+  [ProcessingTab.Analysis]: PROCESSING_ROUTES.ANALYSIS,
+}
 
 interface ProcessingRouteParts {
   assetUid: string
@@ -188,6 +189,15 @@ export function getActiveLanguageCode(): string | undefined {
 }
 
 /**
+ * Returns the fully resolved path for a processing tab route, with current
+ * params (uid, xpath, submissionEditId) applied. Useful for `<Link to>` so that
+ * middle-click / cmd-click open the correct URL in a new tab.
+ */
+export function getTabRoutePath(targetTabRoute: string) {
+  return applyCurrentRouteParams(targetTabRoute)
+}
+
+/**
  * Navigates to different tab within the same question and submission as
  * currently loaded. It replaces params with current values from the
  * `singleProcessingStore`.
@@ -220,10 +230,7 @@ export function goToProcessing(
     if (targetTab === ProcessingTab.Translations && languageCode) {
       targetRoute = PROCESSING_ROUTES.TRANSLATION_DETAIL
     } else {
-      const tabRoute = TabToRouteMap.get(targetTab)
-      if (tabRoute) {
-        targetRoute = tabRoute
-      }
+      targetRoute = TAB_ROUTES[targetTab]
     }
   }
 

@@ -17,7 +17,7 @@ const cloneAsset = (asset: AssetResponse): AssetResponse => JSON.parse(JSON.stri
  * Builds a reusable PATCH handler for single-asset stories while keeping the in-memory asset mutable.
  *
  * This custom handler is kept because it has stateful logic that Orval cannot generate.
- * For simple GET requests, use getApiV2AssetsRetrieveMockHandler from Orval instead.
+ * For simple GET requests, use getAssetsRetrieveMockHandler from Orval instead.
  */
 export const assetPatchMock = <TPayload>({
   asset,

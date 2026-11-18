@@ -113,7 +113,7 @@ describe('translations hack', () => {
       )
     })
 
-    it("should add base survey's default language if survey doesn't have it", () => {
+    it("should leave the base survey's default language empty if the survey doesn't have it", () => {
       const test = {
         baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
         survey: [
@@ -125,12 +125,12 @@ describe('translations hack', () => {
         translations: ['Francais (fr)', 'Polski (pl)'],
         translated: ['label'],
       }
-      // Formbuilder renders the first slot, so the imported default label stands in for the
-      // language the survey doesn't have. It used to get the question name instead.
+      // Imported languages are appended, and the slot the survey says nothing in stays blank. It used to get a copy
+      // of the imported label, which reads like a real translation.
       const target = {
         survey: [
           {
-            label: ['Allo', 'Allo', 'Cześć'],
+            label: [null, 'Allo', 'Cześć'],
             name: 'welcome_message',
           },
         ],
@@ -142,7 +142,7 @@ describe('translations hack', () => {
       )
     })
 
-    it('should fall back to the row name when the imported default language value is empty', () => {
+    it('should keep an empty imported value empty', () => {
       const test = {
         baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
         survey: [
@@ -157,7 +157,7 @@ describe('translations hack', () => {
       const target = {
         survey: [
           {
-            label: ['welcome_message', null, 'Cześć'],
+            label: [null, null, 'Cześć'],
             name: 'welcome_message',
           },
         ],
@@ -169,10 +169,31 @@ describe('translations hack', () => {
       )
     })
 
-    it('should drop translations the base survey cannot hold when it has no language of its own', () => {
-      // A form with no named language keeps its labels in the unprefixed `label` column.
-      // Adding named ones beside it would leave an unnamed language among named ones,
-      // which this function refuses to load, so only the imported default stays.
+    it('should move every value to the slot its own language holds in the base survey', () => {
+      // The old reorder only pulled the default language to the front, so `fr` landed in the `Portugues (pt)` slot
+      const test = {
+        baseSurvey: {
+          _initialParams: { translations_0: 'English (en)', translations: [null, 'Espanol (es)', 'Portugues (pt)'] },
+        },
+        survey: [{ label: ['en', 'es', 'fr', 'pl'], name: 'welcome_message' }],
+        choices: [{ list_name: 'fruits', name: 'apple', label: ['en', 'es', 'fr', 'pl'] }],
+        translations: ['English (en)', 'Espanol (es)', 'Francais (fr)', 'Polski (pl)'],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [{ label: ['en', 'es', null, 'fr', 'pl'], name: 'welcome_message' }],
+        choices: [{ list_name: 'fruits', name: 'apple', label: ['en', 'es', null, 'fr', 'pl'] }],
+        translations: [null, 'Espanol (es)', 'Portugues (pt)', 'Francais (fr)', 'Polski (pl)'],
+        translations_0: 'English (en)',
+      }
+      expect(
+        nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey, test.choices),
+      ).to.deep.equal(target)
+    })
+
+    it("should ignore the survey's language when the base survey has none of its own", () => {
+      // Unnamed labels live in the plain `label` column, and an unnamed language among named ones won't load. So the
+      // imported values share that slot and the name is dropped - naming the form's default is the user's call.
       const test = {
         baseSurvey: { _initialParams: {} },
         survey: [
@@ -200,7 +221,7 @@ describe('translations hack', () => {
       ).to.deep.equal(target)
     })
 
-    it('should drop translations for a single named language too when base survey has none', () => {
+    it('should ignore a single named language too when base survey has none', () => {
       const test = {
         baseSurvey: { _initialParams: {} },
         survey: [{ label: ['Allo'], name: 'welcome_message' }],
@@ -257,7 +278,7 @@ describe('translations hack', () => {
       ).to.deep.equal(target)
     })
 
-    it("should pad choices alongside the survey when the base survey's default language is missing", () => {
+    it("should leave the default slot of both sheets empty when the base survey's default language is missing", () => {
       const test = {
         baseSurvey: { _initialParams: { translations_0: 'Deutsch (de)' } },
         survey: [{ label: ['Allo', 'Cześć'], name: 'welcome_message' }],
@@ -266,8 +287,8 @@ describe('translations hack', () => {
         translated: ['label'],
       }
       const target = {
-        survey: [{ label: ['Allo', 'Allo', 'Cześć'], name: 'welcome_message' }],
-        choices: [{ list_name: 'fruits', name: 'apple', label: ['Pomme', 'Pomme', 'Jabłko'] }],
+        survey: [{ label: [null, 'Allo', 'Cześć'], name: 'welcome_message' }],
+        choices: [{ list_name: 'fruits', name: 'apple', label: [null, 'Pomme', 'Jabłko'] }],
         translations: [null, 'Francais (fr)', 'Polski (pl)'],
         translations_0: 'Deutsch (de)',
       }
@@ -328,6 +349,7 @@ describe('translations hack', () => {
             default_language: 'English (en)',
           },
         ],
+        translations: ['English (en)'],
       })
       expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
     })
@@ -358,6 +380,7 @@ describe('translations hack', () => {
         }),
         assetContent: {
           translated: ['label'],
+          translations: [null, 'Polski (pl)'],
           translations_0: 'English (en)',
         },
       }
@@ -382,6 +405,8 @@ describe('translations hack', () => {
             default_language: 'English (en)',
           },
         ],
+        // The nullified first slot is the form's default language, so the saved list names it
+        translations: ['English (en)', 'Polski (pl)'],
       })
       expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
     })
@@ -430,6 +455,7 @@ describe('translations hack', () => {
             default_language: 'English (en)',
           },
         ],
+        translations: ['English (en)'],
       })
       expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
     })
@@ -467,6 +493,7 @@ describe('translations hack', () => {
             style: 'theme-grid',
           },
         ],
+        translations: ['English (en)'],
       })
       expect(unnullifyTranslations(test.surveyDataJSON, test.assetContent)).to.deep.equal(target)
     })

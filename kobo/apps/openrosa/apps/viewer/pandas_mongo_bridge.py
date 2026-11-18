@@ -72,18 +72,6 @@ def remove_dups_from_list_maintain_order(l):
     return list(OrderedDict.fromkeys(l))
 
 
-def get_prefix_from_xpath(xpath):
-    xpath = str(xpath)
-    parts = xpath.rsplit('/', 1)
-    if len(parts) == 1:
-        return None
-    elif len(parts) == 2:
-        return '%s/' % parts[0]
-    else:
-        raise ValueError(
-            '%s cannot be prefixed, it returns %s' % (xpath, str(parts)))
-
-
 class AbstractDataFrameBuilder:
     IGNORED_COLUMNS = [
         XFORM_ID_STRING,
@@ -116,14 +104,6 @@ class AbstractDataFrameBuilder:
                                              id_string=self.id_string)
         self.select_multiples = self._collect_select_multiples(self.dd)
         self.gps_fields = self._collect_gps_fields(self.dd)
-
-    @classmethod
-    def _fields_to_select(cls, dd):
-        return [
-            get_abbreviated_xpath(c)
-            for c in dd.get_survey_elements()
-            if isinstance(c, Question)
-        ]
 
     @classmethod
     def _collect_select_multiples(cls, dd):

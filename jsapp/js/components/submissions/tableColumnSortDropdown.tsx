@@ -64,6 +64,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
     return (
       <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {props.additionalTriggerContent}
+        {props.isFieldFrozen && <Icon name='freeze' size='inherit' color={sortIconName ? 'teal' : 'blue'} />}
         {sortIconName && <Icon name={sortIconName} size='inherit' />}
         {isMenuOpen && <Icon name='caret-up' size='inherit' />}
         {!isMenuOpen && <Icon name='caret-down' size='inherit' />}
@@ -186,10 +187,6 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
             </>
           )}
 
-          {/*
-            Open to everyone. `tableStore` decides whether the choice is saved to
-            the project (needs `change_asset`) or kept for the session only.
-          */}
           <Menu.Divider />
 
           <Menu.Item

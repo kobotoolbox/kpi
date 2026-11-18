@@ -17,6 +17,7 @@ export function openLibraryUploadModal(
   modalId = modals.open({
     title: initialTitle,
     size: 'lg',
+    closeOnClickOutside: false,
     children: (
       <LibraryUploadModal
         params={{

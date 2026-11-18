@@ -1,0 +1,68 @@
+<!doctype html>
+{% comment %}
+Development-only previewing ground for emails. No JavaScript involved.
+The email sits in an iframe so there is no style interference in any way.
+{% endcomment %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Email previews</title>
+    <style>
+      /* Verbatim copy of the Kobo palette in `jsapp/scss/colors.scss`, since a Django
+         template cannot import it. Keep the names so the two can be diffed. */
+      :root{
+        --kobo-white:hsl(0deg 0% 100%);
+        --kobo-gray-100:hsl(240deg 20% 98%);
+        --kobo-gray-300:hsl(227deg 18% 90%);
+        --kobo-gray-700:hsl(226deg 16% 42%);
+        --kobo-gray-900:hsl(225deg 17% 14%);
+        --kobo-dark-blue:hsl(207deg 77% 32%);
+      }
+
+      body{margin:0;display:flex;height:100vh;background:var(--kobo-gray-100);color:var(--kobo-gray-900);
+        font:16px/24px Roboto,Helvetica,Arial,sans-serif}
+      nav{flex:0 0 280px;overflow:auto;padding:24px;background:var(--kobo-white);border-right:1px solid var(--kobo-gray-300)}
+      nav h1{margin:0 0 12px;line-height:24px;font-size:24px;color:var(--kobo-gray-700)}
+      nav p{margin:0 0 16px;font-size:12px;line-height:18px;color:var(--kobo-gray-700)}
+      nav a{display:block;margin:0 -12px;padding:6px 12px;border-radius:6px;color:var(--kobo-dark-blue);text-decoration:none;background:var(--kobo-gray-100)}
+      nav a:hover{background:var(--kobo-gray-300)}
+      nav a:not(:last-of-type){margin-bottom:6px;}
+      nav a[aria-current]{background:var(--kobo-dark-blue);color:var(--kobo-white)}
+      main{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;padding:24px}
+      header{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+      header h2{margin:0;font-size:18px}
+      header code{padding:3px 6px;border:1px solid var(--kobo-gray-300);border-radius:3px;background:var(--kobo-white);font-size:12px;color:var(--kobo-gray-700)}
+      .toggles{display:flex;gap:6px;margin-left:auto}
+      .toggles a{padding:6px 12px;border:1px solid var(--kobo-gray-300);border-radius:999px;background:var(--kobo-white);
+        color:var(--kobo-dark-blue);text-decoration:none;font-size:12px}
+      .toggles a[aria-current]{border-color:var(--kobo-dark-blue);background:var(--kobo-dark-blue);color:var(--kobo-white)}
+      iframe{flex:1;border:1px solid var(--kobo-gray-300);border-radius:6px;background:var(--kobo-white)}
+    </style>
+  </head>
+  <body>
+
+    <nav>
+      <h1>Email previews</h1>
+      <p>Edit a template and refresh. Resize the window for narrow widths. Dark mode follows your browser.</p>
+      {% for item in previews %}
+        <a href="{% url 'dev-email-preview-variant' item.slug %}?part={{ part }}"
+           {% if item.slug == preview.slug %}aria-current="page"{% endif %}>{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+
+    <main>
+      <header>
+        <h2>{{ subject }}</h2>
+        <code>{{ preview.template_prefix }}_message.{% if part == 'text' %}txt{% else %}html{% endif %}</code>
+        {# Relative, so the toggle keeps whichever variant is open #}
+        <span class="toggles">
+          <a href="?part=html" {% if part == 'html' %}aria-current="true"{% endif %}>HTML</a>
+          <a href="?part=text" {% if part == 'text' %}aria-current="true"{% endif %}>Plain text</a>
+        </span>
+      </header>
+
+      <iframe title="{{ preview.label }}" src="{% url 'dev-email-preview-raw' preview.slug %}?part={{ part }}"></iframe>
+    </main>
+
+  </body>
+</html>

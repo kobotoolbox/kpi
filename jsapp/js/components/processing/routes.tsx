@@ -1,7 +1,11 @@
 import React from 'react'
 
 import { Navigate, Route, generatePath, useParams } from 'react-router-dom'
+import assetStore from '#/assetStore'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
+import { getProcessingQuestionType } from '#/components/processing/common/questionType'
+import { getAvailableTabsForQuestionType } from '#/components/processing/common/utils'
+import { TAB_ROUTES, decodeURLParamWithSlash } from '#/components/processing/routes.utils'
 import PermProtectedRoute from '#/router/permProtectedRoute'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 import SingleProcessingRoute from '.'
@@ -9,7 +13,17 @@ import SingleProcessingRoute from '.'
 // This is needed so we have access to params :shrug:
 const ProcessingRootRedirect = () => {
   const params = useParams()
-  return <Navigate to={generatePath(PROCESSING_ROUTES.TRANSCRIPT, params)} replace />
+
+  // The asset should already be cached from wherever the user navigated here
+  // (e.g. the submissions table), so we can pick the default tab synchronously.
+  const asset = params.uid ? assetStore.getAsset(params.uid) : undefined
+  const xpath = params.xpath ? decodeURLParamWithSlash(params.xpath) : undefined
+  // No submission here, so a question the form no longer has gets the generic default, which the guard in
+  // `SingleProcessingRoute` corrects once the submission is loaded.
+  const questionType = asset && xpath ? getProcessingQuestionType(asset, xpath) : undefined
+  const defaultTabRoute = TAB_ROUTES[getAvailableTabsForQuestionType(questionType)[0]]
+
+  return <Navigate to={generatePath(defaultTabRoute, params)} replace />
 }
 
 export default function routes() {

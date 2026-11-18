@@ -119,6 +119,30 @@ class BulkActionAPITestCase(SubsequenceBaseTestCase):
         assert response.data['created_by'] == {'username': 'someuser'}
         assert response.data['cancelled_by'] is None
 
+    def test_create_bulk_action_with_auto_accept(self):
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(auto_accept=True),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
+        assert action.auto_accept is True
+        assert response.data['auto_accept'] is True
+
+    def test_create_bulk_action_defaults_auto_accept_to_false(self):
+        response = self.client.post(
+            self.list_url,
+            data=self._build_payload(),
+            format='json',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        action = SubsequenceBulkAction.objects.get(uid=response.data['uid'])
+        assert action.auto_accept is False
+        assert response.data['auto_accept'] is False
+
     def test_list_bulk_actions_returns_paginated_response(self):
         action = SubsequenceBulkAction.create_with_items(
             asset=self.asset,

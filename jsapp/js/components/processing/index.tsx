@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import DocumentTitle from 'react-document-title'
+import { Navigate } from 'react-router-dom'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -10,16 +11,19 @@ import {
   useAssetsDataList,
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
-import assetStore from '#/assetStore'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PROCESSING_BULK_ACTIONS_POLL_INTERVAL } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import { addDefaultUuidPrefix, getSubmissionRootUuid } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
+import { getProcessingQuestionType } from './common/questionType'
+import { getAvailableTabsForQuestionType } from './common/utils'
 import styles from './index.module.scss'
+import { TAB_ROUTES, getActiveTab, getTabRoutePath } from './routes.utils'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -39,17 +43,15 @@ function getActiveBulkActions(bulkActions: BulkActionResponse[]) {
  * Provides the base pieces of data for all processing components. Also renders
  * everything with nice spinners.
  */
-export default function SingleProcessingRoute({ params: routeParams }: { params: RouteParams }) {
+export default function SingleProcessingRoute({
+  params: routeParams,
+  asset,
+}: { params: RouteParams; asset?: AssetResponse }) {
   // This is for determining the translation we use for survey questions,
   // so it is separate from processing languages.
   const [questionLabelLanguage, setQuestionLabelLanguage] = useState<LanguageCode | string>('')
   const [hasUnsavedWork, setHasUnsavedWork] = useState(false)
   const { uid: assetId, xpath: questionXpath, submissionEditId: submissionId } = routeParams
-
-  // NOTE: This route component is being loaded with PermProtectedRoute so
-  // we know that the call to backend to get asset was already made, and
-  // thus we can safely assume asset data is present :happy_face:
-  const asset = assetId ? assetStore.getAsset(assetId) : null
 
   const queryAF = useAssetsAdvancedFeaturesList(assetId)
   const advancedFeatures = queryAF.data?.status === 200 ? queryAF.data.data : undefined
@@ -104,6 +106,18 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
   const pageTitle = 'Data | KoboToolbox'
 
+  // The one guard against being on a tab the question type doesn't support (e.g. Transcript for text), however we got
+  // there: a stale link, switching questions, editing the URL, or Back. It lives here rather than in
+  // `SingleProcessingContent`, which isn't mounted when the question has no answer, and it replaces the history entry
+  // so Back doesn't land on the unsupported tab again. The submission helps find the type of a question the form no
+  // longer has, so the guard may only kick in once it's loaded.
+  const questionType = asset ? getProcessingQuestionType(asset, questionXpath, submission) : undefined
+  const availableTabs = getAvailableTabsForQuestionType(questionType)
+  const activeTab = getActiveTab()
+  if (asset && activeTab && !availableTabs.includes(activeTab)) {
+    return <Navigate to={getTabRoutePath(TAB_ROUTES[availableTabs[0]])} replace />
+  }
+
   // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
   // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.
   // We do need it for some parts of processing UI, but we already safeguard ourselves in each place we do use it.
@@ -138,6 +152,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
                 <SingleProcessingContent
                   asset={asset}
                   questionXpath={questionXpath}
+                  availableTabs={availableTabs}
                   submission={submission}
                   activeBulkActions={activeBulkActions}
                   hasUnsavedWork={hasUnsavedWork}

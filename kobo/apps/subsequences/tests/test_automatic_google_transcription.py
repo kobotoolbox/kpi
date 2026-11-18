@@ -5,11 +5,10 @@ import jsonschema
 import pytest
 from constance.test import override_config
 from ddt import data as ddt_data
-from ddt import ddt, unpack
+from ddt import ddt
 from django.conf import settings
 from django.test import TestCase
 
-from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_transcription import AutomaticGoogleTranscriptionAction
@@ -390,6 +389,42 @@ def test_run_external_process_passes_bulk_action_uid_to_service():
     }
 
 
+def test_async_poll_keeps_auto_accept():
+    """
+    A request that goes async must hand `auto_accept` to the scheduled poll,
+    otherwise the result completes without being accepted
+    """
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params, asset=MagicMock(pk=1))
+
+    mock_service = MagicMock()
+    mock_service.process_data.return_value = {'status': 'in_progress'}
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_transcription'
+        '.GoogleTranscriptionService'
+    )
+    poll_path = (
+        'kobo.apps.subsequences.actions.base.poll_run_external_process.apply_async'
+    )
+    with patch(service_path, return_value=mock_service), patch(
+        poll_path
+    ) as enqueue_poll:
+        result = action.revise_data(
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {'language': 'fr', 'auto_accept': True},
+        )
+
+    enqueue_poll.assert_called_once()
+    poll_action_data = enqueue_poll.call_args.kwargs['kwargs']['action_data']
+    assert poll_action_data['auto_accept'] is True
+    latest_version = result['_versions'][0]
+    assert latest_version['_data']['status'] == 'in_progress'
+    assert 'auto_accept' not in latest_version['_data']
+    assert '_dateAccepted' not in latest_version
+
+
 def test_transcription_versions_are_retained_in_supplemental_details():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
@@ -529,7 +564,12 @@ def test_transform_data_for_output_with_delete():
 
     retrieved_data = action.retrieve_data(mock_sup_det)
     result = action.transform_data_for_output(retrieved_data)
-    assert result == {}
+    assert result == {
+        'transcript': {
+            '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
+            '_deleted': True,
+        },
+    }
 
 
 @ddt
@@ -538,28 +578,21 @@ class AutomaticGoogleTranscriptionLimitTestCase(TestCase):
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
     @ddt_data(
-        ({'language': 'en', 'accepted': True}, False),
-        ({'language': 'en', 'accepted': False}, False),
-        ({'language': 'en', 'value': None}, False),
-        ({'language': 'en'}, True),
+        {'language': 'en', 'accepted': True},
+        {'language': 'en', 'value': None},
+        {'language': 'en'},
     )
-    @unpack
-    def test_check_limit(self, action_data, should_raise):
+    def test_check_limits_does_not_block_upfront(self, action_data):
+        # Polls of a job that already started go through `check_limits` too,
+        # so the limit is only checked when a new job starts
         u = User.objects.create(username='dummy')
-        xpath = 'group_name/question_name'  # irrelevant for this test
-        params = [{'language': 'fr'}, {'language': 'en'}]
-        action = AutomaticGoogleTranscriptionAction(xpath, params)
+        action = AutomaticGoogleTranscriptionAction('q1', [{'language': 'en'}])
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.ASR_SECONDS: {'exceeded': True}
             }
-            if should_raise:
-                with pytest.raises(UsageLimitExceededException):
-                    action.check_limits(u, action_data)
-            else:
-                action.check_limits(u, action_data)
+            action.check_limits(u, action_data)
 
-        if not should_raise:
-            patched_calculator.return_value.get_usage_balances.assert_not_called()
+        patched_calculator.return_value.get_usage_balances.assert_not_called()

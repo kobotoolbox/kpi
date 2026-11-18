@@ -6,11 +6,10 @@ import jsonschema
 import pytest
 from constance.test import override_config
 from ddt import data as ddt_data
-from ddt import ddt, unpack
+from ddt import ddt
 from django.conf import settings
 from django.test import TestCase
 
-from kpi.exceptions import UsageLimitExceededException
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
@@ -265,6 +264,62 @@ def test_result_schema_accepts_bulk_action_uid():
     latest_version_data = mock_sup_det['fr']['_versions'][0]['_data']
 
     assert latest_version_data['bulk_action_uid'] == 'bulk-action-uid'
+
+
+def test_auto_accept_stamps_date_accepted_on_completion():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'es'}]
+
+    dependencies = {
+        'question_supplemental_data': {
+            'automatic_google_transcription': {
+                '_versions': [
+                    {
+                        '_data': {
+                            'value': 'Hello world',
+                            'language': 'en',
+                            'status': 'complete',
+                        },
+                        '_dateAccepted': '2026-01-01T00:00:00Z',
+                        '_uuid': '12345678-1234-5678-1234-567812345678',
+                    }
+                ]
+            }
+        }
+    }
+
+    action = AutomaticGoogleTranslationAction(
+        xpath,
+        params,
+        prefetched_dependencies=dependencies,
+    )
+
+    mock_service = MagicMock()
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_translation'
+        '.GoogleTranslationService'
+    )
+
+    with patch(service_path, return_value=mock_service):
+        mock_service.process_data.return_value = {
+            'value': 'Bonjour',
+            'status': 'complete',
+        }
+
+        mock_sup_det = action.revise_data(
+            EMPTY_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {
+                'language': 'fr',
+                'auto_accept': True,
+            },
+        )
+
+    action.validate_result(mock_sup_det)
+
+    latest_version = mock_sup_det['fr']['_versions'][0]
+    assert latest_version['_dateAccepted']
+    assert 'auto_accept' not in latest_version['_data']
 
 
 def test_run_external_process_passes_bulk_action_uid_to_service():
@@ -687,6 +742,10 @@ def test_transform_data_for_output_with_delete():
     retrieved_data = action.retrieve_data(mock_sup_det)
     result = action.transform_data_for_output(retrieved_data)
     assert result == {
+        ('translation', 'es'): {
+            '_sortByDate': retrieved_data['es']['_versions'][0]['_dateCreated'],
+            '_deleted': True,
+        },
         ('translation', 'fr'): {
             'pendingReview': True,
             'value': '',
@@ -720,28 +779,22 @@ class AutomaticGoogleTranslationLimitTestCase(TestCase):
     @pytest.mark.skipif(not settings.STRIPE_ENABLED, reason='Stripe is not enabled')
     @override_config(USAGE_LIMIT_ENFORCEMENT=True)
     @ddt_data(
-        ({'language': 'en', 'accepted': True}, False),
-        ({'language': 'en', 'accepted': False}, False),
-        ({'language': 'en', 'value': None}, False),
-        ({'language': 'en'}, True),
+        {'language': 'en', 'accepted': True},
+        {'language': 'en', 'value': None},
+        {'language': 'en'},
     )
-    @unpack
-    def test_check_limit(self, action_data, should_raise):
+    def test_check_limits_does_not_block_upfront(self, action_data):
+        # Polls of a job that already started go through `check_limits` too,
+        # so the limit is only checked when a new job starts
         u = User.objects.create(username='dummy')
-        xpath = 'group_name/question_name'  # irrelevant for this test
         params = [{'language': 'fr'}, {'language': 'en'}]
-        action = AutomaticGoogleTranslationAction(xpath, params)
+        action = AutomaticGoogleTranslationAction('q1', params)
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator',
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator',
         ) as patched_calculator:
             patched_calculator.return_value.get_usage_balances.return_value = {
                 UsageType.MT_CHARACTERS: {'exceeded': True}
             }
-            if should_raise:
-                with pytest.raises(UsageLimitExceededException):
-                    action.check_limits(u, action_data)
-            else:
-                action.check_limits(u, action_data)
+            action.check_limits(u, action_data)
 
-        if not should_raise:
-            patched_calculator.return_value.get_usage_balances.assert_not_called()
+        patched_calculator.return_value.get_usage_balances.assert_not_called()

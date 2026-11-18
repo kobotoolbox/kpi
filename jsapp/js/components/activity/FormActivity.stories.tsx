@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
-import { getApiV2AssetsHistoryActionsRetrieveMockHandler } from '#/api/react-query/logging/msw'
+import { getAssetsHistoryActionsRetrieveMockHandler } from '#/api/react-query/logging/msw'
 import assetHistoryMock, {
   assetHistoryMockWithOngoingBulkProcessing,
   mockAssetUid,
@@ -21,7 +21,7 @@ const meta: Meta<typeof FormActivity> = {
     msw: {
       handlers: [
         // More specific handler must come first
-        getApiV2AssetsHistoryActionsRetrieveMockHandler({
+        getAssetsHistoryActionsRetrieveMockHandler({
           actions: [
             'bulk-processing',
             'disallow-anonymous-submissions',
@@ -94,7 +94,7 @@ export const OngoingBulkProcessing: Story = {
     msw: {
       handlers: [
         assetHistoryMockWithOngoingBulkProcessing,
-        getApiV2AssetsHistoryActionsRetrieveMockHandler({
+        getAssetsHistoryActionsRetrieveMockHandler({
           actions: [
             'bulk-processing',
             'disallow-anonymous-submissions',

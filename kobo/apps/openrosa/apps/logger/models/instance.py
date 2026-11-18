@@ -25,17 +25,13 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     strip_form_versions,
 )
 from kobo.apps.openrosa.libs.utils.common_tags import (
-    ATTACHMENTS,
     GEOLOCATION,
-    ID,
     MONGO_STRFTIME,
     SUBMISSION_TIME,
     SUBMITTED_BY,
-    UUID,
     XFORM_ID_STRING,
 )
 from kobo.apps.openrosa.libs.utils.model_tools import set_uuid
-from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
 
@@ -308,22 +304,6 @@ class Instance(AbstractTimeStampedModel):
             if flat
             else self._parser.to_dict()
         )
-
-    def get_full_dict(self):
-        # TODO should we store all of these in the JSON no matter what?
-        d = self.json
-        data = {
-            UUID: self.uuid,
-            ID: self.id,
-            self.USERFORM_ID: get_mongo_userform_id(self.xform, self.user.username),
-            ATTACHMENTS: [a.media_file.name for a in
-                          self.attachments.all()],
-            self.STATUS: self.status,
-        }
-
-        d.update(data)
-
-        return d
 
     def get_root_node(self):
         self._set_parser()

@@ -1,10 +1,10 @@
 import $ from 'jquery'
-import throttle from 'lodash.throttle'
+import { throttle } from 'lodash-es'
 import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
 import { HELP_MESSAGES_POLL_INTERVAL, ROOT_URL } from '#/constants'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 
 export interface InAppMessage {
   url: string
@@ -37,7 +37,7 @@ class HelpBubbleStore {
   constructor() {
     makeAutoObservable(this)
     when(
-      () => sessionStore.isLoggedIn,
+      () => profileStore.isLoggedIn,
       () => this.fetchMessages(),
     )
   }

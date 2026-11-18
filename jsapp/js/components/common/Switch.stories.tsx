@@ -54,13 +54,13 @@ export const Disabled: Story = {
  * Every combination of state and size.
  */
 export const PreviewAllVariants = () => (
-  <Stack gap='xl'>
+  <Stack gap='xxl'>
     {switchSizes.map((size) => (
       <Box key={size}>
         <Title order={4} mb='sm'>
           size: <code>{size}</code>
         </Title>
-        <Group gap='xl' align='top'>
+        <Group gap='xxl' align='top'>
           <Switch size={size} label='Off' />
           <Switch size={size} label='On' defaultChecked />
           <Switch size={size} label='Off, disabled' disabled />

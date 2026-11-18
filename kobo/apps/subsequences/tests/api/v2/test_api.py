@@ -16,8 +16,8 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.subsequences.actions.automatic_google_transcription import (
-    AutomaticGoogleTranscriptionAction,
+from kobo.apps.subsequences.integrations.google.google_transcribe import (
+    GoogleTranscriptionService,
 )
 from kobo.apps.subsequences.models import (
     QATagTracker,
@@ -1240,15 +1240,32 @@ class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
             UsageType.MT_CHARACTERS: {'exceeded': True},
         }
 
+        def build_service(service, submission, asset, *args, **kwargs):
+            service.asset = asset
+
+        def start_google_job(service, *args, **kwargs):
+            # No operation exists yet, so a new one starts
+            service._before_new_operation()
+            return {'status': 'complete', 'value': 'Hello'}
+
         with patch(
-            'kobo.apps.subsequences.actions.base.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.stripe.utils.limit_enforcement.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             with override_config(USAGE_LIMIT_ENFORCEMENT=usage_limit_enforcement):
-                with patch.object(
-                    AutomaticGoogleTranscriptionAction,
-                    'run_external_process',
-                    return_value=None,  # noqa
+                with (
+                    patch.object(
+                        GoogleTranscriptionService,
+                        '__init__',
+                        autospec=True,
+                        side_effect=build_service,
+                    ),
+                    patch.object(
+                        GoogleTranscriptionService,
+                        'process_data',
+                        autospec=True,
+                        side_effect=start_google_job,
+                    ),
                 ):
                     response = self.client.patch(
                         self.supplement_details_url, data=payload, format='json'

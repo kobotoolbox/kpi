@@ -1,0 +1,4 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktrans trimmed %}New activation link for your KoboToolbox account{% endblocktrans %}
+{% endautoescape %}

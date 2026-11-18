@@ -29,9 +29,11 @@ class MonthlyXFormSubmissionCounter(models.Model):
 
     @classmethod
     def update_catch_all_counter_on_delete(cls, sender, instance, **kwargs):
+        # Lock the owner's catch-all rows in date order, like any other
+        # deletion of the same owner, so concurrent deletions cannot deadlock
         monthly_counters = cls.objects.filter(
             xform_id=instance.pk, counter__gte=1
-        )
+        ).order_by('year', 'month')
 
         for monthly_counter in monthly_counters:
             criteria = dict(

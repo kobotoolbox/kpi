@@ -41,7 +41,7 @@ class EmailAddressSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'email': t('This action is not allowed.')}
             )
-        if organization.is_owner(user) or organization.is_admin(user):
+        if organization.is_admin(user):
             return attrs
         raise serializers.ValidationError(
             {'email': t('This action is not allowed.')}

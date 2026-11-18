@@ -1,5 +1,8 @@
+import { http, HttpResponse, delay } from 'msw'
+import type { AccountFieldsErrors } from '#/account/account.constants'
 import type { MeListResponse } from '#/api/models/meListResponse'
 import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
+import { INCORRECT_CODE_MESSAGE, VALID_CODE } from './mfa.mocks'
 
 /**
  * Mock response data for /me/ endpoint.
@@ -43,3 +46,57 @@ export const meMockResponse: MeListResponse = {
  */
 const meMock = getMeRetrieveMockHandler(meMockResponse)
 export default meMock
+
+/**
+ * Hand written handlers for `PATCH /me/`, because the interesting outcomes are the rejections and the
+ * generated handler only knows how to answer 200 with faker data.
+ *
+ * The trailing `{/}?` matches the endpoint with or without its trailing slash, the same way the generated
+ * handlers do.
+ */
+const ME_URL = '*/me{/}?'
+
+/**
+ * Profile details saved. The body is not read - the screen reloads the page on success. `delayMs` holds the
+ * answer back, so a story can click something else while the save is still in flight.
+ */
+export const meUpdateSuccessMock = ({ delayMs }: { delayMs?: number } = {}) =>
+  http.patch(ME_URL, async () => {
+    if (delayMs) {
+      await delay(delayMs)
+    }
+    return HttpResponse.json(meMockResponse)
+  })
+
+/**
+ * A rejected save, in either of the two shapes the endpoint answers in.
+ *
+ * `fieldErrors` go under `extra_details` because that is where the fields were sent, and
+ * `CurrentUserSerializer.validate_extra_details` reports them there. `detail` is what the endpoint uses for
+ * anything about the request as a whole, which has no field to sit under.
+ */
+export const meUpdateErrorsMock = ({
+  fieldErrors,
+  detail,
+  status = 400,
+}: {
+  fieldErrors?: AccountFieldsErrors
+  detail?: string
+  status?: number
+}) =>
+  http.patch(ME_URL, () =>
+    HttpResponse.json({ ...(fieldErrors && { extra_details: fieldErrors }), ...(detail && { detail }) }, { status }),
+  )
+
+/** A password change, checked the way the backend does: with 2FA on it needs a valid `mfa_code` too */
+export const mePasswordChangeMock = ({ isMfaActive }: { isMfaActive: boolean }) =>
+  http.patch(ME_URL, async ({ request }) => {
+    const { mfa_code } = (await request.json()) as { mfa_code?: string }
+    if (isMfaActive && !mfa_code) {
+      return HttpResponse.json({ mfa_code: ['This field is required.'] }, { status: 400 })
+    }
+    if (isMfaActive && mfa_code !== VALID_CODE) {
+      return HttpResponse.json({ mfa_code: [INCORRECT_CODE_MESSAGE] }, { status: 400 })
+    }
+    return HttpResponse.json(meMockResponse)
+  })

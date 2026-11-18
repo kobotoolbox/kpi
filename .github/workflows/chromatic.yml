@@ -1,8 +1,12 @@
-name: Daily Chromatic test
+name: Twice-weekly Chromatic test
 
 on:
   schedule:
-    - cron: "7 6 * * *"
+    # Tuesdays and Thursdays, to stay under Chromatic's free snapshot limit.
+    - cron: "7 6 * * 2,4"
+
+permissions:
+  contents: read
 
 jobs:
   get-commit-title:
@@ -38,9 +42,12 @@ jobs:
         run: echo ${{ github.sha }}
       - id: should-run
         continue-on-error: true
-        name: Check if latest commit is less than a day
+        name: Check if latest commit is newer than the previous run
         if: ${{ github.event_name == 'schedule' }}
-        run: test -z $(git rev-list  --after="24 hours"  ${{ github.sha }}) && echo "::set-output name=should-run::false"
+        # Look back to the previous run: 5 days on Tuesday, 2 on Thursday. Keep in sync with the cron.
+        run: |
+          if [ "$(date -u +%u)" = "2" ]; then since="5 days"; else since="2 days"; fi
+          test -z "$(git rev-list --after="$since" ${{ github.sha }})" && echo "should-run=false" >> "$GITHUB_OUTPUT"
 
   chromatic:
     name: Run Chromatic test

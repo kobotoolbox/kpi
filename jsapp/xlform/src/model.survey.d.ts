@@ -36,6 +36,8 @@ export interface FlatSurvey {
   survey: FlatRow[]
   choices?: FlatChoice[]
   settings: Record<string, any>[]
+  /** The form's languages, default first. Only written out when the form is being saved. */
+  translations?: Array<string | null>
   [key: string]: any
 }
 
@@ -105,7 +107,8 @@ export class Survey extends SurveyFragment {
   toCSV(): string
 
   _ensure_row_list_is_copied(row: any): void
-  _ensure_row_name_is_unique(row: any): void
+  _ensure_row_name_is_unique(row: any, renames: Record<string, string>): void
+  _rename_row_references(row: any, renames: Record<string, string>): void
   _is_row_name_taken(nameDetail: any): boolean
   _insertRowInPlace(row: any, opts?: any): void
 

@@ -11,7 +11,3 @@ class OpenRosaReadOnlyModelViewSet(
     OpenRosaGenericView, viewsets.ReadOnlyModelViewSet
 ):
     pass
-
-
-class OpenRosaModelViewSet(OpenRosaGenericView, viewsets.ModelViewSet):
-    pass

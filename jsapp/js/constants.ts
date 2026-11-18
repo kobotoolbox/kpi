@@ -72,11 +72,7 @@ export enum KeyNames {
 export const MODAL_TYPES = {
   UPLOADING_XLS: 'uploading-xls',
   NEW_FORM: 'new-form',
-  LIBRARY_NEW_ITEM: 'library-new-item',
   LIBRARY_UPLOAD: 'library-upload',
-  ENKETO_PREVIEW: 'enketo-preview',
-  SUBMISSION: 'submission',
-  REPLACE_PROJECT: 'replace-project',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
   MFA_MODALS: 'mfa-modals',
 }
@@ -177,6 +173,13 @@ export const ASSET_TYPES: AssetTypes = {
     id: AssetTypeName.collection,
     label: t('collection'),
   },
+}
+
+/** Project deployment status labels, in the default sort order. */
+export const DEPLOYMENT_STATUS_LABELS: Record<'deployed' | 'draft' | 'archived', string> = {
+  deployed: t('Deployed'),
+  draft: t('Draft'),
+  archived: t('Archived'),
 }
 
 export type AssetFileType = 'map_layer' | 'form_media'
@@ -510,8 +513,6 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name',
 }
 
-export const QUERY_LIMIT_DEFAULT = 1000
-
 export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
   form_media: 50,
   connect_projects: 30,
@@ -672,7 +673,6 @@ const constants = {
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
   MAX_DISPLAYED_STRING_LENGTH,
   SURVEY_DETAIL_ATTRIBUTES,
@@ -688,9 +688,6 @@ const constants = {
   IMPORT_STATUS_POLL_INTERVAL,
   HELP_MESSAGES_POLL_INTERVAL,
 }
-
-export const HELP_ARTICLE_ANON_SUBMISSIONS_URL =
-  'project_sharing_settings.html#allowing-submissions-without-authentication'
 
 export const XML_VALUES_OPTION_VALUE = 'xml_values'
 

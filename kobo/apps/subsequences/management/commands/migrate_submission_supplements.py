@@ -13,15 +13,6 @@ from kpi.models import Asset
 
 CHUNK_SIZE = 500
 
-QUAL_TYPE_MAP = {
-    'qual_select_one': 'qualSelectOne',
-    'qual_select_multiple': 'qualSelectMultiple',
-    'qual_text': 'qualText',
-    'qual_integer': 'qualInteger',
-    'qual_tags': 'qualTags',
-    'qual_note': 'qualNote',
-}
-
 
 class Command(BaseCommand):
     """

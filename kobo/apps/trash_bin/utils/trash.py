@@ -98,10 +98,6 @@ def move_to_trash(
         task_name_placeholder
     ) = _get_settings(trash_type, retain_placeholder)
 
-    updated_items, update_count = trash_model.toggle_statuses(
-        [obj_dict[unique_identifier] for obj_dict in objects_list], active=False
-    )
-
     if not retain_placeholder:
         # Total deletion, without retaining any placeholder, supersedes
         # existing requests to retain placeholders. Delete those requests
@@ -168,6 +164,15 @@ def move_to_trash(
     trash_model.objects.bulk_update(updated_trash_objects, fields=['periodic_task_id'])
 
     _build_log_entries(objects_list, request_author, related_model, trash_type)
+
+    # Last, after every write on the KPI database. Attachments and projects are
+    # toggled in their own transaction on the KoboCAT database, which commits
+    # on its own, before this one: if anything above failed after it, the
+    # objects would stay trashed, with their storage subtracted, but without
+    # trash entries. Here, a KoboCAT failure rolls back the KPI writes too.
+    updated_items, update_count = trash_model.toggle_statuses(
+        [obj_dict[unique_identifier] for obj_dict in objects_list], active=False
+    )
     return updated_items, update_count
 
 
@@ -257,10 +262,6 @@ def put_back(
         _get_settings(trash_type)
     )
 
-    updated_items, update_count = trash_model.toggle_statuses(
-        [obj_dict[unique_identifier] for obj_dict in objects_list], active=True
-    )
-
     obj_ids = [obj_dict['pk'] for obj_dict in objects_list]
     queryset = trash_model.objects.filter(
         status=TrashStatus.PENDING, **{f'{fk_field_name}__in': obj_ids}
@@ -293,6 +294,15 @@ def put_back(
 
     with temporarily_disconnect_signals(delete=True):
         PeriodicTask.objects.only('pk').filter(pk__in=periodic_task_ids).delete()
+
+    # Last, for the same reason as in `move_to_trash()`. In particular,
+    # `TrashTaskInProgressError` above must be raised before the objects are
+    # restored on the KoboCAT database: otherwise they would be restored, with
+    # their storage added back, while their trash entries stay and still get
+    # them deleted.
+    updated_items, update_count = trash_model.toggle_statuses(
+        [obj_dict[unique_identifier] for obj_dict in objects_list], active=True
+    )
     return updated_items, update_count
 
 
@@ -322,7 +332,7 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
     with transaction.atomic():
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
 
-        error = str(exception)
+        error = _format_failure_error(exception)
         obj_trash.metadata['failure_error'] = error
 
         # Transient failures (OOM kill, MongoDB unreachable, deadlock, Celery
@@ -342,10 +352,10 @@ def trash_bin_task_failure(model: TrashBinModel, **kwargs):
 
 def trash_bin_task_retry(model: TrashBinModel, **kwargs):
     obj_trash_id = kwargs['request'].get('args')[0]
-    exception = str(kwargs['reason'])
     with transaction.atomic():
         obj_trash = model.objects.select_for_update().get(pk=obj_trash_id)
-        obj_trash.metadata['failure_error'] = str(exception)
+        error = _format_failure_error(kwargs['reason'])
+        obj_trash.metadata['failure_error'] = error
         obj_trash.status = TrashStatus.RETRY
         obj_trash.save(update_fields=['status', 'metadata', 'date_modified'])
 
@@ -383,6 +393,14 @@ def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
         AuditLog.objects.bulk_create(audit_logs)
     if project_history_logs:
         ProjectHistoryLog.objects.bulk_create(project_history_logs)
+
+
+def _format_failure_error(exception: Exception | str) -> str:
+    """
+    Argless exceptions (e.g. a bare `TrashTaskInProgressError`) stringify to
+    an empty string; fall back to `repr()` so `failure_error` is never empty
+    """
+    return str(exception) or repr(exception)
 
 
 def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:

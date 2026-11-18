@@ -1,0 +1,14 @@
+// `scss/stylesheets/partials/_base.scss` drops list markers app wide, and `Typography` sets only the
+// indent, so a list would arrive here unmarked.
+.root :global ul {
+  list-style: disc;
+}
+
+.root :global ol {
+  list-style: decimal;
+}
+
+// Spacing around the block is the parent's job.
+.root > :last-child {
+  margin-bottom: 0;
+}

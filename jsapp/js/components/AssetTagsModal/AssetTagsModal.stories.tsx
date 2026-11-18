@@ -1,7 +1,7 @@
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import ButtonNew from '#/components/common/ButtonNew'
 import type { AssetResponse } from '#/dataInterface'
 import { assetPatchMock } from '#/endpoints/asset.mocks'
@@ -13,7 +13,7 @@ import { openAssetTagsModal } from './openAssetTagsModal'
 // The types are structurally compatible at runtime, differences are:
 // - Optional fields (date_created, date_modified) that are always present in responses
 // - Legacy type has looser field types for backward compatibility
-const mockAsset = getApiV2AssetsRetrieveResponseMock({
+const mockAsset = getAssetsRetrieveResponseMock({
   uid: 'storyAssetTagsUid',
   name: 'Storybook Asset Tags',
   tag_string: 'alpha,beta',
@@ -103,8 +103,8 @@ export const UpdateTagsFlow: Story = {
         await expect(canvas.getByRole('dialog', { name: 'Edit tags' })).toBeInTheDocument()
       })
 
-      // Wait for the session store to load and the form to become interactive.
-      // The modal shows a loading spinner until sessionStore.isInitialLoadComplete is true.
+      // Wait for the profile store to load and the form to become interactive.
+      // The modal shows a loading spinner until profileStore.isInitialLoadComplete is true.
       await waitFor(async () => {
         await expect(canvas.getByRole('textbox')).toBeInTheDocument()
       })

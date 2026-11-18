@@ -26,9 +26,11 @@ class DailyXFormSubmissionCounter(models.Model):
 
     @classmethod
     def update_catch_all_counter_on_delete(cls, sender, instance, **kwargs):
+        # Lock the owner's catch-all rows in date order, like any other
+        # deletion of the same owner, so concurrent deletions cannot deadlock
         daily_counters = cls.objects.filter(
             xform_id=instance.pk, counter__gte=1
-        )
+        ).order_by('date')
 
         for daily_counter in daily_counters:
             criteria = dict(

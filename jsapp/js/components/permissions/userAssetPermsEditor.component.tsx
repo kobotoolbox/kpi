@@ -1,5 +1,5 @@
 import { Checkbox } from '@mantine/core'
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import React from 'react'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
@@ -92,7 +92,7 @@ export default class UserAssetPermsEditor extends React.Component<
   constructor(props: UserAssetPermsEditorProps) {
     super(props)
 
-    this.state = this.applyPropsData(clonedeep(EMPTY_EDITOR_STATE))
+    this.state = this.applyPropsData(cloneDeep(EMPTY_EDITOR_STATE))
   }
 
   /**
@@ -156,7 +156,7 @@ export default class UserAssetPermsEditor extends React.Component<
    * being up to date regardless which one changed.
    */
   onCheckboxChange(checkboxName: CheckboxNameAll, isChecked: boolean) {
-    let output = clonedeep(this.state)
+    let output = cloneDeep(this.state)
     // Mark username as not pristine to make it clear the input needs to be filled in
     output = Object.assign(output, { [checkboxName]: isChecked, isUsernamePristine: false })
     this.setState(applyValidityRules(output, this.props.assignablePerms))
@@ -197,6 +197,7 @@ export default class UserAssetPermsEditor extends React.Component<
     if (this.checkedUsernames.has(usernameToCheck) && this.checkedUsernames.get(usernameToCheck) === false) {
       this.notifyUnknownUser(usernameToCheck)
       this.setState({ username: '' })
+      return
     }
 
     // If we didn't check for user, we do it here (and cache result).
@@ -235,7 +236,7 @@ export default class UserAssetPermsEditor extends React.Component<
    * Generic function for updating partial users text input
    */
   onPartialUsersChange(prop: PartialByUsersListName, users: string) {
-    let output = clonedeep(this.state)
+    let output = cloneDeep(this.state)
     output = Object.assign(output, {
       [prop]: users.split(USERNAMES_SEPARATOR).map((user) => user.trim()),
     })
@@ -391,7 +392,7 @@ export default class UserAssetPermsEditor extends React.Component<
                   value={this.state[questionProp]}
                   onChange={(newSelectedOption) => {
                     // Update state object in non mutable way
-                    let output = clonedeep(this.state)
+                    let output = cloneDeep(this.state)
                     output = Object.assign(output, {
                       [questionProp]: newSelectedOption,
                     })
@@ -409,7 +410,7 @@ export default class UserAssetPermsEditor extends React.Component<
                   size='sm'
                   onChange={(evt) => {
                     // Update state object in non mutable way
-                    let output = clonedeep(this.state)
+                    let output = cloneDeep(this.state)
                     output = Object.assign(output, {
                       [valueProp]: evt.currentTarget.value,
                     })
@@ -423,7 +424,7 @@ export default class UserAssetPermsEditor extends React.Component<
                 size='md'
                 onClick={() => {
                   // Update state object in non mutable way
-                  let output = clonedeep(this.state)
+                  let output = cloneDeep(this.state)
                   output = Object.assign(output, {
                     [questionProp]: null,
                     [valueProp]: '',

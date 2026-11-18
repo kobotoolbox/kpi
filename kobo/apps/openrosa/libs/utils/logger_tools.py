@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import functools
 import hashlib
 import logging
 import os
@@ -24,7 +25,6 @@ from django.conf import settings
 from django.core.exceptions import (
     MultipleObjectsReturned,
     PermissionDenied,
-    ValidationError,
 )
 from django.core.files.base import File
 from django.core.mail import mail_admins
@@ -39,9 +39,6 @@ from django.http import (
 from django.utils import timezone as dj_timezone
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_str
 from django.utils.translation import gettext as t
-from modilabs.utils.subprocess_timeout import ProcessTimedOut
-from pyxform.errors import PyXFormError
-from pyxform.xform2json import create_survey_element_from_xml
 from rest_framework.exceptions import NotAuthenticated
 
 from kobo.apps.data_collectors.authentication import DataCollectorUser
@@ -69,7 +66,6 @@ from kobo.apps.openrosa.apps.logger.models.instance import (
     InstanceHistory,
     get_id_string_from_xml_str,
 )
-from kobo.apps.openrosa.apps.logger.models.xform import XLSFormError
 from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_daily_counter,
     update_xform_monthly_counter,
@@ -90,17 +86,21 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.utils import common_tags
-from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator, set_uuid
+from kobo.apps.openrosa.libs.utils.model_tools import queryset_iterator
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
+from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limits
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
-from kpi.fields.kpi_uid import UUID_LENGTH
 from kpi.utils.files import normalize_nfc
+from kpi.utils.form_versions import (
+    get_collected_version_uid,
+    load_deployed_version_ids,
+    version_uid_regex,
+)
 from kpi.utils.hash import calculate_hash
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_database_user
@@ -108,77 +108,100 @@ from kpi.utils.usage_calculator import ServiceUsageCalculator
 from kpi.utils.xml import fromstring_preserve_root_xmlns
 
 OPEN_ROSA_VERSION_HEADER = 'X-OpenRosa-Version'
-HTTP_OPEN_ROSA_VERSION_HEADER = 'HTTP_X_OPENROSA_VERSION'
 OPEN_ROSA_VERSION = '1.0'
 DEFAULT_CONTENT_TYPE = 'text/xml; charset=utf-8'
 DEFAULT_CONTENT_LENGTH = settings.OPENROSA_DEFAULT_CONTENT_LENGTH
 
-uuid_regex = re.compile(r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>',
-                        re.DOTALL)
+form_uuid_regex = re.compile(
+    r'<formhub>\s*<uuid>\s*([^<]+)\s*</uuid>\s*</formhub>', re.DOTALL
+)
 
 mongo_instances = settings.MONGO_DB.instances
-
-# A KPI `AssetVersion` uid: the `v` prefix of its `KpiUidField`, then exactly
-# `UUID_LENGTH` characters from `shortuuid`'s alphabet, which is alphanumeric.
-# Anything else is discarded rather than written back into the document
-version_uid_regex = re.compile(rf'^v[A-Za-z0-9]{{{UUID_LENGTH}}}$')
 
 
 def add_form_versions(xml: str, xform: XForm, previous_xml: str | None = None) -> str:
     """
-    Tag the submission with every form version it has been through.
+    Write to `meta/formVersions` the versions of the form whose fields the
+    submission's answers belong to, oldest first, as a space-separated list.
+    That is where the fields of a submission are looked up.
 
-    A submission spans more than one version in two situations:
-    - it is edited, through Enketo or through a bulk edit, while a newer
-      version of the form is deployed;
-    - it is collected offline with an older version and sent only after a
-      newer one has been deployed.
+    - A new submission records the version that it was collected with, when that is
+      not the deployed one, i.e. it was collected offline and sent once a newer
+      version was deployed. The deployed version is left out: none of the
+      answers were given against it.
+    - An edit records the history of the record being edited, the version that it
+      was collected with, the version that the incoming XML declares, and the
+      deployed version, since a bulk edit keeps the old `__version__` while
+      writing answers that the deployed form asks for.
 
-    The versions are written to `meta/formVersions` as a space-separated list,
-    oldest first. `__version__` is left untouched. When there is nothing to
-    record, which is the case for the vast majority of submissions, the XML is
+    `__version__` is left untouched. When the deployed version alone describes
+    the submission, which is the case for the vast majority of them, the XML is
     returned unchanged so that it keeps the exact bytes the client sent.
 
     `previous_xml` is the submission being edited, and it is the only source of
     history: what the incoming XML claims under `meta/formVersions` is
-    discarded, since a client could otherwise drop the versions it has really
+    discarded, since a client could otherwise drop the versions that it has really
     been through. A new submission passes `None` and starts from nothing.
+
+    The version that a submission was collected with is read by
+    `get_collected_version_uid()`. It is `__version__` for a recent one, and
+    the asset's versions are only loaded for an old one, which may name its
+    version under other nodes, by a reversion id or by an alias.
 
     The node is read through `ElementTree` but written textually, so that
     `strip_form_versions()` gives the client payload back byte for byte and
     `xml_hash` keeps identifying what was actually submitted.
+
+    A version already in the history is never removed.
     """
 
     deployed_version_uid = xform.deployed_version_uid
+    # Loaded once at most, and only for a submission old enough to need it
+    load_version_ids = functools.cache(
+        lambda: load_deployed_version_ids(xform.kpi_asset_uid)
+    )
 
     xml_parsed = fromstring_preserve_root_xmlns(xml)
-    _, submission_version = _get_form_versions(xml_parsed)
+    submission_version = get_collected_version_uid(xml_parsed, load_version_ids)
 
     form_versions = []
     if previous_xml is not None:
         # 1) Retrieve every version the record being edited has already been through…
         # Don't trust what the client sent, retrieve form versions from previous version
-        form_versions, previous_version = _get_form_versions(
-            fromstring_preserve_root_xmlns(previous_xml)
+        previous_xml_parsed = fromstring_preserve_root_xmlns(previous_xml)
+        form_versions, _ = _get_form_versions(previous_xml_parsed)
+        previous_version = get_collected_version_uid(
+            previous_xml_parsed, load_version_ids
         )
         if previous_version and previous_version not in form_versions:
             # `meta/formVersions` is absent from a record that only ever knew
-            # one version, so its `__version__` is the only trace of it
+            # one version, so the version that it was collected with is the only
+            # trace of it
             form_versions.append(previous_version)
 
     if submission_version and submission_version not in form_versions:
-        # 2) … then, the version the client says it collected with
+        # 2) … then, the version that the client says it collected with
         form_versions.append(submission_version)
 
-    if deployed_version_uid and deployed_version_uid not in form_versions:
-        # 3) … and last, the version deployed when the submission arrived. A
-        # form we cannot place has none, which is a reason to add nothing,
-        # never a reason to drop the history above
+    if (
+        previous_xml is not None
+        and deployed_version_uid
+        and deployed_version_uid not in form_versions
+    ):
+        # 3) … and last, on an edit, the version deployed when it arrived: a
+        # bulk edit keeps the old `__version__` while writing answers the
+        # deployed form asks for. A new submission collected offline gave none
+        # of its answers against it, so it is left out. A form we cannot place
+        # has none, which is a reason to add nothing, never a reason to drop
+        # the history above
         form_versions.append(deployed_version_uid)
 
-    if len(form_versions) < 2:
-        # A single version, so nothing worth recording. Stripping also clears a
-        # node the client made up, or one inherited by `duplicate_submission()`
+    if len(form_versions) < 2 and (
+        not deployed_version_uid or form_versions in ([], [deployed_version_uid])
+    ):
+        # Only the deployed version, or no way to tell it apart, so nothing
+        # worth recording. Stripping also clears a node that the client made up, or
+        # one inherited by `duplicate_submission()`
         return strip_form_versions(xml)
 
     form_versions_text = ' '.join(form_versions)
@@ -247,14 +270,13 @@ def check_edit_submission_permissions(
 
 
 def create_instance(
-    username: str,
     xml_file: File,
     media_files: Generator[File],
+    request: 'rest_framework.request.Request',
     status: str = 'submitted_via_web',
-    uuid: str = None,
     date_created_override: datetime = None,
-    request: Optional['rest_framework.request.Request'] = None,
     check_usage_limits: bool = True,
+    owner_username: str = None,
 ) -> Instance:
     """
     Processes form submissions by creating or updating an Instance in an atomic
@@ -276,16 +298,23 @@ def create_instance(
     content.
 
     Parameters:
-        username (str):  The username associated with the submission.
         xml_file (File): A file-like object containing the XML form submission.
         media_files (Generator[File]): Generator yielding media file objects.
+        request (Request): Request whose user is the submitter, used for
+                           permission checks.
         status (str, optional): Submission status (default 'submitted_via_web').
-        uuid (str, optional): Unique identifier for the submission.
         date_created_override (datetime, optional): Override for the submission's
                                                     creation date.
-        request (Optional[Request]): Request object used for permission checks.
         check_usage_limits (bool, optional): Bypasses enforcement of limits for
                                              submissions/storage.
+        owner_username (str, optional): Username of the form owner, used only to
+                                        locate the form when `formhub/uuid` does
+                                        not identify it. It lets the lookup fall
+                                        back on `id_string` when the XML has no
+                                        `formhub/uuid`, and picks the form owned
+                                        by this user when several forms share
+                                        that `id_string`. Permission checks rely
+                                        on `request.user` only.
 
     Returns:
         Instance: The updated or newly created submission instance
@@ -302,12 +331,12 @@ def create_instance(
                                         processed.
         PermissionDenied: If the submission fails permission checks.
     """
-    if username:
-        username = username.lower()
+    if owner_username:
+        owner_username = owner_username.lower()
 
     xml = smart_str(xml_file.read())
     validate_xml_chars(xml)
-    xform = get_xform_from_submission(xml, username, uuid)
+    xform = get_xform_from_submission(xml, owner_username)
     check_submission_permissions(request, xform)
     # `Instance.get_hash()` excludes `meta/formVersions`, so duplicate detection
     # compares what the client sent and stays unaffected by a redeployment
@@ -320,13 +349,17 @@ def create_instance(
     ):
         calculator = ServiceUsageCalculator(xform.user)
         balances = calculator.get_usage_balances()
-        for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]:
-            balance = balances[usage_type]
-            if balance and balance['exceeded']:
-                check_exceeded_limit(xform.user, UsageType.SUBMISSION)
-                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
+        exceeded_types = [
+            usage_type
+            for usage_type in [UsageType.STORAGE_BYTES, UsageType.SUBMISSION]
+            if balances[usage_type] and balances[usage_type]['exceeded']
+        ]
+        if exceeded_types:
+            check_exceeded_limits(
+                xform.user, [UsageType.SUBMISSION, UsageType.STORAGE_BYTES]
+            )
 
-                raise ExceededUsageLimitError({'type': usage_type})
+            raise ExceededUsageLimitError({'type': exceeded_types[0]})
 
     # get root uuid
     root_uuid, fallback_on_uuid = get_root_uuid_from_xml(xml)
@@ -433,8 +466,10 @@ def create_instance(
             )
 
             if settings.STRIPE_ENABLED:
-                check_exceeded_limit(xform.user, UsageType.SUBMISSION)
-                check_exceeded_limit(xform.user, UsageType.STORAGE_BYTES)
+                check_exceeded_limits(
+                    xform.user,
+                    [UsageType.SUBMISSION, UsageType.STORAGE_BYTES],
+                )
 
             return instance
 
@@ -532,25 +567,24 @@ def get_instance_or_404(**criteria):
         raise Http404
 
 
-def get_uuid_from_submission(xml):
+def get_form_uuid_from_submission(xml):
     # parse UUID from uploaded XML
-    split_xml = uuid_regex.split(xml)
+    split_xml = form_uuid_regex.split(xml)
 
     # check that xml has UUID
     return len(split_xml) > 1 and split_xml[1] or None
 
 
-def get_xform_from_submission(xml, username, uuid=None):
-    # check alternative form submission ids
-    uuid = uuid or get_uuid_from_submission(xml)
+def get_xform_from_submission(xml, owner_username):
+    form_uuid = get_form_uuid_from_submission(xml)
 
-    if not username and not uuid:
+    if not owner_username and not form_uuid:
         raise InstanceInvalidUserError()
 
-    if uuid:
+    if form_uuid:
         # try to find the form by its uuid which is the ideal condition
         try:
-            xform = XForm.objects.select_related('user').get(uuid=uuid)
+            xform = XForm.objects.select_related('user').get(uuid=form_uuid)
         except XForm.DoesNotExist:
             pass
         else:
@@ -594,7 +628,7 @@ def get_xform_from_submission(xml, username, uuid=None):
             owned = [
                 xform
                 for xform in conforming
-                if username and xform.user.username == username
+                if owner_username and xform.user.username == owner_username
             ]
             if len(owned) == 1:
                 return owned[0]
@@ -695,44 +729,6 @@ def http_open_rosa_error_handler(func, request):
     yield result
 
 
-def inject_instanceid(xml_str, uuid):
-    if get_uuid_from_xml(xml_str) is None:
-        xml = clean_and_parse_xml(xml_str)
-        children = xml.childNodes
-        if children.length == 0:
-            raise ValueError(t('XML string must have a survey element.'))
-
-        # check if we have a meta tag
-        survey_node = children.item(0)
-        meta_tags = [
-            n
-            for n in survey_node.childNodes
-            if n.nodeType == Node.ELEMENT_NODE and n.tagName.lower() == 'meta'
-        ]
-        if len(meta_tags) == 0:
-            meta_tag = xml.createElement('meta')
-            xml.documentElement.appendChild(meta_tag)
-        else:
-            meta_tag = meta_tags[0]
-
-        # check if we have an instanceID tag
-        uuid_tags = [
-            n
-            for n in meta_tag.childNodes
-            if n.nodeType == Node.ELEMENT_NODE and n.tagName == 'instanceID'
-        ]
-        if len(uuid_tags) == 0:
-            uuid_tag = xml.createElement('instanceID')
-            meta_tag.appendChild(uuid_tag)
-        else:
-            uuid_tag = uuid_tags[0]
-        # insert meta and instanceID
-        text_node = xml.createTextNode('uuid:%s' % uuid)
-        uuid_tag.appendChild(text_node)
-        return xml.toxml()
-    return xml_str
-
-
 def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     """
     Check the status of records in the PostgreSQL db versus MongoDB.
@@ -809,54 +805,6 @@ def mongo_sync_status(remongo=False, update_all=False, user=None, xform=None):
     return report_string
 
 
-def publish_form(callback):
-    try:
-        return callback()
-    except (PyXFormError, XLSFormError) as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-    except IntegrityError as e:
-        return {
-            'type': 'alert-error',
-            'text': str(e),
-        }
-    except ValidationError as e:
-        # on clone invalid URL
-        return {
-            'type': 'alert-error',
-            'text': t('Invalid URL format.'),
-        }
-    except AttributeError as e:
-        # form.publish returned None, not sure why...
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-    except ProcessTimedOut as e:
-        # catch timeout errors
-        return {
-            'type': 'alert-error',
-            'text': t('Form validation timeout, please try again.'),
-        }
-    except Exception as e:
-        # TODO: Something less horrible. This masks storage backend
-        # `ImportError`s and who knows what else
-
-        # ODK validation errors are vanilla errors and it masks a lot of regular
-        # errors if we try to catch it so let's catch it, BUT reraise it
-        # if we don't see typical ODK validation error messages in it.
-        if 'ODK Validate Errors' not in str(e):
-            raise
-
-        # error in the XLS file; show an error to the user
-        return {
-            'type': 'alert-error',
-            'text': str(e)
-        }
-
-
 def publish_xls_form(xls_file, user, id_string=None):
     """
     Creates or updates a DataDictionary with supplied xls_file,
@@ -879,18 +827,6 @@ def publish_xls_form(xls_file, user, id_string=None):
         except IntegrityError as e:
             raise e
         return dd
-
-
-def publish_xml_form(xml_file, user):
-    xml = smart_str(xml_file.read())
-    survey = create_survey_element_from_xml(xml)
-    form_json = survey.to_json()
-    dd = DataDictionary(user=user, xml=xml, json=form_json)
-    dd.mark_start_time_boolean()
-    set_uuid(dd)
-    dd.set_uuid_in_xml()
-    dd.save()
-    return dd
 
 
 def report_exception(subject, info, exc_info=None):
@@ -939,26 +875,30 @@ def response_with_mimetype_and_name(
 
 
 def safe_create_instance(
-    username: str,
     xml_file: File,
-    media_files: Union[list, Generator[File]],
-    uuid: Optional[str] = None,
-    date_created_override: Optional[datetime] = None,
-    request: Optional['rest_framework.request.Request'] = None,
+    media_files: Generator[File],
+    request: 'rest_framework.request.Request',
+    status: str = 'submitted_via_web',
+    date_created_override: datetime = None,
+    check_usage_limits: bool = True,
+    owner_username: str = None,
 ):
-    """Create an instance and catch exceptions.
+    """
+    Create an instance and catch exceptions.
 
     :returns: A list [error, instance] where error is None if there was no
         error.
     """
+
     with http_open_rosa_error_handler(
         lambda: create_instance(
-            username,
-            xml_file,
-            media_files,
-            uuid=uuid,
-            date_created_override=date_created_override,
+            xml_file=xml_file,
+            media_files=media_files,
             request=request,
+            status=status,
+            date_created_override=date_created_override,
+            check_usage_limits=check_usage_limits,
+            owner_username=owner_username,
         ),
         request,
     ) as handler:
@@ -1074,32 +1014,42 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
         .order_by('-id')
     )
 
-    latest_attachments, remaining_attachments_ids = [], []
+    attachments_to_soft_delete = {}
     basename_set = set(basenames)
     for attachment in queryset:
         # Legacy rows may be stored in NFD; normalize both sides before comparing
         normalized_basename = normalize_nfc(attachment.media_file_basename)
         if normalized_basename in basename_set:
-            latest_attachments.append(attachment)
             basename_set.remove(normalized_basename)
         else:
-            remaining_attachments_ids.append(attachment.id)
-    remaining_attachments = queryset.filter(id__in=remaining_attachments_ids)
-    soft_deleted_attachments = list(remaining_attachments)
+            attachments_to_soft_delete[attachment.id] = attachment
 
+    if not attachments_to_soft_delete:
+        return []
+
+    # Return only the attachments this `UPDATE` actually soft-deleted. Between
+    # the loop above and this `UPDATE`, another request may have moved one of
+    # them to the trash. The trash already subtracted its size from the storage
+    # counter, and the `UPDATE` skips it because it is no longer active.
+    # Returning it anyway would make the caller subtract its size a second time.
+    #
     # The query below updates only the database records, not the in-memory
     # `Attachment` objects.
     # As a result, the `deleted_at` attribute of `Attachment` objects remains `None`
     # in memory after the update.
     # This behavior is necessary to allow the signal to handle file deletion from
     # storage.
-    remaining_attachments.update(
-        date_modified=dj_timezone.now(),
-        deleted_at=dj_timezone.now(),
+    now = dj_timezone.now()
+    changed_rows = Attachment.objects.filter(
+        id__in=list(attachments_to_soft_delete)
+    ).update_returning(
+        fields=['id'],
+        date_modified=now,
+        deleted_at=now,
         delete_status=AttachmentDeleteStatus.SOFT_DELETED,
     )
 
-    return soft_deleted_attachments
+    return [attachments_to_soft_delete[row['id']] for row in changed_rows]
 
 
 def get_submission_media_basenames(

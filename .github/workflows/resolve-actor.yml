@@ -1,0 +1,31 @@
+name: Resolve actor to Zulip mention
+
+on:
+  workflow_call:
+    outputs:
+      mention:
+        description: 'Zulip @**Name** mention for the actor who triggered the run, empty if not found'
+        value: ${{ jobs.resolve.outputs.mention }}
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-24.04
+    outputs:
+      mention: ${{ steps.resolve.outputs.mention }}
+    steps:
+      - name: Resolve actor to Zulip mention
+        id: resolve
+        env:
+          MAP: ${{ vars.ZULIP_USERNAME_MAP }}
+          ACTOR: ${{ github.actor }} # Whoever triggered the run: pusher, UI merger, or workflow caller.
+        run: |
+          ZULIP_NAME=""
+          if [[ -n "$MAP" ]]; then
+            ZULIP_NAME=$(echo "$MAP" | jq -r --arg user "$ACTOR" '.[$user] // empty' 2>/dev/null || true)
+          fi
+          if [[ -n "$ZULIP_NAME" ]]; then
+            echo "mention=@**${ZULIP_NAME}**" >> "$GITHUB_OUTPUT"
+          fi

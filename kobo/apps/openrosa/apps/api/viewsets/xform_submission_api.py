@@ -14,7 +14,7 @@ from rest_framework.authentication import get_authorization_header
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.parsers import FormParser, JSONParser
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
@@ -24,7 +24,10 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs import filters
 from kobo.apps.openrosa.libs.mixins.openrosa_headers_mixin import OpenRosaHeadersMixin
-from kobo.apps.openrosa.libs.renderers.renderers import TemplateXMLRenderer
+from kobo.apps.openrosa.libs.renderers.renderers import (
+    OpenRosaBasicHTMLRenderer,
+    TemplateXMLRenderer,
+)
 from kobo.apps.openrosa.libs.serializers.data_serializer import SubmissionSerializer
 from kobo.apps.openrosa.libs.utils.logger_tools import (
     UnauthenticatedEditAttempt,
@@ -134,7 +137,12 @@ def create_instance_from_xml(username, request):
     xml_file_list = request.FILES.pop('xml_submission_file', [])
     xml_file = xml_file_list[0] if len(xml_file_list) else None
     media_files = request.FILES.values()
-    return safe_create_instance(username, xml_file, media_files, None, request=request)
+    return safe_create_instance(
+        xml_file=xml_file,
+        media_files=media_files,
+        request=request,
+        owner_username=username,
+    )
 
 
 def create_instance_from_json(username, request):
@@ -152,7 +160,12 @@ def create_instance_from_json(username, request):
     xml_string = dict2xform(submission_joined, dict_form.get('id'))
 
     xml_file = io.StringIO(xml_string)
-    return safe_create_instance(username, xml_file, [], None, request=request)
+    return safe_create_instance(
+        xml_file=xml_file,
+        media_files=[],
+        request=request,
+        owner_username=username,
+    )
 
 
 @extend_schema_view(
@@ -295,7 +308,11 @@ class XFormSubmissionApi(
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     model = Instance
     permission_classes = (permissions.AllowAny,)
-    renderer_classes = (TemplateXMLRenderer, JSONRenderer, BrowsableAPIRenderer)
+    renderer_classes = (
+        TemplateXMLRenderer,
+        JSONRenderer,
+        OpenRosaBasicHTMLRenderer,
+    )
     serializer_class = SubmissionSerializer
     template_name = 'submission.xml'
     log_type = AuditType.PROJECT_HISTORY

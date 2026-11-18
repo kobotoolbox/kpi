@@ -123,6 +123,7 @@ BulkActionResponse = inline_serializer_class(
         'submission_uuids': serializers.ListField(child=serializers.CharField()),
         'submission_statuses': BulkActionSubmissionStatusResponse(many=True),
         'params': BulkActionParamsResponse(),
+        'auto_accept': serializers.BooleanField(),
         'progress': serializers.IntegerField(min_value=0, max_value=100),
         'created_by': BulkActionUserResponse(),
         'date_created': serializers.DateTimeField(),
@@ -146,6 +147,11 @@ BulkActionCreateRequest = inline_serializer_class(
         'question_xpath': serializers.CharField(),
         'submission_uuids': serializers.ListField(child=serializers.CharField()),
         'params': BulkActionParamsRequest(),
+        'auto_accept': serializers.BooleanField(
+            required=False,
+            default=False,
+            help_text='Automatically accept generated results upon completion.',
+        ),
     },
 )
 

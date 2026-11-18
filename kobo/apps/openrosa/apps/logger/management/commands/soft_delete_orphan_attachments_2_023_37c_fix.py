@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
 from django.core.management import call_command
-from django.db.models import F, Q
+from django.core.management.base import BaseCommand
+from django.db.models import Q
 
 from kobo.apps.openrosa.apps.logger.models import (
     Attachment,
     Instance,
     XForm,
 )
-from kobo.apps.openrosa.apps.main.models import UserProfile
 
 
 class Command(BaseCommand):
@@ -98,24 +97,23 @@ class Command(BaseCommand):
             self.stdout.write(
                 f'Updating storage counters…'
             )
-        # Attachment storage counters need to be updated.
+        # Recount the storage of the owners of the affected projects
         xform_ids = (
             Instance.objects.filter(pk__in=instance_ids)
             .values_list('xform_id', flat=True)
             .distinct()
         )
-
-        # Update related profile counters with a wrong value to let
-        # the management command `update_attachment_storage_byte` find them
-        # when calling with `--sync` option.
-        UserProfile.objects.filter(
-            user_id__in=XForm.objects.filter(
-                pk__in=list(xform_ids)
-            ).values_list('user_id', flat=True)
-        ).update(attachment_storage_bytes=F('attachment_storage_bytes') - 1)
-
-        call_command(
-            'update_attachment_storage_bytes', verbosity=verbosity, sync=True
+        usernames = (
+            XForm.all_objects.filter(pk__in=list(xform_ids))
+            .values_list('user__username', flat=True)
+            .distinct()
         )
+        for username in usernames:
+            call_command(
+                'update_attachment_storage_bytes',
+                verbosity=verbosity,
+                force=True,
+                username=username,
+            )
 
         self.stdout.write('Done!')

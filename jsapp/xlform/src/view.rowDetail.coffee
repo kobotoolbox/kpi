@@ -303,7 +303,11 @@ module.exports = do ->
     html: ->
       @fieldTab = "active"
       @$el.addClass("card__settings__fields--#{@fieldTab}")
-      viewRowDetail.Templates.textbox @cid, @model.key, t("Data column name"), 'text'
+      # A `kobomatrix` question is a `Group` under the hood, but it is presented
+      # to the user as a question, so it keeps the question wording
+      isGroup = @model._parent.isGroup() and @model._parent.getValue('type') isnt 'kobomatrix'
+      label = if isGroup then t("Group name") else t("Question name")
+      viewRowDetail.Templates.textbox @cid, @model.key, label, 'text'
     afterRender: ->
       @listenForInputChange(transformFn: (value)=>
         value_chars = value.split('')

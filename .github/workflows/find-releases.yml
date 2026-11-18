@@ -30,6 +30,9 @@ on:
       next_patch:
         value: ${{ jobs.version.outputs.next_patch }}
 
+permissions:
+  contents: read
+
 jobs:
   version:
     runs-on: ubuntu-24.04

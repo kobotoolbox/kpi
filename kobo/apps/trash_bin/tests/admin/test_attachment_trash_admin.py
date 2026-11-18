@@ -28,11 +28,11 @@ class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self.client.force_login(self.admin)
 
         # Create a new asset and submission with an attachment
-        self.asset, self.xform, self.instance, self.user_profile, self.attachment = (
+        self.asset, self.xform, self.instance, _, self.attachment = (
             self._create_test_asset_and_submission(user=self.user)
         )
         self.initial_xform_storage = self.xform.attachment_storage_bytes
-        self.initial_user_storage = self.user_profile.attachment_storage_bytes
+        self.initial_user_storage = self._get_user_storage(self.user)
 
         # Move attachment to trash
         self.att_trash = self._move_attachment_to_trash(self.attachment, self.admin)
@@ -61,7 +61,7 @@ class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
 
     def _assert_storage_counters(self, xform_bytes, user_bytes):
         self.assertEqual(self.xform.attachment_storage_bytes, xform_bytes)
-        self.assertEqual(self.user_profile.attachment_storage_bytes, user_bytes)
+        self.assertEqual(self._get_user_storage(self.user), user_bytes)
 
     def test_empty_trash_action_deletes_attachment(self):
         request = self.client.request().wsgi_request
@@ -153,5 +153,4 @@ class AttachmentTrashAdminTestCase(BaseTestCase, AssetSubmissionTestMixin):
         self.asset.refresh_from_db()
         self.instance.refresh_from_db()
         self.xform.refresh_from_db()
-        self.user_profile.refresh_from_db()
         self.attachment.refresh_from_db()

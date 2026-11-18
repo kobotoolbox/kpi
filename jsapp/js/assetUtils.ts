@@ -39,7 +39,7 @@ import type {
 } from '#/dataInterface'
 import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang } from '#/utils'
 import { ActionIdEnum } from './api/models/actionIdEnum'
@@ -68,17 +68,6 @@ export function cleanupTags(tags: string[]) {
  */
 export function cleanupAndUniqueTags(tags: string[]) {
   return Array.from(new Set(cleanupTags(tags)))
-}
-
-/**
- * Returns nicer "me" label for your own assets.
- */
-export function getAssetOwnerDisplayName(username: string) {
-  if (sessionStore.currentAccount?.username && sessionStore.currentAccount.username === username) {
-    return t('me')
-  } else {
-    return username
-  }
 }
 
 export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
@@ -463,21 +452,6 @@ export function findRowByXpath(assetContent: AssetContent, xpath: string) {
   return assetContent?.survey?.find((row) => row.$xpath === xpath)
 }
 
-/**
- * Like `findRowByXpath`, but falls back to matching by leaf name when the
- * xpath doesn't exist in the current schema (e.g. after a group rename).
- * Note that this will return the first match by leaf name,
- * which may not be the correct one.
- */
-export function findRowByXpathOrLeafName(assetContent: AssetContent, xpath: string) {
-  const exactMatch = findRowByXpath(assetContent, xpath)
-  if (exactMatch) {
-    return exactMatch
-  }
-  const leafName = xpath.includes('/') ? xpath.split('/').at(-1) : xpath
-  return leafName ? findRow(assetContent, leafName) : undefined
-}
-
 export function getRowType(assetContent: AssetContent, rowName: string) {
   const foundRow = findRow(assetContent, rowName)
   return foundRow?.type
@@ -691,11 +665,41 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
 }
 
 export function isSelfOwned(asset: AssetResponse | ProjectViewAsset) {
-  return asset && sessionStore.currentAccount && asset.owner__username === sessionStore.currentAccount.username
+  return asset && profileStore.currentAccount && asset.owner__username === profileStore.currentAccount.username
 }
 
 export function buildAssetUrl(assetUid: string) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`
+}
+
+/**
+ * A `date_modified` timestamp as microseconds since the epoch.
+ *
+ * `Date.parse` only resolves milliseconds while the backend sends six fractional digits, so two saves in the same
+ * millisecond would otherwise look simultaneous. Comparing the raw strings instead wouldn't work either: the fraction
+ * is missing when it happens to be zero, and `'…:00Z'` sorts after `'…:00.100999Z'`.
+ */
+function getSaveTimeInMicroseconds(dateModified: string): number {
+  // Just the digits below millisecond resolution, zero-padded: '.1009' -> '900'.
+  const subMilliseconds = (dateModified.match(/\.(\d+)/)?.[1] ?? '').padEnd(6, '0').slice(3, 6)
+  return Date.parse(dateModified) * 1000 + Number(subMilliseconds)
+}
+
+/**
+ * Returns whichever of the two assets the backend serialized later, going by `date_modified` (set on every save).
+ *
+ * An asset can be fetched (`GET`) and saved (`PATCH`) at the same time, and those responses can resolve in either
+ * order.
+ */
+export function getNewerAsset(currentAsset: AssetResponse | null, incomingAsset: AssetResponse): AssetResponse {
+  if (!currentAsset?.date_modified || !incomingAsset.date_modified) {
+    return incomingAsset
+  }
+
+  const incomingSaveTime = getSaveTimeInMicroseconds(incomingAsset.date_modified)
+  const currentSaveTime = getSaveTimeInMicroseconds(currentAsset.date_modified)
+
+  return incomingSaveTime < currentSaveTime ? currentAsset : incomingAsset
 }
 
 /*
@@ -766,7 +770,7 @@ export type AssetDeleteCheckResult =
  * or `canDelete: false` with the reason why that specific asset is blocked.
  */
 export function userCanDeleteAssets(assets: Array<AssetResponse | ProjectViewAsset>): AssetDeleteCheckResult[] {
-  const account = sessionStore.currentAccount
+  const account = profileStore.currentAccount
   const orgUid = 'organization' in account ? account.organization?.uid : undefined
   const orgResponse = orgUid
     ? queryClient.getQueryData<OrganizationsRetrieveQueryResult>(getOrganizationsRetrieveQueryKey(orgUid))
@@ -811,7 +815,6 @@ export default {
   cleanupTags,
   getAssetDisplayName,
   getAssetIcon,
-  getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
   getLanguageIndex,

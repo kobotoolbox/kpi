@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from kpi.schema_extensions.v2.assets.fields import SummaryField
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AssetDownloadField,
@@ -38,6 +39,13 @@ ProjectViewAssetResponse = inline_serializer_class(
         'asset_type': serializers.CharField(),
         'downloads': AssetDownloadField(),
         'owner_label': serializers.CharField(),
+        # Only with `?extra_fields=on`, for superusers
+        'status': serializers.CharField(required=False),
+        'summary': SummaryField(required=False),
+        'version_id': serializers.CharField(required=False, allow_null=True),
+        'version__content_hash': serializers.CharField(required=False, allow_null=True),
+        'deployed_version_id': serializers.CharField(required=False, allow_null=True),
+        'version_count': serializers.IntegerField(required=False),
     },
 )
 

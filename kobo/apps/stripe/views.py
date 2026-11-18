@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as t
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
 from djstripe import enums
@@ -15,7 +16,7 @@ from djstripe.models import (
     SubscriptionSchedule,
 )
 from djstripe.settings import djstripe_settings
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from organizations.utils import create_organization
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
@@ -27,6 +28,8 @@ from kobo.apps.stripe.models import PlanAddOn
 from kobo.apps.stripe.serializers import (
     ChangePlanSerializer,
     CheckoutLinkSerializer,
+    CustomerBillingDetailsResponseSerializer,
+    CustomerPortalGetQuerySerializer,
     CustomerPortalSerializer,
     OneTimeAddOnSerializer,
     ProductSerializer,
@@ -341,6 +344,23 @@ class CheckoutLinkView(APIView):
             validate_payload=True,
         ),
     ),
+    get=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='organization_id',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description='Organization ID (starts with org)',
+            ),
+        ],
+        responses=open_api_200_ok_response(
+            CustomerBillingDetailsResponseSerializer,
+            raise_not_found=True,
+            raise_access_forbidden=True,
+            validate_payload=True,
+        ),
+    ),
 )
 class CustomerPortalView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -507,6 +527,93 @@ class CustomerPortalView(APIView):
             quantity=quantity,
         )
         return response
+
+    def get(self, request):
+        serializer = CustomerPortalGetQuerySerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        organization_id = serializer.validated_data['organization_id']
+
+        try:
+            organization = Organization.objects.get(id=organization_id)
+        except Organization.DoesNotExist:
+            return Response(
+                {
+                    'detail': t("Couldn't find organization with id {}").format(
+                        organization_id
+                    )
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not organization.is_owner(request.user):
+            return Response(
+                {'detail': t('You do not have permission to perform this action.')},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        customer = Customer.objects.filter(
+            subscriber_id=organization.id,
+            livemode=settings.STRIPE_LIVE_MODE,
+        ).first()
+
+        if not customer:
+            detail = t("Couldn't find customer with organization id {}").format(
+                organization_id
+            )
+            return Response(
+                {'detail': detail},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        plan_subscriptions = Subscription.objects.filter(
+            customer=customer,
+            items__price__product__metadata__product_type='plan',
+        ).prefetch_related('items__price__product')
+
+        latest_subscription = (
+            plan_subscriptions.filter(status__in=ACTIVE_STRIPE_STATUSES)
+            .order_by('-start_date', '-created')
+            .first()
+            or plan_subscriptions.order_by('-start_date', '-created').first()
+        )
+
+        billing_cycle_info = None
+        return_url = f'{settings.KOBOFORM_URL}/#/account/plan'
+
+        if latest_subscription:
+            first_item = latest_subscription.items.first()
+            interval = None
+            if first_item and first_item.price and first_item.price.recurring:
+                interval = first_item.price.recurring.get('interval')
+
+            billing_cycle_info = {
+                'billing_cycle_anchor': latest_subscription.billing_cycle_anchor,
+                'current_period_start': latest_subscription.current_period_start,
+                'current_period_end': latest_subscription.current_period_end,
+                'interval': interval,
+                'status': latest_subscription.status,
+            }
+
+        stripe_session = stripe.billing_portal.Session.create(
+            api_key=djstripe_settings.STRIPE_SECRET_KEY,
+            customer=customer.id,
+            return_url=return_url,
+        )
+
+        response_data = {
+            'id': customer.id,
+            'name': customer.name,
+            'email': customer.email,
+            'phone': customer.phone,
+            'address': customer.address,
+            'balance': customer.balance,
+            'currency': customer.currency,
+            'billing_cycle_info': billing_cycle_info,
+            'url': stripe_session['url'],
+        }
+
+        response_serializer = CustomerBillingDetailsResponseSerializer(response_data)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['Other'])

@@ -1,0 +1,109 @@
+{% load i18n %}{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}<!doctype html>
+{% comment %}
+Shared layout for the confirmation emails: logo, message, footer. You can fill `preheader` and `message`, and can add some `extra_sections`.
+
+Nested tables and inline styles, because that is all email clients agree on.
+
+Two traps when editing:
+- `width="600"` is for Outlook, which ignores `max-width` and would otherwise stretch the column to the full viewport.
+- `font-family` goes on each section's content cell, as Outlook will not inherit it from `<body>`. Children inherit from
+  the cell, so they need not repeat it.
+{% endcomment %}
+<html lang="{{ LANGUAGE_CODE }}"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {# Opts into the client's dark theme instead of letting it invert colours itself #}
+    <meta name="color-scheme" content="light dark">
+    <meta name="supported-color-schemes" content="light dark">
+    <title>{% block title %}KoboToolbox{% endblock %}</title>
+    <style>
+      img{border:0;outline:none;text-decoration:none;display:block;-ms-interpolation-mode:bicubic}
+      table{border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt}
+      body{margin:0!important;padding:0!important;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}
+      a{color:#004d9b;text-decoration:underline}
+
+      @media only screen and (max-width:600px){
+        .p-content{padding-left:24px!important;padding-right:24px!important}
+        .h1{font-size:22px!important;line-height:28px!important}
+      }
+
+      @media (prefers-color-scheme: dark){
+        .section-grey{background:#1e1e1e!important}
+        .section-white{background:#2a2a2a!important}
+        .h1,.text{color:#e9e9e9!important}
+        .muted{color:#bdbdbd!important}
+        .hr-light{border-color:#3a3a3a!important}
+        /* `!important` beats the inline colours the light theme needs. Button is excluded - already white on blue. */
+        a:not(.button){color:#8ab4f8!important}
+        /* The default wordmark is dark navy, so swap in the white one */
+        .logo-light{display:none!important}
+        .logo-dark{display:block!important}
+      }
+    </style>
+  </head>
+  <body class="section-grey" style="background:#f6f7f9;">
+
+    {# The preview line clients show beside the subject. Hidden in the body itself #}
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">{% block preheader %}{% endblock %}</div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+
+      <tr>
+        <td align="center" class="section-grey" style="background:#f6f7f9;padding:32px 0;">
+          <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+            <tr>
+              <td class="p-content" align="center" style="padding:0 36px;">
+                <a href="https://www.kobotoolbox.org" target="_blank" style="text-decoration:none;">
+                  {# Only one of these is ever visible; the dark-mode rules do the swap. #}
+                  {# `mso-hide` is for Outlook, which ignores both the media query and `display:none`. #}
+                  {# Font styles are for the alt text, which is all many clients show until images are allowed. #}
+                  <img class="logo-light" src="https://www.kobotoolbox.org/static/KoboToolbox-CleanLogo.png" width="180" height="22" alt="KoboToolbox" style="display:block;margin:0 auto;height:auto;font-size:18px;font-weight:600;color:#0f172a;text-decoration:none;">
+                  <img class="logo-dark" src="https://www.kobotoolbox.org/static/KoboToolbox-WhiteLogo.png" width="180" height="21" alt="KoboToolbox" style="display:none;mso-hide:all;margin:0 auto;height:auto;font-size:18px;font-weight:600;color:#e9e9e9;text-decoration:none;">
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td align="center" class="section-white" style="background:#ffffff;padding:44px 0 40px;">
+          <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+            <tr>
+              <td class="p-content" style="padding:0 36px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
+                {% block message %}{% endblock %}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      {% block extra_sections %}{% endblock %}
+
+      <tr>
+        <td align="center" class="section-grey" style="background:#f6f7f9;padding:24px 0 32px;">
+          <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+            <tr>
+              <td class="p-content muted" align="center" style="padding:0 36px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:18px;color:#64748b;">
+                {% blocktrans trimmed %}
+                  Follow us on
+                  <a href="https://www.linkedin.com/company/kobotoolbox" target="_blank" style="color:#64748b;">LinkedIn</a>,
+                  <a href="https://www.facebook.com/kobotoolbox" target="_blank" style="color:#64748b;">Facebook</a>
+                  and
+                  <a href="https://www.youtube.com/kobotoolbox" target="_blank" style="color:#64748b;">YouTube</a>.
+                {% endblocktrans %}
+                <br><br>
+                {% blocktrans trimmed %}
+                  For more information, see our
+                  <a href="https://www.kobotoolbox.org/privacy/" target="_blank" style="color:#64748b;">Privacy Policy</a>.
+                {% endblocktrans %}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+    </table>
+  </body>
+</html>

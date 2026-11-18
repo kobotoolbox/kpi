@@ -1,9 +1,17 @@
 import time
+from unittest.mock import patch
 
 from allauth.account.internal.flows.login import (
-    AUTHENTICATION_METHODS_SESSION_KEY,
+    clear_authentication_records,
+)
+from allauth.account.internal.flows.login import (
+    record_authentication as allauth_record_authentication,
 )
 from allauth.socialaccount.providers.base import Provider
+from django.contrib.auth import SESSION_KEY
+from django.test import RequestFactory
+
+from kobo.apps.kobo_auth.shortcuts import User
 
 
 class MockProvider(Provider):
@@ -12,7 +20,7 @@ class MockProvider(Provider):
     name = 'Mock Provider'
 
 
-def record_authentication(client, methods=('password',), age=0):
+def record_authentication(client, methods=('password',), age=0, reauthenticated=True):
     """
     Stamp allauth's session authentication log for a test client
 
@@ -20,14 +28,22 @@ def record_authentication(client, methods=('password',), age=0):
     re-authentication check fails. Tests that are not themselves about
     re-authentication should call this right after logging in.
 
-    `age` backdates the records by that many seconds, to simulate a stale
-    re-authentication.
+    Records go through allauth's own `record_authentication()`, which binds
+    them to the logged-in user. `age` backdates them by that many seconds, to
+    simulate a stale re-authentication. `reauthenticated=False` writes login
+    records instead, which never satisfy a re-authentication check.
     """
-    at = time.time() - age
     session = client.session
-    session[AUTHENTICATION_METHODS_SESSION_KEY] = [
-        {'method': method, 'at': at} for method in methods
-    ]
+    request = RequestFactory().get('/')
+    request.session = session
+    user = User.objects.get(pk=session[SESSION_KEY])
+    # Login records carry no `reauthenticated` key at all
+    extra_data = {'reauthenticated': True} if reauthenticated else {}
+
+    clear_authentication_records(request)
+    with patch('time.time', return_value=time.time() - age):
+        for method in methods:
+            allauth_record_authentication(request, user, method, **extra_data)
     session.save()
 
 

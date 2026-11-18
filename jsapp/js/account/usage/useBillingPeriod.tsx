@@ -7,10 +7,16 @@ import type { RecurringInterval } from '../stripe.types'
 import subscriptionStore from '../subscriptionStore'
 
 /**
- * Get the subscription interval (`'month'` or `'year'`) for the logged-in user.
- * Returns `'month'` for users on the free plan.
+ * Get the subscription interval (`'month'` or `'year'`) for the logged-in user, plus whether that
+ * interval came from an active plan.
+ *
+ * Returns `{interval: 'month', hasActivePlan: false}` for users on the free plan, and on deployments
+ * without Stripe.
  */
-export async function getSubscriptionInterval() {
+async function getSubscriptionInfo(): Promise<{
+  interval: RecurringInterval
+  hasActivePlan: boolean
+}> {
   await when(() => envStore.isReady)
   if (envStore.data.stripe_public_key) {
     if (!subscriptionStore.isPending && !subscriptionStore.isInitialised) {
@@ -20,25 +26,32 @@ export async function getSubscriptionInterval() {
     const subscriptionList = subscriptionStore.planResponse
     const activeSubscription = subscriptionList.find((sub) => ACTIVE_STRIPE_STATUSES.includes(sub.status))
     if (activeSubscription) {
-      return activeSubscription.items[0].price.recurring?.interval || 'month'
+      return {
+        interval: activeSubscription.items[0].price.recurring?.interval || 'month',
+        hasActivePlan: true,
+      }
     }
   }
-  return 'month'
+  return { interval: 'month', hasActivePlan: false }
 }
 
 export const useBillingPeriod = (): {
   billingPeriod: RecurringInterval
+  intervalLabel: string
   isLoading: boolean
 } => {
-  const { data: billingPeriod, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: [QueryKeys.billingPeriod],
-    queryFn: getSubscriptionInterval,
+    queryFn: getSubscriptionInfo,
   })
 
+  // Default to 'month'/no plan while the query is still loading
+  const billingPeriod = data?.interval || 'month'
+  const hasActivePlan = data?.hasActivePlan ?? false
+
   return {
-    billingPeriod: billingPeriod || 'month',
-    // Default to 'month' if billingPeriod is undefined
-    // This ensures that the hook always returns a valid billing period
+    billingPeriod,
+    intervalLabel: billingPeriod === 'year' ? t('year') : hasActivePlan ? t('billing period') : t('month'),
     isLoading,
   }
 }

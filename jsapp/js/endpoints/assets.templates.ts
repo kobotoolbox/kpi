@@ -1,4 +1,4 @@
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { AssetTypeName, QuestionTypeName } from '#/constants'
 
 /**
@@ -6,7 +6,7 @@ import { AssetTypeName, QuestionTypeName } from '#/constants'
  * These are used by assets.mocks.ts when the query includes 'asset_type:template'
  */
 
-export const templateHealthSurvey = getApiV2AssetsRetrieveResponseMock({
+export const templateHealthSurvey = getAssetsRetrieveResponseMock({
   uid: 'template1uid',
   name: 'Community Health Survey Template',
   asset_type: AssetTypeName.template,
@@ -29,7 +29,7 @@ export const templateHealthSurvey = getApiV2AssetsRetrieveResponseMock({
   },
 })
 
-export const templateEducationAssessment = getApiV2AssetsRetrieveResponseMock({
+export const templateEducationAssessment = getAssetsRetrieveResponseMock({
   uid: 'template2uid',
   name: 'Education Assessment Form',
   asset_type: AssetTypeName.template,
@@ -52,7 +52,7 @@ export const templateEducationAssessment = getApiV2AssetsRetrieveResponseMock({
   },
 })
 
-export const templateFeedbackSurvey = getApiV2AssetsRetrieveResponseMock({
+export const templateFeedbackSurvey = getAssetsRetrieveResponseMock({
   uid: 'template3uid',
   name: 'Quick Feedback Survey',
   asset_type: AssetTypeName.template,

@@ -2,7 +2,7 @@
 var mockedCurrentAccount
 var mockedGetQueryData
 
-jest.mock('#/stores/session', () => {
+jest.mock('#/stores/profile', () => {
   mockedCurrentAccount = { username: 'alice' }
   return {
     __esModule: true,
@@ -24,9 +24,10 @@ jest.mock('#/api/react-query/user-team-organization-usage', () => ({
 }))
 
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import {
   DeleteBlockerReason,
+  getNewerAsset,
   getSurveyFlatPaths,
   injectSupplementalRowsIntoListOfRows,
   userCanDeleteAssets,
@@ -140,7 +141,7 @@ describe('injectSupplementalRowsIntoListOfRows', () => {
    * that shape is what would leak into Data Table if the type filtering ever
    * broke - the passing test needs to prove both are dropped.
    */
-  const assetWithNonDisplayableFields = getApiV2AssetsRetrieveResponseMock({
+  const assetWithNonDisplayableFields = getAssetsRetrieveResponseMock({
     content: {
       survey: [
         {
@@ -278,15 +279,15 @@ describe('userCanDeleteAssets', () => {
 
     it('can delete any asset regardless of ownership or submissions', () => {
       const assets = [
-        getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 100 }),
-        getApiV2AssetsRetrieveResponseMock({ created_by: null, deployment__submission_count: 0 }),
+        getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 100 }),
+        getAssetsRetrieveResponseMock({ created_by: null, deployment__submission_count: 0 }),
       ]
       const results = userCanDeleteAssets(assets)
       expect(results.every((r) => r.canDelete)).to.be.true
     })
 
     it('returns canDelete: true even when the project was created by someone else', () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'carol', deployment__submission_count: 999 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'carol', deployment__submission_count: 999 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
@@ -298,13 +299,13 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('can delete own project with no submissions', () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'alice', deployment__submission_count: 0 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'alice', deployment__submission_count: 0 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
 
     it('is blocked from deleting own project that has submissions', () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'alice', deployment__submission_count: 5 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'alice', deployment__submission_count: 5 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -313,7 +314,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it("is blocked from deleting another member's project (no submissions)", () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 0 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 0 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -322,7 +323,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('permissions blocker takes priority when project belongs to another member and has submissions', () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 10 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 10 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -331,7 +332,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('is blocked when created_by is null', () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: null, deployment__submission_count: 0 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: null, deployment__submission_count: 0 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.false
       if (!result.canDelete) {
@@ -341,10 +342,10 @@ describe('userCanDeleteAssets', () => {
 
     it('returns per-asset results in input order for a mixed set', () => {
       const assets = [
-        getApiV2AssetsRetrieveResponseMock({ uid: 'a1', created_by: 'alice', deployment__submission_count: 0 }), // ok
-        getApiV2AssetsRetrieveResponseMock({ uid: 'a2', created_by: 'alice', deployment__submission_count: 3 }), // submissions
-        getApiV2AssetsRetrieveResponseMock({ uid: 'a3', created_by: 'bob', deployment__submission_count: 0 }), // permissions
-        getApiV2AssetsRetrieveResponseMock({ uid: 'a4', created_by: 'alice', deployment__submission_count: 0 }), // ok
+        getAssetsRetrieveResponseMock({ uid: 'a1', created_by: 'alice', deployment__submission_count: 0 }), // ok
+        getAssetsRetrieveResponseMock({ uid: 'a2', created_by: 'alice', deployment__submission_count: 3 }), // submissions
+        getAssetsRetrieveResponseMock({ uid: 'a3', created_by: 'bob', deployment__submission_count: 0 }), // permissions
+        getAssetsRetrieveResponseMock({ uid: 'a4', created_by: 'alice', deployment__submission_count: 0 }), // ok
       ]
       const results = userCanDeleteAssets(assets)
 
@@ -358,7 +359,7 @@ describe('userCanDeleteAssets', () => {
     })
 
     it('preserves the original asset reference in each result', () => {
-      const asset = getApiV2AssetsRetrieveResponseMock({ uid: 'unique-uid', created_by: 'alice' })
+      const asset = getAssetsRetrieveResponseMock({ uid: 'unique-uid', created_by: 'alice' })
       const [result] = userCanDeleteAssets([asset])
       expect(result.asset).to.equal(asset)
     })
@@ -367,7 +368,7 @@ describe('userCanDeleteAssets', () => {
   describe('MMO owner', () => {
     it('can delete any asset (owner is not subject to MMO member restrictions)', () => {
       mockedGetQueryData.mockReturnValue(makeOrgResponse({ is_mmo: true, request_user_role: MemberRoleEnum.owner }))
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 50 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 50 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
@@ -377,8 +378,8 @@ describe('userCanDeleteAssets', () => {
     it('can delete all assets regardless of ownership or submissions', () => {
       mockedGetQueryData.mockReturnValue(makeOrgResponse({ is_mmo: false, request_user_role: MemberRoleEnum.member }))
       const assets = [
-        getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 10 }),
-        getApiV2AssetsRetrieveResponseMock({ created_by: null }),
+        getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 10 }),
+        getAssetsRetrieveResponseMock({ created_by: null }),
       ]
       const results = userCanDeleteAssets(assets)
       expect(results.every((r) => r.canDelete)).to.be.true
@@ -388,21 +389,21 @@ describe('userCanDeleteAssets', () => {
   describe('edge cases', () => {
     it('treats missing org cache data as no restrictions', () => {
       mockedGetQueryData.mockReturnValue(undefined)
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 99 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 99 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
 
     it('treats a non-200 org response as no restrictions', () => {
       mockedGetQueryData.mockReturnValue({ status: 404, data: { detail: 'Not found' } })
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 5 })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'bob', deployment__submission_count: 5 })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
 
     it('treats an account with no organization property as no restrictions', () => {
       setAccount('alice')
-      const asset = getApiV2AssetsRetrieveResponseMock({ created_by: 'bob' })
+      const asset = getAssetsRetrieveResponseMock({ created_by: 'bob' })
       const [result] = userCanDeleteAssets([asset])
       expect(result.canDelete).to.be.true
     })
@@ -412,5 +413,50 @@ describe('userCanDeleteAssets', () => {
       const results = userCanDeleteAssets([])
       expect(results).to.have.length(0)
     })
+  })
+})
+
+describe('getNewerAsset', () => {
+  const older = getAssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.100000Z' })
+  const newer = getAssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.200000Z' })
+
+  it('keeps the asset already in hand when the incoming response is older', () => {
+    // The race this guards: a refresh `GET` resolves first with post-save data, then the slower `PATCH` response for
+    // that same save lands carrying the older version. Taking the late arrival would show pre-save data.
+    expect(getNewerAsset(newer, older)).to.equal(newer)
+  })
+
+  it('takes the incoming asset when it is newer', () => {
+    expect(getNewerAsset(older, newer)).to.equal(newer)
+  })
+
+  it('tells apart two saves inside the same millisecond', () => {
+    // `Date.parse` stops at milliseconds, so on its own it reads both of these as 10:00:00.100 and calls it a tie.
+    const sameMillisecond = getAssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00.100999Z' })
+    expect(getNewerAsset(sameMillisecond, older)).to.equal(sameMillisecond)
+    expect(getNewerAsset(older, sameMillisecond)).to.equal(sameMillisecond)
+  })
+
+  it('handles a timestamp that carries no fraction at all', () => {
+    // The backend omits the fraction when it is zero, which also rules out comparing these as plain strings - '…:00Z'
+    // sorts after '…:00.100999Z'.
+    const wholeSecond = getAssetsRetrieveResponseMock({ date_modified: '2026-10-08T10:00:00Z' })
+    expect(getNewerAsset(wholeSecond, older)).to.equal(older)
+    expect(getNewerAsset(older, wholeSecond)).to.equal(older)
+  })
+
+  it('takes the incoming asset when the two were saved at the same moment', () => {
+    // Same version either way, so there is nothing to protect - and no reason to drop a response.
+    const sameMoment = getAssetsRetrieveResponseMock({ date_modified: older.date_modified })
+    expect(getNewerAsset(older, sameMoment)).to.equal(sameMoment)
+  })
+
+  it('takes the incoming asset when there is nothing to compare against', () => {
+    expect(getNewerAsset(null, older)).to.equal(older)
+
+    // `date_modified` is optional on the type, so neither side is guaranteed to carry one.
+    const undated = getAssetsRetrieveResponseMock({ date_modified: undefined })
+    expect(getNewerAsset(newer, undated)).to.equal(undated)
+    expect(getNewerAsset(undated, older)).to.equal(older)
   })
 })

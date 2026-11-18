@@ -37,6 +37,8 @@ export interface ProjectSettingsProps extends WithRouterProps {
   onProjectDetailsChange?: (data: { fieldName: string; fieldValue: string | string[] | null }) => void
   /** Optional callback to update the modal title as user navigates between steps */
   onSetModalTitle?: (title: string) => void
+  /** Close the mantine modal wrapper. Currently exists alongside legcaly modal management through pageState. */
+  onRequestClose?: () => void
 }
 
 export interface ProjectSettingsState {

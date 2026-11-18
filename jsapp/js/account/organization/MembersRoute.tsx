@@ -1,4 +1,4 @@
-import { Box, Divider, Group, Stack, Text, Title, Tooltip } from '@mantine/core'
+import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconSearch } from '@tabler/icons-react'
 import { keepPreviousData } from '@tanstack/react-query'
@@ -7,7 +7,6 @@ import React, { useState } from 'react'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
 import InviteModal from '#/account/organization/InviteModal'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
-import { isSsoAvailable } from '#/account/security/sso/sso.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
@@ -26,6 +25,7 @@ import KoboIcon from '#/components/common/KoboIcon'
 import Alert from '#/components/common/alert'
 import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
+import { MIN_SEARCH_PHRASE_LENGTH, TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import envStore from '#/envStore'
 import SortableProjectColumnHeader, {
   type SortableColumnOrder,
@@ -52,20 +52,20 @@ function renderStatusBadge(isEnabled: boolean | null | undefined) {
  * These must stay a subset of `OrganizationsMembersListOrdering`; building `ordering` below from them means an
  * invalid name here fails to typecheck. The 2FA column is absent because the endpoint cannot order by it.
  */
-type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role'
+type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role' | 'user__has_sso_enabled'
 
-const ORDERABLE_FIELDS: MembersTableOrderableField[] = ['user__username', 'status', 'date_joined', 'role']
+// TODO: remove once orval regenerates with this field from the backend
+type MemberListResponseWithTransfer = MemberListResponse & {
+  pending_transfer?: boolean | null
+}
 
-/**
- * We hold short phrase back instead of firing a request we already know fails on Backend.
- */
-export const MIN_SEARCH_PHRASE_LENGTH = 3
-
-/** Interpolated here rather than at the call site, so importers (stories) get the string the user actually sees. */
-export const TOO_SHORT_WARNING = t('Type at least ##CHARACTER_COUNT## characters to search').replace(
-  '##CHARACTER_COUNT##',
-  String(MIN_SEARCH_PHRASE_LENGTH),
-)
+const ORDERABLE_FIELDS: MembersTableOrderableField[] = [
+  'user__username',
+  'status',
+  'date_joined',
+  'role',
+  'user__has_sso_enabled',
+]
 
 function MembersRoute() {
   const [organization] = useOrganizationAssumed()
@@ -130,7 +130,7 @@ function MembersRoute() {
 
     const enteredPhrase = event.currentTarget.value.trim()
     if (enteredPhrase.length > 0 && enteredPhrase.length < MIN_SEARCH_PHRASE_LENGTH) {
-      notify.warning(TOO_SHORT_WARNING)
+      notify.warning(TOO_SHORT_SEARCH_WARNING)
     }
   }
 
@@ -197,13 +197,16 @@ function MembersRoute() {
       key: 'invite',
       label: renderSortableHeader('status', t('Status')),
       size: 120,
-      cellFormatter: (obj: MemberListResponse) => {
+      // TODO: replace with MemberListResponse after backend is ready
+      cellFormatter: (obj: MemberListResponseWithTransfer) => {
         const { invite } = getMemberOrInviteDetails(obj)
         if (invite) {
           return <Badge color='light-blue' size='s' label={t('Invited')} />
-        } else {
-          return <Badge color='light-green' size='s' label={t('Active')} />
         }
+        if (obj.pending_transfer) {
+          return <Badge color='light-blue' size='s' label={t('Pending owner')} />
+        }
+        return <Badge color='light-green' size='s' label={t('Active')} />
       },
     },
     {
@@ -219,7 +222,8 @@ function MembersRoute() {
       key: 'role',
       label: renderSortableHeader('role', t('Role')),
       size: 140,
-      cellFormatter: (obj: MemberListResponse) => {
+      // TODO: replace with MemberListResponse after backend is ready
+      cellFormatter: (obj: MemberListResponseWithTransfer) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         if (member?.role === MemberRoleEnum.owner || !isUserAdminOrOwner) {
           // If the member is the Owner or
@@ -250,39 +254,32 @@ function MembersRoute() {
             username={member!.user__username!}
             role={member!.role!}
             currentUserRole={organization.request_user_role}
+            disabled={!!obj.pending_transfer}
           />
         )
       },
     },
     {
       key: 'user__has_mfa_enabled',
-      label: t('2FA'),
+      label: <span className={styles.plainColumnHeader}>{t('2FA')}</span>,
       size: 90,
       cellFormatter: (obj: MemberListResponse) => {
         const { member } = getMemberOrInviteDetails(obj)
         return member ? renderStatusBadge(member.user__has_mfa_enabled) : undefined
       },
     },
-  ]
-
-  // The SSO column is always shown, but is inert until the organization has the SSO add-on.
-  const isSsoColumnDisabled = !isSsoAvailable(envStore.data)
-  columns.push({
-    key: 'user__has_sso_enabled',
-    label: (
-      <Tooltip label={isSsoColumnDisabled ? t('Activate SSO add-on to enable') : t('SSO status')}>
-        <span className={isSsoColumnDisabled ? styles.disabledColumnHeader : undefined}>{t('SSO')}</span>
-      </Tooltip>
-    ),
-    size: 90,
-    cellFormatter: (obj: MemberListResponse) => {
-      if (isSsoColumnDisabled) {
-        return undefined
-      }
-      const { member } = getMemberOrInviteDetails(obj)
-      return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+    {
+      // Every team gets this column, whether or not it has the SSO add-on. Without the add-on nobody can have an SSO
+      // account, so it simply reads as inactive for everyone.
+      key: 'user__has_sso_enabled',
+      label: renderSortableHeader('user__has_sso_enabled', t('SSO')),
+      size: 90,
+      cellFormatter: (obj: MemberListResponse) => {
+        const { member } = getMemberOrInviteDetails(obj)
+        return member ? renderStatusBadge(member.user__has_sso_enabled) : undefined
+      },
     },
-  })
+  ]
 
   // Actions column is only for owner and admins.
   if (isUserAdminOrOwner) {
@@ -291,7 +288,8 @@ function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
-      cellFormatter: (obj: MemberListResponse) => {
+      // TODO: replace with MemberListResponse after backend is ready
+      cellFormatter: (obj: MemberListResponseWithTransfer) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner
         if (member?.role === MemberRoleEnum.owner) {
@@ -306,6 +304,9 @@ function MembersRoute() {
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
               currentUserRole={organization.request_user_role}
+              targetFullName={member.user__extra_details__name}
+              orgName={organization.name}
+              isPendingOwnershipTransfer={!!obj.pending_transfer}
             />
           )
         } else if (invite) {
@@ -393,5 +394,5 @@ function MembersRoute() {
   )
 }
 
-// `observer` so the SSO column appears as soon as `envStore` is ready.
+// `observer` so the team/organization label picks up `envStore` and `subscriptionStore` as soon as they are ready.
 export default observer(MembersRoute)

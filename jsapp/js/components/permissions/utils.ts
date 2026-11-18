@@ -1,4 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { isSelfOwned } from '#/assetUtils'
 import { AssetTypeName } from '#/constants'
@@ -12,7 +12,7 @@ import type {
   ProjectViewAsset,
   SubmissionResponse,
 } from '#/dataInterface'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import { ANON_USERNAME_URL, buildUserUrl } from '#/users/utils'
 import { recordEntries, recordKeys } from '#/utils'
 import permConfig from './permConfig'
@@ -87,7 +87,7 @@ export function userCan(
     }
   }
 
-  const currentUsername = sessionStore.currentAccount.username
+  const currentUsername = profileStore.currentAccount.username
 
   // If you own the asset, you can do everything with it
   if (asset.owner__username === currentUsername) {
@@ -113,7 +113,7 @@ export function userCan(
 }
 
 export function userCanPartially(permName: PermissionCodename, asset?: AssetResponse) {
-  const currentUsername = sessionStore.currentAccount.username
+  const currentUsername = profileStore.currentAccount.username
 
   // Owners cannot have partial permissions because they have full permissions.
   // Both are contradictory.
@@ -131,7 +131,7 @@ export function userCanPartially(permName: PermissionCodename, asset?: AssetResp
  * from Project View access, not from project being shared with user directly.
  */
 export function userCanRemoveSharedProject(asset: AssetResponse) {
-  const currentUsername = sessionStore.currentAccount.username
+  const currentUsername = profileStore.currentAccount.username
   const userHasDirectViewAsset = asset.permissions.some(
     (perm) => perm.user === buildUserUrl(currentUsername) && _doesPermMatch(perm, 'view_asset'),
   )
@@ -220,7 +220,7 @@ export function getPartialByResponsesFilter(
   })
 
   if (found) {
-    const foundClone = clonedeep(found)
+    const foundClone = cloneDeep(found)
     // Remove `_submitted_by`, leave "by responses" stuff (at current point
     // in time we leave everything else)
     delete foundClone._submitted_by
@@ -270,7 +270,7 @@ export function userHasPermForSubmission(
   }
 
   // Case 3: User has only partial permission, and things are complicated
-  const currentUsername = sessionStore.currentAccount.username
+  const currentUsername = profileStore.currentAccount.username
   const partialPerms = asset.permissions.find(
     (perm) => perm.user === buildUserUrl(currentUsername) && _doesPermMatch(perm, 'partial_submissions', permName),
   )

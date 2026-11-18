@@ -1,8 +1,8 @@
-import { getApiV2AssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
+import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { ANY_ROW_TYPE_NAMES, AssetTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 
-export const assetWithImage = getApiV2AssetsRetrieveResponseMock({
+export const assetWithImage = getAssetsRetrieveResponseMock({
   uid: 'aALUCUEKcgKk28owQo3LrA',
   name: 'Small image project',
   owner__username: 'zefir',

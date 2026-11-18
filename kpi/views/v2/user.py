@@ -77,6 +77,10 @@ class UserViewSet(
         fields = '__all__'
 
     def get_queryset(self, *args, **kwargs):
+        if hasattr(self, 'swagger_fake_view'):
+            # Schema generation has no real user; only the model matters
+            return User.objects.none()
+
         self.queryset = User.objects.all()
 
         if not self.request.user.is_superuser:
@@ -104,7 +108,7 @@ class UserViewSet(
         return super().list(request, *args, **kwargs)
 
     def paginate_queryset(self, queryset):
-        if not (page := super().paginate_queryset(queryset)):
+        if (page := super().paginate_queryset(queryset)) is None:
             return None
 
         user_ids = (user.pk for user in page)

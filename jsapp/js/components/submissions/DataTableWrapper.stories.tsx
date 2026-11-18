@@ -8,18 +8,21 @@
 import { Box } from '@mantine/core'
 import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { http } from 'msw'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
+import { endpoints } from '#/api.endpoints'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
 import {
-  getApiV2AssetsRetrieveMockHandler,
-  getApiV2AssetsRetrieveResponseMock,
+  getAssetsRetrieveMockHandler,
+  getAssetsRetrieveResponseMock,
 } from '#/api/react-query/manage-projects-and-library-content/msw'
-import { getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
+import { getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock } from '#/api/react-query/survey-data/msw'
 import { QuestionTypeName } from '#/constants'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import assetDataMock from '#/endpoints/assetData.mocks'
@@ -33,6 +36,7 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
+import tableStore, { TABLE_SETTINGS_STORAGE_KEY_PREFIX } from './tableStore'
 
 // Orval-generated Asset and legacy AssetResponse have minor structural differences.
 // Remaining differences are intentional (backward compatibility in legacy type):
@@ -150,7 +154,7 @@ const getRouterParams = (assetUid: string) =>
 // Minimal asset and submissions for simple stories
 
 // Default story asset and submissions
-const minimalAsset = getApiV2AssetsRetrieveResponseMock({
+const minimalAsset = getAssetsRetrieveResponseMock({
   uid: 'audio-asset-uid',
   name: 'Audio form',
   deployment__active: true,
@@ -208,7 +212,7 @@ const minimalSubmissions = [
 ]
 
 // ProcessingColumn story asset and submissions (unique UID)
-const processingAsset = getApiV2AssetsRetrieveResponseMock({
+const processingAsset = getAssetsRetrieveResponseMock({
   uid: 'audio-asset-uid-processing',
   name: 'Audio form with processing',
   deployment__active: true,
@@ -324,7 +328,7 @@ const processingSubmissions = [
     ],
   }),
 ]
-const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+const processingBulkAction = getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.complete,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
@@ -341,7 +345,7 @@ const processingBulkAction = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveRe
     username: 'zefir',
   },
 })
-const processingBulkAction2 = getApiV2AssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
+const processingBulkAction2 = getAssetsAdvancedFeaturesBulkActionsRetrieveResponseMock({
   status: BulkActionResponseStatusEnum.in_progress,
   action_id: ActionIdEnum.automatic_google_translation,
   question_xpath: 'Record_a_sound',
@@ -374,7 +378,7 @@ const meta: Meta<typeof DataTableWrapper> = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -401,7 +405,7 @@ export const Default: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -411,6 +415,62 @@ export const Default: Story = {
     },
   },
   loaders: [loadAssetForStory],
+}
+
+/** Records the `sort` of each submissions request, then falls through to `assetDataMock`. */
+const onSubmissionsRequest = fn()
+const submissionsRequestSpy = http.get(endpoints.ASSET_DATA_URL, ({ request }) => {
+  onSubmissionsRequest(new URL(request.url).searchParams.get('sort'))
+})
+
+/** `tableStore` outlives a story, so we drop the settings other runs saved. */
+function resetTableSettings() {
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith(TABLE_SETTINGS_STORAGE_KEY_PREFIX))
+    .forEach((key) => localStorage.removeItem(key))
+  // An empty key loads nothing, and the wrapper's real key reloads afterwards.
+  tableStore.setStorageKey('')
+}
+
+/** Rebuilding the columns replaces the header cells, so we need to query again each time it happens */
+function getHeaderCell(canvasElement: HTMLElement, columnLabel: string, className = 'rt-th') {
+  const label = within(canvasElement).getByText(columnLabel, { selector: '.rt-thead.-header *' })
+  const headerCell = label.closest<HTMLElement>('.rt-th')
+  expect(headerCell).toHaveClass(className)
+  return headerCell!
+}
+
+async function clickColumnMenuItem(canvasElement: HTMLElement, columnLabel: string, itemName: string) {
+  const headerCell = await waitFor(() => getHeaderCell(canvasElement, columnLabel))
+  await userEvent.click(headerCell.querySelector('.table-column-sort-dropdown-trigger-button')!)
+  // Mantine renders the menu in a portal, outside of the canvas.
+  await userEvent.click(await within(document.body).findByRole('menuitem', { name: itemName }))
+}
+
+/** Sorting fetches sorted submissions, while freezing only rebuilds the columns. */
+export const SettingsChanges: Story = {
+  ...Default,
+  parameters: {
+    ...Default.parameters,
+    msw: { handlers: [submissionsRequestSpy, ...Default.parameters!.msw.handlers] },
+  },
+  beforeEach: () => {
+    onSubmissionsRequest.mockClear()
+    resetTableSettings()
+    return resetTableSettings
+  },
+  play: async ({ canvasElement }) => {
+    const column = 'Record a sound'
+    // The previous story's table may still send a request, so we don't count the ones before the freeze.
+    await clickColumnMenuItem(canvasElement, column, 'Sort A→Z')
+    await waitFor(() => getHeaderCell(canvasElement, column, 'is-sorted'))
+    expect(onSubmissionsRequest).toHaveBeenCalledWith(expect.stringContaining('"Record_a_sound":1'))
+
+    onSubmissionsRequest.mockClear()
+    await clickColumnMenuItem(canvasElement, column, 'Freeze field')
+    await waitFor(() => getHeaderCell(canvasElement, column, 'is-frozen'))
+    expect(onSubmissionsRequest).not.toHaveBeenCalled()
+  },
 }
 
 export const ProcessingColumnAndBanner: Story = {
@@ -423,7 +483,7 @@ export const ProcessingColumnAndBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(processingAsset),
+        getAssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         organizationServiceUsageMock(),
@@ -446,7 +506,7 @@ export const ProcessingAndLimitsBannersTogether: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(processingAsset),
+        getAssetsRetrieveMockHandler(processingAsset),
         assetDataMock(processingAsset.uid, processingSubmissions),
         organizationMock(),
         // Shows both BulkProcessingBanner (active jobs) + OverLimitBanner (exceeded submission limit)
@@ -471,7 +531,7 @@ export const StorageLimitWarningBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageWarning()),
@@ -493,7 +553,7 @@ export const StorageExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.storageExceeded()),
@@ -515,7 +575,7 @@ export const SubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.submissionExceeded()),
@@ -537,7 +597,7 @@ export const StorageAndSubmissionExceededBanner: Story = {
     msw: {
       handlers: [
         meMock,
-        getApiV2AssetsRetrieveMockHandler(minimalAsset),
+        getAssetsRetrieveMockHandler(minimalAsset),
         assetDataMock(minimalAsset.uid, minimalSubmissions),
         organizationMock(),
         organizationServiceUsageMock(undefined, organizationServiceUsageFactory.bothExceeded()),

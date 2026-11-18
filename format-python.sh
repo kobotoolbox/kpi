@@ -47,11 +47,13 @@ if [ -n "$PYTHON_CHANGES" ]; then
     # Applying Black format with `darker` with options:
     # --isort: Using isort
     # --revision: Compare changes with revision $BASE_REVISION
+    # -L: Run flake8 matching CI
     echo "Using darker..."
+    LINTER_ARGS='flake8 --max-line-length=88 --extend-ignore=F821,E203'
     if [ -n "$GOSU_USER" ]; then
-        gosu "$GOSU_USER" darker --isort --revision "$BASE_REVISION"
+        gosu "$GOSU_USER" darker --isort --revision "$BASE_REVISION" -L "$LINTER_ARGS"
     else
-        darker --isort --revision "$BASE_REVISION"
+        darker --isort --revision "$BASE_REVISION" -L "$LINTER_ARGS"
     fi
 else
     echo "No Python changes detected!"

@@ -1,0 +1,13 @@
+.fieldError {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  line-height: 18px;
+  font-size: 12px;
+}
+
+.icon {
+  // Keep the icon on the first line of a message that wraps.
+  flex: none;
+  margin-block-start: 2px;
+}

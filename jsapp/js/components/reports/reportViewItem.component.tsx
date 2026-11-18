@@ -1,13 +1,11 @@
 import ChartJS from 'chart.js/auto'
 import type { ChartConfiguration, ChartDataset, ChartType } from 'chart.js/auto'
-import clonedeep from 'lodash.clonedeep'
-import isEqual from 'lodash.isequal'
-import zip from 'lodash.zip'
+import { cloneDeep, isEqual, zip } from 'lodash-es'
 import { observer } from 'mobx-react'
 import React from 'react'
 import bem from '#/bem'
 import Button from '#/components/common/button'
-import sessionStore from '#/stores/session'
+import profileStore from '#/stores/profile'
 import ReportTable from './reportTable.component'
 import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
 import type { ReportsResponse, ReportsResponseData } from './reportsConstants'
@@ -135,7 +133,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
     // We need to clone the data object to not pollute it with mutations. This
     // fixes a bug when we want to truncate labels for the chart, but they
     // end up being truncated everywhere in report view.
-    const data = clonedeep(this.props.data)
+    const data = cloneDeep(this.props.data)
     const chartType = this.props.style.report_type || 'vertical'
 
     let maxPercentage = 100
@@ -316,7 +314,7 @@ export class ReportViewItem extends React.Component<ReportViewItemProps> {
             </span>
             <span>{t('(# were without data.)').replace('#', String(this.props.data.not_provided))}</span>
           </bem.ReportView__headingMeta>
-          {this.props.data.show_graph && sessionStore.isLoggedIn && (
+          {this.props.data.show_graph && profileStore.isLoggedIn && (
             <span className='report-button__question-settings'>
               <Button
                 type='text'

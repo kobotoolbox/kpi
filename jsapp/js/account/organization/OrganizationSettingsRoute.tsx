@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 
+import { ORGANIZATION_TYPES } from '#/account/accountFieldOptions'
 import styles from '#/account/organization/organizationSettingsRoute.module.scss'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -19,14 +20,6 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { getSimpleMMOLabel } from './organization.utils'
-
-export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {
-  'non-profit': { name: 'non-profit', label: t('Non-profit organization') },
-  government: { name: 'government', label: t('Government institution') },
-  educational: { name: 'educational', label: t('Educational organization') },
-  commercial: { name: 'commercial', label: t('A commercial/for-profit company') },
-  none: { name: 'none', label: t('I am not associated with any organization') },
-}
 
 /**
  * Renders few fields with organization related settings, like name or website

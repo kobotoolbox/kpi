@@ -39,29 +39,53 @@ def get_required_reauthentication_methods(user) -> set[str]:
 
 def did_recently_reauthenticate(request) -> bool:
     """
-    Stricter variant of allauth's `did_recently_authenticate()`
+    Stricter variant of allauth's `did_recently_reauthenticate()`
 
-    allauth only checks the timestamp of the most recent authentication
+    allauth only checks the timestamp of the most recent re-authentication
     record, whichever method it used, so a password-only step satisfies it even
     for an account with MFA active. We require re-authenticating "with password,
     and also with 2FA if it's enabled", so every method the user has available
     must have been completed within `ACCOUNT_REAUTHENTICATION_TIMEOUT`.
+
+    Unlike allauth, a recent login also counts, not only an explicit
+    re-authentication. Until the frontend could walk users through
+    re-authentication, logging in again was the only way to change the email
+    address from the UI.
     """
     user = request.user
-    if not user.is_authenticated:
-        return False
+    return user.is_authenticated and _did_recently_complete(
+        request, get_required_reauthentication_methods(user)
+    )
 
-    required = get_required_reauthentication_methods(user)
-    if not required:
+
+def did_recently_reauthenticate_with_mfa(request) -> bool:
+    """
+    Whether the user completed a 2FA code within `ACCOUNT_REAUTHENTICATION_TIMEOUT`
+
+    For turning 2FA off, which needs the code but not the password. allauth would
+    accept a re-authentication with the password alone. As in
+    `did_recently_reauthenticate()`, a recent login counts
+    """
+    return request.user.is_authenticated and _did_recently_complete(
+        request, {MFA_METHOD}
+    )
+
+
+def _did_recently_complete(request, methods: set[str]) -> bool:
+    """
+    Whether every method in `methods` was completed within
+    `ACCOUNT_REAUTHENTICATION_TIMEOUT`, at login or re-authentication
+    """
+    if not methods:
         return True
 
     cutoff = time.time() - app_settings.REAUTHENTICATION_TIMEOUT
     fresh_methods = {
         record['method']
-        for record in get_authentication_records(request)
+        for record in get_authentication_records(request, request.user)
         if record.get('at', 0) > cutoff
     }
-    return required.issubset(fresh_methods)
+    return methods.issubset(fresh_methods)
 
 
 def is_session_authenticated(request) -> bool:
@@ -121,31 +145,26 @@ def validate_stateless_reauthentication(request) -> None:
         elif not errors:
             # Only spend the 2FA code once the password has passed; a wrong
             # password must not cost the user a recovery code
-            if not _is_valid_mfa_code(user, mfa_code):
+            if not is_valid_mfa_code(user, mfa_code):
                 errors['mfa_code'] = t('Invalid code.')
 
     if errors:
         raise serializers.ValidationError(errors)
 
 
-def _is_valid_mfa_code(user, code) -> bool:
+def is_valid_mfa_code(user, code) -> bool:
     """
     Validate a TOTP or recovery code, reusing the serializer that already backs
     the MFA endpoints so that legacy migrated recovery codes keep working
     """
-    from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
     from kobo.apps.accounts.mfa.serializers import MfaCodeSerializer
+    from kobo.apps.accounts.mfa.utils import MFA_METHOD_NAME, user_has_active_mfa
 
-    method = (
-        MfaMethodsWrapper.objects.filter(user=user, is_active=True)
-        .values_list('name', flat=True)
-        .first()
-    )
-    if method is None:
+    if not user_has_active_mfa(user):
         return False
 
     serializer = MfaCodeSerializer(
-        data={'code': code}, context={'user': user, 'method': method}
+        data={'code': code}, context={'user': user, 'method': MFA_METHOD_NAME}
     )
     return serializer.is_valid()
 
