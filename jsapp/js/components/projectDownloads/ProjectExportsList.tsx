@@ -1,15 +1,14 @@
-import { Flex, Text, VisuallyHidden } from '@mantine/core'
-import { IconCheck } from '@tabler/icons-react'
+import { Flex, Text } from '@mantine/core'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'
-import KoboIcon from '#/components/common/KoboIcon'
 import SimpleTable from '#/components/common/SimpleTable'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
+import BooleanCell from '#/components/projectDownloads/BooleanCell'
 import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
@@ -149,21 +148,6 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
     }
   }, [exportsListQuery.isError])
 
-  function renderBooleanAnswer(isTrue: boolean) {
-    if (isTrue) {
-      return <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
-    } else {
-      return (
-        <>
-          <Text span aria-hidden>
-            –
-          </Text>
-          <VisuallyHidden>{t('No')}</VisuallyHidden>
-        </>
-      )
-    }
-  }
-
   /**
    * Unchecked wisdom copied from old version of this component:
    * > Some old SPSS exports may have a meaningless `lang` attribute -- disregard it
@@ -193,10 +177,10 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         formatTime(exportData.date_created),
         renderLanguage(exportData.data.lang),
         <Text key='include-groups' ta='center'>
-          {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
+          <BooleanCell value={exportData.data.hierarchy_in_labels} />
         </Text>,
         <Text key='multiple-versions' ta='center'>
-          {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
+          <BooleanCell value={exportData.data.fields_from_all_versions} />
         </Text>,
         <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
           {exportData.status === ExportStatusName.complete && (
@@ -271,6 +255,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         ]}
         body={getRows()}
         minWidth={600}
+        fixedHeaderWidth
       />
     </React.Fragment>
   )

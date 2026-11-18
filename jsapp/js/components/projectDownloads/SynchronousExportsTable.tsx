@@ -1,14 +1,13 @@
-import { Anchor, Box, Flex, Group, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
-import { IconArrowUpRight, IconCheck, IconChevronDown, IconHelpCircleFilled, IconLink } from '@tabler/icons-react'
-import React from 'react'
+import { Anchor, Box, Flex, Group, Text, UnstyledButton } from '@mantine/core'
+import { IconArrowUpRight, IconChevronDown, IconHelpCircleFilled, IconLink } from '@tabler/icons-react'
 import { useAssetsExportSettingsList } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
+import BooleanCell from '#/components/projectDownloads/BooleanCell'
 import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import { EXPORT_FORMATS, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
-import { isExportSettingEnabled } from '#/components/projectDownloads/exportsUtils'
 import envStore from '#/envStore'
 import { copyToClipboard, formatDate, getLangAsObject, notify } from '#/utils'
 
@@ -117,28 +116,10 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             formatDate(setting.date_modified, true, 'LL'),
             renderLanguage(setting.export_settings.lang || ''),
             <Text key='include-groups' ta='center'>
-              {isExportSettingEnabled(setting.export_settings.hierarchy_in_labels) ? (
-                <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
-              ) : (
-                <>
-                  <Text span aria-hidden>
-                    –
-                  </Text>
-                  <VisuallyHidden>{t('No')}</VisuallyHidden>
-                </>
-              )}
+              <BooleanCell value={setting.export_settings.hierarchy_in_labels} />
             </Text>,
             <Text key='multiple-versions' ta='center'>
-              {isExportSettingEnabled(setting.export_settings.fields_from_all_versions) ? (
-                <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
-              ) : (
-                <>
-                  <Text span aria-hidden>
-                    –
-                  </Text>
-                  <VisuallyHidden>{t('No')}</VisuallyHidden>
-                </>
-              )}
+              <BooleanCell value={setting.export_settings.fields_from_all_versions} />
             </Text>,
             <Menu key={setting.uid} closeOnItemClick position='bottom-end' offset={2}>
               <Menu.Target>
@@ -163,6 +144,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
               </Menu.Dropdown>
             </Menu>,
           ])}
+          fixedHeaderWidth
         />
       )}
     </Box>

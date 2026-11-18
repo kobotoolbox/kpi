@@ -10,6 +10,7 @@ interface SimpleTableProps extends MantineStyleProps {
    * the screen is).
    */
   minWidth?: number
+  fixedHeaderWidth?: boolean
 }
 
 /**
@@ -17,7 +18,7 @@ interface SimpleTableProps extends MantineStyleProps {
  * headings, column data, and has optional minimum width. You can pass all
  * standard Mantine style props down to the inner `Table`.
  */
-export default function SimpleTable({ head, body, minWidth, ...styleProps }: SimpleTableProps) {
+export default function SimpleTable({ head, body, minWidth, fixedHeaderWidth, ...styleProps }: SimpleTableProps) {
   const table = (
     <Table
       {...styleProps}
@@ -30,6 +31,7 @@ export default function SimpleTable({ head, body, minWidth, ...styleProps }: Sim
       data={{ head: head, body: body }}
       horizontalSpacing='sm'
       verticalSpacing='sm'
+      layout={fixedHeaderWidth ? 'fixed' : undefined}
     />
   )
 
