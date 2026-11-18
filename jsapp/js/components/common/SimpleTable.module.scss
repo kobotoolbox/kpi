@@ -22,4 +22,6 @@ td.SimpleTableTd {
   border-top-width: 1px;
   border-top-color: var(--mantine-color-gray-7);
   border-top-style: solid;
+  white-space: normal;
+  word-break: break-word;
 }
