@@ -139,7 +139,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
                 </>
               )}
             </Text>,
-            <Menu key={setting.uid} withinPortal={false} closeOnItemClick position='bottom-end' offset={2}>
+            <Menu key={setting.uid} closeOnItemClick position='bottom-end' offset={2}>
               <Menu.Target>
                 <UnstyledButton aria-label={t('Copy synchronous export link')}>
                   <Group gap={4} align='center'>
