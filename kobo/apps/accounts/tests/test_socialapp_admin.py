@@ -118,6 +118,7 @@ class SocialAppAdminDisplayLimitTestCase(TestCase):
             url = reverse('admin:accounts_socialappcustomdata_add')
         data = {
             'social_app': app.pk,
+            'logout_behavior': SocialAppCustomData.LogoutBehavior.LOCAL_ONLY,
             'domains-TOTAL_FORMS': '1',
             'domains-INITIAL_FORMS': '0',
             'domains-MIN_NUM_FORMS': '0',
