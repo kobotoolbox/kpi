@@ -8,10 +8,11 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
+import BooleanCell from '#/components/projectDownloads/BooleanCell'
+import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
   EXPORT_FORMATS,
-  EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
@@ -148,17 +149,6 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }, [exportsListQuery.isError])
 
   /**
-   * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
-   */
-  function renderBooleanAnswer(isTrue: boolean) {
-    if (isTrue) {
-      return t('Yes')
-    } else {
-      return t('No')
-    }
-  }
-
-  /**
    * Unchecked wisdom copied from old version of this component:
    * > Some old SPSS exports may have a meaningless `lang` attribute -- disregard it
    */
@@ -182,14 +172,15 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       const exportType = exportData.data.type
 
       return [
-        EXPORT_TYPES[exportType]?.label || t('Unknown format'),
+        <ExportTypeBadge exportType={exportType} />,
+        exportData.data.name || '–',
         formatTime(exportData.date_created),
         renderLanguage(exportData.data.lang),
         <Text key='include-groups' ta='center'>
-          {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
+          <BooleanCell value={exportData.data.hierarchy_in_labels} />
         </Text>,
         <Text key='multiple-versions' ta='center'>
-          {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
+          <BooleanCell value={exportData.data.fields_from_all_versions} />
         </Text>,
         <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
           {exportData.status === ExportStatusName.complete && (
@@ -251,6 +242,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       <SimpleTable
         head={[
           t('Type'),
+          t('Export name'),
           t('Created'),
           t('Language'),
           <Text key='include-groups' ta='center'>
@@ -263,6 +255,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         ]}
         body={getRows()}
         minWidth={600}
+        fixedHeaderWidth
       />
     </React.Fragment>
   )
