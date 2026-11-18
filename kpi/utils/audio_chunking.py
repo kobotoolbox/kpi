@@ -153,8 +153,8 @@ def get_chunk_ranges(
     entry in the ladder, and usually not at all.
 
     `hard_limit` is the longest chunk the engine about to transcribe this file
-    accepts, which the caller reads off its action
-    (`BaseAutomaticNLPAction.chunk_hard_limit_seconds`). It is an argument
+    accepts, which the caller reads off its transcription service
+    (e.g. `GoogleTranscriptionService.CHUNK_HARD_LIMIT_SECONDS`). It is an argument
     rather than a setting read here because engines disagree about it, and only
     the caller knows which one is about to be used.
     """

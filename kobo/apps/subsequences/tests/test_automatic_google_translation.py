@@ -359,6 +359,8 @@ def test_run_external_process_passes_bulk_action_uid_to_service():
         xpath,
         action_data,
         bulk_action_uid='bulk-action-uid',
+        version_uuid=None,
+        is_launch=False,
     )
     assert result == {
         'value': 'Bonjour',

@@ -163,6 +163,9 @@ class GoogleTranslationService(GoogleService):
         xpath: str,
         params: dict,
         bulk_action_uid: str | None = None,
+        *,
+        version_uuid: str | None,
+        is_launch: bool,
     ) -> dict:
         """
         Translate one submission value using either sync or async Google APIs
@@ -176,6 +179,9 @@ class GoogleTranslationService(GoogleService):
         that is being processed. It is only relevant for async translations and if no
         bulk action item is available, async translations fall back to the existing
         cache-based operation tracking.
+
+        `version_uuid` and `is_launch` are not used yet: a translation is never
+        split, and it keeps checking the usage limit on every new operation
 
         When this returns `in_progress`, `BaseAutomaticNLPAction.run_external_process()`
         schedules the `poll_run_external_process` Celery task, which calls this method

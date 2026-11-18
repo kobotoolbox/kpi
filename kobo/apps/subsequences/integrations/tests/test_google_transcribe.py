@@ -17,7 +17,19 @@ from kobo.apps.subsequences.integrations.google.google_transcribe import (
 from kobo.apps.subsequences.integrations.google.rate_limit import (
     GoogleServiceRateLimitExceeded,
 )
-from kpi.exceptions import UsageLimitExceededException
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    NotSupportedFormatException,
+    SubmissionNotFoundException,
+    UsageLimitExceededException,
+    XPathNotFoundException,
+)
+
+# What `process_data()` is told about the run: the request that launches it,
+# then the polls that check on it
+LAUNCH = {'version_uuid': 'version-1', 'is_launch': True}
+POLL = {'version_uuid': 'version-1', 'is_launch': False}
 
 
 class MockBlob:
@@ -65,14 +77,17 @@ def test_process_data_checks_usage_limit_before_starting(
         return_value=MagicMock(language_code='en-US', location_code='global')
     )
     service._get_operation_reference = MagicMock(return_value=None)
+    service._get_attachment = MagicMock()
     service.get_converted_audio = MagicMock()
 
     with pytest.raises(UsageLimitExceededException):
-        service.process_data('audio', {'language': 'en'})
+        service.process_data('audio', {'language': 'en'}, **LAUNCH)
     mock_raise_if_exceeded.assert_called_once_with(
         service.asset.owner, UsageType.ASR_SECONDS
     )
-    # Refused before the audio is transcoded or anything is sent to Google
+    # Refused before the attachment is fetched, the audio is transcoded or
+    # anything is sent to Google
+    service._get_attachment.assert_not_called()
     service.get_converted_audio.assert_not_called()
 
 
@@ -98,7 +113,7 @@ def test_process_data_skips_usage_limit_check_when_resuming(
     service._get_operation_reference = MagicMock(return_value='operations/1')
     service._get_operation_payload = MagicMock(return_value={'done': False})
 
-    result = service.process_data('audio', {'language': 'en'})
+    result = service.process_data('audio', {'language': 'en'}, **POLL)
 
     assert result == {'status': 'in_progress'}
     mock_raise_if_exceeded.assert_not_called()
@@ -235,7 +250,7 @@ def test_process_data_returns_failed_for_missing_google_service_config():
         )
     )
 
-    result = service.process_data('audio', {'language': 'en'})
+    result = service.process_data('audio', {'language': 'en'}, **LAUNCH)
 
     assert result == {
         'status': 'failed',
@@ -263,7 +278,7 @@ def test_process_data_returns_failed_for_polling_auth_errors(
         side_effect=PermissionDenied('permission denied')
     )
 
-    result = service.process_data('audio', {'language': 'en'})
+    result = service.process_data('audio', {'language': 'en'}, **POLL)
 
     assert result['status'] == 'failed'
     assert 'credentials or permissions are invalid' in result['error']
@@ -296,6 +311,7 @@ def test_process_data_raises_quota_error_when_start_quota_is_exhausted(
         return_value=MagicMock(language_code='en-US', location_code='global')
     )
     service._get_operation_reference = MagicMock(return_value=None)
+    service._get_attachment = MagicMock()
     service.get_converted_audio = MagicMock(return_value=(b'audio', MagicMock()))
     service.begin_google_operation = MagicMock(
         side_effect=GoogleServiceRateLimitExceeded(
@@ -305,8 +321,59 @@ def test_process_data_raises_quota_error_when_start_quota_is_exhausted(
     )
 
     with pytest.raises(GoogleServiceRateLimitExceeded):
-        service.process_data('audio', {'language': 'en'})
+        service.process_data('audio', {'language': 'en'}, **LAUNCH)
     service._clear_operation_reference.assert_not_called()
+    # The attachment is fetched once and handed to the conversion as is
+    service._get_attachment.assert_called_once_with('audio')
+    service.get_converted_audio.assert_called_once_with(
+        service._get_attachment.return_value
+    )
+
+
+@pytest.mark.parametrize(
+    'failing_step, error, expected_error',
+    [
+        ('_get_attachment', SubmissionNotFoundException, 'Submission not found'),
+        ('_get_attachment', AttachmentNotFoundException, 'Attachment not found'),
+        ('_get_attachment', InvalidXPathException, 'Invalid question name XPath'),
+        ('_get_attachment', XPathNotFoundException, 'Invalid question name XPath'),
+        ('get_converted_audio', NotSupportedFormatException, 'Unsupported format'),
+    ],
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.base.raise_if_usage_limit_exceeded',
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_asr_language_code_overrides',  # noqa E501
+    return_value={},
+)
+@patch(
+    'kobo.apps.subsequences.integrations.google.google_transcribe.get_speech_location_for_model',  # noqa E501
+    return_value=None,
+)
+def test_process_data_returns_failed_when_the_audio_cannot_be_read(
+    _mock_location,
+    _mock_overrides,
+    _mock_raise_if_exceeded,
+    failing_step,
+    error,
+    expected_error,
+):
+    service = _get_service_for_process_data()
+    service._get_google_language_config = MagicMock(
+        return_value=MagicMock(language_code='en-US', location_code='global')
+    )
+    service._get_operation_reference = MagicMock(return_value=None)
+    service._get_attachment = MagicMock()
+    service.get_converted_audio = MagicMock(return_value=(b'audio', MagicMock()))
+    service.begin_google_operation = MagicMock()
+    setattr(service, failing_step, MagicMock(side_effect=error))
+
+    result = service.process_data('audio', {'language': 'en'}, **LAUNCH)
+
+    assert result == {'status': 'failed', 'error': expected_error}
+    # Nothing is sent to Google
+    service.begin_google_operation.assert_not_called()
 
 
 @patch(
@@ -329,7 +396,7 @@ def test_process_data_returns_failed_for_unexpected_polling_errors(
         side_effect=AttributeError('unexpected bug')
     )
 
-    result = service.process_data('audio', {'language': 'en'})
+    result = service.process_data('audio', {'language': 'en'}, **POLL)
 
     assert result == {
         'status': 'failed',

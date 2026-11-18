@@ -781,23 +781,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         return
 
     @property
-    def chunk_hard_limit_seconds(self) -> float:
-        """
-        Longest piece of audio, in seconds, this action's engine will accept
-
-        A recording longer than this is cut into chunks before it is sent (see
-        `kpi.utils.audio_chunking`). Engines disagree about the limit, so there
-        is no shared default to inherit: Google STT v2 takes an hour while
-        Gemini-Transcribe takes far less, and one number for both would chunk
-        every engine at the lowest limit in the fleet.
-
-        The value is fixed by the engine's API rather than tuned per
-        deployment, so each action states it outright.
-        """
-
-        raise NotImplementedError
-
-    @property
     def external_data_schema(self) -> dict:
         """
         Schema rules:
@@ -1064,6 +1047,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 current_version,
                 action_data,
                 in_progress_created_upfront,
+                # The run this call belongs to: with `create_in_progress_upfront`
+                # the version on top is its `in_progress` version
+                version_uuid=action_supplemental_data.get(self.UUID_FIELD),
             )
         except (GoogleQuotaExceededError, APIException):
             # Not failures of the service, re-raised on purpose: Celery retries
@@ -1086,6 +1072,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         current_version: dict,
         action_data: dict,
         in_progress_created_upfront: bool,
+        version_uuid: str | None,
     ) -> dict | None:
         bulk_action_uid = action_data.get('bulk_action_uid')
 
@@ -1101,6 +1088,10 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 self.source_question_xpath,
                 action_data,
                 bulk_action_uid=bulk_action_uid,
+                version_uuid=version_uuid,
+                # Only a launch saves its `in_progress` version upfront: later
+                # calls (polls, repeated requests) find it already there
+                is_launch=in_progress_created_upfront,
             )
         except GoogleQuotaExceededError as err:
             if celery_app.current_worker_task:
