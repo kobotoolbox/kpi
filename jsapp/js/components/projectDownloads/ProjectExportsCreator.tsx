@@ -318,18 +318,6 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
     mergeState({ selectedRows: newSelectedRows })
   }
 
-  function selectAllRows(evt: React.TouchEvent) {
-    evt.preventDefault()
-    clearSelectedDefinedExport()
-    mergeState({ selectedRows: new Set(getAllSelectableRows()) })
-  }
-
-  function clearSelectedRows(evt: React.TouchEvent) {
-    evt.preventDefault()
-    clearSelectedDefinedExport()
-    mergeState({ selectedRows: new Set() })
-  }
-
   function toggleAdvancedView(evt: React.TouchEvent) {
     evt.preventDefault()
     mergeState({ isAdvancedViewVisible: !stateRef.current.isAdvancedViewVisible })
@@ -489,7 +477,25 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       }
     })
 
-    return <MultiCheckbox type='frame' items={rows} onChange={onSelectedRowsChange} />
+    return (
+      <MultiCheckbox
+        type='frame'
+        className='project-downloads__rows-selector'
+        label={
+          <Switch
+            checked={state.isCustomSelectionEnabled}
+            onChange={(event) => {
+              clearSelectedDefinedExport()
+              mergeState({ isCustomSelectionEnabled: event.currentTarget.checked })
+            }}
+            label={t('Select questions to be exported')}
+          />
+        }
+        hasBulkSelect
+        items={rows}
+        onChange={onSelectedRowsChange}
+      />
+    )
   }
 
   function renderAdvancedView() {
@@ -677,38 +683,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
           </bem.ProjectDownloads__columnRow>
         </bem.ProjectDownloads__column>
 
-        <bem.ProjectDownloads__column m='right'>
-          <bem.ProjectDownloads__columnRow m='rows-selector-header'>
-            <Switch
-              checked={state.isCustomSelectionEnabled}
-              onChange={(event) => {
-                clearSelectedDefinedExport()
-                mergeState({ isCustomSelectionEnabled: event.currentTarget.checked })
-              }}
-              label={t('Select questions to be exported')}
-            />
-
-            <Button
-              type='secondary'
-              size='s'
-              isDisabled={!state.isCustomSelectionEnabled || state.selectedRows.size === state.selectableRowsCount}
-              onClick={selectAllRows}
-              label={t('Select all')}
-            />
-
-            <span className='project-downloads__vr' />
-
-            <Button
-              type='secondary'
-              size='s'
-              isDisabled={!state.isCustomSelectionEnabled || state.selectedRows.size <= 1}
-              onClick={clearSelectedRows}
-              label={t('Deselect all')}
-            />
-          </bem.ProjectDownloads__columnRow>
-
-          {renderRowsSelector()}
-        </bem.ProjectDownloads__column>
+        <bem.ProjectDownloads__column m='right'>{renderRowsSelector()}</bem.ProjectDownloads__column>
 
         <hr />
       </bem.ProjectDownloads__advancedView>

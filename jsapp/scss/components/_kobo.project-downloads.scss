@@ -109,35 +109,12 @@
       &:not(:last-child) {
         margin-bottom: 20px;
       }
-
-      &.project-downloads__column-row--rows-selector-header {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 10px;
-
-        .mantine-Switch-root {
-          flex: 1;
-        }
-
-        .project-downloads__vr {
-          width: 1px;
-          height: 1em;
-          display: block;
-          margin: 0;
-          background-color: colors.$kobo-gray-300;
-        }
-      }
     }
   }
 
-  .multi-checkbox {
+  .project-downloads__rows-selector {
     position: absolute;
-    top: 30px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin-top: 6px;
+    inset: 0;
   }
 
   .project-downloads__submit-row {

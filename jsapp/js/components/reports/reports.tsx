@@ -8,6 +8,7 @@ import { actions } from '#/actions'
 import { flattenErrorBody } from '#/api/flattenErrorBody'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import bem from '#/bem'
+import ModalNew from '#/components/common/ModalNew'
 import Select from '#/components/common/Select'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -644,17 +645,20 @@ export default function Reports(props: ReportsProps) {
             </Modal>
           )}
 
-          {state.showCustomReportModal && (
-            <Modal open onClose={closeCustomReportModal} title={t('Custom Report')}>
-              {state.currentCustomReport && (
-                <CustomReportEditor
-                  reportData={state.reportData}
-                  customReport={state.currentCustomReport}
-                  asset={state.asset}
-                />
-              )}
-            </Modal>
-          )}
+          <ModalNew
+            opened={state.showCustomReportModal}
+            onClose={closeCustomReportModal}
+            title={t('Custom Report')}
+            size='lg'
+          >
+            {state.currentCustomReport && (
+              <CustomReportEditor
+                reportData={state.reportData}
+                customReport={state.currentCustomReport}
+                asset={state.asset}
+              />
+            )}
+          </ModalNew>
 
           {state.currentQuestionGraph && (
             <Modal open onClose={closeQuestionSettings} title={t('Question Style')}>
