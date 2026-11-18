@@ -71,10 +71,6 @@ export default function TOSForm() {
     setAcceptError(undefined)
 
     try {
-<<<<<<< HEAD
-      await logout.mutateAsync()
-    } catch {
-=======
       // TODO: use an Orval hook once `/me/tos/` is in the OpenAPI schema DEV-3170.
       // No toast: the error shows on the card, like the other blocker errors.
       await fetchPost(TOS_ACCEPT_ENDPOINT, {}, { notifyAboutError: false })
@@ -87,7 +83,6 @@ export default function TOSForm() {
     } catch (err) {
       reportApiFail(err as FailResponse)
       setAcceptError(t('Something went wrong. Please try again later.'))
->>>>>>> origin/main
       setIsFormPending(false)
     }
   }
