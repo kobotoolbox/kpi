@@ -414,8 +414,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                         HttpResponseRedirect(resolve_url('socialaccount_provisioning'))
                     )
 
-            # Stash login metadata and id_token in session for deterministic logout handling.
-            # Only login/signup flows establish an active social session; account connection does not.
+            # Stash login metadata and id_token in session for deterministic logout
+            # handling. Only login/signup flows establish an active social session;
+            # account connection does not.
             account = getattr(sociallogin, 'account', None)
             extra_data = getattr(account, 'extra_data', None)
             id_token = (
