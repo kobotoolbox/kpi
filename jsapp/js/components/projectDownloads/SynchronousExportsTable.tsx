@@ -1,4 +1,4 @@
-import { Anchor, Box, Flex, Group, Text, UnstyledButton } from '@mantine/core'
+import { Anchor, Box, Flex, Group, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { IconArrowUpRight, IconCheck, IconChevronDown, IconInfoCircle, IconLink } from '@tabler/icons-react'
 import React from 'react'
 import { useAssetsExportSettingsList } from '#/api/react-query/survey-data'
@@ -6,7 +6,8 @@ import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
-import { EXPORT_FORMATS, EXPORT_TYPES, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
+import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
+import { EXPORT_FORMATS, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
 import { isExportSettingEnabled } from '#/components/projectDownloads/exportsUtils'
 import envStore from '#/envStore'
 import { copyToClipboard, formatDate, getLangAsObject, notify } from '#/utils'
@@ -110,7 +111,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             '',
           ]}
           body={savedSettings.map((setting) => [
-            EXPORT_TYPES[setting.export_settings.type as ExportTypeName]?.label || t('Unknown format'),
+            <ExportTypeBadge exportType={setting.export_settings.type as ExportTypeName} />,
             setting.name,
             formatDate(setting.date_modified, true, 'LL'),
             renderLanguage(setting.export_settings.lang || ''),
@@ -118,14 +119,24 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
               {isExportSettingEnabled(setting.export_settings.hierarchy_in_labels) ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
               ) : (
-                '–'
+                <>
+                  <Text span aria-hidden>
+                    –
+                  </Text>
+                  <VisuallyHidden>{t('No')}</VisuallyHidden>
+                </>
               )}
             </Text>,
             <Text key='multiple-versions' ta='center'>
               {isExportSettingEnabled(setting.export_settings.fields_from_all_versions) ? (
                 <KoboIcon icon={IconCheck} color='teal' size='sm' aria-label={t('Yes')} />
               ) : (
-                '–'
+                <>
+                  <Text span aria-hidden>
+                    –
+                  </Text>
+                  <VisuallyHidden>{t('No')}</VisuallyHidden>
+                </>
               )}
             </Text>,
             <Menu key={setting.uid} withinPortal={false} closeOnItemClick position='bottom-end' offset={2}>
