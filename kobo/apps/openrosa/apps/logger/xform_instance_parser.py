@@ -22,6 +22,10 @@ from kobo.apps.openrosa.libs.utils.common_tags import (
 from kpi.utils.log import logging
 from kpi.utils.xml import minidom_parsestring
 
+XHTML_NAMESPACE = '{http://www.w3.org/1999/xhtml}'
+XFORMS_NAMESPACE = '{http://www.w3.org/2002/xforms}'
+XFORMS_BIND_TAG = f'{XFORMS_NAMESPACE}bind'
+
 
 def add_uuid_prefix(uuid_: str) -> str:
     if ':' in uuid_:
@@ -514,29 +518,54 @@ def parse_xform_instance(xml_str, data_dictionary):
 
 def get_xform_media_question_xpaths(xform: 'logger.XForm') -> list:
     """
-    Return the XPaths of the questions that hold a file, read from the `ref`
-    attribute of every node carrying a `mediatype`.
-    """
+    Return the XPaths of the questions that hold a file.
 
-    media_field_xpaths = []
+    A question holds a file when its bind is of type `binary`. That is the only
+    mark of background audio and audit, which have no control in the body. The
+    `ref` of every body node that carries a `mediatype` is read as well, for an
+    upload control that has no such bind.
+
+    Only the binds of the model and the nodes of the body are walked. The
+    instance and the translations, which make up most of a large form, are not.
+    """
 
     # `fromstring_preserve_root_xmlns()`, used everywhere else, is deliberately not
     # used here: nothing here writes the tree back, and it's almost 4x faster for the
     # same XPaths.
-    for element in ET.fromstring(xform.xml).iter():
+    root = ET.fromstring(xform.xml)
+    model = root.find(f'{XHTML_NAMESPACE}head/{XFORMS_NAMESPACE}model')
+    body = root.find(f'{XHTML_NAMESPACE}body')
+
+    if model is None or body is None:
+        # Not the structure that pyxform writes, so walk the whole form
+        binds = root.iter(XFORMS_BIND_TAG)
+        controls = root.iter()
+    else:
+        binds = model.iterfind(XFORMS_BIND_TAG)
+        controls = body.iter()
+
+    # An upload control and its bind give the same XPath. A dict drops the
+    # duplicate and keeps the order
+    media_field_xpaths = {}
+
+    for bind in binds:
+        if bind.get('type') == 'binary' and (nodeset := bind.get('nodeset')):
+            # We are returning XPaths, leading slash should be removed
+            media_field_xpaths[nodeset.lstrip('/')] = None
+
+    for element in controls:
         if 'mediatype' not in element.attrib:
             continue
 
-        if not (ref := element.attrib.get('ref')):
+        if not (ref := element.get('ref')):
             logging.warning(
                 f'XForm #{xform.pk} holds a media node with no usable `ref`'
             )
             continue
 
-        # We are returning XPaths, leading slash should be removed
-        media_field_xpaths.append(ref.lstrip('/'))
+        media_field_xpaths[ref.lstrip('/')] = None
 
-    return media_field_xpaths
+    return list(media_field_xpaths)
 
 
 def get_abbreviated_xpath(element: SurveyElement) -> str:
