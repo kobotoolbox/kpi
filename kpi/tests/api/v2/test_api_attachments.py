@@ -12,6 +12,7 @@ from kpi.deployment_backends.kc_access.storage import (
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
+from kpi.tests.utils.cache import assert_not_stored
 from kpi.tests.utils.mock import guess_type_mock
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -331,3 +332,30 @@ class AttachmentApiTests(BaseAssetTestCase):
         self.client.get(thumb_url)
         # Thumbs should exist
         self.assertTrue(default_storage.exists(thumbnail))
+
+    def test_attachment_responses_are_not_stored(self):
+        """
+        Attachment content must not be stored by the browser.
+        """
+        submission = self.submissions[0]
+        attachment_id = submission['_attachments'][1]['id']
+        detail_url = reverse(
+            self._get_endpoint('attachment-detail'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'uid_data': submission['_id'],
+                'pk': attachment_id,
+            },
+        )
+        thumb_url = reverse(
+            self._get_endpoint('attachment-thumb'),
+            args=(self.asset.uid, submission['_id'], attachment_id, 'small'),
+        )
+        list_url = reverse(
+            self._get_endpoint('attachment-list'),
+            kwargs={'uid_asset': self.asset.uid, 'uid_data': submission['_id']},
+        )
+        for url in (detail_url, thumb_url, f'{list_url}?xpath=q2'):
+            response = self.client.get(url)
+            assert response.status_code == status.HTTP_200_OK
+            assert_not_stored(response)

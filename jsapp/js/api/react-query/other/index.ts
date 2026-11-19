@@ -1548,7 +1548,7 @@ export const getTranscriptionServicesListUrl = (params?: TranscriptionServicesLi
  *
  * Search can be made with `q` parameter to search for the term in names and codes.
  *
- * Results are order by name.
+ * Results are ordered by priority (lower values first), then by name.
  */
 export const transcriptionServicesList = async (
   params?: TranscriptionServicesListParams,
@@ -1756,7 +1756,7 @@ export const getTranslationServicesListUrl = (params?: TranslationServicesListPa
  *
  * Search can be made with `q` parameter to search for the term in names and codes.
  *
- * Results are ordered by name.
+ * Results are ordered by priority (lower values first), then by name.
  */
 export const translationServicesList = async (
   params?: TranslationServicesListParams,

@@ -6,7 +6,9 @@ import constance
 from django.conf import settings
 from django.http import FileResponse, HttpResponse, HttpResponseRedirect
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as t
+from django.views.decorators.cache import never_cache
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import serializers, status, viewsets
@@ -187,6 +189,7 @@ class AssetExportSettingsViewSet(
         url_name='synchronous-data',
         renderer_classes=(SubmissionCSVRenderer, SubmissionXLSXRenderer),
     )
+    @method_decorator(never_cache)
     def data(self, request, *args, **kwargs):
         AVAILABLE_FORMATS = ('csv', 'xlsx')
         # Serve content directly to these agents instead of redirecting

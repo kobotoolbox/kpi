@@ -12,8 +12,7 @@ import { ModalsProvider } from '@mantine/modals'
 import { Notifications } from '@mantine/notifications'
 import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
-import reactMixin from 'react-mixin'
-import { Outlet } from 'react-router-dom'
+import { Outlet, matchPath, useLocation, useMatch } from 'react-router-dom'
 import { queryClient } from '#/api/queryClient'
 import AuthChangeRedirector from '#/auth/AuthChangeRedirector'
 import ProfileDetailsBlocker from '#/auth/ProfileDetailsBlocker/ProfileDetailsBlocker'
@@ -25,24 +24,20 @@ import Drawer from '#/components/Drawer'
 import BigModal from '#/components/bigModal/bigModal'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import MainHeader from '#/components/header/mainHeader.component'
-import { isAnyProcessingRouteActive } from '#/components/processing/routes.utils'
+import { isAnyProcessingRoute } from '#/components/processing/routes.utils'
 import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import ProjectLayout from '#/project/ProjectLayout'
 import { RootContextProvider } from '#/rootContextProvider.component'
 import { RouteGuardPendingContext } from '#/router/RouteGuardSpinner'
 import InvalidatedPassword from '#/router/invalidatedPassword.component'
-import {
-  getRouteAssetUid,
-  isInvalidatedPasswordRouteBlockerActive,
-  isTOSAgreementRouteBlockerActive,
-} from '#/router/routerUtils'
+import { ROUTES } from '#/router/routerConstants'
+import { isInvalidatedPasswordRouteBlockerActive, isTOSAgreementRouteBlockerActive } from '#/router/routerUtils'
 import TOSAgreement from '#/router/tosAgreement.component'
 import profileStore from '#/stores/profile'
 import CloseModalsOnNavigate from './router/CloseModalsOnNavigate'
-import { router, withRouter } from './router/legacy'
+import { router } from './router/legacy'
 import { Tracking } from './router/useTracking'
 import { cssVariablesResolverKobo, themeKobo } from './theme'
 import { KOBO_MODAL_SHARED_PROPS } from './theme/kobo/Modal'
@@ -50,11 +45,25 @@ import ToasterConfig from './toasterConfig'
 
 import './api/mutation-defaults'
 
-/**
- * Renders the page necessities (wrapper modifiers, BigModal, header, drawer, content area). Extracted from App because
- * it needs hooks for modal subscription and drawer state.
- */
-function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle, assetUid }) {
+/** Routes rendering the Form Builder. */
+const FORM_BUILDER_ROUTES = [
+  ROUTES.NEW_LIBRARY_ITEM,
+  ROUTES.EDIT_LIBRARY_ITEM,
+  ROUTES.NEW_LIBRARY_CHILD,
+  ROUTES.FORM_EDIT,
+]
+
+/** Renders the page necessities (wrapper modifiers, BigModal, header, drawer, content area) for the current route. */
+function AppPageWrapper() {
+  const { pathname } = useLocation()
+  const inFormBuilder = FORM_BUILDER_ROUTES.some((path) => matchPath({ path, end: false }, pathname) !== null)
+  // Header and side menu are hidden in Form Builder and Single Processing View.
+  const shouldDisplayMain = !inFormBuilder && !isAnyProcessingRoute(pathname)
+  const formMatch = useMatch({ path: ROUTES.FORM, end: false })
+  const libraryItemMatch = useMatch({ path: ROUTES.LIBRARY_ITEM, end: false })
+  const isFormSingle = formMatch !== null
+  const isLibrarySingle = libraryItemMatch !== null
+  const assetUid = formMatch?.params.uid ?? libraryItemMatch?.params.uid ?? null
   const [modal, setModal] = useState(() => pageState.state.modal ?? false)
   const [isDrawerOpen, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false)
   const [isGuardPending, setIsGuardPending] = useState(false)
@@ -137,7 +146,7 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
  *
  * Observes the stores it asks, because the answers change as the session and `/environment` land.
  */
-const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+const AppGuard = observer(function AppGuard() {
   // Before the early returns, so the hook order stays the same on every render.
   const profileDetails = useProfileDetailsBlockerState()
 
@@ -175,76 +184,44 @@ const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, 
   // opt for a more sane, and singular(!) solution.
   return (
     <RootContextProvider>
-      <AppPageWrapper
-        shouldDisplayMain={shouldDisplayMain}
-        inFormBuilder={inFormBuilder}
-        isFormSingle={isFormSingle}
-        isLibrarySingle={isLibrarySingle}
-        assetUid={getRouteAssetUid()}
-      />
+      <AppPageWrapper />
     </RootContextProvider>
   )
 })
 
-class App extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {}
-  }
+export default function App() {
+  // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
+  // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
+  return (
+    <DocumentTitle title='KoboToolbox'>
+      <QueryClientProvider client={queryClient}>
+        {/* Outside the guards below on purpose */}
+        <AuthChangeRedirector />
 
-  /** Whether to display the top header navigation and the side menu. */
-  shouldDisplayMainLayoutElements() {
-    return (
-      // Hide in Form Builder
-      !this.isFormBuilder() &&
-      // Hide in Single Processing View
-      !isAnyProcessingRouteActive()
-    )
-  }
+        <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
+          <Notifications />
+          <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
+            <Tracking />
+            <CloseModalsOnNavigate />
+            <ToasterConfig />
 
-  render() {
-    // The UI and query providers wrap the route blockers too, so a blocker screen gets the same theme, toasts and
-    // query client as the app. `RootContextProvider` is the exception - see `AppGuard`.
-    return (
-      <DocumentTitle title='KoboToolbox'>
-        <QueryClientProvider client={queryClient}>
-          {/* Outside the guards below on purpose */}
-          <AuthChangeRedirector />
+            <AppGuard />
+          </ModalsProvider>
+        </MantineProvider>
 
-          <MantineProvider theme={themeKobo} cssVariablesResolver={cssVariablesResolverKobo}>
-            <Notifications />
-            <ModalsProvider modalProps={KOBO_MODAL_SHARED_PROPS}>
-              <Tracking />
-              <CloseModalsOnNavigate />
-              <ToasterConfig />
-
-              <AppGuard
-                shouldDisplayMain={this.shouldDisplayMainLayoutElements()}
-                inFormBuilder={this.isFormBuilder()}
-                isFormSingle={this.isFormSingle()}
-                isLibrarySingle={this.isLibrarySingle()}
-              />
-            </ModalsProvider>
-          </MantineProvider>
-
-          {/* React Query Devtools - GUI for inspecting and modifying query status
-              (https://tanstack.com/query/latest/docs/framework/react/devtools)
-              They only show up in dev server (NODE_ENV==='development')
-              Additionally, we're keeping them commented out in `beta`
-              (https://github.com/kobotoolbox/kpi/pull/5001#discussion_r1691067344)
-                (1) Uncomment if you want to use these tools
-                (2) The <style> tag lowers the toggle button opacity
-                    to make it less prominent in dev screenshots. */}
-          {/*
-            <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
-            <ReactQueryDevtools />
-          */}
-        </QueryClientProvider>
-      </DocumentTitle>
-    )
-  }
+        {/* React Query Devtools - GUI for inspecting and modifying query status
+            (https://tanstack.com/query/latest/docs/framework/react/devtools)
+            They only show up in dev server (NODE_ENV==='development')
+            Additionally, we're keeping them commented out in `beta`
+            (https://github.com/kobotoolbox/kpi/pull/5001#discussion_r1691067344)
+              (1) Uncomment if you want to use these tools
+              (2) The <style> tag lowers the toggle button opacity
+                  to make it less prominent in dev screenshots. */}
+        {/*
+          <style>{'.tsqd-open-btn-container { opacity: 0.1 !important; };'}</style>
+          <ReactQueryDevtools />
+        */}
+      </QueryClientProvider>
+    </DocumentTitle>
+  )
 }
-
-reactMixin(App.prototype, mixins.contextRouter)
-
-export default withRouter(App)
