@@ -5,6 +5,7 @@ from django_digest.test import Client as DigestClient
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.utils.storage import rmdir
+from kpi.tests.utils.cache import assert_not_stored
 
 
 class TestBriefcaseAttachmentUrl(TestBase):
@@ -27,6 +28,14 @@ class TestBriefcaseAttachmentUrl(TestBase):
         assert Attachment.objects.count() == self.attachment_count + 1
         response = self.client.get(self._url())
         assert response.status_code == 200
+
+    def test_attachment_url_is_not_stored(self):
+        """
+        The briefcase attachment must not be stored by the browser.
+        """
+        response = self.client.get(self._url())
+        assert response.status_code == 200
+        assert_not_stored(response)
 
     def test_attachment_url_with_digest_auth(self):
         self.client.logout()
