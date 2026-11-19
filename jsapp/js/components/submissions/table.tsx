@@ -896,6 +896,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         id: key,
         accessor: (row) => selectNestedRow(row, key, rootParentGroup),
         question: q,
+        legacyAttachmentPaths: legacyAttachmentPathsByColumn.get(key),
         // This (and the Filter itself) will be set below (we do it separately,
         // because we need to do it for all the columns, not only the ones in
         // this loop)

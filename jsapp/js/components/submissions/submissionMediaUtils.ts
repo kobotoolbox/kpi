@@ -29,7 +29,7 @@ export function findAttachmentByQuestionXpaths(
 }
 
 /** `application/ogg` counts - a generic prefix, but we do play Ogg as audio. */
-function isAudioMimetype(mimetype: string) {
+export function isAudioMimetype(mimetype: string) {
   return mimetype.startsWith('audio/') || mimetype === 'application/ogg'
 }
 

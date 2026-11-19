@@ -12,21 +12,9 @@ jest.mock('#/api/react-query/survey-data', () => {
   }
 })
 
-jest.mock('#/envStore', () => {
-  return {
-    __esModule: true,
-    default: {
-      data: {
-        asr_mt_features_enabled: true,
-      },
-    },
-  }
-})
-
 const createMock = assetsAttachmentsAudioDurationCreate as jest.MockedFunction<
   typeof assetsAttachmentsAudioDurationCreate
 >
-const envStore = require('#/envStore').default as { data: { asr_mt_features_enabled: boolean } }
 
 /**
  * Renders `useAttachmentDuration` inside the provider so we exercise the whole
@@ -56,9 +44,9 @@ function renderProviderHook(options: {
 describe('AudioDurationsProvider', () => {
   beforeEach(() => {
     jest.resetAllMocks()
-    envStore.data.asr_mt_features_enabled = true
   })
 
+  // ASR/MT is off here (envStore default), so this proves durations load without it.
   it('fetches and exposes the backend duration for a visible audio attachment', async () => {
     createMock.mockResolvedValue(mockAudioDurationResponse({ attachments: [{ uid: 'a', seconds: 8 }], total: 8 }))
 
@@ -70,20 +58,6 @@ describe('AudioDurationsProvider', () => {
 
     await waitFor(() => chai.expect(result.current).to.equal(8))
     chai.expect(createMock.mock.calls[0][1].attachment_uids).to.deep.equal(['a'])
-  })
-
-  it('does not fetch when ASR/MT features are disabled', () => {
-    envStore.data.asr_mt_features_enabled = false
-
-    const { result } = renderProviderHook({
-      submissions: [buildSubmissionWithAttachments([{ uid: 'a', question_xpath: 'audio_q' }])],
-      visibleAudioXpaths: ['audio_q'],
-      attachmentUid: 'a',
-    })
-
-    chai.expect(createMock.mock.calls.length).to.equal(0)
-    // Falls back to undefined so the player uses the browser-decoded duration.
-    chai.expect(result.current).to.equal(undefined)
   })
 
   it('skips attachments whose column is not visible', async () => {

@@ -1,6 +1,7 @@
 import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+import type { TableColumn } from './table.types'
 import { SortValues } from './tableConstants'
 import {
   CELL_PREVIEW_MAX_LENGTH,
@@ -12,6 +13,7 @@ import {
   getMetadataColumns,
   getSelectResponseLabel,
   getTableSort,
+  getVisibleAudioXpaths,
   isTableColumnFilterableByTextInput,
   selectNestedRow,
   shouldDropLegacyAttachmentColumn,
@@ -929,6 +931,33 @@ describe('tableUtils', () => {
       const findRowForColumn = buildColumnRowFinder(SURVEY)
 
       chai.expect(findRowForColumn(`${SUPPLEMENTAL_DETAILS_PROP}/recording/transcript`)).to.equal(undefined)
+    })
+  })
+
+  describe('getVisibleAudioXpaths', () => {
+    function column(id: string, type?: AnyRowTypeName, legacyAttachmentPaths?: string[]) {
+      return { id, question: type && ({ type } as SurveyRow), legacyAttachmentPaths } as TableColumn
+    }
+
+    it('should list audio and background audio columns, but not other questions', () => {
+      const columns = [
+        column('voice', QuestionTypeName.audio),
+        column('background', QuestionTypeName['background-audio']),
+        column('photo', QuestionTypeName.image),
+      ]
+
+      chai.expect(getVisibleAudioXpaths(columns)).to.deep.equal(['voice', 'background'])
+    })
+
+    // A renamed question leaves its old answers in a column with no question.
+    it('should list a column with no question, as its files may be audio', () => {
+      chai.expect(getVisibleAudioXpaths([column('Your_voice')])).to.deep.equal(['Your_voice'])
+    })
+
+    it("should list the legacy paths of a moved question's column", () => {
+      const columns = [column('new_group/voice', QuestionTypeName.audio, ['old_group/voice'])]
+
+      chai.expect(getVisibleAudioXpaths(columns)).to.deep.equal(['new_group/voice', 'old_group/voice'])
     })
   })
 })

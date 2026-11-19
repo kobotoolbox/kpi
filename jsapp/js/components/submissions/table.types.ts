@@ -5,6 +5,8 @@ import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterfac
 export interface TableColumn extends Column<SubmissionResponse> {
   id: string
   question?: SurveyRow
+  /** Older paths this column's files can sit under, see `DataColumns`. */
+  legacyAttachmentPaths?: string[]
   /** For dropdown filters - attached to column to maintain stable filter references */
   choices?: SurveyChoice[]
   selectFromListName?: string
