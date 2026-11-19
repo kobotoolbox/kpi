@@ -29,6 +29,7 @@ class ServicesFieldExtension(OpenApiSerializerFieldExtension):
                 properties={
                     'code': build_basic_type(OpenApiTypes.STR),
                     'name': build_basic_type(OpenApiTypes.STR),
+                    'priority': build_basic_type(OpenApiTypes.INT),
                 }
             )
         )

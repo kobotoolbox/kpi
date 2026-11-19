@@ -53,4 +53,4 @@ class TranscriptionServiceViewSet(BaseViewSet):
     """
 
     serializer_class = TranscriptionServiceSerializer
-    queryset = TranscriptionService.objects.all()
+    queryset = TranscriptionService.objects.order_by('priority', 'name')
