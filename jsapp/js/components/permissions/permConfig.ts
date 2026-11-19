@@ -1,11 +1,10 @@
-import Reflux from 'reflux'
 import type { PermissionDefinition } from '#/dataInterface'
 import type { PermissionCodename } from './permConstants'
 
 /**
  * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
-class PermConfigStore extends Reflux.Store {
+class PermConfigStore {
   permissions: PermissionDefinition[] = []
 
   public setPermissions(permissions: PermissionDefinition[]) {

@@ -173,13 +173,6 @@ export interface PasswordUpdateFailResponse {
   new_password: string[]
 }
 
-interface ProcessingResponseData {
-  [questionName: string]: any
-  _id: number
-}
-
-export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingResponseData>
-
 /**
  * @deprecated use _DataResponseAttachments from Orval instead.
  */
@@ -1911,13 +1904,6 @@ export const dataInterface: DataInterface = {
 
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-      method: 'GET',
-    })
-  },
-
-  getSubmission(uid: string, sid: string): JQuery.jqXHR<SubmissionResponse> {
-    return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'GET',
     })
   },
