@@ -2462,7 +2462,7 @@ MAX_RESTARTED_TRANSFERS = 20
 # run and per type. It runs every 15 minutes.
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
-MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 1000)
 
 # Number of attachments `auto_delete_excess_attachments` moves to trash per user
 # and per run. A user still over their limit gets the next ones on a later run
