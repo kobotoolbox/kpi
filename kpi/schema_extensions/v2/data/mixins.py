@@ -7,6 +7,13 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 
+# The language a text response is written in, stored with its translations.
+# Transcriptions and translations of transcripts never have them.
+TRANSLATION_SOURCE_PROPERTIES = {
+    'source_language': GENERIC_STRING_SCHEMA,
+    'source_locale': GENERIC_STRING_SCHEMA,
+}
+
 
 class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
     """
@@ -46,6 +53,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
+                    **TRANSLATION_SOURCE_PROPERTIES,
                     'value': {**GENERIC_STRING_SCHEMA, 'nullable': True},
                 },
                 required=['language', 'value'],
@@ -61,6 +69,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
+                    **TRANSLATION_SOURCE_PROPERTIES,
                     'status': {**GENERIC_STRING_SCHEMA, 'const': 'in_progress'},
                 },
                 required=['language', 'status'],
@@ -75,6 +84,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
+                    **TRANSLATION_SOURCE_PROPERTIES,
                     'status': {**GENERIC_STRING_SCHEMA, 'const': 'failed'},
                     'error': GENERIC_STRING_SCHEMA,
                 },
@@ -90,6 +100,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
+                    **TRANSLATION_SOURCE_PROPERTIES,
                     'status': {**GENERIC_STRING_SCHEMA, 'const': 'complete'},
                     'value': GENERIC_STRING_SCHEMA,
                 },
@@ -105,6 +116,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
+                    **TRANSLATION_SOURCE_PROPERTIES,
                     'status': {**GENERIC_STRING_SCHEMA, 'const': 'deleted'},
                     'value': {'type': 'null'},
                 },

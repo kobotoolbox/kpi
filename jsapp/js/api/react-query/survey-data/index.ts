@@ -2976,6 +2976,11 @@ It supports the same action types as the GET endpoint:
 
 The PATCH payload follows the same per-question structure as the GET response.
 
+To translate a text question, also send the language the response is written
+in with `source_language` (required) and `source_locale` (optional), e.g.
+`{"language": "en", "source_language": "es"}`. Other questions are translated
+from their accepted transcript, so these properties are rejected for them.
+
 To delete a submission supplement, you need to PATCH the submission supplement
 with the appropriate null or empty value.
 

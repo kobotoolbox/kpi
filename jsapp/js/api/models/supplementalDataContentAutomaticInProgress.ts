@@ -13,5 +13,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 export interface SupplementalDataContentAutomaticInProgress {
   language: string
   locale?: string
+  source_language?: string
+  source_locale?: string
   status: 'in_progress'
 }

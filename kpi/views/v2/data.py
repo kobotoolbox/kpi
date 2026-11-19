@@ -33,6 +33,7 @@ from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidXPath,
     ManualQualNotFound,
+    SourceLanguageNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
@@ -612,6 +613,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
             raise serializers.ValidationError({'detail': 'No transcription found'})
+        except SourceLanguageNotFound:
+            raise serializers.ValidationError({'detail': 'No source language found'})
         except SubsequenceVerificationError:
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:

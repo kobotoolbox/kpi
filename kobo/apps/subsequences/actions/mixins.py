@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+import jsonschema
 from dateutil import parser
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -10,7 +11,7 @@ from ..constants import (
     SUBMISSION_UUID_FIELD,
     TEXT_SOURCE_TYPE,
 )
-from ..exceptions import TranscriptionNotFound
+from ..exceptions import SourceLanguageNotFound, TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -253,9 +254,40 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
     can reuse the same structure consistently.
     """
 
+    def attach_action_dependency(self, action_data: dict, submission: dict):
+        """
+        Attach the source like `RequiresTranscriptionMixin` does, with the
+        language of a text source taken from the request: `source_locale` when
+        given, otherwise `source_language`, the same way a transcript provides
+        its own locale or language.
+        """
+
+        action_data = super().attach_action_dependency(action_data, submission)
+        dependency = action_data.get(self.DEPENDENCY_FIELD)
+        source_language = action_data.get('source_locale') or action_data.get(
+            'source_language'
+        )
+        if (
+            dependency
+            and dependency[self.ACTION_ID_FIELD] == DEPENDENCY_SOURCE_SUBMISSION
+            and source_language
+        ):
+            # In-flight only, like the transcript language: the sanitizer in
+            # `revise_data` strips it before persistence
+            dependency['language'] = source_language
+        return action_data
+
     @property
     def col_type(self):
         return 'translation'
+
+    @property
+    def data_schema(self) -> dict:
+        return self._add_source_language_schema(super().data_schema)
+
+    @property
+    def external_data_schema(self) -> dict:
+        return self._add_source_language_schema(super().external_data_schema)
 
     @property
     def result_schema(self):
@@ -406,3 +438,51 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             result[key] = entry
 
         return result
+
+    def validate_data(self, data: dict):
+        """
+        Check `source_language` and `source_locale` against the source question.
+
+        Nothing records the language a respondent typed in, so translating a
+        text question requires `source_language` (`source_locale` is optional).
+        Any other source is a transcript, which already provides its own
+        language, so both are rejected for it.
+
+        The schemas accept them for every source, so that stored translations
+        stay valid if the question is renamed or changes type in a later
+        deployment. Only new requests are checked against the question type.
+
+        Raises:
+          - SourceLanguageNotFound: if a text source has no `source_language`,
+            unless the request only accepts or deletes an existing result.
+        """
+
+        super().validate_data(data)
+        if self.get_source_question_type() != TEXT_SOURCE_TYPE:
+            if 'source_language' in data or 'source_locale' in data:
+                raise jsonschema.exceptions.ValidationError(
+                    '`source_language` and `source_locale` are only accepted for '
+                    'text questions'
+                )
+            return
+
+        # Accepting or deleting a result does not translate anything
+        is_accept_or_delete = 'accepted' in data or (
+            'value' in data and data['value'] is None
+        )
+        if not data.get('source_language') and not is_accept_or_delete:
+            raise SourceLanguageNotFound
+
+    def _add_source_language_schema(self, schema: dict) -> dict:
+        """
+        Add `source_language` and `source_locale` (e.g. "es" and "es-MX"), the
+        language a text response is written in.
+
+        A text response is translated straight from the submission, which does
+        not record the language it was written in. `validate_data()` rejects
+        them in requests for any other source.
+        """
+
+        schema['properties']['source_language'] = {'type': 'string', 'minLength': 1}
+        schema['properties']['source_locale'] = {'$ref': '#/$defs/locale'}
+        return schema

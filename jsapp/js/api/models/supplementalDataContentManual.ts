@@ -13,6 +13,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
 export interface SupplementalDataContentManual {
   language: string
   locale?: string
+  source_language?: string
+  source_locale?: string
   /** @nullable */
   value: string | null
 }

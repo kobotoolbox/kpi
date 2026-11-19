@@ -118,6 +118,18 @@ class TranscriptionNotFound(DependencyNotFound):
         super().__init__(message)
 
 
+class SourceLanguageNotFound(DependencyNotFound):
+    """
+    Raised when translating a text response without its source language
+    """
+
+    def __init__(
+        self,
+        message='The source language is required to translate a text response.',
+    ):
+        super().__init__(message)
+
+
 class TranslationAsyncResultAvailable(Exception):
     pass
 

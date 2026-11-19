@@ -431,33 +431,40 @@ class TestGoogleTranslate(TestCase):
     def test_sync_translation_reads_source_from_submission_for_text_question(self):
         """
         A text-source translation reads the answer straight from the submission
-        and uses the form's own language as the source language
+        and translates from the source language given with the request, whatever
+        the form language
         """
         service = self._build_service()
         service.asset.content = {'settings': {'default_language': 'English (en)'}}
-        service.submission['q1'] = 'Hello from the respondent'
-        service.translate_client.translate_text.return_value = 'Bonjour'
+        service.submission['q1'] = 'Hola desde el encuestado'
+        service.translate_client.translate_text.return_value = 'Hello'
 
         with patch.object(
-            service, '_get_translation_language_code', side_effect=['en', 'fr']
+            service, '_get_translation_language_code', side_effect=['es', 'en']
         ) as language_code:
-            with patch.object(service, 'update_counters'):
-                response = service.process_data(
-                    'q1',
-                    {
-                        'language': 'fr',
-                        '_dependency': {'_actionId': 'submission'},
-                    },
-                )
+            with patch.object(service, '_get_source_language_code') as transcription:
+                with patch.object(service, 'update_counters'):
+                    response = service.process_data(
+                        'q1',
+                        {
+                            'language': 'en',
+                            '_dependency': {
+                                '_actionId': 'submission',
+                                'language': 'es',
+                            },
+                        },
+                    )
 
-        assert response == {'status': 'complete', 'value': 'Bonjour'}
-        # 'English (en)' is the form language, and its code is looked up in
-        # the languages Google can translate. The transcription languages are
-        # the wrong list here: nothing was transcribed
-        assert language_code.call_args_list[0].args == ('en',)
+        assert response == {'status': 'complete', 'value': 'Hello'}
+        # The source code is looked up in the languages Google can translate.
+        # The transcription languages are the wrong list here: nothing was
+        # transcribed
+        assert language_code.call_args_list[0].args == ('es',)
+        transcription.assert_not_called()
         request = service.translate_client.translate_text.call_args.kwargs['request']
-        assert request['contents'] == ['Hello from the respondent']
-        assert request['source_language_code'] == 'en'
+        assert request['contents'] == ['Hola desde el encuestado']
+        assert request['source_language_code'] == 'es'
+        assert request['target_language_code'] == 'en'
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
@@ -465,11 +472,13 @@ class TestGoogleTranslate(TestCase):
     )
     def test_text_source_translation_fails_when_submission_answer_missing(self):
         service = self._build_service()
-        service.asset.content = {'settings': {'default_language': 'English (en)'}}
 
         response = service.process_data(
             'q1',
-            {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+            {
+                'language': 'fr',
+                '_dependency': {'_actionId': 'submission', 'language': 'en'},
+            },
         )
 
         assert response['status'] == 'failed'
@@ -479,88 +488,90 @@ class TestGoogleTranslate(TestCase):
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_google_detects_the_language_when_the_form_does_not_say(self):
+    def test_text_source_locale_falls_back_to_its_base_language(self):
         """
-        Nothing declares the language of a typed response, so an unusable form
-        language must not block the translation
+        Google's translation languages rarely list regional variants, so a
+        source locale such as 'es-MX' must still translate from 'es'
         """
 
         def resolve(language):
-            if language != 'fr':
+            # Like `TranslationService.get_language_code()`, with no regions
+            if language not in ('es', 'en'):
                 raise LanguageNotSupported
-            return 'fr'
+            return language
 
-        for content in (
-            # Form language never named at all
-            {'settings': {}, 'translations': [None]},
-            # Named, but Google does not translate from it
-            {'settings': {'default_language': 'Klingon (tlh)'}},
+        service = self._build_service()
+        service.submission['q1'] = 'Hola'
+        service.translate_client.translate_text.return_value = 'Hello'
+
+        with patch.object(
+            service, '_get_translation_language_code', side_effect=resolve
         ):
-            service = self._build_service()
-            service.asset.content = content
-            service.asset._survey_metadata = None
-            service.submission['q1'] = 'Hello'
-            service.translate_client.translate_text.return_value = 'Bonjour'
+            with patch.object(service, 'update_counters'):
+                response = service.process_data(
+                    'q1',
+                    {
+                        'language': 'en',
+                        '_dependency': {'_actionId': 'submission', 'language': 'es-MX'},
+                    },
+                )
 
-            with patch.object(
-                service, '_get_translation_language_code', side_effect=resolve
-            ):
-                with patch.object(service, 'update_counters'):
-                    response = service.process_data(
-                        'q1',
-                        {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
-                    )
-
-            assert response == {'status': 'complete', 'value': 'Bonjour'}
-            request = service.translate_client.translate_text.call_args.kwargs[
-                'request'
-            ]
-            # No source language is sent, which asks Google to detect it
-            assert 'source_language_code' not in request
+        assert response == {'status': 'complete', 'value': 'Hello'}
+        request = service.translate_client.translate_text.call_args.kwargs['request']
+        assert request['source_language_code'] == 'es'
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',
         ASR_MT_GOOGLE_REGION='global',
     )
-    def test_long_text_source_translation_needs_the_form_language(self):
-        # Google's batch API has no language detection to fall back on
+    def test_text_source_translation_fails_for_unsupported_source_language(self):
         service = self._build_service()
-        service.asset.content = {'settings': {}, 'translations': [None]}
-        service.submission['q1'] = 'a' * (service.MAX_SYNC_CHARS + 1)
+        service.submission['q1'] = 'Hello'
 
-        with patch.object(service, '_get_translation_language_code', return_value='fr'):
+        with patch.object(
+            service,
+            '_get_translation_language_code',
+            side_effect=LanguageNotSupported('Klingon is not supported'),
+        ):
             response = service.process_data(
                 'q1',
-                {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+                {
+                    'language': 'fr',
+                    '_dependency': {'_actionId': 'submission', 'language': 'tlh'},
+                },
             )
 
-        assert response['status'] == 'failed'
-        assert 'too long' in response['error'].lower()
-        service.translate_client.batch_translate_text.assert_not_called()
+        assert response == {'status': 'failed', 'error': 'Klingon is not supported'}
+        service.translate_client.translate_text.assert_not_called()
 
-    def test_form_language_prefers_the_setting_over_the_default_translation(self):
+    @override_config(
+        ASR_MT_GOOGLE_PROJECT_ID='abc',
+        ASR_MT_GOOGLE_REGION='global',
+    )
+    def test_long_text_source_translation_uses_the_given_source_language(self):
+        # Google's batch API cannot detect the language, so the source language
+        # given with the request is what makes long responses translatable
         service = self._build_service()
+        service.submission['q1'] = 'a' * (service.MAX_SYNC_CHARS + 1)
 
-        for content, expected in (
-            # The setting wins when a form carries both
-            (
-                {
-                    'settings': {'default_language': 'English (en)'},
-                    'translations': ['Deutsch (de)'],
-                },
-                'en',
-            ),
-            ({'settings': {'default_language': 'English (en)'}}, 'en'),
-            ({'settings': {}, 'translations': ['Deutsch (de)']}, 'de'),
-            ({'settings': {}, 'translations': [None]}, None),
+        with patch.object(
+            service,
+            '_get_translation_language_code',
+            side_effect=lambda language: language,
         ):
-            service.asset.content = content
-            # Survey metadata is memoized per asset instance; drop it so each
-            # case is resolved from the content set above
-            service.asset._survey_metadata = None
             with patch.object(
                 service,
-                '_get_translation_language_code',
-                side_effect=lambda language: language,
-            ):
-                assert service._get_submission_language_code() == expected
+                '_start_async_translation',
+                return_value={'status': 'in_progress'},
+            ) as start:
+                response = service.process_data(
+                    'q1',
+                    {
+                        'language': 'fr',
+                        '_dependency': {'_actionId': 'submission', 'language': 'es'},
+                    },
+                )
+
+        assert response == {'status': 'in_progress'}
+        # Source and target languages
+        assert start.call_args.args[2:4] == ('es', 'fr')
