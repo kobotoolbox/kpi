@@ -1039,6 +1039,13 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         transfer.refresh_from_db()
         self.assertEqual(transfer.status, InviteStatusChoices.IN_PROGRESS)
 
+        # Simulate new owner demoting former owner before retry runs
+        outgoing_org_user = OrganizationUser.objects.get(
+            organization=self.organization, user=self.owner_user
+        )
+        outgoing_org_user.is_admin = False
+        outgoing_org_user.save(update_fields=['is_admin'])
+
         with (
             immediate_on_commit(),
             patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
@@ -1048,6 +1055,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         mock_create_invite.assert_called_once()
         transfer.refresh_from_db()
         self.assertEqual(transfer.status, InviteStatusChoices.COMPLETE)
+        outgoing_org_user.refresh_from_db()
+        self.assertFalse(outgoing_org_user.is_admin)
 
     def test_repeat_transfer_does_not_skip_previously_transferred_assets(self):
         """

@@ -141,13 +141,13 @@ def transfer_organization_ownership(transfer_id: int):
                 org_owner.organization_user = new_org_user
                 org_owner.save(update_fields=['organization_user'])
 
-            outgoing_org_user = OrganizationUser.objects.select_for_update().get(
-                organization=org,
-                user=transfer.sender,
-            )
-            if not outgoing_org_user.is_admin:
-                outgoing_org_user.is_admin = True
-                outgoing_org_user.save(update_fields=['is_admin'])
+                outgoing_org_user = OrganizationUser.objects.select_for_update().get(
+                    organization=org,
+                    user=transfer.sender,
+                )
+                if not outgoing_org_user.is_admin:
+                    outgoing_org_user.is_admin = True
+                    outgoing_org_user.save(update_fields=['is_admin'])
 
         # Phase 2: Batch project transfers chunk by chunk. Each chunk commits
         # its own project transfers and immediately kicks off Celery tasks for
