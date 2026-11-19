@@ -21,13 +21,7 @@ class AudioTranscodingMixin:
         the file located at `self.absolute_path`
         """
 
-        if not hasattr(self, 'mimetype') or not hasattr(self, 'absolute_path'):
-            raise NotImplementedError(
-                'Parent class does not implement `mimetype` or `absolute_path'
-            )
-
-        if not self.mimetype.startswith(self.SUPPORTED_INPUT_MIMETYPE_PREFIXES):
-            raise NotSupportedFormatException
+        self.validate_transcodable()
 
         audio_format = audio_format.lower()
         if audio_format not in self.AVAILABLE_OUTPUT_FORMATS:
@@ -49,3 +43,17 @@ class AudioTranscodingMixin:
             return (pipe.stdout, delta)
 
         return pipe.stdout
+
+    def validate_transcodable(self) -> None:
+        """
+        Raise `NotSupportedFormatException` unless the file is audio or video,
+        the only kinds ffmpeg is asked to read an audio track from
+        """
+
+        if not hasattr(self, 'mimetype') or not hasattr(self, 'absolute_path'):
+            raise NotImplementedError(
+                'Parent class does not implement `mimetype` or `absolute_path'
+            )
+
+        if not self.mimetype.startswith(self.SUPPORTED_INPUT_MIMETYPE_PREFIXES):
+            raise NotSupportedFormatException

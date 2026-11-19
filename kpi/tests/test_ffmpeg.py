@@ -10,9 +10,12 @@ from kpi.exceptions import FFMpegException
 from kpi.utils.ffmpeg import (
     FFMPEG_BINARY,
     Silence,
+    convert_and_detect_silences,
+    cut_audio,
     decode_args,
     detect_silences,
     parse_silences,
+    probe_duration,
     run_ffmpeg,
     silencedetect_args,
 )
@@ -78,6 +81,17 @@ class FFMpegArgumentsTestCase(SimpleTestCase):
             '-af',
             'aformat=channel_layouts=mono,silencedetect=noise=-25dB:d=0.5',
         ]
+
+    def test_cut_audio_never_sends_ffmpeg_scientific_notation(self):
+        """
+        `str(0.00001)` is `1e-05`, which ffmpeg does not read as a time
+        """
+
+        with patch('kpi.utils.ffmpeg.run_ffmpeg') as run:
+            cut_audio('/tmp/source.flac', 0.00001, 3300.5, '/tmp/chunk.flac')
+
+        args = run.call_args.args[0]
+        assert args[:4] == ['-ss', '0.000010', '-to', '3300.500000']
 
 
 class ParseSilencesTestCase(SimpleTestCase):
@@ -218,8 +232,8 @@ class RunFFMpegTestCase(SimpleTestCase):
 
     def test_detect_silences_gives_up_at_the_timeout(self):
         """
-        Detection runs in the web request against a presigned URL, so storage
-        going slow must not hold the request open
+        Detection can read a presigned URL, so storage going slow must not
+        hold the Celery worker for ever
         """
 
         with tempfile.TemporaryDirectory() as directory:
@@ -245,3 +259,70 @@ class RunFFMpegTestCase(SimpleTestCase):
             )
 
         assert silences == []
+
+    def test_convert_and_detect_silences_writes_the_flac_and_hears_the_pause(self):
+        """
+        The conversion and the detection share one decode pass, and report the
+        same pauses as a detection-only pass would
+        """
+
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, 'sample.wav')
+            output = os.path.join(directory, 'converted.flac')
+            duration = build_sample(source)
+
+            silences, converted_duration = convert_and_detect_silences(
+                source, output, threshold_db=-30, min_duration=0.5
+            )
+
+            assert converted_duration == pytest.approx(duration, abs=0.01)
+            assert probe_duration(output) == pytest.approx(duration, abs=0.01)
+            assert silences == detect_silences(
+                source, duration, threshold_db=-30, min_duration=0.5
+            )
+
+    def test_cut_audio_headers_state_the_length_of_each_chunk(self):
+        """
+        Each chunk's FLAC header must state its own length. With `-c copy` it
+        would state the length of the whole file it was cut from
+        """
+
+        with tempfile.TemporaryDirectory() as directory:
+            source = os.path.join(directory, 'sample.flac')
+            duration = build_sample(source)
+            bounds = [(0.0, 2.75), (2.75, duration)]
+
+            lengths = []
+            for index, (start, end) in enumerate(bounds):
+                chunk = os.path.join(directory, f'chunk_{index}.flac')
+                cut_audio(source, start, end, chunk)
+                lengths.append(probe_duration(chunk))
+
+        assert lengths == [
+            pytest.approx(2.75, abs=0.01),
+            pytest.approx(duration - 2.75, abs=0.01),
+        ]
+        # No audio lost or doubled at the cut
+        assert sum(lengths) == pytest.approx(duration, abs=0.01)
+
+    def test_probe_duration_reads_a_local_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'sample.flac')
+            duration = build_sample(path)
+
+            assert probe_duration(path) == pytest.approx(duration, abs=0.01)
+
+    def test_probe_duration_keeps_a_presigned_url_out_of_the_log(self):
+        """
+        `label` names the file in the log, because the path may be a presigned
+        URL whose signature would still be valid in Sentry
+        """
+
+        url = 'http://127.0.0.1:1/recording.mp3?X-Amz-Signature=deadbeefcafe'
+
+        with patch('kpi.utils.ffmpeg.logging') as logger:
+            assert probe_duration(url, 'recording.mp3') is None
+
+        logged = ' '.join(map(str, logger.info.call_args.args))
+        assert 'recording.mp3' in logged
+        assert 'deadbeefcafe' not in logged

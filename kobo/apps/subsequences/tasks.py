@@ -20,7 +20,6 @@ from kobo.apps.subsequences.exceptions import (
 )
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 
 
@@ -91,11 +90,9 @@ def poll_run_external_process(
             f'Background polling failed for {action_id} on submission '
             f'{submission.get(SUBMISSION_UUID_FIELD)}: {e}'
         )
-        _update_bulk_action_item_status(
-            submission=submission,
-            action_data=request_action_data,
-            status='failed',
-            error=str(e),
+        # Returning ends the polling, so nothing else would end the run
+        _fail_in_progress_action(
+            asset_id, submission, question_xpath, action_id, request_action_data, str(e)
         )
         return
 
@@ -127,72 +124,55 @@ def poll_run_external_process(
 
 @task_failure.connect(sender=poll_run_external_process)
 def poll_run_external_process_failure(sender=None, **kwargs):
+    task_kwargs = kwargs['kwargs']
+    error = str(kwargs['exception'])
+    if 'is still in progress for submission' in error:
+        error = 'Maximum retries exceeded.'
 
+    _fail_in_progress_action(
+        task_kwargs['asset_id'],
+        task_kwargs['submission'],
+        task_kwargs['question_xpath'],
+        task_kwargs['action_id'],
+        _get_bulk_action_request_data(task_kwargs['action_data']),
+        error,
+    )
+
+
+def _fail_in_progress_action(
+    asset_id: int,
+    submission: dict,
+    question_xpath: str,
+    action_id: str,
+    action_data: dict,
+    error: str,
+) -> None:
+    """
+    End a run nothing else will end with a `failed` version carrying `error`,
+    unless a result landed meanwhile, and mark its bulk item as failed
+
+    For the two ways background polling stops for good: a crash it cannot
+    recover from, and running out of retries
+    """
     # Avoid circular import
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
-    SubmissionSupplement = apps.get_model(
+    SubmissionSupplement = apps.get_model(  # noqa: N806
         'subsequences', 'SubmissionSupplement'
-    )  # noqa: N806
-
-    asset_id = kwargs['kwargs']['asset_id']
-    error = str(kwargs['exception'])
-    submission = kwargs['kwargs']['submission']
-    question_xpath = kwargs['kwargs']['question_xpath']
-    action_id = kwargs['kwargs']['action_id']
-    action_data = _get_bulk_action_request_data(kwargs['kwargs']['action_data'])
-
-    asset = (
-        Asset.objects.only('pk', 'owner_id', 'advanced_features')
-        .select_related('owner')
-        .get(id=asset_id)
     )
 
     try:
-        supplemental_data = SubmissionSupplement.retrieve_data(
-            asset, submission_root_uuid=submission[SUBMISSION_UUID_FIELD]
+        asset = (
+            Asset.objects.only('pk', 'owner_id', 'advanced_features')
+            .select_related('owner')
+            .get(id=asset_id)
         )
-        if 'is still in progress for submission' in error:
-            error = 'Maximum retries exceeded.'
-
-        feature = asset.advanced_features_set.get(
-            question_xpath=question_xpath, action=action_id
-        )
-        prefetched_dependencies = {
-            'question_supplemental_data': supplemental_data[question_xpath],
-        }
-        action = feature.to_action(prefetched_dependencies=prefetched_dependencies)
-
-        # FIXME: raises KeyError if action results are further nested (eg translations)
-        action_supplemental_data = supplemental_data[question_xpath][action_id]
-        failed_action_data = dict(action_data)
-        # request-only keys are forbidden in persisted version `_data` by the
-        # result schema
-        failed_action_data.pop('auto_accept', None)
-        failed_action_data.update(
-            {
-                'error': error,
-                'status': 'failed',
-            }
-        )
-        # FIXME We assume that the last action is the one in progress but it could
-        #   be another one.
-        dependency_supplemental_data = action_supplemental_data['_versions'][0].get(
-            action.DEPENDENCY_FIELD
-        )
-
-        new_action_supplemental_data = action.get_new_action_supplemental_data(
-            action_supplemental_data, failed_action_data, dependency_supplemental_data
-        )
-
-        submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
-        SubmissionSupplement.objects.filter(
-            asset=asset, submission_uuid=submission_uuid
-        ).update(
-            content=UpdateJSONFieldAttributes(
-                'content',
-                path=f'{question_xpath}__{action_id}',
-                updates=new_action_supplemental_data,
-            )
+        SubmissionSupplement.fail_in_progress_action(
+            asset,
+            remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD]),
+            question_xpath,
+            action_id,
+            action_data,
+            error,
         )
     except Exception:
         logging.exception(

@@ -14,12 +14,11 @@ class AnalysisQuestionIncorrectlyConfigured(Exception):
     pass
 
 
-class AudioTooLongError(Exception):
+class ChunkStorageError(Exception):
     """
-    Audio file is too long for the specified speech service
+    Raised by a transcription engine when a chunk file cannot be stored, for
+    a reason that may pass (storage unreachable, timeout, etc.)
     """
-
-    pass
 
 
 class GoogleCloudStorageBucketNotFound(Exception):

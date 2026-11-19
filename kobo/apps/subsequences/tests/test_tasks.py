@@ -304,6 +304,146 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         self.assertEqual(latest_version['_data']['status'], 'failed')
         self.assertNotIn('auto_accept', latest_version['_data'])
 
+    def _versions(self, action_id=None, language=None) -> list[dict]:
+        content = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content
+        action_data = content[self.question_xpath][action_id or self.action_id]
+        return (action_data[language] if language else action_data)['_versions']
+
+    def _land_result(self):
+        """
+        Save a `complete` version on top of the running one, as the poll that
+        finishes a run does
+        """
+        with patch(
+            'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process'  # noqa: E501
+        ) as mock_run:
+            mock_run.return_value = {
+                'status': 'complete', 'value': 'Hello', 'language': 'en'
+            }
+            SubmissionSupplement.revise_data(
+                self.asset,
+                self.submission,
+                {
+                    '_version': '20250820',
+                    self.question_xpath: {self.action_id: {'language': 'en'}},
+                },
+            )
+
+    def test_a_poll_that_crashes_ends_the_run_as_failed(self):
+        """
+        An unexpected error stops the polling for good: without a `failed`
+        version the run would stay `in_progress` for ever
+        """
+        with patch(
+            'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process',  # noqa: E501
+            side_effect=RuntimeError('the database went away'),
+        ):
+            poll_run_external_process(**self.task_kwargs['kwargs'])
+
+        latest_data = self._versions()[0]['_data']
+        self.assertEqual(latest_data['status'], 'failed')
+        self.assertEqual(latest_data['error'], 'the database went away')
+
+    def test_a_result_that_landed_first_is_kept(self):
+        self._land_result()
+        versions = self._versions()
+
+        poll_run_external_process_failure(
+            sender=None, exception=Exception('boom'), **self.task_kwargs
+        )
+
+        self.assertEqual(versions[0]['_data']['status'], 'complete')
+        self.assertEqual(self._versions(), versions)
+
+    def test_a_result_landing_after_the_read_is_kept(self):
+        """
+        The status is checked again in the update itself, so a result saved
+        between reading the supplement and writing the failure is kept
+        """
+        stale_data = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )
+        self._land_result()
+
+        with patch.object(
+            SubmissionSupplement, 'retrieve_data', return_value=stale_data
+        ):
+            saved = SubmissionSupplement.fail_in_progress_action(
+                self.asset,
+                self.submission_uuid,
+                self.question_xpath,
+                self.action_id,
+                {'language': 'en'},
+                'boom',
+            )
+
+        self.assertFalse(saved)
+        self.assertEqual(self._versions()[0]['_data']['status'], 'complete')
+
+    def test_a_translation_fails_only_in_its_own_language(self):
+        """
+        A translation keeps one block per language: the failure is written to
+        the language that was running, and the others are left as they are
+        """
+        translation_id = Action.AUTOMATIC_GOOGLE_TRANSLATION
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            action=translation_id,
+            question_xpath=self.question_xpath,
+            params=[{'language': 'fr'}, {'language': 'es'}],
+        )
+        dependency = {
+            '_actionId': self.action_id,
+            '_uuid': '11111111-1111-1111-1111-111111111111',
+        }
+
+        def language_block(language, status):
+            data = {'language': language, 'status': status}
+            if status == 'complete':
+                data['value'] = 'Hola'
+            return {
+                '_dateCreated': '2026-01-01T10:00:00Z',
+                '_dateModified': '2026-01-01T10:00:00Z',
+                '_versions': [
+                    {
+                        '_data': data,
+                        '_dateCreated': '2026-01-01T10:00:00Z',
+                        '_uuid': str(uuid.uuid4()),
+                        '_dependency': dependency,
+                    }
+                ],
+            }
+
+        supplement = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        )
+        spanish = language_block('es', 'complete')
+        supplement.content[self.question_xpath][translation_id] = {
+            'fr': language_block('fr', 'in_progress'),
+            'es': spanish,
+        }
+        supplement.save(update_fields=['content'])
+
+        poll_run_external_process_failure(
+            sender=None,
+            exception=Exception('boom'),
+            kwargs={
+                **self.task_kwargs['kwargs'],
+                'action_id': translation_id,
+                'action_data': {'language': 'fr'},
+            },
+        )
+
+        french = self._versions(translation_id, 'fr')
+        self.assertEqual(
+            [version['_data']['status'] for version in french],
+            ['failed', 'in_progress'],
+        )
+        self.assertEqual(french[0]['_dependency'], dependency)
+        self.assertEqual(self._versions(translation_id, 'es'), spanish['_versions'])
+
 
 class TestSubsequenceBulkActionExecution(BaseTestCase):
     fixtures = ['test_data']

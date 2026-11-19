@@ -34,14 +34,19 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
+from kpi.utils.audio_duration import get_audio_duration
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
 from ...exceptions import (
-    AudioTooLongError,
+    ChunkStorageError,
     GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
     TranscriptionResultNotFound,
+)
+from ...utils.chunked_transcription import (
+    ChunkedTranscriptionEngine,
+    ChunkedTranscriptionRun,
 )
 from .base import GoogleService
 from .locations import (
@@ -55,9 +60,6 @@ from .rate_limit import (
     require_google_service_quota,
 )
 
-# https://cloud.google.com/speech-to-text/docs/quotas
-ASYNC_MAX_LENGTH = timedelta(minutes=479)
-
 # Fallback STT model used when a language has no `model_code` set in the
 # `TranscriptionServiceLanguageM2M` database table. 'chirp_3' is chosen over
 # 'long' because it is available for every language in the 'us' and 'eu'
@@ -66,22 +68,21 @@ ASYNC_MAX_LENGTH = timedelta(minutes=479)
 DEFAULT_SPEECH_MODEL = 'chirp_3'
 
 
-class GoogleTranscriptionService(GoogleService):
+class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
     API_NAME = 'speech'
     API_VERSION = 'v2'
     API_RESOURCE = 'projects.locations.operations'
     USAGE_TYPE = UsageType.ASR_SECONDS
 
     # Longest piece of audio, in seconds, this engine is sent in one request: a
-    # longer recording is cut into chunks first (see `kpi.utils.audio_chunking`).
-    # Each engine states its own, since they disagree and one number for all
+    # longer recording is cut into chunks first (see `kpi.utils.audio_chunking`),
+    # and no chunk is ever longer. Each engine states its own, as required by
+    # `ChunkedTranscriptionEngine`, since they disagree and one number for all
     # would chunk every engine at the lowest limit in the fleet
     #
     # `DEFAULT_SPEECH_MODEL`, the model this engine falls back to, refuses
-    # audio longer than an hour, well under the 479 min of `ASYNC_MAX_LENGTH`
-    # that the batch API itself allows. Five minutes under the model's limit
-    # leaves a margin for a recording that turns out slightly longer than
-    # ffprobe reported
+    # audio longer than an hour. Five minutes under that leaves a margin for a
+    # recording that turns out slightly longer than ffprobe reported
     CHUNK_HARD_LIMIT_SECONDS = 55 * 60
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
@@ -142,10 +143,6 @@ class GoogleTranscriptionService(GoogleService):
         """
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
-        if duration >= ASYNC_MAX_LENGTH:
-            raise AudioTooLongError(
-                'Audio file of duration %s is too long.' % duration
-            )
 
         speech_model = model_code or DEFAULT_SPEECH_MODEL
         if speech_location is None:
@@ -181,7 +178,7 @@ class GoogleTranscriptionService(GoogleService):
             files=[speech.BatchRecognizeFileMetadata(uri=gcs_input_uri)],
             recognition_output_config=speech.RecognitionOutputConfig(
                 gcs_output_config=speech.GcsOutputConfig(
-                    uri=f'gs://{settings.GS_BUCKET_NAME}/{output_prefix}/'
+                    uri=f'{self._get_gcs_uri(output_prefix)}/'
                 )
             ),
         )
@@ -213,6 +210,9 @@ class GoogleTranscriptionService(GoogleService):
 
         `version_uuid` and `is_launch` identify the run, see
         `GoogleService.process_data()`
+
+        A recording longer than `CHUNK_HARD_LIMIT_SECONDS` is transcribed in
+        chunks, see `ChunkedTranscriptionRun`. Any other goes to Google whole
 
         Returns:
         - `in_progress` while Google is still processing
@@ -282,8 +282,16 @@ class GoogleTranscriptionService(GoogleService):
                 bulk_action_uid=bulk_action_uid,
             )
 
-        # Otherwise this is the first request for the pair: start a new job
-        self._before_new_operation()
+        # Chunk rows mean this run's recording was long and is already split:
+        # report on its chunks. Checked after the operation reference, so that
+        # polling a short file costs no extra query
+        chunked_run = ChunkedTranscriptionRun(
+            self.asset, self.submission_root_uuid, xpath, version_uuid
+        )
+        if (status := chunked_run.get_status()) is not None:
+            return status
+
+        # Otherwise nothing is running for this run yet: start it
         try:
             attachment = self._get_attachment(xpath)
         except SubmissionNotFoundException:
@@ -293,14 +301,32 @@ class GoogleTranscriptionService(GoogleService):
         except (InvalidXPathException, XPathNotFoundException):
             return {'status': 'failed', 'error': 'Invalid question name XPath'}
 
-        return self._start_operation(
-            xpath,
-            attachment,
-            source_language=source_language,
-            model_code=language_config.model_code,
-            speech_location=speech_location,
-            bulk_action_uid=bulk_action_uid,
-        )
+        # An unknown duration takes the whole-file path, as every file did
+        # before chunking
+        duration = get_audio_duration(attachment)
+        is_long = duration is not None and duration > self.CHUNK_HARD_LIMIT_SECONDS
+
+        # A whole file is charged when its Google job starts, so the limit is
+        # checked right before that, as always. A chunked run is only charged
+        # once it is transcribed, so its limit is checked when it is launched,
+        # not again in the poll that prepares it: there, a limit crossed in
+        # between would leave the run stuck instead of letting it finish
+        if is_launch or not is_long:
+            self._before_new_operation()
+
+        try:
+            if is_long:
+                return chunked_run.start(self, attachment, is_launch=is_launch)
+            return self._start_operation(
+                xpath,
+                attachment,
+                source_language=source_language,
+                model_code=language_config.model_code,
+                speech_location=speech_location,
+                bulk_action_uid=bulk_action_uid,
+            )
+        except NotSupportedFormatException:
+            return {'status': 'failed', 'error': 'Unsupported format'}
 
     def _start_operation(
         self,
@@ -316,11 +342,11 @@ class GoogleTranscriptionService(GoogleService):
         Convert the whole file, launch its Google batch job and wait for it up
         to `ASR_MT_GOOGLE_REQUEST_TIMEOUT`, so a short clip can come back
         complete within the request
+
+        A file that is not audio raises `NotSupportedFormatException`, which
+        `process_data()` reports for both paths
         """
-        try:
-            converted_audio = self.get_converted_audio(attachment)
-        except NotSupportedFormatException:
-            return {'status': 'failed', 'error': 'Unsupported format'}
+        converted_audio = self.get_converted_audio(attachment)
 
         try:
             # Launch a new batch job
@@ -332,8 +358,6 @@ class GoogleTranscriptionService(GoogleService):
                 model_code=model_code,
                 speech_location=speech_location,
             )
-        except AudioTooLongError as err:
-            return {'status': 'failed', 'error': str(err)}
         except InvalidArgument as err:
             logging.error(
                 f'Google API rejected transcription request for {xpath=}: {err}'
@@ -581,7 +605,32 @@ class GoogleTranscriptionService(GoogleService):
             content,
             content_type='audio/flac',
         )
-        return f'gs://{settings.GS_BUCKET_NAME}/{destination_path}'
+        return self._get_gcs_uri(destination_path)
+
+    def store_chunk_file(self, local_path: str, version_uuid: str, index: int) -> str:
+        """
+        Upload one chunk of a long recording to GCS, where `BatchRecognize`
+        reads it, and return its `gs://` URI
+
+        Streamed from disk rather than loaded into memory. Chunks live under
+        `chunks/<version_uuid>/`, apart from the whole-file paths that
+        `_cleanup_batch_files()` empties, and are removed by the same bucket
+        lifecycle rule as every other input
+        """
+        destination_path = posixpath.join(
+            constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX,
+            'speech-v2',
+            'chunks',
+            version_uuid,
+            f'{index:03d}.flac',
+        )
+        try:
+            self.bucket.blob(destination_path).upload_from_filename(
+                local_path, content_type='audio/flac'
+            )
+        except (GoogleAPIError, GoogleCloudError) as err:
+            raise ChunkStorageError(str(err)) from err
+        return self._get_gcs_uri(destination_path)
 
     def _get_google_language_config(self, requested_language: str):
         """
@@ -596,6 +645,10 @@ class GoogleTranscriptionService(GoogleService):
                 'Google transcription service is not configured.'
             )
         return transcription_lang_service.get_configuration(requested_language)
+
+    @staticmethod
+    def _get_gcs_uri(path: str) -> str:
+        return f'gs://{settings.GS_BUCKET_NAME}/{path}'
 
     def _get_attachment(self, xpath: str) -> Attachment:
         """
