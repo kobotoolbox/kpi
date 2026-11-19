@@ -17,6 +17,7 @@ interface MemberActionsDropdownProps {
   target: ReactNode
   targetUsername: string
   targetFullName?: string | null
+  targetRole?: MemberRoleEnum | null
   isPendingOwnershipTransfer?: boolean
   orgName: string
   orgId: string
@@ -34,6 +35,7 @@ export default function MemberActionsDropdown({
   target,
   targetUsername,
   targetFullName,
+  targetRole,
   orgName,
   orgId,
   currentUserRole,
@@ -117,7 +119,8 @@ export default function MemberActionsDropdown({
                 <Menu.Item variant='danger'>{t('Cancel invitation')}</Menu.Item>
               </>
             ) : (
-              isTransferOwnershipEnabled && (
+              isTransferOwnershipEnabled &&
+              targetRole === MemberRoleEnum.admin && (
                 <>
                   <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
                     {t('Make owner')}
