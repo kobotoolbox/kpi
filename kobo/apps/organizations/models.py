@@ -55,11 +55,8 @@ class OrganizationInviteStatusChoices(models.TextChoices):
 
     ACCEPTED = 'accepted'
     CANCELLED = 'cancelled'
-    COMPLETE = 'complete'
     DECLINED = 'declined'
     EXPIRED = 'expired'
-    FAILED = 'failed'
-    IN_PROGRESS = 'in_progress'
     PENDING = 'pending'
     RESENT = 'resent'
 

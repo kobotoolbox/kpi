@@ -3,6 +3,7 @@ from datetime import timedelta
 from operator import attrgetter
 
 from allauth.socialaccount.models import SocialAccount
+from constance import config
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.db import transaction
@@ -84,6 +85,8 @@ from .constants import (
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
     OWNER_REMOVAL_ERROR,
+    OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR,
+    TRANSFER_EXPIRED_ERROR,
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
@@ -825,6 +828,32 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
 
         with transaction.atomic():
+            if (
+                OrgOwnershipTransferInvite.objects.select_for_update()
+                .filter(
+                    Q(metadata__organization_id=str(member.organization_id))
+                    | (
+                        ~Q(metadata__has_key='organization_id')
+                        & Q(
+                            sender__organizations_organizationuser__organization_id=(
+                                member.organization_id
+                            )
+                        )
+                    ),
+                    status__in=(
+                        InviteStatusChoices.ACCEPTED,
+                        InviteStatusChoices.IN_PROGRESS,
+                    ),
+                )
+                .filter(
+                    Q(sender_id=member.user_id) | Q(recipient_id=member.user_id)
+                )
+                .exists()
+            ):
+                raise InvalidMembershipRequest(
+                    OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR
+                )
+
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
 
@@ -1221,6 +1250,7 @@ class OrganizationOwnershipTransferViewSet(
     @action(detail=True, methods=['patch'])
     def accept(self, request, *args, **kwargs):
         transfer = self.get_object()
+        expired = False
 
         with transaction.atomic():
             locked_transfer = (
@@ -1237,21 +1267,32 @@ class OrganizationOwnershipTransferViewSet(
                     {'detail': TRANSFER_NOT_PENDING_ERROR}
                 )
 
-            org = locked_transfer.organization
-            if (
-                not org
-                or locked_transfer.sender != org.owner_user_object
-                or not org.is_admin_only(locked_transfer.recipient)
-            ):
-                raise serializers.ValidationError(
-                    {'detail': TRANSFER_NO_LONGER_VALID_ERROR}
+            expiry_threshold = timezone.now() - timedelta(
+                days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
+            )
+            if locked_transfer.date_created <= expiry_threshold:
+                locked_transfer.status = InviteStatusChoices.EXPIRED
+                locked_transfer.save(update_fields=['status', 'date_modified'])
+                expired = True
+            else:
+                org = locked_transfer.organization
+                if (
+                    not org
+                    or locked_transfer.sender != org.owner_user_object
+                    or not org.is_admin_only(locked_transfer.recipient)
+                ):
+                    raise serializers.ValidationError(
+                        {'detail': TRANSFER_NO_LONGER_VALID_ERROR}
+                    )
+
+                locked_transfer.status = InviteStatusChoices.ACCEPTED
+                locked_transfer.save(update_fields=['status', 'date_modified'])
+                transaction.on_commit(
+                    lambda: transfer_organization_ownership.delay(locked_transfer.pk)
                 )
 
-            locked_transfer.status = InviteStatusChoices.ACCEPTED
-            locked_transfer.save(update_fields=['status', 'date_modified'])
-            transaction.on_commit(
-                lambda: transfer_organization_ownership.delay(locked_transfer.pk)
-            )
+        if expired:
+            raise serializers.ValidationError({'detail': TRANSFER_EXPIRED_ERROR})
 
         locked_transfer.send_acceptance_email()
         return Response(

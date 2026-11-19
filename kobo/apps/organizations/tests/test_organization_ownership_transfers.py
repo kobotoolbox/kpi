@@ -1,6 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from celery.exceptions import SoftTimeLimitExceeded
 from constance import config
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -17,8 +18,10 @@ from kobo.apps.organizations.constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
+    TRANSFER_EXPIRED_ERROR,
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
@@ -26,14 +29,21 @@ from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
 from kobo.apps.organizations.permissions import (
     OrganizationOwnershipTransferPermission,
 )
-from kobo.apps.organizations.tasks import transfer_organization_ownership
+from kobo.apps.organizations.tasks import (
+    mark_organization_invite_as_expired,
+    transfer_organization_ownership,
+)
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
 from kobo.apps.organizations.views import OrganizationOwnershipTransferViewSet
 from kobo.apps.project_ownership.models import (
+    Invite,
     InviteStatusChoices,
     OrgOwnershipTransferInvite,
+    Transfer,
+    TransferStatus,
+    TransferStatusChoices,
 )
 from kpi.exceptions import MailerError
 from kpi.models.asset import Asset
@@ -1010,3 +1020,224 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         ):
             with self.assertRaises(IntegrityError):
                 self._create_transfer(self.owner_user, self.admin_user.username)
+
+    def test_soft_time_limit_keeps_in_progress_and_resumes_on_retry(self):
+        """
+        SoftTimeLimitExceeded leaves the transfer IN_PROGRESS so a retry can
+        resume and complete the transfer.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        Asset.objects.create(name='Org Project', owner=self.owner_user)
+
+        with (
+            patch(
+                'kobo.apps.organizations.tasks.create_invite',
+                side_effect=SoftTimeLimitExceeded(),
+            ),
+            self.assertRaises(SoftTimeLimitExceeded),
+        ):
+            transfer_organization_ownership(transfer.pk)
+
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.IN_PROGRESS)
+
+        with (
+            immediate_on_commit(),
+            patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
+        ):
+            transfer_organization_ownership(transfer.pk)
+
+        mock_create_invite.assert_called_once()
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.COMPLETE)
+
+    def test_repeat_transfer_does_not_skip_previously_transferred_assets(self):
+        """
+        Historical project transfers between the same sender and recipient
+        created before the current org transfer do not exclude assets.
+        """
+        asset = Asset.objects.create(name='Repeat Project', owner=self.owner_user)
+        old_invite = Invite.objects.create(
+            sender=self.owner_user, recipient=self.admin_user
+        )
+        old_transfer = Transfer.objects.create(invite=old_invite, asset=asset)
+        past = timezone.now() - timedelta(days=5)
+        Transfer.objects.filter(pk=old_transfer.pk).update(date_created=past)
+
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+
+        with (
+            immediate_on_commit(),
+            patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
+        ):
+            transfer_organization_ownership(transfer.pk)
+
+        mock_create_invite.assert_called_once()
+        transferred_pks = [a.pk for a in mock_create_invite.call_args.kwargs['assets']]
+        self.assertIn(asset.pk, transferred_pks)
+
+    def test_cannot_create_transfer_while_accepted_or_in_progress(self):
+        """
+        Creating a new ownership transfer is blocked while an existing one is
+        ACCEPTED or IN_PROGRESS.
+        """
+        for active_status in (
+            InviteStatusChoices.ACCEPTED,
+            InviteStatusChoices.IN_PROGRESS,
+        ):
+            OrgOwnershipTransferInvite.objects.all().delete()
+            OrgOwnershipTransferInvite.objects.create(
+                sender=self.owner_user,
+                recipient=self.admin_user,
+                organization=self.organization,
+                status=active_status,
+            )
+            res = self._create_transfer(self.owner_user, self.admin_user.username)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn(
+                str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
+                str(res.data['detail']),
+            )
+
+    def test_stale_transfer_rejected_in_worker(self):
+        """
+        If the sender is no longer the organization owner when the worker runs,
+        the transfer is marked FAILED and ownership is not overwritten.
+        """
+        third_admin = User.objects.create_user(
+            username='third_admin', email='third_admin@example.com', password='pw'
+        )
+        third_org_user = OrganizationUser.objects.create(
+            organization=self.organization, user=third_admin, is_admin=True
+        )
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+
+        org_owner = OrganizationOwner.objects.get(organization=self.organization)
+        org_owner.organization_user = third_org_user
+        org_owner.save(update_fields=['organization_user'])
+
+        with patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite:
+            transfer_organization_ownership(transfer.pk)
+
+        mock_create_invite.assert_not_called()
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.FAILED)
+        self.organization.refresh_from_db()
+        self.assertEqual(self.organization.owner_user_object, third_admin)
+
+    def test_failed_project_transfer_marks_org_transfer_failed(self):
+        """
+        If a project transfer within a batch fails, the organization transfer
+        is marked FAILED and completion emails are not sent.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        asset = Asset.objects.create(name='Broken Project', owner=self.owner_user)
+        mail.outbox.clear()
+
+        def fail_project_transfer(**kwargs):
+            inv = Invite.objects.create(
+                sender=kwargs['sender'], recipient=kwargs['recipient']
+            )
+            proj_transfer = Transfer.objects.create(invite=inv, asset=asset)
+            TransferStatus.objects.create(
+                transfer=proj_transfer, status=TransferStatusChoices.FAILED
+            )
+            return inv
+
+        with (
+            immediate_on_commit(),
+            patch(
+                'kobo.apps.organizations.tasks.create_invite',
+                side_effect=fail_project_transfer,
+            ),
+        ):
+            transfer_organization_ownership(transfer.pk)
+
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.FAILED)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_accept_expired_transfer_fails_and_marks_expired(self):
+        """
+        Accepting a transfer older than PROJECT_OWNERSHIP_INVITE_EXPIRY marks it
+        EXPIRED and returns 400.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        expired_date = timezone.now() - timedelta(
+            days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY + 1
+        )
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer.pk).update(
+            date_created=expired_date
+        )
+
+        accept_url = reverse(
+            self._get_endpoint('organization-ownership-transfers-accept'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'uid': transfer.uid,
+            },
+        )
+        with self.authentication(self.admin_user):
+            res = self.client.patch(accept_url)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['detail'], str(TRANSFER_EXPIRED_ERROR))
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.EXPIRED)
+
+    def test_mark_organization_invite_as_expired_expires_ownership_transfers(self):
+        """
+        The periodic expiry task expires pending ownership transfers past the
+        expiry threshold.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        expired_date = timezone.now() - timedelta(
+            days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY + 1
+        )
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer.pk).update(
+            date_created=expired_date
+        )
+
+        mark_organization_invite_as_expired()
+
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.EXPIRED)
+
+    def test_cannot_remove_member_during_in_progress_ownership_transfer(self):
+        """
+        Removing a member involved in an ACCEPTED or IN_PROGRESS ownership
+        transfer is blocked so background batches cannot restore their access.
+        """
+        OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.IN_PROGRESS,
+        )
+        admin_member = OrganizationUser.objects.get(
+            organization=self.organization, user=self.admin_user
+        )
+        member_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': admin_member.user.username,
+            },
+        )
+        with self.authentication(self.owner_user):
+            res = self.client.delete(member_url)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            str(OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR),
+            str(res.data),
+        )
+        self.assertTrue(
+            OrganizationUser.objects.filter(pk=admin_member.pk).exists()
+        )
