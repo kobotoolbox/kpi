@@ -59,7 +59,6 @@ bem.FormView__name = makeBem(bem.FormView, 'name')
 bem.FormView__description = makeBem(bem.FormView, 'description')
 bem.FormView__subs = makeBem(bem.FormView, 'subs')
 // end used in header.js
-bem.FormView__sidetabs = makeBem(bem.FormView, 'sidetabs')
 
 bem.FormView__label = makeBem(bem.FormView, 'label')
 bem.FormView__group = makeBem(bem.FormView, 'group')

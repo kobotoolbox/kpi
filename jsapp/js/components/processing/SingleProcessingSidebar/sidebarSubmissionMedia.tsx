@@ -7,8 +7,8 @@ import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
 import { openTableMediaPreviewModal } from '#/components/submissions/DataTableCell/TableMediaPreview'
-import { inferAttachmentQuestionType } from '#/components/submissions/submissionMediaUtils'
 import { QUESTION_TYPES } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getAttachmentForProcessing } from '../SingleProcessingContent/TabTranscript/transcript.utils'
 import styles from './sidebarSubmissionMedia.module.scss'
@@ -16,10 +16,17 @@ import styles from './sidebarSubmissionMedia.module.scss'
 interface SidebarSubmissionMediaProps {
   xpath: string
   asset: AssetResponse | undefined
+  /** Form row type first, so a file with no mimetype still gets its player. */
+  questionType: AnyRowTypeName | undefined
   submission?: DataResponse
 }
 
-export default function SidebarSubmissionMedia({ asset, xpath, submission }: SidebarSubmissionMediaProps) {
+export default function SidebarSubmissionMedia({
+  asset,
+  xpath,
+  questionType,
+  submission,
+}: SidebarSubmissionMediaProps) {
   if (!asset) {
     return null
   }
@@ -35,10 +42,6 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
       </section>
     )
   }
-
-  // The file in hand decides how to show it; a question the form no longer has would
-  // otherwise get no player at all.
-  const questionType = inferAttachmentQuestionType(attachment)
 
   // No "Delete" here, as Processing doesn't refresh after a deletion.
   const actionsMenu = submission && (

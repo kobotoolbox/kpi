@@ -1,3 +1,7 @@
+import type { ComboboxItem } from '#/components/common/select.types'
+import { DEPLOYMENT_STATUS_LABELS } from '#/constants'
+import { recordEntries } from '#/utils'
+
 export type OrderDirection = 'ascending' | 'descending'
 
 export const HOME_VIEW = {
@@ -13,7 +17,8 @@ export const ORG_VIEW = {
 export interface ProjectsFilterDefinition {
   fieldName?: ProjectFieldName
   condition?: FilterConditionName
-  value?: string
+  /** A list for fields with `valueOptions`, but older saved filters may have a string. */
+  value?: string | string[]
 }
 
 // NOTE: if you plan to add a condition, make sure to re-check
@@ -29,6 +34,10 @@ export type FilterConditionName =
   | 'isNot'
   | 'isNotEmpty'
   | 'isNotEmptyObject'
+  // *On conditions are for date fields
+  | 'isOn'
+  | 'isOnOrAfter'
+  | 'isOnOrBefore'
   | 'startsWith'
 interface FilterConditionDefinition {
   name: FilterConditionName
@@ -98,6 +107,25 @@ export const FILTER_CONDITIONS: FilterConditions = {
     requiresValue: false,
     filterQuery: 'NOT <field>__iexact:{}',
   },
+  // `<dayStart>` and `<dayEnd>` are the local midnights around the picked day.
+  isOn: {
+    name: 'isOn',
+    label: t('Is'),
+    requiresValue: true,
+    filterQuery: '<field>__gte:<dayStart> AND <field>__lt:<dayEnd>',
+  },
+  isOnOrAfter: {
+    name: 'isOnOrAfter',
+    label: t('On or after'),
+    requiresValue: true,
+    filterQuery: '<field>__gte:<dayStart>',
+  },
+  isOnOrBefore: {
+    name: 'isOnOrBefore',
+    label: t('On or before'),
+    requiresValue: true,
+    filterQuery: '<field>__lt:<dayEnd>',
+  },
 }
 
 export type ProjectFieldName =
@@ -125,6 +153,10 @@ export interface ProjectFieldDefinition {
   apiOrderingName: string
   /** Some of the fields (e.g. `submission`) doesn't allow any filtering yet. */
   availableConditions: FilterConditionName[]
+  /** Fixed values to pick from, shown as a multiselect. */
+  valueOptions?: Array<ComboboxItem<string>>
+  /** Filtered with a date picker, and values are `YYYY-MM-DD`. */
+  isDate?: boolean
 }
 
 type ProjectFields = { [P in ProjectFieldName]: ProjectFieldDefinition }
@@ -167,6 +199,9 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiFilteringName: '_deployment_status',
     apiOrderingName: '_deployment_status',
     availableConditions: ['is', 'isNot'],
+    valueOptions: recordEntries(DEPLOYMENT_STATUS_LABELS).map(([value, label]) => {
+      return { value, label }
+    }),
   },
   ownerUsername: {
     name: 'ownerUsername',
@@ -234,16 +269,18 @@ export const PROJECT_FIELDS: ProjectFields = {
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
-    apiFilteringName: 'date_modified__date',
+    apiFilteringName: 'date_modified',
     apiOrderingName: 'date_modified',
-    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'startsWith'],
+    availableConditions: ['isOn', 'isOnOrAfter', 'isOnOrBefore'],
+    isDate: true,
   },
   dateDeployed: {
     name: 'dateDeployed',
     label: t('Date deployed'),
-    apiFilteringName: 'date_deployed__date',
+    apiFilteringName: 'date_deployed',
     apiOrderingName: 'date_deployed',
-    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'startsWith'],
+    availableConditions: ['isOn', 'isOnOrAfter', 'isOnOrBefore'],
+    isDate: true,
   },
   sector: {
     name: 'sector',
