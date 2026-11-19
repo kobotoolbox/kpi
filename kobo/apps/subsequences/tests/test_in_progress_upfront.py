@@ -369,7 +369,22 @@ class InProgressUpfrontTestCase(TestCase):
         content = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_uuid
         ).content
-        assert ACTION_ID not in content[self.xpath]
+        assert self.xpath not in content
+
+    def test_refused_launch_keeps_a_sibling_saved_meanwhile(self):
+        def process_data(*args, **kwargs):
+            self._revise(
+                {'language': 'en', 'value': 'mine'}, action_id='manual_transcription'
+            )
+            raise UsageLimitExceededException()
+
+        with self.assertRaises(UsageLimitExceededException):
+            self._revise({'language': 'en'}, side_effect=process_data)
+
+        content = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content
+        assert list(content[self.xpath]) == ['manual_transcription']
 
     def test_refused_launch_puts_an_existing_action_back_as_it_was(self):
         with freeze_time('2026-01-01 10:00:00'):

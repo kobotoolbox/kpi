@@ -4,7 +4,7 @@ from functools import lru_cache
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import Count, F, Q, Value
+from django.db.models import Case, Count, F, Q, Value, When
 from django.db.models.fields.json import KeyTextTransform, KeyTransform
 from django.db.models.lookups import Exact
 from django.utils import timezone
@@ -186,6 +186,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             # rewrite of `content` could erase an edit made meanwhile
             return supplemental_data
 
+        # If this validation or the update below fails, the `in_progress` version
+        # saved upfront stays as the latest one with no poll to end it. A new
+        # launch calls the service again and saves its result
         validate_submission_supplement(asset, supplemental_data)
 
         with transaction.atomic():
@@ -286,7 +289,20 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 Value(previous_data, output_field=models.JSONField()),
             )
         else:
-            content = RemoveJSONFieldAttribute('content', action_path)
+            # Nothing was there before: remove the action, and its question too
+            # when nothing else is left on it
+            question_xpath = action_path[0]
+            without_action = RemoveJSONFieldAttribute('content', action_path)
+            content = Case(
+                When(
+                    Exact(
+                        KeyTransform(question_xpath, without_action),
+                        Value({}, output_field=models.JSONField()),
+                    ),
+                    then=RemoveJSONFieldAttribute('content', [question_xpath]),
+                ),
+                default=without_action,
+            )
 
         SubmissionSupplement._update_while_in_progress(
             asset, submission_uuid, action_path, content
