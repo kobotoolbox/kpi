@@ -900,7 +900,7 @@ export const getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransf
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
   ...{
-    uid: faker.string.uuid(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -908,7 +908,7 @@ export const getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransf
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
     status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
-    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    billing_review_requested: faker.datatype.boolean(),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   },
@@ -961,7 +961,7 @@ export const getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTr
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
   ...{
-    uid: faker.string.uuid(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -969,7 +969,7 @@ export const getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTr
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
     status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
-    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    billing_review_requested: faker.datatype.boolean(),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   },
@@ -1017,7 +1017,7 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwners
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
   ...{
-    uid: faker.string.uuid(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -1025,7 +1025,7 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwners
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
     status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
-    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    billing_review_requested: faker.datatype.boolean(),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   },
