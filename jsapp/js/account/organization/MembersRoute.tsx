@@ -306,6 +306,7 @@ function MembersRoute() {
               currentUserRole={organization.request_user_role}
               targetFullName={member.user__extra_details__name}
               orgName={organization.name}
+              orgId={organization.id}
               isPendingOwnershipTransfer={!!obj.pending_transfer}
             />
           )
