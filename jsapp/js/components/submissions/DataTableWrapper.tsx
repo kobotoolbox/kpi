@@ -22,7 +22,7 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
     props.asset.uid,
   )
 
-  // We use the asset that we got via react query here because changes to the analysis questions invalidate they query
+  // We use the asset that we got via react query here because changes to the analysis questions invalidate the query
   // and updates the asset that we pass down to the table
   const tableAsset =
     // We can probably use the asset from react query hook entirely here, but we have the reflux store asset as a backup
