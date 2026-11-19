@@ -11,6 +11,7 @@ class BaseServiceSerializer(serializers.ModelSerializer):
         fields = [
             'name',
             'code',
+            'priority',
         ]
 
 

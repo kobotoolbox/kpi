@@ -1,4 +1,3 @@
-import type { Survey } from '../../xlform/src/model.survey'
 import type { AssetResponse, FailResponse } from './dataInterface'
 
 /**
@@ -24,17 +23,6 @@ interface GenericCallbackDefinition extends Function {
   listen: (callback: (response: any) => void) => Function
 }
 
-interface GetSubmissionDefinition extends Function {
-  (assetUid: string, submissionIdOrUuid: string): void
-  completed: GetSubmissionCompletedDefinition
-  failed: GenericFailedDefinition
-}
-
-interface GetSubmissionCompletedDefinition extends Function {
-  (response: SubmissionResponse): void
-  listen: (callback: (response: SubmissionResponse) => void) => Function
-}
-
 interface GetSubmissionsDefinition extends Function {
   (options: GetSubmissionsOptions): void
   completed: GetSubmissionsCompletedDefinition
@@ -51,17 +39,6 @@ interface GetSubmissionsCompletedDefinition extends Function {
 interface GetSubmissionsFailedDefinition extends Function {
   (response: FailResponse, options: GetSubmissionsOptions): void
   listen: (callback: (response: FailResponse, options: GetSubmissionsOptions) => void) => Function
-}
-
-interface GetProcessingSubmissionsDefinition extends Function {
-  (assetUid: string, questionsPaths: string[]): void
-  completed: GetProcessingSubmissionsCompletedDefinition
-  failed: GenericFailedDefinition
-}
-
-interface GetProcessingSubmissionsCompletedDefinition extends Function {
-  (response: GetProcessingSubmissionsResponse): void
-  listen: (callback: (response: GetProcessingSubmissionsResponse) => void) => Function
 }
 
 interface LoadAssetDefinition extends Function {
@@ -306,23 +283,6 @@ interface CreateResourceCompletedDefinition extends Function {
   listen: (callback: (response: any) => void) => Function
 }
 
-interface SurveyAddExternalItemParams {
-  position: number
-  uid: string
-  survey: Survey
-  groupId: string | undefined
-}
-interface SurveyAddExternalItemDefinition extends Function {
-  (params: SurveyAddExternalItemParams): void
-  completed: SurveyAddExternalItemCompletedDefinition
-  failed: GenericFailedDefinition
-  triggerAsync: (params: SurveyAddExternalItemParams) => Promise
-}
-interface SurveyAddExternalItemCompletedDefinition extends Function {
-  (response: any): void
-  listen: (callback: (response: any) => void) => Function
-}
-
 interface UnsubscribeFromCollectionDefinition extends Function {
   (assetUid: string): void
   listen: (callback: (assetUid: string) => void) => Function
@@ -338,25 +298,12 @@ interface UnsubscribeFromCollectionCompletedDefinition extends Function {
  * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 export declare const actions: {
-  navigation: {
-    routeUpdate: GenericCallbackDefinition
-  }
-  auth: {
-    verifyLogin: {
-      loggedin: GenericCallbackDefinition
-    }
-    changePassword: GenericDefinition
-  }
-  survey: {
-    addExternalItemAtPosition: SurveyAddExternalItemDefinition
-  }
   resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
     deployAsset: DeployAssetDefinition
     /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
-    createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
     createResource: CreateResourceDefinition
@@ -414,9 +361,7 @@ export declare const actions: {
     searchPublicCollectionsMetadata: GenericDefinition
   }
   submissions: {
-    getSubmission: GetSubmissionDefinition
     getSubmissions: GetSubmissionsDefinition
-    getProcessingSubmissions: GetProcessingSubmissionsDefinition
     bulkDeleteStatus: GenericDefinition
     bulkPatchStatus: GenericDefinition
     bulkPatchValues: GenericDefinition

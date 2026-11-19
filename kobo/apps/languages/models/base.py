@@ -7,12 +7,15 @@ class BaseLanguageService(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ['name']
 
     # Name of service (e.g.: Google)
     name = models.CharField(max_length=100)
     # Unique identifier (e.g.: goog)
     code = models.CharField(max_length=10, unique=True)
+    # Display order of services (e.g.: 1 comes before 100)
+    priority = models.PositiveSmallIntegerField(
+        default=100, help_text='Lower values come first'
+    )
 
     def __str__(self):
         return f'{self.name}'
@@ -37,7 +40,14 @@ class BaseLanguageService(models.Model):
 
 class BaseLanguageServiceAdmin(admin.ModelAdmin):
 
-    list_display = ['name', 'code']
+    list_display = ['name', 'code', 'priority']
+    list_editable = ['priority']
+    ordering = ['priority', 'name']
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ['code']
+        return super().get_readonly_fields(request, obj)
 
 
 class BaseLanguageServiceM2M(models.Model):

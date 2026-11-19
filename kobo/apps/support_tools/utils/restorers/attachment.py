@@ -1,4 +1,3 @@
-import re
 from collections import defaultdict
 
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
@@ -22,11 +21,6 @@ ATTACHMENT_FIELDS = (
     'instance_id',
     'media_file_basename',
 )
-
-# Background audio, which `get_soft_deleted_attachments()` never matches against
-# a question either
-COLLECT_BACKGROUND_AUDIO_RE = re.compile(r'^\d{10,}\.(m4a|amr)$')
-ENKETO_BACKGROUND_AUDIO_RE = re.compile(r'^background-audio-\d{8}_\d{6}\.webm$')
 
 
 class AttachmentRestorer(ProjectRestorer):
@@ -114,16 +108,11 @@ class AttachmentRestorer(ProjectRestorer):
     def _is_left_alone(self, basename: str) -> bool:
         """
         Report the files `get_soft_deleted_attachments()` excludes from its own
-        queryset: audit files, encrypted submissions and background audio, none of
+        queryset: the files of an encrypted submission and the audit, neither of
         which is ever matched against a media question.
         """
 
-        return (
-            basename == 'audit.csv'
-            or basename.endswith('.enc')
-            or bool(COLLECT_BACKGROUND_AUDIO_RE.match(basename))
-            or bool(ENKETO_BACKGROUND_AUDIO_RE.match(basename))
-        )
+        return basename == 'audit.csv' or basename.endswith('.enc')
 
     def _log_progress(self, cursor: int):
         self.log(

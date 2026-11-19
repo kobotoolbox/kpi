@@ -4,6 +4,12 @@ import re
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import XForm
+from kobo.apps.openrosa.apps.logger.tests.test_background_audio_attachments import (
+    BACKGROUND_AUDIO_QUESTION,
+    PHOTO_QUESTION,
+    background_audio_xform_xml,
+)
+from kobo.apps.openrosa.apps.logger.tests.test_form_versions import ID_STRING
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     XFormInstanceParser,
     _xml_node_to_dict,
@@ -260,9 +266,11 @@ class TestXFormInstanceParser(TestBase):
             xml=xml_str, user=bob, id_string='project_with_ref_before'
         )
 
+        # The image question still comes back through its `binary` bind
         with self.assertLogs('console_logger', level='WARNING') as logs:
-            assert get_xform_media_question_xpaths(xform) == [
-                'project_with_ref_before/signature'
+            assert sorted(get_xform_media_question_xpaths(xform)) == [
+                'project_with_ref_before/image',
+                'project_with_ref_before/signature',
             ]
 
         assert 'media node with no usable `ref`' in logs.output[0]
@@ -288,4 +296,24 @@ class TestXFormInstanceParser(TestBase):
         assert sorted(get_xform_media_question_xpaths(xform)) == [
             'project_with_ref_before/image',
             'project_with_ref_before/signature_é',
+        ]
+
+    def test_get_xform_media_question_xpaths_reads_every_binary_bind(self):
+        """
+        Background audio and audit have no `mediatype` control in the body.
+        Their `binary` bind is what says that they hold a file.
+        """
+
+        bob = User.objects.get(username='bob')
+        xform = XForm.objects.create(
+            xml=background_audio_xform_xml(), user=bob, id_string=ID_STRING
+        )
+
+        xpaths = get_xform_media_question_xpaths(xform)
+
+        assert len(xpaths) == len(set(xpaths))
+        assert sorted(xpaths) == [
+            f'{ID_STRING}/{BACKGROUND_AUDIO_QUESTION}',
+            f'{ID_STRING}/meta/audit',
+            f'{ID_STRING}/{PHOTO_QUESTION}',
         ]

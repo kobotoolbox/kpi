@@ -15,4 +15,10 @@ export interface TranslationService {
   name: string
   /** @maxLength 10 */
   code: string
+  /**
+   * Lower values come first
+   * @minimum 0
+   * @maximum 32767
+   */
+  priority?: number
 }

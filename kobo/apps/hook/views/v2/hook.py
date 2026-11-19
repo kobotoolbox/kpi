@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 import constance
 from django.db.models import Q
 from django.utils import timezone
@@ -185,12 +183,10 @@ class HookViewSet(
         response = {'detail': t('Task successfully scheduled')}
         status_code = status.HTTP_200_OK
         if hook.active:
-            threshold = timezone.now() - timedelta(seconds=120)
-
             records = (
                 hook.logs.filter(
                     Q(
-                        date_modified__lte=threshold,
+                        date_modified__lt=HookLog.get_stalled_retry_threshold(),
                         status=HookLogStatus.PENDING,
                         tries__gte=constance.config.HOOK_MAX_RETRIES,
                     )
@@ -207,9 +203,11 @@ class HookViewSet(
                 hooklogs_uids.append(record[1])
 
             if len(records) > 0:
-                # Mark all logs as PENDING
+                # Mark all logs as PENDING. Refresh `date_modified` too, otherwise
+                # `retry_stalled_pending_submissions` could queue them again
+                # while `retry_all_task` is still processing them.
                 HookLog.objects.filter(id__in=hooklogs_ids).update(
-                    status=HookLogStatus.PENDING
+                    status=HookLogStatus.PENDING, date_modified=timezone.now()
                 )
                 # Delegate to Celery
                 retry_all_task.apply_async(

@@ -93,7 +93,7 @@ export enum SortValues {
 
 // These are all possible Data Table settings, see `tableStore`
 export const DATA_TABLE_SETTINGS = Object.freeze({
-  SELECTED_COLUMNS: 'selected-columns',
+  HIDDEN_COLUMNS: 'hidden-columns',
   FROZEN_COLUMN: 'frozen-column',
   SHOW_GROUP: 'show-group-name',
   TRANSLATION: 'translation-index',
