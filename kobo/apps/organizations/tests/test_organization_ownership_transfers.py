@@ -15,10 +15,10 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.admin.organization_owner import OrgOwnerAdmin
 from kobo.apps.organizations.constants import (
-    CANNOT_CHANGE_OWNER_ROLE_ERROR,
     CANNOT_REMOVE_OWNER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
+    OWNER_ROLE_LOCKED_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
     PENDING_TRANSFER_ACCOUNT_DELETION_ERROR,
     PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
@@ -29,9 +29,7 @@ from kobo.apps.organizations.constants import (
     TRANSFER_NOT_PENDING_ERROR,
 )
 from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
-from kobo.apps.organizations.permissions import (
-    OrganizationOwnershipTransferPermission,
-)
+from kobo.apps.organizations.permissions import OrganizationOwnershipTransferPermission
 from kobo.apps.organizations.serializers import (
     OrganizationOwnershipTransferSerializer,
     OrganizationUserSerializer,
@@ -501,7 +499,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
         self.assertIsNone(admin_row_mem['pending_transfer'])
 
-        # Unrelated admin cannot see pending_transfer (None)
+        # Other organization admin can also see pending_transfer
         unrelated_admin = User.objects.create_user(
             username='unrelated_admin', email='unrelated_admin@example.com'
         )
@@ -516,7 +514,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
             for m in res_unrelated.data['results']
             if m.get('user__username') == self.admin_user.username
         )
-        self.assertIsNone(admin_row_unrel['pending_transfer'])
+        self.assertIsNotNone(admin_row_unrel['pending_transfer'])
 
     def test_organization_exposes_has_pending_ownership_transfer_flag(self):
         """
@@ -580,9 +578,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         # Cannot change owner role
         owner_res = self.client.patch(owner_detail_url, data={'role': 'admin'})
         self.assertEqual(owner_res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            str(owner_res.data['detail']), str(CANNOT_CHANGE_OWNER_ROLE_ERROR)
-        )
+        self.assertEqual(str(owner_res.data['detail']), str(OWNER_ROLE_LOCKED_ERROR))
 
         # Cannot reassign member's user via PATCH without `role`
         member_user_url = reverse(

@@ -71,9 +71,6 @@ RECIPIENT_AMBIGUOUS_EMAIL_ERROR = t(
 RECIPIENT_MUST_BE_ADMIN_ERROR = t(
     'The recipient must be an active administrator in this organization.'
 )
-CANNOT_CHANGE_OWNER_ROLE_ERROR = t(
-    'The role of the organization owner cannot be changed.'
-)
 PENDING_TRANSFER_ROLE_LOCKED_ERROR = t(
     'Role cannot be changed while an ownership transfer is pending for this user.'
 )

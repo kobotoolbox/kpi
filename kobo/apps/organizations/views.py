@@ -616,7 +616,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             Q(metadata__organization_id=str(organization_id))
             | (
                 ~Q(metadata__has_key='organization_id')
-                & Q(sender__organizations_organizationuser__organization_id=organization_id)  # noqa E501
+                & Q(
+                    sender__organizations_organizationuser__organization_id=organization_id  # noqa E501
+                )
             ),
             status=InviteStatusChoices.PENDING,
             recipient_id__in=members_user_ids,
@@ -852,7 +854,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 Q(metadata__organization_id=str(member.organization_id))
                 | (
                     ~Q(metadata__has_key='organization_id')
-                    & Q(sender__organizations_organizationuser__organization_id=member.organization_id)  # noqa E501
+                    & Q(
+                        sender__organizations_organizationuser__organization_id=member.organization_id  # noqa E501
+                    )
                 ),
                 recipient=member.user,
                 status=InviteStatusChoices.PENDING,

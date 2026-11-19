@@ -43,7 +43,6 @@ from kpi.utils.schema_extensions.fields import (
     ReadOnlyFieldWithSchemaField,
 )
 from .constants import (
-    CANNOT_CHANGE_OWNER_ROLE_ERROR,
     INVALID_ROLE_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_ALREADY_EXISTS_ERROR,
@@ -154,7 +153,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     def get_pending_transfer(self, obj):
         """
         Get the active pending ownership transfer for the user if it exists.
-        Only exposed to the sender (owner) or recipient (invitee).
+        Exposed to organization admins (including the owner) and the recipient member.
         """
         request = self.context.get('request')
         if not request or not request.user.is_authenticated:
@@ -162,17 +161,14 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
         request_user = get_database_user(request.user)
 
+        if not (
+            obj.organization.is_admin(request_user) or obj.user_id == request_user.id
+        ):
+            return None
+
         try:
             pending_transfers_per_member = self.context['pending_transfers_per_member']
         except KeyError:
-            # If requester is neither the org owner (sender) nor this member
-            # (recipient), they cannot view any pending transfer for this member.
-            if (
-                not obj.organization.is_owner(request_user)
-                and obj.user_id != request_user.id
-            ):
-                return None
-
             transfer = (
                 OrgOwnershipTransferInvite.objects.filter(
                     Q(metadata__organization_id=str(obj.organization.id))
@@ -191,7 +187,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         else:
             transfer = pending_transfers_per_member.get(obj.user_id)
 
-        if transfer and request_user.id in (transfer.sender_id, transfer.recipient_id):
+        if transfer:
             return OrganizationOwnershipTransferSerializer(
                 transfer, context=self.context
             ).data
@@ -234,7 +230,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     raise NotFound()
 
                 if org_user.organization.is_owner(org_user.user):
-                    raise InvalidMembershipRequest(CANNOT_CHANGE_OWNER_ROLE_ERROR)
+                    raise InvalidMembershipRequest(OWNER_ROLE_LOCKED_ERROR)
 
                 if OrgOwnershipTransferInvite.objects.filter(
                     Q(metadata__organization_id=str(org_user.organization_id))
