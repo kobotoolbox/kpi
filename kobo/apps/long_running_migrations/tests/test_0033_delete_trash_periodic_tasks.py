@@ -1,6 +1,7 @@
 import importlib
 import json
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -89,6 +90,34 @@ class DeleteTrashPeriodicTasksTestCase(TestCase):
         held_trash.refresh_from_db()
         assert held_trash.periodic_task_id is None
         assert not PeriodicTask.objects.filter(pk=held_task.pk).exists()
+
+    def test_run_protects_tasks_that_come_due_while_it_runs(self):
+        """
+        The window of the tasks that Celery Beat may hold moves with time, so a
+        task that comes due while the job runs must be left in place too
+        """
+        start = timezone.now()
+        early_trash = self._move_account_to_trash(self.someuser)
+        early_task = self._attach_task(early_trash, days=30, enabled=True)
+        late_trash = self._move_account_to_trash(self.anotheruser)
+        late_task = self._attach_task(late_trash, days=0, enabled=True)
+        ClockedSchedule.objects.filter(pk=late_task.clocked_id).update(
+            clocked_time=start + timedelta(minutes=12)
+        )
+
+        # One task per batch, and 5 minutes pass between the two batches: the
+        # second one must see the task due at +12 minutes as held by Beat
+        cutoffs = iter(
+            [start + timedelta(minutes=10)] + [start + timedelta(minutes=15)] * 3
+        )
+        with patch.object(job_0033, 'CHUNK_SIZE', 1), patch.object(
+            job_0033, '_get_beat_cutoff', side_effect=lambda: next(cutoffs)
+        ):
+            with pytest.raises(LongRunningMigrationDependencyError):
+                job_0033.run()
+
+        assert not PeriodicTask.objects.filter(pk=early_task.pk).exists()
+        assert PeriodicTask.objects.filter(pk=late_task.pk).exists()
 
     def _attach_task(
         self, account_trash: AccountTrash, days: int, enabled: bool

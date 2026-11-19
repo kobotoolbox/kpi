@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db import transaction
@@ -97,13 +97,12 @@ def _delete_trash_periodic_tasks() -> int:
     the ones that Celery Beat may hold in memory.
     """
 
-    held_by_beat = Q(
-        enabled=True,
-        clocked__clocked_time__lte=timezone.now() + BEAT_SAFETY_MARGIN,
-    )
     deleted = 0
     last_pk = 0
     while True:
+        # Computed again for every batch: the job may run for a long time, and
+        # Celery Beat keeps loading the tasks that come due in the meantime
+        held_by_beat = Q(enabled=True, clocked__clocked_time__lte=_get_beat_cutoff())
         batch = list(
             PeriodicTask.objects.filter(task__in=TRASH_TASKS, pk__gt=last_pk)
             .exclude(held_by_beat)
@@ -126,3 +125,12 @@ def _delete_trash_periodic_tasks() -> int:
         logging.info(f'[LRM 0033] deleted {deleted} periodic tasks')
 
     return deleted
+
+
+def _get_beat_cutoff() -> datetime:
+    """
+    Return the time before which an enabled clocked task may be held by Celery
+    Beat in memory.
+    """
+
+    return timezone.now() + BEAT_SAFETY_MARGIN
