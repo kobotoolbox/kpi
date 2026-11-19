@@ -1,16 +1,21 @@
+from typing import Any
+
+from allauth.account.adapter import get_adapter as get_account_adapter
 from allauth.account.views import LoginView
 from allauth.mfa.adapter import get_adapter
+from allauth.mfa.base.views import AuthenticateView, ReauthenticateView
 from allauth.mfa.internal.flows.add import validate_can_add_authenticator
 from allauth.mfa.models import Authenticator
 from allauth.mfa.totp.internal import auth as totp_auth
 from django.conf import settings
 from django.contrib.auth import logout
 from django.db.models import QuerySet
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import resolve_url
 from django.urls import reverse
 from django.utils.translation import gettext as t
-from rest_framework.exceptions import NotFound
+from rest_framework import serializers
+from rest_framework.exceptions import NotFound, Throttled
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -20,6 +25,9 @@ from rest_framework.views import APIView
 from kpi.permissions import IsAuthenticated
 from kpi.utils.log import logging
 from ..forms import LoginForm
+from ..mixins import ThrottledMfaMixin
+from ..throttling import auth_success, rate_limit
+from ..utils import throttled_template_response
 from .flows import activate_totp, regenerate_codes
 from .permissions import IsMfaEnabled
 from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
@@ -28,6 +36,15 @@ from .utils import MFA_METHOD_NAME, get_totp_authenticator
 
 class MfaLoginView(LoginView):
     form_class = LoginForm
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        form = self.get_form()
+        username = form.data['login']
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().post(request, *args, **kwargs)
+        except Throttled:
+            return throttled_template_response(self, form, '__all__')
 
     def form_valid(self, form) -> HttpResponse:
         """
@@ -140,12 +157,53 @@ class MfaMethodConfirmView(APIView):
 class MfaMethodRegenerateCodesView(APIView):
     permission_classes = (IsAuthenticated, IsMfaEnabled)
 
-    @staticmethod
-    def post(request: Request, method: str) -> Response:
-        serializer = MfaCodeSerializer(
-            data=request.data, context={'user': request.user, 'method': method}
-        )
-        serializer.is_valid(raise_exception=True)
-        recovery_codes = regenerate_codes(request, method)
-        backup_codes = recovery_codes.get_unused_codes()
-        return Response({'backup_codes': backup_codes})
+    def post(self, request: Request, method: str) -> Response:
+        username = request.user.username
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                mfa_serializer = MfaCodeSerializer(
+                    data=request.data, context={'user': request.user, 'method': method}
+                )
+                mfa_serializer.is_valid(raise_exception=True)
+                recovery_codes = regenerate_codes(request, method)
+                backup_codes = recovery_codes.get_unused_codes()
+                return Response({'backup_codes': backup_codes})
+        except Throttled:
+            # can't use ThrottledHeadlessMfaMixin here because it relies on some
+            # namespace magic in allauth's ApiResponse, and this is in a different
+            # namespace
+            raise serializers.ValidationError(
+                {
+                    'code': [
+                        get_account_adapter().error_messages['too_many_login_attempts']
+                    ]
+                }
+            )
+
+
+class MfaReauthenticateView(ReauthenticateView, ThrottledMfaMixin):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        try:
+            with rate_limit(
+                'login_failed', request.user.username, request, auth_success
+            ):
+                return super().post(request, *args, **kwargs)
+        except Throttled:
+            return self.throttled_response(request)
+
+    def get_error_form(self):
+        return self.get_form()
+
+
+class MfaAuthenticateView(AuthenticateView, ThrottledMfaMixin):
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        username = self.form.user.username
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().post(request, *args, **kwargs)
+        except Throttled:
+            return self.throttled_response(request)
+
+    def get_error_form(self):
+        return self.form
