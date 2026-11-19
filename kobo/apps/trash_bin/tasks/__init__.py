@@ -4,24 +4,16 @@ from celery import Task
 from celery.exceptions import SoftTimeLimitExceeded
 from constance import config
 from django.conf import settings
-from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Q
 from django.utils import timezone
-from django_celery_beat.models import ClockedSchedule, PeriodicTask
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-from ..constants import (
-    DELETE_ATTACHMENT_STR_PREFIX,
-    DELETE_PROJECT_STR_PREFIX,
-    DELETE_USER_STR_PREFIX,
-)
 from ..models import TrashStatus
 from ..models.account import AccountTrash
 from ..models.attachment import AttachmentTrash
 from ..models.project import ProjectTrash
 from ..type_aliases import TrashBinModel
-from ..utils import temporarily_disconnect_signals
 from .account import empty_account
 from .attachment import empty_attachment
 from .project import empty_project
@@ -29,37 +21,21 @@ from .project import empty_project
 
 @celery_app.task
 def garbage_collector():
+    """
+    Do nothing.
 
-    # `~Exists()` instead of `exclude(pk__in=...)`: PostgreSQL turns
-    # `NOT EXISTS` into an anti-join, while `NOT IN` falls back to comparing
-    # each row with the whole subquery result when it does not fit in
-    # `work_mem`, which never finishes with millions of trashed attachments.
-    with temporarily_disconnect_signals(delete=True):
-        with transaction.atomic():
-            # Remove orphan periodic tasks
-            for trash_model, prefix in (
-                (AccountTrash, DELETE_USER_STR_PREFIX),
-                (ProjectTrash, DELETE_PROJECT_STR_PREFIX),
-                (AttachmentTrash, DELETE_ATTACHMENT_STR_PREFIX),
-            ):
-                PeriodicTask.objects.filter(
-                    ~Exists(
-                        trash_model.objects.filter(periodic_task_id=OuterRef('pk'))
-                    ),
-                    name__startswith=prefix,
-                    clocked__isnull=False,
-                ).delete()
-
-            # Then, remove clocked schedules
-            ClockedSchedule.objects.filter(
-                ~Exists(PeriodicTask.objects.filter(clocked_id=OuterRef('pk')))
-            ).delete()
+    Kept for one release, so that the messages that are still in the queues
+    do not fail. `task_restarter` sends the deletion of trashed objects, and the
+    long-running migration that removes trash `PeriodicTask`s deletes the
+    remaining ones.
+    """
 
 
 @celery_app.task
 def task_restarter():
     """
-    This task restarts previous tasks which have been stopped accidentally,
+    This task sends the deletion of trashed objects once their retention has
+    passed, and restarts previous tasks which have been stopped accidentally,
     e.g.: docker container/k8s pod restart or OOM killed, and the ones which
     failed on a transient (infrastructure) error
     """
@@ -91,39 +67,39 @@ def _restart_stuck_tasks(
     model: TrashBinModel, task: Task, retention: int, max_restarts: int
 ):
     """
-    Restart tasks which have been stopped accidentally, i.e.: they are still
-    flagged as pending or in progress but nothing has updated them for a while
+    Send the deletion of objects whose retention has passed, and restart tasks
+    which have been stopped accidentally, i.e.: they are still flagged as in
+    progress but nothing has updated them for a while
 
     Tasks which failed on a transient (infrastructure) error are deliberately
     left in progress by `trash_bin_task_failure()`, so they are picked up here
     as well
     """
-    pending_grace_period = timezone.now() - timedelta(days=retention)
     stuck_threshold = timezone.now() - timedelta(
         seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
     )
 
     # A deletion which has already started has, by definition, passed its
-    # scheduled time: looking at the clocked time again would only delay its
-    # restart by a whole retention period and that time is set in the past
-    # when the object is trashed manually anyway
-    started_objects = Q(status=TrashStatus.IN_PROGRESS)
+    # retention
+    candidates = Q(status=TrashStatus.IN_PROGRESS)
 
-    # Objects which never started must wait for their scheduled time, and the
-    # ones waiting for a superuser to empty them manually must never be started
-    # automatically
-    due_objects = Q(
-        empty_manually=False,
-        status=TrashStatus.PENDING,
-        periodic_task__clocked__clocked_time__lte=pending_grace_period,
-    )
+    # Objects which never started follow the same rules as `scheduled_time` on
+    # the trash models. They must wait for their retention, read from Constance
+    # on every run, and the ones waiting for a superuser to empty them manually,
+    # or whose retention is -1, must never be started automatically
+    pending_objects = Q(empty_manually=False, status=TrashStatus.PENDING)
+    if retention >= 0:
+        retention_threshold = timezone.now() - timedelta(days=retention)
+        candidates |= pending_objects & Q(date_created__lte=retention_threshold)
+
+    # Accounts trashed without a placeholder are due right away: their deletion
+    # is sent when they are trashed, and this only catches a lost message
+    if model is AccountTrash:
+        candidates |= pending_objects & Q(retain_placeholder=False)
 
     stuck_objects = (
         model.objects.values_list('pk', 'date_modified')
-        .filter(
-            started_objects | due_objects,
-            date_modified__lte=stuck_threshold,
-        )
+        .filter(candidates, date_modified__lte=stuck_threshold)
         .order_by('date_modified')[:max_restarts]
     )
 
