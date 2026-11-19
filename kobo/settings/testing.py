@@ -93,6 +93,8 @@ ACCOUNT_ADAPTER = 'kpi.tests.adapter.TestAdapter'
 # Many tests fire logins in rapid succession, including failed ones, so turn off
 # rate-limiting
 ACCOUNT_RATE_LIMITS = False
+LOGIN_FAILED_RATE_LIMIT = ''
+# test-only setting for generic rate limiting
 SOME_RATE_LIMIT = ''
 
 # Give each pytest-xdist worker (`gw0`, `gw1`, ...) its own Redis database, so

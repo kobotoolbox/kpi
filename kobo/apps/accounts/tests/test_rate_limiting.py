@@ -85,6 +85,9 @@ class BaseRateLimitTestCase(TestCase, metaclass=ABCMeta):
         code_used_patch.start()
         self.addCleanup(code_used_patch.stop)
 
+
+@ddt
+class RateLimitTestMixin:
     @staticmethod
     def _create_bad_token(user):
         mfa_code = get_mfa_code_for_user(user)
@@ -249,7 +252,7 @@ class BaseRateLimitTestCase(TestCase, metaclass=ABCMeta):
 
 
 @ddt
-class HeadlessRateLimitTestCase(BaseRateLimitTestCase):
+class HeadlessRateLimitTestCase(BaseRateLimitTestCase, RateLimitTestMixin):
 
     login_url_name = 'headless:browser:account:login'
     mfa_authenticate_url_name = 'headless:browser:mfa:authenticate'
@@ -311,7 +314,7 @@ class HeadlessRateLimitTestCase(BaseRateLimitTestCase):
             )
 
 
-class TemplatedRateLimitTestCase(BaseRateLimitTestCase):
+class TemplatedRateLimitTestCase(BaseRateLimitTestCase, RateLimitTestMixin):
     login_url_name = 'account_login'
     mfa_authenticate_url_name = 'mfa_authenticate'
     mfa_reauthenticate_url_name = 'mfa_reauthenticate'
