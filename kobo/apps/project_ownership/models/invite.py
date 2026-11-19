@@ -5,6 +5,7 @@ from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.translation import gettext as t
 
 from kobo.apps.organizations.utils import get_real_owner
@@ -284,7 +285,7 @@ class OrgOwnershipTransferInvite(Invite):
             f'({self.status})'
         )
 
-    @property
+    @cached_property
     def organization(self):
         if org_id := self.metadata.get('organization_id'):
             Organization = apps.get_model('organizations', 'Organization')

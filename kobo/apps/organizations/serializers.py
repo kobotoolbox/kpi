@@ -646,10 +646,8 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     sender = serializers.CharField(source='sender.username', read_only=True)
     sender_name = serializers.SerializerMethodField()
     sender_email = serializers.EmailField(source='sender.email', read_only=True)
-    organization_id = serializers.CharField(source='organization.id', read_only=True)
-    organization_name = serializers.CharField(
-        source='organization.name', read_only=True
-    )
+    organization_id = serializers.SerializerMethodField()
+    organization_name = serializers.SerializerMethodField()
     created = serializers.DateTimeField(
         source='date_created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
     )
@@ -685,13 +683,25 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         except (AttributeError, ObjectDoesNotExist):
             return ''
 
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_organization_id(self, obj):
+        org = self._get_organization() or obj.organization
+        return str(org.id) if org else ''
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_organization_name(self, obj):
+        org = self._get_organization() or obj.organization
+        return str(org.name) if org else ''
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['recipient'] = instance.recipient.username
         return representation
 
     def _get_organization(self):
-        return self.context['view'].organization
+        if view := self.context.get('view'):
+            return getattr(view, 'organization', None)
+        return None
 
     def validate_recipient(self, value):
         organization = self._get_organization()
