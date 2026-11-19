@@ -20,7 +20,10 @@ export interface ActionIconProps extends Omit<ActionIconPropsMantine, 'size'> {
   size: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...props }, ref) => {
+const ActionIcon = forwardRef<HTMLButtonElement, ActionIconProps>(({ iconName, icon, ...ownProps }, ref) => {
+  // An icon has no text of its own, so a text tooltip doubles as the button's name for screen readers.
+  const props = { 'aria-label': typeof ownProps.tooltip === 'string' ? ownProps.tooltip : undefined, ...ownProps }
+
   const content =
     props.children ??
     (icon ? (

@@ -48,6 +48,8 @@ import { MemberRoleEnum } from '../../models/memberRoleEnum'
 
 import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
 
+import { OrganizationOwnershipTransferStatusEnum } from '../../models/organizationOwnershipTransferStatusEnum'
+
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -898,15 +900,14 @@ export const getApiV2OrganizationsMembersListResponseOrganizationOwnershipTransf
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
   ...{
-    guid: faker.string.uuid(),
+    uid: faker.string.uuid(),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
     billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -960,15 +961,14 @@ export const getApiV2OrganizationsMembersRetrieveResponseOrganizationOwnershipTr
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
   ...{
-    guid: faker.string.uuid(),
+    uid: faker.string.uuid(),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
     billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -1017,15 +1017,14 @@ export const getApiV2OrganizationsMembersPartialUpdateResponseOrganizationOwners
   overrideResponse: Partial<OrganizationOwnershipTransfer> = {},
 ): OrganizationOwnershipTransfer => ({
   ...{
-    guid: faker.string.uuid(),
+    uid: faker.string.uuid(),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
+    status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
     billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -1064,16 +1063,15 @@ export const getOrganizationsOwnershipTransfersListResponseMock = (
   next: faker.helpers.arrayElement([faker.internet.url(), null]),
   previous: faker.helpers.arrayElement([faker.internet.url(), null]),
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
-    guid: faker.string.uuid(),
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
     organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
     sender_email: faker.internet.email(),
     recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-    status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-    billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+    billing_review_requested: faker.datatype.boolean(),
     created: faker.date.past().toISOString().slice(0, 19) + 'Z',
     modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   })),
@@ -1083,16 +1081,15 @@ export const getOrganizationsOwnershipTransfersListResponseMock = (
 export const getOrganizationsOwnershipTransfersCreateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
@@ -1101,16 +1098,15 @@ export const getOrganizationsOwnershipTransfersCreateResponseMock = (
 export const getOrganizationsOwnershipTransfersRetrieveResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
@@ -1119,16 +1115,15 @@ export const getOrganizationsOwnershipTransfersRetrieveResponseMock = (
 export const getOrganizationsOwnershipTransfersAcceptPartialUpdateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
@@ -1137,16 +1132,15 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateResponseMock =
 export const getOrganizationsOwnershipTransfersCancelPartialUpdateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
@@ -1155,16 +1149,15 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateResponseMock =
 export const getOrganizationsOwnershipTransfersDeclinePartialUpdateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
@@ -1173,16 +1166,15 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateResponseMock 
 export const getOrganizationsOwnershipTransfersResendCreateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({
-  guid: faker.string.uuid(),
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
   organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
   sender_email: faker.internet.email(),
   recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  recipient_username: faker.string.alpha({ length: { min: 10, max: 20 } }),
-  status: faker.helpers.arrayElement(Object.values(InviteStatusChoicesEnum)),
-  billing_review_requested: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
   created: faker.date.past().toISOString().slice(0, 19) + 'Z',
   modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
@@ -2319,13 +2311,13 @@ export const getOrganizationsOwnershipTransfersRetrieveMockHandler = (
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.get<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.get<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2343,13 +2335,13 @@ export const getOrganizationsOwnershipTransfersAcceptPartialUpdateMockHandler = 
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.patch<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/accept{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.patch<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/accept{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2367,13 +2359,13 @@ export const getOrganizationsOwnershipTransfersCancelPartialUpdateMockHandler = 
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.patch<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/cancel{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.patch<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/cancel{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2391,13 +2383,13 @@ export const getOrganizationsOwnershipTransfersDeclinePartialUpdateMockHandler =
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.patch<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/decline{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.patch<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/decline{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'
@@ -2415,13 +2407,13 @@ export const getOrganizationsOwnershipTransfersResendCreateMockHandler = (
   overrideResponse?:
     | OrganizationOwnershipTransfer
     | ((
-        info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0],
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0],
       ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
   options?: RequestHandlerOptions,
 ) => {
-  return http.post<{ uidOrganization: string; guid: string }>(
-    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:guid/resend{/}?',
-    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; guid: string }>>[0]) => {
+  return http.post<{ uidOrganization: string; uid: string }>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers/:uid/resend{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string; uid: string }>>[0]) => {
       return HttpResponse.json(
         overrideResponse !== undefined
           ? typeof overrideResponse === 'function'

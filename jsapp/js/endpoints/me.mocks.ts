@@ -2,6 +2,7 @@ import { http, HttpResponse, delay } from 'msw'
 import type { AccountFieldsErrors } from '#/account/account.constants'
 import type { MeListResponse } from '#/api/models/meListResponse'
 import { getMeRetrieveMockHandler } from '#/api/react-query/user-team-organization-usage/msw'
+import { INCORRECT_CODE_MESSAGE, VALID_CODE } from './mfa.mocks'
 
 /**
  * Mock response data for /me/ endpoint.
@@ -86,3 +87,16 @@ export const meUpdateErrorsMock = ({
   http.patch(ME_URL, () =>
     HttpResponse.json({ ...(fieldErrors && { extra_details: fieldErrors }), ...(detail && { detail }) }, { status }),
   )
+
+/** A password change, checked the way the backend does: with 2FA on it needs a valid `mfa_code` too */
+export const mePasswordChangeMock = ({ isMfaActive }: { isMfaActive: boolean }) =>
+  http.patch(ME_URL, async ({ request }) => {
+    const { mfa_code } = (await request.json()) as { mfa_code?: string }
+    if (isMfaActive && !mfa_code) {
+      return HttpResponse.json({ mfa_code: ['This field is required.'] }, { status: 400 })
+    }
+    if (isMfaActive && mfa_code !== VALID_CODE) {
+      return HttpResponse.json({ mfa_code: [INCORRECT_CODE_MESSAGE] }, { status: 400 })
+    }
+    return HttpResponse.json(meMockResponse)
+  })

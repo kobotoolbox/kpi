@@ -70,17 +70,6 @@ export function cleanupAndUniqueTags(tags: string[]) {
   return Array.from(new Set(cleanupTags(tags)))
 }
 
-/**
- * Returns nicer "me" label for your own assets.
- */
-export function getAssetOwnerDisplayName(username: string) {
-  if (profileStore.currentAccount?.username && profileStore.currentAccount.username === username) {
-    return t('me')
-  } else {
-    return username
-  }
-}
-
 export function getOrganizationDisplayString(asset: AssetResponse | ProjectViewAsset) {
   if (asset.settings.organization) {
     return asset.settings.organization
@@ -662,8 +651,14 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
   const errors = []
 
   if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (!asset.name || !asset.settings.organization || !asset.settings.sector) {
-      errors.push(t('Name, organization and sector are required to make collection public.'))
+    // Sector can only be asked for when this instance offers the field
+    const isSectorRequired = Boolean(envStore.data.getProjectMetadataField('sector'))
+    if (!asset.name || !asset.settings.organization || (isSectorRequired && !asset.settings.sector)) {
+      errors.push(
+        isSectorRequired
+          ? t('Name, organization and sector are required to make collection public.')
+          : t('Name and organization are required to make collection public.'),
+      )
     }
     if (asset.children.count === 0) {
       errors.push(t('Empty collection is not allowed to be made public.'))
@@ -681,6 +676,36 @@ export function isSelfOwned(asset: AssetResponse | ProjectViewAsset) {
 
 export function buildAssetUrl(assetUid: string) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`
+}
+
+/**
+ * A `date_modified` timestamp as microseconds since the epoch.
+ *
+ * `Date.parse` only resolves milliseconds while the backend sends six fractional digits, so two saves in the same
+ * millisecond would otherwise look simultaneous. Comparing the raw strings instead wouldn't work either: the fraction
+ * is missing when it happens to be zero, and `'…:00Z'` sorts after `'…:00.100999Z'`.
+ */
+function getSaveTimeInMicroseconds(dateModified: string): number {
+  // Just the digits below millisecond resolution, zero-padded: '.1009' -> '900'.
+  const subMilliseconds = (dateModified.match(/\.(\d+)/)?.[1] ?? '').padEnd(6, '0').slice(3, 6)
+  return Date.parse(dateModified) * 1000 + Number(subMilliseconds)
+}
+
+/**
+ * Returns whichever of the two assets the backend serialized later, going by `date_modified` (set on every save).
+ *
+ * An asset can be fetched (`GET`) and saved (`PATCH`) at the same time, and those responses can resolve in either
+ * order.
+ */
+export function getNewerAsset(currentAsset: AssetResponse | null, incomingAsset: AssetResponse): AssetResponse {
+  if (!currentAsset?.date_modified || !incomingAsset.date_modified) {
+    return incomingAsset
+  }
+
+  const incomingSaveTime = getSaveTimeInMicroseconds(incomingAsset.date_modified)
+  const currentSaveTime = getSaveTimeInMicroseconds(currentAsset.date_modified)
+
+  return incomingSaveTime < currentSaveTime ? currentAsset : incomingAsset
 }
 
 /*
@@ -796,7 +821,6 @@ export default {
   cleanupTags,
   getAssetDisplayName,
   getAssetIcon,
-  getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
   getLanguageIndex,

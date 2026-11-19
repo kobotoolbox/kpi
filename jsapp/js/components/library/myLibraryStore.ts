@@ -1,4 +1,4 @@
-import debounce from 'lodash.debounce'
+import { debounce } from 'lodash-es'
 import { reaction } from 'mobx'
 import type { RouterState } from 'react-router'
 import Reflux from 'reflux'

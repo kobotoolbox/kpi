@@ -1,9 +1,24 @@
 from http import HTTPStatus
 
 from allauth.account.models import EmailAddress
+from allauth.core.exceptions import ReauthenticationRequired
 from allauth.headless.internal.restkit.response import ErrorResponse
+from allauth.headless.mfa.response import (
+    RecoveryCodesNotFoundResponse,
+    RecoveryCodesResponse,
+)
+from allauth.headless.mfa.views import (
+    AuthenticateView as BaseHeadlessMfaAuthenticateView,
+)
+from allauth.headless.mfa.views import (
+    ManageRecoveryCodesView as BaseHeadlessManageRecoveryCodesView,
+)
 from allauth.headless.mfa.views import ManageTOTPView as BaseHeadlessManageTOTPView
+from allauth.headless.mfa.views import (
+    ReauthenticateView as BaseHeadlessMfaReauthenticateView,
+)
 from allauth.mfa.adapter import get_adapter as get_mfa_adapter
+from allauth.mfa.recovery_codes.internal.flows import view_recovery_codes
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.core.exceptions import MultipleObjectsReturned
@@ -41,9 +56,12 @@ from .extend_schemas.api.v2.email.serializers import (
     EmailReauthenticationRequiredResponse,
     EmailRequestPayload,
 )
+from .mfa.inputs import MfaAuthenticateInput, MfaReauthenticateInput
+from .mfa.utils import has_hashed_migrated_codes
 from .mixins import MultipleFieldLookupMixin
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
+    did_recently_reauthenticate_with_mfa,
     is_session_authenticated,
     reauthentication_required,
     reauthentication_required_response,
@@ -423,9 +441,16 @@ class SocialAppView(generics.RetrieveAPIView):
 
 class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
     """
-    Refuses to turn MFA off when the MFA adapter forbids it (superusers while
-    `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
-    `can_delete_authenticator()` in its templated form, not in headless mode
+    Adds two rules to turning MFA off:
+
+    - Refused when the MFA adapter forbids it (superusers while
+      `SUPERUSER_AUTH_ENFORCEMENT` is on). allauth only checks
+      `can_delete_authenticator()` in its templated form, not in headless mode
+    - Needs a recent re-authentication with a 2FA code, but not the password.
+      The request has no body: the code the frontend asks for only reaches the
+      backend through `mfa:reauthenticate`, and allauth accepts any recent
+      re-authentication, including one with the password alone. allauth's own
+      check still runs afterwards
     """
 
     def delete(self, request, *args, **kwargs):
@@ -437,4 +462,43 @@ class HeadlessManageTOTPView(BaseHeadlessManageTOTPView):
                 exception=adapter.validation_error('cannot_delete_authenticator'),
                 status=HTTPStatus.FORBIDDEN,
             )
+        if authenticator and not did_recently_reauthenticate_with_mfa(request):
+            # Answered by allauth's 401 listing the flows to go through
+            raise ReauthenticationRequired
         return super().delete(request, *args, **kwargs)
+
+
+class HeadlessManageRecoveryCodesView(BaseHeadlessManageRecoveryCodesView):
+    """
+    Shows how many recovery codes migrated from the former 2FA system are left,
+    but not the codes: only their hashes are stored, which allauth would show
+    as if they were the codes
+    """
+
+    def get(self, request, *args, **kwargs):
+        recovery_codes, can_view = view_recovery_codes(request)
+        if not recovery_codes:
+            return RecoveryCodesNotFoundResponse(request)
+        return RecoveryCodesResponse(
+            request,
+            recovery_codes.instance,
+            can_view=can_view and not has_hashed_migrated_codes(recovery_codes),
+        )
+
+
+class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
+    """
+    The 2FA step of the login, accepting legacy recovery codes like the
+    templated page does
+    """
+
+    input_class = MfaAuthenticateInput
+
+
+class HeadlessMfaReauthenticateView(BaseHeadlessMfaReauthenticateView):
+    """
+    Re-authentication with a 2FA code, accepting legacy recovery codes like the
+    templated page does
+    """
+
+    input_class = MfaReauthenticateInput

@@ -9673,7 +9673,12 @@ paths:
   /api/v2/organizations/{uid_organization}/ownership-transfers/:
     get:
       operationId: api_v2_organizations_ownership_transfers_list
-      description: List organization ownership transfers for the current user.
+      description: |
+        ## List Organization Ownership Transfers
+
+        * List ownership transfers for the current user and organization.
+        * Accessible by organization owner and administrators.
+        * Transfers can be filtered by `status` query parameter (e.g. `pending`, `accepted`, `declined`, `cancelled`).
       parameters:
       - name: limit
         required: false
@@ -9717,10 +9722,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedOrganizationOwnershipTransferList'
           description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
     post:
       operationId: api_v2_organizations_ownership_transfers_create
-      description: Initiate an organization ownership transfer request (outgoing owner
-        only).
+      description: |
+        ## Initiate Organization Ownership Transfer
+
+        * Initiate a request to transfer organization ownership to another administrator.
+        * Only the current organization owner can initiate an ownership transfer.
+        * The recipient must be an active administrator within the same organization.
+        * The recipient can be identified by username or email.
       parameters:
       - in: path
         name: uid_organization
@@ -9775,16 +9796,20 @@ paths:
                     - Error message
                   summary: Bad request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/:
     get:
       operationId: api_v2_organizations_ownership_transfers_retrieve
-      description: Retrieve an organization ownership transfer by GUID.
+      description: |
+        ## Retrieve Organization Ownership Transfer
+
+        * Retrieve the details of an organization ownership transfer by UID.
+        * Accessible by the sender (owner) or recipient (invitee).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -9804,16 +9829,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrganizationOwnershipTransfer'
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/accept/:
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/:
     patch:
       operationId: api_v2_organizations_ownership_transfers_accept_partial_update
-      description: Accept an organization ownership transfer request (invitee only).
+      description: |
+        ## Accept Organization Ownership Transfer
+
+        * Accept an organization ownership transfer request.
+        * Can only be accepted by the designated recipient (invitee).
+        * The recipient must still be an active administrator in the organization.
+        * The sender must still be the current owner of the organization at the time of acceptance.
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -9877,17 +9919,20 @@ paths:
                     detail: Transfer is not pending.
                   summary: Bad Request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/cancel/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/:
     patch:
       operationId: api_v2_organizations_ownership_transfers_cancel_partial_update
-      description: Cancel a pending organization ownership transfer request (outgoing
-        owner only).
+      description: |
+        ## Cancel Organization Ownership Transfer
+
+        * Cancel a pending organization ownership transfer request.
+        * Can only be cancelled by the sender (current organization owner).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -9951,16 +9996,20 @@ paths:
                     detail: Transfer is not pending.
                   summary: Bad Request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/decline/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/:
     patch:
       operationId: api_v2_organizations_ownership_transfers_decline_partial_update
-      description: Decline an organization ownership transfer request (invitee only).
+      description: |
+        ## Decline Organization Ownership Transfer
+
+        * Decline a pending organization ownership transfer request.
+        * Can only be declined by the designated recipient (invitee).
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -10024,17 +10073,21 @@ paths:
                     detail: Transfer is not pending.
                   summary: Bad Request
           description: ''
-  /api/v2/organizations/{uid_organization}/ownership-transfers/{guid}/resend/:
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/:
     post:
       operationId: api_v2_organizations_ownership_transfers_resend_create
-      description: Resend the invitation email for a pending organization ownership
-        transfer (outgoing owner only).
+      description: |
+        ## Resend Organization Ownership Transfer Invitation
+
+        * Resend the invitation email for a pending organization ownership transfer.
+        * Can only be triggered by the sender (current organization owner).
+        * Rate-limited to prevent rapid repeated invitations.
       parameters:
       - in: path
-        name: guid
+        name: uid
         schema:
           type: string
-        description: GUID of the ownership transfer
+        description: UID of the ownership transfer
         required: true
       - in: path
         name: uid_organization
@@ -12085,6 +12138,66 @@ paths:
                   value:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
+          description: ''
+  /api/v2/social-accounts/provisioning/:
+    post:
+      operationId: api_v2_social_accounts_provisioning_create
+      description: |
+        ## Check social account provisioning status
+
+        Polls whether background SCIM user provisioning has completed for an ongoing single sign-on (SSO) login flow.
+
+        When a first-time user authenticates via a SCIM-enabled Identity Provider, the browser is redirected to the provisioning wait screen while Keycloak or Okta asynchronously provisions the account in Kobo via SCIM. The client polls this endpoint to detect when the account has been provisioned and complete the login.
+
+        ### Session Requirement
+        Requires an active browser session with the pending `scim_pending_sociallogin` state generated during the OIDC callback. If no pending provisioning session exists or it has expired, the endpoint responds with `200 OK` and `expired: true` (never `401 Unauthorized`).
+
+        ### Timeout Behavior
+        The pending provisioning state expires after 60 seconds (`SCIM_PROVISIONING_TIMEOUT`). If SCIM provisioning does not arrive within this window, the pending session is cleared and the endpoint returns `expired: true`.
+
+        Examples:
+        ```shell
+          curl -X POST https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \
+               -H "Cookie: sessionid=...; csrftoken=..." \
+               -H "X-CSRFToken: ..."
+        ```
+
+        > Response 200 (Waiting for SCIM)
+        ```json
+        {
+            "ready": false,
+            "expired": false,
+            "redirect_url": null
+        }
+        ```
+
+        > Response 200 (Account Provisioned & Logged In)
+        ```json
+        {
+            "ready": true,
+            "expired": false,
+            "redirect_url": "/"
+        }
+        ```
+
+        > Response 200 (Timed Out)
+        ```json
+        {
+            "ready": false,
+            "expired": true,
+            "redirect_url": null
+        }
+        ```
+      tags:
+      - Authentication
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SocialAccountProvisioningResponse'
           description: ''
   /api/v2/social-apps/{provider_id}/:
     get:
@@ -15426,46 +15539,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: api_v2_allauth_app_v1_tokens_refresh_post
-  /api/v2/allauth/browser/v1/account/password/change:
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change password
-      description: |
-        In order to change the password of an account, the current and new
-        password must be provider.  However, accounts that were created by
-        signing up using a third-party provider do not have a password set. In
-        that case, the current password is not required.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/ChangePassword'
-      responses:
-        '400':
-          $ref: '#/components/responses/Error'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_browser_v1_account_password_change_post
-  /api/v2/allauth/app/v1/account/password/change:
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change password
-      description: |
-        In order to change the password of an account, the current and new
-        password must be provider.  However, accounts that were created by
-        signing up using a third-party provider do not have a password set. In
-        that case, the current password is not required.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/ChangePassword'
-      responses:
-        '400':
-          $ref: '#/components/responses/Error'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_app_v1_account_password_change_post
   /api/v2/allauth/browser/v1/auth/sessions:
     get:
       tags:
@@ -20253,9 +20326,8 @@ components:
     OrganizationOwnershipTransfer:
       type: object
       properties:
-        guid:
+        uid:
           type: string
-          format: uuid
           readOnly: true
         organization_id:
           type: string
@@ -20275,16 +20347,13 @@ components:
           readOnly: true
         recipient:
           type: string
-          writeOnly: true
-        recipient_username:
-          type: string
-          readOnly: true
         status:
           allOf:
-          - $ref: '#/components/schemas/InviteStatusChoicesEnum'
+          - $ref: '#/components/schemas/OrganizationOwnershipTransferStatusEnum'
           readOnly: true
         billing_review_requested:
           type: boolean
+          default: false
         created:
           type: string
           format: date-time
@@ -20295,16 +20364,35 @@ components:
           readOnly: true
       required:
       - created
-      - guid
       - modified
       - organization_id
       - organization_name
       - recipient
-      - recipient_username
       - sender
       - sender_email
       - sender_name
       - status
+      - uid
+    OrganizationOwnershipTransferStatusEnum:
+      enum:
+      - accepted
+      - cancelled
+      - complete
+      - declined
+      - expired
+      - failed
+      - in_progress
+      - pending
+      type: string
+      description: |-
+        * `accepted` - Accepted
+        * `cancelled` - Cancelled
+        * `complete` - Complete
+        * `declined` - Declined
+        * `expired` - Expired
+        * `failed` - Failed
+        * `in_progress` - In Progress
+        * `pending` - Pending
     OrganizationResponse:
       type: object
       properties:
@@ -22116,6 +22204,9 @@ components:
           type: string
           writeOnly: true
         new_password:
+          type: string
+          writeOnly: true
+        mfa_code:
           type: string
           writeOnly: true
         git_rev:
@@ -23970,6 +24061,24 @@ components:
       - provider
       - uid
       - username
+    SocialAccountProvisioningResponse:
+      type: object
+      description: Response schema for the social account provisioning polling endpoint.
+      properties:
+        ready:
+          type: boolean
+          description: Whether the account provisioning has completed.
+        expired:
+          type: boolean
+          description: Whether the provisioning session has timed out.
+        redirect_url:
+          type:
+          - string
+          - 'null'
+          description: Destination URL to redirect to once logged in.
+      required:
+      - expired
+      - ready
     SocialApp:
       type: object
       properties:

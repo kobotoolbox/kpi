@@ -10,10 +10,10 @@ from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import PENDING_TRANSFER_ACCOUNT_DELETION_ERROR
-from kobo.apps.organizations.models import (
-    OrganizationInviteStatusChoices,
-    OrganizationOwnershipTransfer,
-    OrganizationUser,
+from kobo.apps.organizations.models import OrganizationUser
+from kobo.apps.project_ownership.models import (
+    InviteStatusChoices,
+    OrgOwnershipTransferInvite,
 )
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.constants import ASSET_TYPE_EMPTY
@@ -107,9 +107,9 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
                 .filter(user=user)
                 .order_by('id')
             )
-            if OrganizationOwnershipTransfer.objects.filter(
+            if OrgOwnershipTransferInvite.objects.filter(
                 Q(sender=user) | Q(recipient=user),
-                status=OrganizationInviteStatusChoices.PENDING,
+                status=InviteStatusChoices.PENDING,
             ).exists():
                 raise PermissionDenied(PENDING_TRANSFER_ACCOUNT_DELETION_ERROR)
 

@@ -5,7 +5,7 @@
 
 import React from 'react'
 
-import PasswordStrength from './components/passwordStrength.component'
+import LazyPasswordStrength from './components/LazyPasswordStrength'
 import envStore from './envStore'
 
 const PASS_INPUT_ID = 'id_password1'
@@ -45,8 +45,8 @@ class RegistrationPasswordApp extends React.Component<{}, RegistrationPasswordAp
   }
 
   render() {
-    if (envStore.isReady && envStore.data.enable_password_entropy_meter) {
-      return <PasswordStrength password={this.state.currentPass} />
+    if (envStore.isReady && envStore.data.enable_password_entropy_meter && this.state.currentPass !== '') {
+      return <LazyPasswordStrength password={this.state.currentPass} />
     }
 
     return null

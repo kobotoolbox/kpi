@@ -1,5 +1,5 @@
 _ = require 'underscore'
-cloneDeep = require('lodash.clonedeep')
+cloneDeep = require('lodash-es').cloneDeep
 $aliases = require './model.aliases'
 $configs = require './model.configs'
 formBuilderUtils = require '#/components/formBuilder/formBuilderUtils'

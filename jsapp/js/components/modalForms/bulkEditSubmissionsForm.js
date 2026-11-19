@@ -3,7 +3,7 @@ import React from 'react'
 import { Text } from '@mantine/core'
 import { Group } from '@mantine/core'
 import Fuse from 'fuse.js'
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import autoBind from 'react-autobind'
 import { actions } from '#/actions'
 import { getFlatQuestionsList, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
@@ -138,7 +138,7 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   saveOverride() {
-    const newOverrides = clonedeep(this.state.overrides)
+    const newOverrides = cloneDeep(this.state.overrides)
     if (
       this.state.selectedQuestionOverride === EMPTY_VALUE ||
       (typeof this.state.selectedQuestionOverride === 'string' && this.state.selectedQuestionOverride.length >= 1)

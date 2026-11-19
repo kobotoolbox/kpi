@@ -80,6 +80,8 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         submissionTotal: this.props.submissionTotal,
         submission: this.props.submission,
         asset: this.props.asset,
+        onOpenProcessing:
+          this.props.showProcessingAction && this.props.xpath !== undefined ? this.openProcessing : undefined,
       })
     }
   }
