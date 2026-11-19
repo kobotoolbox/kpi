@@ -561,9 +561,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         ):
             res_accept = self.client.patch(accept_url)
             self.assertEqual(res_accept.status_code, status.HTTP_200_OK)
-            self.assertEqual(
-                res_accept.data['status'], InviteStatusChoices.ACCEPTED
-            )
+            self.assertEqual(res_accept.data['status'], InviteStatusChoices.ACCEPTED)
             transfer.refresh_from_db()
             self.assertEqual(transfer.status, InviteStatusChoices.ACCEPTED)
             mock_task.assert_called_once_with(transfer.pk)
