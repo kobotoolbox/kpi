@@ -26,9 +26,7 @@ from kobo.apps.organizations.constants import (
     TRANSFER_NOT_PENDING_ERROR,
 )
 from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
-from kobo.apps.organizations.permissions import (
-    OrganizationOwnershipTransferPermission,
-)
+from kobo.apps.organizations.permissions import OrganizationOwnershipTransferPermission
 from kobo.apps.organizations.tasks import (
     mark_organization_invite_as_expired,
     transfer_organization_ownership,
@@ -42,7 +40,6 @@ from kobo.apps.project_ownership.models import (
     InviteStatusChoices,
     OrgOwnershipTransferInvite,
     Transfer,
-    TransferStatus,
     TransferStatusChoices,
 )
 from kpi.exceptions import MailerError
@@ -1143,9 +1140,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 sender=kwargs['sender'], recipient=kwargs['recipient']
             )
             proj_transfer = Transfer.objects.create(invite=inv, asset=asset)
-            TransferStatus.objects.create(
-                transfer=proj_transfer, status=TransferStatusChoices.FAILED
-            )
+            proj_transfer.statuses.update(status=TransferStatusChoices.FAILED)
             return inv
 
         with (
@@ -1182,8 +1177,8 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 'uid': transfer.uid,
             },
         )
-        with self.authentication(self.admin_user):
-            res = self.client.patch(accept_url)
+        self.client.force_login(self.admin_user)
+        res = self.client.patch(accept_url)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(res.data['detail'], str(TRANSFER_EXPIRED_ERROR))
@@ -1230,14 +1225,12 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 'username': admin_member.user.username,
             },
         )
-        with self.authentication(self.owner_user):
-            res = self.client.delete(member_url)
+        self.client.force_login(self.owner_user)
+        res = self.client.delete(member_url)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
             str(OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR),
             str(res.data),
         )
-        self.assertTrue(
-            OrganizationUser.objects.filter(pk=admin_member.pk).exists()
-        )
+        self.assertTrue(OrganizationUser.objects.filter(pk=admin_member.pk).exists())

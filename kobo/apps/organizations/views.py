@@ -829,7 +829,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             if (
-                OrgOwnershipTransferInvite.objects.select_for_update()
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
                 .filter(
                     Q(metadata__organization_id=str(member.organization_id))
                     | (
@@ -845,9 +845,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                         InviteStatusChoices.IN_PROGRESS,
                     ),
                 )
-                .filter(
-                    Q(sender_id=member.user_id) | Q(recipient_id=member.user_id)
-                )
+                .filter(Q(sender_id=member.user_id) | Q(recipient_id=member.user_id))
                 .exists()
             ):
                 raise InvalidMembershipRequest(

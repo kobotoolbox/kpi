@@ -363,10 +363,9 @@ class OrgOwnershipTransferInvite(Invite):
         with override(sender_language):
             previous_owner_subject = t('KoboToolbox team ownership transfer complete')
         with override(recipient_language):
-            new_owner_subject = (
-                t('You are now the owner of the %(team_name)s team')
-                % {'team_name': team_name}
-            )
+            new_owner_subject = t('You are now the owner of the %(team_name)s team') % {
+                'team_name': team_name
+            }
 
         previous_owner_email = EmailMessage(
             to=self.sender.email,
@@ -421,10 +420,9 @@ class OrgOwnershipTransferInvite(Invite):
         with override(sender_language):
             previous_owner_subject = t('KoboToolbox team ownership transfer incomplete')
         with override(recipient_language):
-            new_owner_subject = (
-                t('You have declined ownership of %(team_name)s.')
-                % {'team_name': team_name}
-            )
+            new_owner_subject = t('You have declined ownership of %(team_name)s.') % {
+                'team_name': team_name
+            }
 
         previous_owner_email = EmailMessage(
             to=self.sender.email,

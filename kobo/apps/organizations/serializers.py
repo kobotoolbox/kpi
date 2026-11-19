@@ -743,8 +743,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         qs = OrgOwnershipTransferInvite.objects.filter(status__in=active_statuses)
         if organization:
             qs = qs.filter(
-                Q(sender=sender)
-                | Q(metadata__organization_id=str(organization.id))
+                Q(sender=sender) | Q(metadata__organization_id=str(organization.id))
             )
         else:
             qs = qs.filter(sender=sender)
