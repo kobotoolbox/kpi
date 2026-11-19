@@ -1,5 +1,7 @@
 import datetime
 import itertools
+import random
+import string
 from abc import ABCMeta, abstractmethod
 from contextlib import ExitStack
 from unittest.mock import patch
@@ -7,6 +9,7 @@ from unittest.mock import patch
 import django
 from allauth.account.adapter import get_adapter
 from allauth.account.models import EmailAddress
+from allauth.core.internal.ratelimit import Rate
 from allauth.mfa.totp.internal.auth import TOTP
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -210,7 +213,7 @@ class RateLimitTestMixin:
 
             # same user, different ip, correct identifier, still blocked
             response = self.login_with_password(
-                user=self.u2, password=PASSWORD, ip=IP_1
+                user=self.u1, password=PASSWORD, ip=IP_2
             )
             self.assert_failure(
                 response, self.password_rate_limited_field, ERROR_CODE_RATE_LIMITED
@@ -360,24 +363,37 @@ class RateLimitingContextManagerTestCase(TestCase):
         self.addCleanup(patched_settings.stop)
         cache.clear()
 
-    @override_settings(SOME_RATE_LIMIT='2/1m/key,2/1m/ip')
-    def test_rate_limit_raises_exception_after_too_many_calls(self):
-        request = RequestFactory().post('/')
-
-        def dummy_func():
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
+    def test_rate_limit_by_key(self):
+        def dummy_func(request):
             with rate_limit(self.scope, username='fred', request=request):
+                pass
+        now = timezone.now()
+        one_second_later = now + datetime.timedelta(seconds=1)
+        with freeze_time(now):
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_2))
+        with freeze_time(one_second_later):
+            with self.assertRaises(Throttled):
+                dummy_func(RequestFactory().post(path='/', REMOTE_ADDR='A.Third.One'))
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/ip')
+    def test_rate_limit_by_ip(self):
+        def dummy_func(request):
+            username = ''.join(random.choices(string.ascii_letters, k=8))
+            with rate_limit(self.scope, username=username, request=request):
                 pass
 
         now = timezone.now()
         one_second_later = now + datetime.timedelta(seconds=1)
         with freeze_time(now):
-            dummy_func()
-            dummy_func()
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
         with freeze_time(one_second_later):
             with self.assertRaises(Throttled):
-                dummy_func()
+                dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
 
-    @override_settings(SOME_RATE_LIMIT='2/1m/key,2/1m/ip')
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
     def test_rate_limit_rolls_back_with_signal(self):
         some_signal = django.dispatch.Signal()
 
@@ -400,7 +416,7 @@ class RateLimitingContextManagerTestCase(TestCase):
         with freeze_time(one_second_later):
             dummy_func()
 
-    @override_settings(SOME_RATE_LIMIT='2/1m/key,2/1m/ip')
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
     def test_rate_limit_does_not_rollback_if_request_doesnt_match(self):
         some_signal = django.dispatch.Signal()
 
@@ -431,17 +447,17 @@ class RateLimitingContextManagerTestCase(TestCase):
             with rate_limit('unknown_scope', username='fred', request=request):
                 pass
 
-    @override_settings(LOGIN_FAILED_RATE_LIMIT=None)
+    @override_settings(SOME_RATE_LIMIT=None)
     def test_rate_limit_missing_configuration(self):
         request = RequestFactory().post('/')
         with patch(
             'kobo.apps.accounts.throttling.single_rate_limit'
         ) as rate_limiting_mock:
-            with rate_limit('login_failed', username='fred', request=request):
+            with rate_limit(self.scope, username='fred', request=request):
                 pass
         rate_limiting_mock.assert_not_called()
 
-    @override_settings(LOGIN_FAILED_RATE_LIMIT='1/2m/bananas')
+    @override_settings(SOME_RATE_LIMIT='1/2m/bananas')
     @data(
         ('bananas', ValueError),
         ('1/2m/bananas', ValueError),
@@ -457,11 +473,36 @@ class RateLimitingContextManagerTestCase(TestCase):
             )
             stack.enter_context(self.assertRaises(exception))
             stack.enter_context(
-                rate_limit('login_failed', username='fred', request=request)
+                rate_limit(self.scope, username='fred', request=request)
             )
-            pass
         rate_limiting_mock.assert_not_called()
 
+    @override_settings(SOME_RATE_LIMIT='2/1m/key,10/5m/key')
+    def test_rate_limit_multiple_limits_one_identifier(self):
+        request = RequestFactory().post('/')
+        expected_rate_1 = Rate(amount=2, duration=60.0, per='key')
+        expected_rate_2 = Rate(amount=10, duration=300.0, per='key')
+        with patch(
+            'kobo.apps.accounts.throttling.single_rate_limit'
+        ) as rate_limiting_mock:
+            with rate_limit(self.scope, username='fred', request=request):
+                pass
+        rate_limiting_mock.assert_any_call(
+            scope=self.scope,
+            identifier='fred',
+            rate=expected_rate_1,
+            rollback_signal=None,
+            request=request,
+        )
+        rate_limiting_mock.assert_any_call(
+            scope=self.scope,
+            identifier='fred',
+            rate=expected_rate_2,
+            rollback_signal=None,
+            request=request,
+        )
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
     def test_rate_limit_does_not_apply_to_get_requests(self):
         request = RequestFactory().get('/')
 

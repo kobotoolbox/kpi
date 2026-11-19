@@ -39,7 +39,10 @@ class MfaLoginView(LoginView):
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
         form = self.get_form()
-        username = form.data['login']
+        username = form.data.get('login')
+        if not username:
+            # let the usual form processing handle a missing username
+            return super().post(request, *args, **kwargs)
         try:
             with rate_limit('login_failed', username, request, auth_success):
                 return super().post(request, *args, **kwargs)

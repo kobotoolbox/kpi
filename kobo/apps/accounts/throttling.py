@@ -113,20 +113,17 @@ def rate_limit(scope, username, request, rollback_signal=None):
     if not limits:
         yield
         return
-    rates = {}
-    for rate in parse_rates(limits):
-        per = rate.per
-        if rate.per not in ['key', 'ip']:
-            # imitate allauth behavior
-            raise ValueError(rate.per)
-        rates[per] = rate
+    rates = parse_rates(limits)
     identifiers = {'ip': get_adapter().get_client_ip(request), 'key': username}
     with ExitStack() as stack:
-        for per, rate in rates.items():
+        for rate in rates:
+            if rate.per not in ['key', 'ip']:
+                # imitate allauth behavior
+                raise ValueError(rate.per)
             stack.enter_context(
                 single_rate_limit(
                     scope=scope,
-                    identifier=identifiers[per],
+                    identifier=identifiers[rate.per],
                     rate=rate,
                     rollback_signal=rollback_signal,
                     request=request,
@@ -143,7 +140,11 @@ def single_rate_limit(
     request,
     rollback_signal: django.dispatch.Signal | None = None,
 ):
-    cache_key = f'{scope}:{rate.per}:{identifier}'
+    # hide actual usernames and ips
+    identifier_hash = hashlib.sha256(identifier.strip().lower().encode()).hexdigest()
+    # using the full rate in the cache key allows multiple rate limits on the same
+    # identifier, like '1/2m/ip,5/2m/ip'. allauth allows it so we do too.
+    cache_key = f'{scope}:{str(rate)}:{identifier_hash}'
     if request.method in ['GET', 'HEAD']:
         yield
         return
@@ -158,7 +159,6 @@ def single_rate_limit(
                 signal_request = kwargs['request']
                 if signal_request == request:
                     try:
-
                         history.remove((now, request_id))
                     except ValueError:
                         pass

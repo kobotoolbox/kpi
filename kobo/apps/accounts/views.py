@@ -544,7 +544,10 @@ class HeadlessLoginView(BaseHeadlessLoginView):
 
     def dispatch(self, request, *args: Any, **kwargs: Any) -> HttpResponseBase:
         request_data = self._parse_json(request)
-        username = request_data['username']
+        username = request_data.get('username')
+        if not username:
+            # let the usual processing handle a missing username
+            return super().dispatch(request, *args, **kwargs)
         try:
             with rate_limit('login_failed', username, request, auth_success):
                 return super().dispatch(request, *args, **kwargs)
