@@ -127,6 +127,17 @@ describe('tableStore', () => {
     chai.expect(tableStore.isFieldVisible('New_question')).to.equal(true)
   })
 
+  it('should not let callers mutate stored columns', () => {
+    tableStore.hideField('start')
+    tableStore.setFrozenColumn('Age', true)
+
+    tableStore.getHiddenColumns().push('Name')
+    tableStore.getFrozenColumns().push('Name')
+
+    chai.expect(tableStore.isFieldVisible('Name')).to.equal(true)
+    chai.expect(tableStore.isFieldFrozen('Name')).to.equal(false)
+  })
+
   it('should unsort when hiding the sorted column', () => {
     tableStore.setSortBy('Age', SortValues.ASCENDING)
 

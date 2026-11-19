@@ -137,20 +137,30 @@ class TableStore {
     return columns
   }
 
-  /** We store hidden columns, not visible ones, so new form questions show up by default. */
-  getHiddenColumns(): string[] {
-    const hiddenColumns = this.getTableSettings()[DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]
+  /** No copy, as Data Table checks it for every column. Don't mutate it. */
+  private readHiddenColumns(): readonly string[] {
+    const hiddenColumns = this.getTableSettingsSnapshot()[DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]
     return Array.isArray(hiddenColumns) ? hiddenColumns : []
   }
 
-  /** Returns ids of frozen columns, in the order they were frozen. */
-  getFrozenColumns(): string[] {
-    const frozenColumns = this.getTableSettings()[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
+  /** No copy, as Data Table checks it for every column. Don't mutate it. */
+  private readFrozenColumns(): readonly string[] {
+    const frozenColumns = this.getTableSettingsSnapshot()[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
     // Old settings keep a single column id as a string.
     if (typeof frozenColumns === 'string') {
       return [frozenColumns]
     }
     return Array.isArray(frozenColumns) ? frozenColumns : []
+  }
+
+  /** We store hidden columns, not visible ones, so new form questions show up by default. */
+  getHiddenColumns(): string[] {
+    return [...this.readHiddenColumns()]
+  }
+
+  /** Returns ids of frozen columns, in the order they were frozen. */
+  getFrozenColumns(): string[] {
+    return [...this.readFrozenColumns()]
   }
 
   isFieldVisible(fieldId: string) {
@@ -164,11 +174,11 @@ class TableStore {
       return true
     }
 
-    return !this.getHiddenColumns().includes(fieldId)
+    return !this.readHiddenColumns().includes(fieldId)
   }
 
   isFieldFrozen(fieldId: string) {
-    return this.getFrozenColumns().includes(fieldId)
+    return this.readFrozenColumns().includes(fieldId)
   }
 
   /** Freezes or unfreezes given column, leaving other frozen columns as they are. */
