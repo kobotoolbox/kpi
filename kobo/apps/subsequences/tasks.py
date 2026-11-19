@@ -48,7 +48,15 @@ def poll_run_external_process(
     question_xpath: str,
     action_id: str,
     action_data: dict,
+    version_uuid: str | None = None,
 ):
+    """
+    Check on the run `version_uuid` until it ends, and end it as failed if this
+    poll gives up on it
+
+    `version_uuid` defaults to `None` only for polls queued before it was
+    passed, see `SubmissionSupplement.fail_in_progress_action()`
+    """
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model(
         'subsequences', 'SubmissionSupplement'
@@ -92,7 +100,13 @@ def poll_run_external_process(
         )
         # Returning ends the polling, so nothing else would end the run
         _fail_in_progress_action(
-            asset_id, submission, question_xpath, action_id, request_action_data, str(e)
+            asset_id,
+            submission,
+            question_xpath,
+            action_id,
+            request_action_data,
+            str(e),
+            version_uuid,
         )
         return
 
@@ -136,6 +150,7 @@ def poll_run_external_process_failure(sender=None, **kwargs):
         task_kwargs['action_id'],
         _get_bulk_action_request_data(task_kwargs['action_data']),
         error,
+        task_kwargs.get('version_uuid'),
     )
 
 
@@ -146,10 +161,12 @@ def _fail_in_progress_action(
     action_id: str,
     action_data: dict,
     error: str,
+    version_uuid: str | None,
 ) -> None:
     """
-    End a run nothing else will end with a `failed` version carrying `error`,
-    unless a result landed meanwhile, and mark its bulk item as failed
+    End the run `version_uuid`, which nothing else will end, with a `failed`
+    version carrying `error`, unless a result or a later run landed meanwhile,
+    and mark its bulk item as failed
 
     For the two ways background polling stops for good: a crash it cannot
     recover from, and running out of retries
@@ -173,6 +190,7 @@ def _fail_in_progress_action(
             action_id,
             action_data,
             error,
+            version_uuid,
         )
     except Exception:
         logging.exception(
@@ -291,6 +309,8 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                     'action_id': bulk_action.action_id,
                     'asset_id': asset.pk,
                     'question_xpath': bulk_action.question_xpath,
+                    # Not told its run: resuming a Google job does not read the
+                    # supplement, see `SubmissionSupplement.fail_in_progress_action()`
                 },
                 countdown=10,
             )
@@ -398,6 +418,13 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                     'action_id': bulk_action.action_id,
                     'asset_id': asset.pk,
                     'question_xpath': bulk_action.question_xpath,
+                    # The version `revise_data()` left on top is this item's run
+                    'version_uuid': _extract_bulk_item_version_uuid(
+                        asset=asset,
+                        action_context=bulk_action,
+                        supplement_data=supplement_data,
+                        action_data=request_action_data,
+                    ),
                 },
                 countdown=10,
             )
@@ -664,6 +691,47 @@ def _extract_bulk_item_version_data(
     """
     Return the latest stored result data for a bulk-aware action.
     """
+    version, action_handler = _extract_bulk_item_latest_version(
+        asset, action_context, supplement_data, action_data
+    )
+    version_data = version.get(action_handler.VERSION_DATA_FIELD) or {}
+    if not version_data:
+        raise ValueError(
+            'No version data found in supplemental data for '
+            f'{_get_action_context_action_id(action_context)}'
+        )
+    return version_data
+
+
+def _extract_bulk_item_version_uuid(
+    asset: 'kpi.models.Asset',
+    action_context: Union['SubsequenceBulkAction', 'QuestionAdvancedFeature'],
+    supplement_data: dict,
+    action_data: dict,
+) -> str | None:
+    """
+    Return the `_uuid` of the latest version of a bulk-aware action, the run a
+    poll is about to check on
+
+    Read leniently: a poll that is not told its run still works, whereas an
+    error here would fail the bulk item
+    """
+    version, action_handler = _extract_bulk_item_latest_version(
+        asset, action_context, supplement_data, action_data
+    )
+    return version.get(action_handler.UUID_FIELD)
+
+
+def _extract_bulk_item_latest_version(
+    asset: 'kpi.models.Asset',
+    action_context: Union['SubsequenceBulkAction', 'QuestionAdvancedFeature'],
+    supplement_data: dict,
+    action_data: dict,
+) -> tuple[dict, 'BaseAction']:
+    """
+    Return the latest stored version of a bulk-aware action, in its language
+    for a localized action, with the action that reads it
+    """
     question_xpath = action_context.question_xpath
     action_id = _get_action_context_action_id(action_context)
     action_handler = _get_advanced_feature(
@@ -687,13 +755,7 @@ def _extract_bulk_item_version_data(
         raise ValueError(
             f'No versions found in supplemental data for {action_id}'
         )
-
-    version_data = versions[0].get(action_handler.VERSION_DATA_FIELD) or {}
-    if not version_data:
-        raise ValueError(
-            f'No version data found in supplemental data for {action_id}'
-        )
-    return version_data
+    return versions[0], action_handler
 
 
 def _get_advanced_feature(asset, question_xpath: str, action_id: str):

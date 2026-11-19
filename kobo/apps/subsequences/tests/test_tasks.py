@@ -377,10 +377,90 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
                 self.action_id,
                 {'language': 'en'},
                 'boom',
+                self._versions()[1]['_uuid'],
             )
 
         self.assertFalse(saved)
         self.assertEqual(self._versions()[0]['_data']['status'], 'complete')
+
+    def _start_later_run(self) -> str:
+        """
+        Put a later run on top, `in_progress` too, as a relaunch after a
+        delete does, and return its `_uuid`
+        """
+        supplement = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        )
+        versions = supplement.content[self.question_xpath][self.action_id][
+            '_versions'
+        ]
+        later_run = {**versions[0], '_uuid': str(uuid.uuid4())}
+        versions.insert(0, later_run)
+        supplement.save(update_fields=['content'])
+        return later_run['_uuid']
+
+    def test_a_poll_ends_its_own_run(self):
+        own_run = self._versions()[0]['_uuid']
+
+        poll_run_external_process_failure(
+            sender=None,
+            exception=Exception('boom'),
+            kwargs={**self.task_kwargs['kwargs'], 'version_uuid': own_run},
+        )
+
+        self.assertEqual(self._versions()[0]['_data']['status'], 'failed')
+
+    def test_an_old_poll_never_ends_a_later_run(self):
+        """
+        A poll left over from an earlier run, giving up after the user deleted
+        that run and launched a new one, leaves the new run running, whether it
+        crashes or runs out of retries
+        """
+        old_run = self._versions()[0]['_uuid']
+        later_run = self._start_later_run()
+        old_poll = {**self.task_kwargs['kwargs'], 'version_uuid': old_run}
+
+        with self.subTest('crash'), patch(
+            'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process',  # noqa: E501
+            side_effect=RuntimeError('the database went away'),
+        ):
+            poll_run_external_process(**old_poll)
+
+        with self.subTest('out of retries'):
+            poll_run_external_process_failure(
+                sender=None, exception=Exception('boom'), kwargs=old_poll
+            )
+
+        latest = self._versions()[0]
+        self.assertEqual(latest['_uuid'], later_run)
+        self.assertEqual(latest['_data']['status'], 'in_progress')
+
+    def test_a_later_run_started_after_the_read_is_kept(self):
+        """
+        The run is checked again in the update itself, so a run launched
+        between reading the supplement and writing the failure is kept
+        """
+        old_run = self._versions()[0]['_uuid']
+        stale_data = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )
+        later_run = self._start_later_run()
+
+        with patch.object(
+            SubmissionSupplement, 'retrieve_data', return_value=stale_data
+        ):
+            saved = SubmissionSupplement.fail_in_progress_action(
+                self.asset,
+                self.submission_uuid,
+                self.question_xpath,
+                self.action_id,
+                {'language': 'en'},
+                'boom',
+                old_run,
+            )
+
+        self.assertFalse(saved)
+        self.assertEqual(self._versions()[0]['_uuid'], later_run)
 
     def test_a_translation_fails_only_in_its_own_language(self):
         """
@@ -684,6 +764,11 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         enqueue_poll.assert_called_once()
         poll_action_data = enqueue_poll.call_args.kwargs['kwargs']['action_data']
         self.assertIs(poll_action_data['auto_accept'], True)
+        # Told the run it checks on: the version the launch left on top
+        self.assertEqual(
+            enqueue_poll.call_args.kwargs['kwargs']['version_uuid'],
+            latest_version['_uuid'],
+        )
 
     @patch(
         'kobo.apps.subsequences.actions.base.'

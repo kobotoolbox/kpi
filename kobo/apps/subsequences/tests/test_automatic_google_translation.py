@@ -641,6 +641,9 @@ def test_async_translation_timeout_schedules_background_polling():
         assert kwargs['kwargs']['action_id'] == action.ID
         assert kwargs['kwargs']['question_xpath'] == action.source_question_xpath
         assert kwargs['kwargs']['submission'] == submission
+        # The translation's `in_progress` version is saved after this call, so
+        # its poll cannot be told which run it is
+        assert kwargs['kwargs']['version_uuid'] is None
 
         data = result['fr']['_versions'][0]['_data']
         assert data['status'] == 'in_progress'
