@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.middleware.locale import LocaleMiddleware as DjangoLocaleMiddleware
+from django.utils.cache import add_never_cache_headers
 from django.utils.deprecation import MiddlewareMixin
 
 
@@ -23,6 +24,22 @@ class LocaleMiddleware(DjangoLocaleMiddleware):
                 samesite=settings.LANGUAGE_COOKIE_SAMESITE,
             )
 
+        return response
+
+
+class NeverCacheJSONMiddleware(MiddlewareMixin):
+    """
+    Keep JSON responses out of browser caches. Responses that already set
+    their own `Cache-Control` header are left alone.
+    """
+
+    def process_response(self, request, response):
+        if response.has_header('Cache-Control'):
+            return response
+        content_type = response.get('Content-Type', '')
+        media_type = content_type.split(';')[0].strip().lower()
+        if media_type == 'application/json':
+            add_never_cache_headers(response)
         return response
 
 

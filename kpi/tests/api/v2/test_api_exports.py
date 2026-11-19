@@ -26,6 +26,7 @@ from kpi.models import (
 from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
+from kpi.tests.utils.cache import assert_not_stored
 from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.object_permission import get_anonymous_user
@@ -843,6 +844,57 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             line.decode() for line in export_content_response.streaming_content
         )
         assert synchronous_export_content.decode() == export_content
+
+    def test_export_result_is_not_stored(self):
+        """
+        The export file served from private media must not be stored by the
+        browser.
+        """
+        es = self._create_export_settings()
+        self.client.login(username='someuser', password='someuser')
+        exports_list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        with immediate_on_commit():
+            exports_list_response = self.client.post(
+                exports_list_url, data=es.export_settings
+            )
+        assert exports_list_response.status_code == status.HTTP_201_CREATED
+
+        exports_detail_response = self.client.get(
+            exports_list_response.data['url'], headers={'accept': 'application/json'}
+        )
+        assert exports_detail_response.status_code == status.HTTP_200_OK
+
+        response = self.client.get(exports_detail_response.json()['result'])
+        assert response.status_code == status.HTTP_200_OK
+        assert_not_stored(response)
+
+    def test_synchronous_export_is_not_stored(self):
+        """
+        The synchronous export must not be stored by the browser, whether it
+        redirects or serves the file directly.
+        """
+        es = self._create_export_settings()
+        self.client.login(username='someuser', password='someuser')
+        synchronous_exports_url = reverse(
+            self._get_endpoint('asset-export-settings-synchronous-data'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'uid_export_setting': es.uid,
+                'format': 'csv',
+            },
+        )
+        response = self.client.get(synchronous_exports_url)
+        assert response.status_code == status.HTTP_302_FOUND
+        assert_not_stored(response)
+
+        response = self.client.get(
+            synchronous_exports_url, HTTP_USER_AGENT='LibreOffice'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert_not_stored(response)
 
     def test_synchronous_csv_export_anonymous_without_permission(self):
         es = self._create_export_settings()
