@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import tableStore, { TABLE_SETTINGS_STORAGE_KEY_PREFIX, useTableSettings } from '#/components/submissions/tableStore'
-import type { AnalysisFormJsonField, AssetResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import { useSafeUsernameStorageKey } from '#/hooks/useSafeUsernameStorageKey'
 import { DataTable } from './table'
 import { useDataTableBulkActions } from './useDataTableBulkActions'
@@ -22,37 +22,11 @@ export default function DataTableWrapper(props: DataTableWrapperProps) {
     props.asset.uid,
   )
 
-  const refreshedAnalysisFormJson =
-    assetQuery.data?.status === 200
-      ? {
-          additional_fields: assetQuery.data.data.analysis_form_json.additional_fields.map((field) => {
-            const { choices, ...fieldWithoutChoices } = field
-            return {
-              ...fieldWithoutChoices,
-              ...(choices && {
-                choices: choices.map((choice) => ({
-                  uuid: choice.uuid,
-                  labels: Object.entries(choice.labels).reduce<
-                    NonNullable<AnalysisFormJsonField['choices']>[number]['labels']
-                  >(
-                    (labels, [language, value]) => {
-                      if (typeof value === 'string') {
-                        labels[language] = value
-                      }
-                      return labels
-                    },
-                    { _default: choice.labels._default },
-                  ),
-                })),
-              }),
-            }
-          }),
-        }
-      : undefined
-
-  const tableAsset = refreshedAnalysisFormJson
-    ? { ...props.asset, analysis_form_json: refreshedAnalysisFormJson }
-    : props.asset
+  // We use the asset that we got via react query here because changes to the analysis questions invalidate they query
+  // and updates the asset that we pass down to the table
+  const tableAsset =
+    // We can probably use the asset from react query hook entirely here, but we have the reflux store asset as a backup
+    assetQuery.data?.status === 200 ? (assetQuery.data.data as unknown as AssetResponse) : props.asset
 
   // `tableStore` is used by class components, so we derive its key here.
   const storageKey = useSafeUsernameStorageKey(

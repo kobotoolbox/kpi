@@ -143,6 +143,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
       mutation: {
         onSettled: (_data, _error, { uidAsset }) => {
           invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset), client)
+          // We invalidate to re-fetch the asset after analysis questions changes so that the data table is freshly updated
           invalidateItem(getAssetsRetrieveQueryKey(uidAsset), client)
         },
       },
@@ -156,6 +157,7 @@ export function applySurveyDataMutationDefaults(client: QueryClient): void {
         onSettled: (_data, _error, { uidAsset, uidAdvancedFeature }) => {
           invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset), client)
           invalidateItem(getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset, uidAdvancedFeature), client)
+          // We invalidate to re-fetch the asset after analysis questions changes so that the data table is freshly updated
           invalidateItem(getAssetsRetrieveQueryKey(uidAsset), client)
         },
       },
