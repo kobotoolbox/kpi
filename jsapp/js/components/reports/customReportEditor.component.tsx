@@ -63,9 +63,13 @@ export default function CustomReportEditor(props: CustomReportEditorProps) {
         onChange={(evt) => setCustomReport({ ...customReport, name: evt.currentTarget.value })}
       />
 
-      <Text fw='bold'>{t('Include the following questions:')}</Text>
-
-      <MultiCheckbox type='bare' items={questionItems} onChange={onQuestionsChange} />
+      <MultiCheckbox
+        type='bare'
+        label={<Text fw='bold'>{t('Include the following questions:')}</Text>}
+        hasBulkSelect
+        items={questionItems}
+        onChange={onQuestionsChange}
+      />
 
       <Group justify='flex-end'>
         {props.asset.report_custom?.[customReport.crid] && (
