@@ -13238,6 +13238,8 @@ paths:
         name: username
         schema:
           type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
         required: true
       tags:
       - User / team / organization / usage

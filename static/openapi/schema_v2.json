@@ -18134,7 +18134,8 @@
                         "in": "path",
                         "name": "username",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
                         },
                         "required": true
                     }
