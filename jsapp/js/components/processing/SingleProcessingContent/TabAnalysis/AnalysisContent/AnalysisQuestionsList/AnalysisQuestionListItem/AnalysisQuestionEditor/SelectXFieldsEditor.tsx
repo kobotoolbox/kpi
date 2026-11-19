@@ -1,5 +1,5 @@
 import { Box, Group, Input, Stack } from '@mantine/core'
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import React from 'react'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
@@ -32,7 +32,7 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
     onChange(
       qaQuestion.choices.map((choice) => {
         if (choice.uuid === uuid) {
-          const updated = clonedeep(choice)
+          const updated = cloneDeep(choice)
           // If user deletes hint it becomes an empty string, and we want to remove it rather than store empty string
           if (newHint.trim()) {
             const existingHint = updated.hint ?? {}

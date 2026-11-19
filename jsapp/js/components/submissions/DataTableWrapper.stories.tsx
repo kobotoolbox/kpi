@@ -8,10 +8,13 @@
 import { Box } from '@mantine/core'
 import type { Decorator } from '@storybook/react'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import { http } from 'msw'
 import React, { useEffect } from 'react'
 import { reactRouterParameters, withRouter } from 'storybook-addon-remix-react-router'
+import { expect, fn, userEvent, waitFor, within } from 'storybook/test'
 import subscriptionStore from '#/account/subscriptionStore'
 import { actions } from '#/actions'
+import { endpoints } from '#/api.endpoints'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
 import { BulkActionSubmissionStatusResponseStatusEnum } from '#/api/models/bulkActionSubmissionStatusResponseStatusEnum'
@@ -33,6 +36,7 @@ import { queryClientDecorator } from '#/query/queryClient.mocks'
 import { ROUTES } from '#/router/routerConstants'
 import { withBulkProcessingBannerSessionReset } from './BulkProcessingBannerStoriesUtils'
 import DataTableWrapper from './DataTableWrapper'
+import tableStore, { TABLE_SETTINGS_STORAGE_KEY_PREFIX } from './tableStore'
 
 // Orval-generated Asset and legacy AssetResponse have minor structural differences.
 // Remaining differences are intentional (backward compatibility in legacy type):
@@ -411,6 +415,62 @@ export const Default: Story = {
     },
   },
   loaders: [loadAssetForStory],
+}
+
+/** Records the `sort` of each submissions request, then falls through to `assetDataMock`. */
+const onSubmissionsRequest = fn()
+const submissionsRequestSpy = http.get(endpoints.ASSET_DATA_URL, ({ request }) => {
+  onSubmissionsRequest(new URL(request.url).searchParams.get('sort'))
+})
+
+/** `tableStore` outlives a story, so we drop the settings other runs saved. */
+function resetTableSettings() {
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith(TABLE_SETTINGS_STORAGE_KEY_PREFIX))
+    .forEach((key) => localStorage.removeItem(key))
+  // An empty key loads nothing, and the wrapper's real key reloads afterwards.
+  tableStore.setStorageKey('')
+}
+
+/** Rebuilding the columns replaces the header cells, so we need to query again each time it happens */
+function getHeaderCell(canvasElement: HTMLElement, columnLabel: string, className = 'rt-th') {
+  const label = within(canvasElement).getByText(columnLabel, { selector: '.rt-thead.-header *' })
+  const headerCell = label.closest<HTMLElement>('.rt-th')
+  expect(headerCell).toHaveClass(className)
+  return headerCell!
+}
+
+async function clickColumnMenuItem(canvasElement: HTMLElement, columnLabel: string, itemName: string) {
+  const headerCell = await waitFor(() => getHeaderCell(canvasElement, columnLabel))
+  await userEvent.click(headerCell.querySelector('.table-column-sort-dropdown-trigger-button')!)
+  // Mantine renders the menu in a portal, outside of the canvas.
+  await userEvent.click(await within(document.body).findByRole('menuitem', { name: itemName }))
+}
+
+/** Sorting fetches sorted submissions, while freezing only rebuilds the columns. */
+export const SettingsChanges: Story = {
+  ...Default,
+  parameters: {
+    ...Default.parameters,
+    msw: { handlers: [submissionsRequestSpy, ...Default.parameters!.msw.handlers] },
+  },
+  beforeEach: () => {
+    onSubmissionsRequest.mockClear()
+    resetTableSettings()
+    return resetTableSettings
+  },
+  play: async ({ canvasElement }) => {
+    const column = 'Record a sound'
+    // The previous story's table may still send a request, so we don't count the ones before the freeze.
+    await clickColumnMenuItem(canvasElement, column, 'Sort A→Z')
+    await waitFor(() => getHeaderCell(canvasElement, column, 'is-sorted'))
+    expect(onSubmissionsRequest).toHaveBeenCalledWith(expect.stringContaining('"Record_a_sound":1'))
+
+    onSubmissionsRequest.mockClear()
+    await clickColumnMenuItem(canvasElement, column, 'Freeze field')
+    await waitFor(() => getHeaderCell(canvasElement, column, 'is-frozen'))
+    expect(onSubmissionsRequest).not.toHaveBeenCalled()
+  },
 }
 
 export const ProcessingColumnAndBanner: Story = {

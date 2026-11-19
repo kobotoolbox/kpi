@@ -2696,46 +2696,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: api_v2_allauth_app_v1_tokens_refresh_post
-  /api/v2/allauth/browser/v1/account/password/change:
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change password
-      description: |
-        In order to change the password of an account, the current and new
-        password must be provider.  However, accounts that were created by
-        signing up using a third-party provider do not have a password set. In
-        that case, the current password is not required.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/ChangePassword'
-      responses:
-        '400':
-          $ref: '#/components/responses/Error'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_browser_v1_account_password_change_post
-  /api/v2/allauth/app/v1/account/password/change:
-    post:
-      tags:
-      - Authentication (Allauth Headless)
-      summary: Change password
-      description: |
-        In order to change the password of an account, the current and new
-        password must be provider.  However, accounts that were created by
-        signing up using a third-party provider do not have a password set. In
-        that case, the current password is not required.
-      parameters:
-      - $ref: '#/components/parameters/SessionToken'
-      requestBody:
-        $ref: '#/components/requestBodies/ChangePassword'
-      responses:
-        '400':
-          $ref: '#/components/responses/Error'
-        '401':
-          $ref: '#/components/responses/Authentication'
-      operationId: api_v2_allauth_app_v1_account_password_change_post
   /api/v2/allauth/browser/v1/auth/sessions:
     get:
       tags:
