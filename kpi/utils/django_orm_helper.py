@@ -145,6 +145,7 @@ class RemoveJSONFieldAttribute(Func):
     instead, each item being one literal key: `['foo', 'foo1']`.
     """
 
+    output_field = JSONField()
     arg_joiner = ' #- '
     template = '%(expressions)s'
     arity = 2
