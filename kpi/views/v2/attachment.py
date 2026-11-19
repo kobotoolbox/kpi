@@ -2,7 +2,9 @@ from typing import Optional, Union
 
 from django.conf import settings
 from django.shortcuts import Http404
+from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as t
+from django.views.decorators.cache import never_cache
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import serializers, viewsets
@@ -119,6 +121,8 @@ thumbnail_suffixes_pattern = 'original|' + '|'.join(
         operation_id='attachment_thumbnail',
     ),
 )
+# Attachments are private: the browser must not store them.
+@method_decorator(never_cache, name='dispatch')
 class AttachmentViewSet(
     NestedViewSetMixin,
     AssetNestedObjectViewsetMixin,

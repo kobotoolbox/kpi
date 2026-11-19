@@ -30,9 +30,11 @@ import {
   getNewerAsset,
   getSurveyFlatPaths,
   injectSupplementalRowsIntoListOfRows,
+  isAssetPublicReady,
   userCanDeleteAssets,
 } from '#/assetUtils'
 import { surveyWithAllPossibleGroups, surveyWithGroups } from '#/assetUtils.mocks'
+import envStore from '#/envStore'
 
 describe('getSurveyFlatPaths', () => {
   it('should return a list of paths for all questions', () => {
@@ -232,6 +234,43 @@ describe('injectSupplementalRowsIntoListOfRows', () => {
     expect(test).to.not.include('_supplementalDetails/Record_a_sound/qual-uuid/note')
     expect(test).to.not.include('_supplementalDetails/Record_a_sound/source')
     expect(test).to.not.include('_supplementalDetails/Record_a_sound/qual-uuid/source')
+  })
+})
+
+describe('isAssetPublicReady', () => {
+  const sectorField = { name: 'sector', required: false, label: 'Sector' }
+
+  function makeCollection(settings) {
+    return getAssetsRetrieveResponseMock({
+      asset_type: 'collection',
+      name: 'My collection',
+      settings,
+      children: { count: 1 },
+    })
+  }
+
+  afterEach(() => {
+    envStore.data.project_metadata_fields = []
+  })
+
+  it('requires sector when the sector field is enabled', () => {
+    envStore.data.project_metadata_fields = [sectorField]
+    const asset = makeCollection({ organization: 'Org', sector: null })
+    expect(isAssetPublicReady(asset)).to.deep.equal([
+      'Name, organization and sector are required to make collection public.',
+    ])
+  })
+
+  it('does not require sector when the sector field is disabled', () => {
+    envStore.data.project_metadata_fields = []
+    const asset = makeCollection({ organization: 'Org', sector: null })
+    expect(isAssetPublicReady(asset)).to.deep.equal([])
+  })
+
+  it('still requires organization when the sector field is disabled', () => {
+    envStore.data.project_metadata_fields = []
+    const asset = makeCollection({ organization: '', sector: null })
+    expect(isAssetPublicReady(asset)).to.deep.equal(['Name and organization are required to make collection public.'])
   })
 })
 
