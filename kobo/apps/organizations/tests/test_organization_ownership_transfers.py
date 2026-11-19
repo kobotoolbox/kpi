@@ -428,7 +428,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
         self.assertEqual(res_owner.data['sender_email'], self.owner_user.email)
         self.assertEqual(res_owner.data['recipient'], self.admin_user.username)
-        self.assertEqual(res_owner.data['recipient_username'], self.admin_user.username)
+        self.assertNotIn('recipient_username', res_owner.data)
         self.assertEqual(res_owner.data['status'], InviteStatusChoices.PENDING)
         self.assertTrue(res_owner.data['billing_review_requested'])
         self.assertEqual(res_owner.data['organization_id'], self.organization.id)

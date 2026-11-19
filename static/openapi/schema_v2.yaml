@@ -13178,8 +13178,6 @@ paths:
         name: username
         schema:
           type: string
-          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-            only.
         required: true
       tags:
       - User / team / organization / usage
@@ -20322,9 +20320,6 @@ components:
           readOnly: true
         recipient:
           type: string
-        recipient_username:
-          type: string
-          readOnly: true
         status:
           allOf:
           - $ref: '#/components/schemas/OrganizationOwnershipTransferStatusEnum'
@@ -20346,7 +20341,6 @@ components:
       - organization_id
       - organization_name
       - recipient
-      - recipient_username
       - sender
       - sender_email
       - sender_name

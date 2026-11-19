@@ -18110,8 +18110,7 @@
                         "in": "path",
                         "name": "username",
                         "schema": {
-                            "type": "string",
-                            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+                            "type": "string"
                         },
                         "required": true
                     }
@@ -28185,10 +28184,6 @@
                     "recipient": {
                         "type": "string"
                     },
-                    "recipient_username": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "status": {
                         "allOf": [
                             {
@@ -28218,7 +28213,6 @@
                     "organization_id",
                     "organization_name",
                     "recipient",
-                    "recipient_username",
                     "sender",
                     "sender_email",
                     "sender_name",

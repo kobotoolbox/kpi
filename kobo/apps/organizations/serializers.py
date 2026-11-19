@@ -646,9 +646,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     sender = serializers.CharField(source='sender.username', read_only=True)
     sender_name = serializers.SerializerMethodField()
     sender_email = serializers.EmailField(source='sender.email', read_only=True)
-    recipient_username = serializers.CharField(
-        source='recipient.username', read_only=True
-    )
     organization_id = serializers.CharField(source='organization.id', read_only=True)
     organization_name = serializers.CharField(
         source='organization.name', read_only=True
@@ -671,7 +668,6 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'sender_name',
             'sender_email',
             'recipient',
-            'recipient_username',
             'status',
             'billing_review_requested',
             'created',
