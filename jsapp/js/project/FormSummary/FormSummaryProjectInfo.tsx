@@ -9,7 +9,6 @@ import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
 import type { AssetResponse, FailResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
 import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
-import profileStore from '#/stores/profile'
 import { currentLang, formatTime } from '#/utils'
 
 interface FormSummaryProjectInfoProps {
@@ -103,21 +102,15 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
           {/* owner */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Owner')}</bem.FormView__label>
-            {props.asset.owner_label === profileStore.currentAccount.username ? (
-              t('me')
-            ) : (
-              <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
-            )}
+            <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
           </bem.FormView__cell>
 
           {/* last edited */}
           <bem.FormView__cell m='padding'>
             <bem.FormView__label>{t('Last edited')}</bem.FormView__label>
-            {props.asset.last_modified_by === profileStore.currentAccount.username && t('me')}
-            {props.asset.last_modified_by !== null &&
-              props.asset.last_modified_by !== profileStore.currentAccount.username && (
-                <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
-              )}
+            {props.asset.last_modified_by !== null && (
+              <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
+            )}
           </bem.FormView__cell>
         </bem.FormView__group>
 

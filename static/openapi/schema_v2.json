@@ -13204,6 +13204,104 @@
                 }
             }
         },
+        "/api/v2/organizations/{uid_organization}/ownership-transfers/": {
+            "post": {
+                "operationId": "api_v2_organizations_ownership_transfers_create",
+                "description": "## Initiate Organization Ownership Transfer\n\n* Initiate a request to transfer organization ownership to another administrator.\n* Only the current organization owner can initiate an ownership transfer.\n* The recipient must be an active administrator within the same organization.\n* The recipient can be identified by username or email.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the organization",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrganizationOwnershipTransfer"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorValidation"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "field_name": [
+                                                "Error message"
+                                            ]
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/organizations/{uid_organization}/service_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_service_usage_retrieve",
@@ -16024,6 +16122,30 @@
                                         },
                                         "summary": "Not authenticated"
                                     }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/social-accounts/provisioning/": {
+            "post": {
+                "operationId": "api_v2_social_accounts_provisioning_create",
+                "description": "## Check social account provisioning status\n\nPolls whether background SCIM user provisioning has completed for an ongoing single sign-on (SSO) login flow.\n\nWhen a first-time user authenticates via a SCIM-enabled Identity Provider, the browser is redirected to the provisioning wait screen while Keycloak or Okta asynchronously provisions the account in Kobo via SCIM. The client polls this endpoint to detect when the account has been provisioned and complete the login.\n\n### Session Requirement\nRequires an active browser session with the pending `scim_pending_sociallogin` state generated during the OIDC callback. If no pending provisioning session exists or it has expired, the endpoint responds with `200 OK` and `expired: true` (never `401 Unauthorized`).\n\n### Timeout Behavior\nThe pending provisioning state expires after 60 seconds (`SCIM_PROVISIONING_TIMEOUT`). If SCIM provisioning does not arrive within this window, the pending session is cleared and the endpoint returns `expired: true`.\n\nExamples:\n```shell\n  curl -X POST https://kf.kobotoolbox.org/api/v2/social-accounts/provisioning/ \\\n       -H \"Cookie: sessionid=...; csrftoken=...\" \\\n       -H \"X-CSRFToken: ...\"\n```\n\n> Response 200 (Waiting for SCIM)\n```json\n{\n    \"ready\": false,\n    \"expired\": false,\n    \"redirect_url\": null\n}\n```\n\n> Response 200 (Account Provisioned & Logged In)\n```json\n{\n    \"ready\": true,\n    \"expired\": false,\n    \"redirect_url\": \"/\"\n}\n```\n\n> Response 200 (Timed Out)\n```json\n{\n    \"ready\": false,\n    \"expired\": true,\n    \"redirect_url\": null\n}\n```\n",
+                "tags": [
+                    "Authentication"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SocialAccountProvisioningResponse"
                                 }
                             }
                         },
@@ -20469,58 +20591,6 @@
                     }
                 },
                 "operationId": "api_v2_allauth_app_v1_tokens_refresh_post"
-            }
-        },
-        "/api/v2/allauth/browser/v1/account/password/change": {
-            "post": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Change password",
-                "description": "In order to change the password of an account, the current and new\npassword must be provider.  However, accounts that were created by\nsigning up using a third-party provider do not have a password set. In\nthat case, the current password is not required.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/ChangePassword"
-                },
-                "responses": {
-                    "400": {
-                        "$ref": "#/components/responses/Error"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Authentication"
-                    }
-                },
-                "operationId": "api_v2_allauth_browser_v1_account_password_change_post"
-            }
-        },
-        "/api/v2/allauth/app/v1/account/password/change": {
-            "post": {
-                "tags": [
-                    "Authentication (Allauth Headless)"
-                ],
-                "summary": "Change password",
-                "description": "In order to change the password of an account, the current and new\npassword must be provider.  However, accounts that were created by\nsigning up using a third-party provider do not have a password set. In\nthat case, the current password is not required.\n",
-                "parameters": [
-                    {
-                        "$ref": "#/components/parameters/SessionToken"
-                    }
-                ],
-                "requestBody": {
-                    "$ref": "#/components/requestBodies/ChangePassword"
-                },
-                "responses": {
-                    "400": {
-                        "$ref": "#/components/responses/Error"
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/Authentication"
-                    }
-                },
-                "operationId": "api_v2_allauth_app_v1_account_password_change_post"
             }
         },
         "/api/v2/allauth/browser/v1/auth/sessions": {
@@ -27396,6 +27466,76 @@
                 "type": "string",
                 "description": "* `accept` - accept"
             },
+            "OrganizationOwnershipTransfer": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "organization_id": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "organization_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "sender": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "recipient": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/OrganizationOwnershipTransferStatusEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "billing_review_requested": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "created": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "modified": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "created",
+                    "modified",
+                    "organization_id",
+                    "organization_name",
+                    "recipient",
+                    "sender",
+                    "status",
+                    "uid"
+                ]
+            },
+            "OrganizationOwnershipTransferStatusEnum": {
+                "enum": [
+                    "accepted",
+                    "cancelled",
+                    "complete",
+                    "declined",
+                    "expired",
+                    "failed",
+                    "in_progress",
+                    "pending"
+                ],
+                "type": "string",
+                "description": "* `accepted` - Accepted\n* `cancelled` - Cancelled\n* `complete` - Complete\n* `declined` - Declined\n* `expired` - Expired\n* `failed` - Failed\n* `in_progress` - In Progress\n* `pending` - Pending"
+            },
             "OrganizationResponse": {
                 "type": "object",
                 "properties": {
@@ -29875,6 +30015,10 @@
                         "writeOnly": true
                     },
                     "new_password": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "mfa_code": {
                         "type": "string",
                         "writeOnly": true
                     },
@@ -32564,6 +32708,31 @@
                     "provider",
                     "uid",
                     "username"
+                ]
+            },
+            "SocialAccountProvisioningResponse": {
+                "type": "object",
+                "description": "Response schema for the social account provisioning polling endpoint.",
+                "properties": {
+                    "ready": {
+                        "type": "boolean",
+                        "description": "Whether the account provisioning has completed."
+                    },
+                    "expired": {
+                        "type": "boolean",
+                        "description": "Whether the provisioning session has timed out."
+                    },
+                    "redirect_url": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Destination URL to redirect to once logged in."
+                    }
+                },
+                "required": [
+                    "expired",
+                    "ready"
                 ]
             },
             "SocialApp": {

@@ -46,6 +46,10 @@ import type { MemberListResponse } from '../../models/memberListResponse'
 
 import { MemberRoleEnum } from '../../models/memberRoleEnum'
 
+import type { OrganizationOwnershipTransfer } from '../../models/organizationOwnershipTransfer'
+
+import { OrganizationOwnershipTransferStatusEnum } from '../../models/organizationOwnershipTransferStatusEnum'
+
 import type { OrganizationResponse } from '../../models/organizationResponse'
 
 import type { OrganizationServiceUsageResponse } from '../../models/organizationServiceUsageResponse'
@@ -975,6 +979,21 @@ export const getOrganizationsMembersPartialUpdateResponseMock = (
     { ...getApiV2OrganizationsMembersPartialUpdateResponseInviteResponseMock() },
     null,
   ]),
+  ...overrideResponse,
+})
+
+export const getOrganizationsOwnershipTransfersCreateResponseMock = (
+  overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
+): OrganizationOwnershipTransfer => ({
+  uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+  billing_review_requested: faker.datatype.boolean(),
+  created: faker.date.past().toISOString().slice(0, 19) + 'Z',
+  modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   ...overrideResponse,
 })
 
@@ -2057,6 +2076,30 @@ export const getOrganizationsMembersDestroyMockHandler = (
   )
 }
 
+export const getOrganizationsOwnershipTransfersCreateMockHandler = (
+  overrideResponse?:
+    | OrganizationOwnershipTransfer
+    | ((
+        info: Parameters<HttpResponseResolver<{ uidOrganization: string }, OrganizationOwnershipTransfer>>[0],
+      ) => Promise<OrganizationOwnershipTransfer> | OrganizationOwnershipTransfer),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post<{ uidOrganization: string }, OrganizationOwnershipTransfer>(
+    '*/api/v2/organizations/:uidOrganization/ownership-transfers{/}?',
+    async (info: Parameters<HttpResponseResolver<{ uidOrganization: string }, OrganizationOwnershipTransfer>>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getOrganizationsOwnershipTransfersCreateResponseMock(),
+        { status: 201 },
+      )
+    },
+    options,
+  )
+}
+
 export const getOrganizationsServiceUsageRetrieveMockHandler = (
   overrideResponse?:
     | OrganizationServiceUsageResponse
@@ -2537,6 +2580,7 @@ export const getUserTeamOrganizationUsageMock = () => [
   getOrganizationsMembersRetrieveMockHandler(),
   getOrganizationsMembersPartialUpdateMockHandler(),
   getOrganizationsMembersDestroyMockHandler(),
+  getOrganizationsOwnershipTransfersCreateMockHandler(),
   getOrganizationsServiceUsageRetrieveMockHandler(),
   getProjectViewsListMockHandler(),
   getProjectViewsRetrieveMockHandler(),

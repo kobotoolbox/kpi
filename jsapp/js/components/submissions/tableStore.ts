@@ -1,5 +1,5 @@
-import clonedeep from 'lodash.clonedeep'
-import Reflux from 'reflux'
+import { cloneDeep } from 'lodash-es'
+import { useSyncExternalStore } from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import {
   DATA_TABLE_SETTINGS,
@@ -15,13 +15,11 @@ import { recordEntries } from '#/utils'
 /** Prefix for the per-user `localStorage` key, see `useSafeUsernameStorageKey`. */
 export const TABLE_SETTINGS_STORAGE_KEY_PREFIX = 'kpiDataTableSettings'
 
-export interface TableStoreData {
-  /** Settings of the asset from the current route. */
-  tableSettings: AssetTableSettings
-}
-
 /** One key per user holds the settings of every asset they've opened. */
 type TableSettingsByAsset = Record<string, AssetTableSettings>
+
+/** Same object every time, so `useSyncExternalStore` doesn't loop. */
+const EMPTY_SETTINGS: Readonly<AssetTableSettings> = Object.freeze({})
 
 function readStoredSettings(storageKey: string): TableSettingsByAsset {
   try {
@@ -45,13 +43,26 @@ function readStoredSettings(storageKey: string): TableSettingsByAsset {
  * NOTE: nothing is persisted until `setStorageKey` is called (see
  * `DataTableWrapper`), only kept in memory.
  *
- * @deprecated migrate out of Reflux (DEV-3191) whenever you need to adjust things beyond simple rename
+ * NOTE: React components should read settings with `useTableSettings`.
  */
-class TableStore extends Reflux.Store {
+class TableStore {
   private storageKey: string | null = null
   private settingsByAsset: TableSettingsByAsset = {}
   /** Assets with changes that failed to persist, kept in memory only. */
   private unsavedAssetUids = new Set<string>()
+  private listeners = new Set<() => void>()
+
+  /** Returns a function that unsubscribes. */
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener)
+    return () => {
+      this.listeners.delete(listener)
+    }
+  }
+
+  private emit() {
+    this.listeners.forEach((listener) => listener())
+  }
 
   /** Loads the settings stored under given key and persists future changes there. */
   setStorageKey(storageKey: string) {
@@ -61,19 +72,20 @@ class TableStore extends Reflux.Store {
     this.storageKey = storageKey
     this.settingsByAsset = readStoredSettings(storageKey)
     this.unsavedAssetUids.clear()
-    this.trigger(this.getData())
+    this.emit()
   }
 
-  private getData(): TableStoreData {
-    return { tableSettings: this.getTableSettings() }
+  /** Like `getTableSettings`, but not a clone: same object until settings change. Don't mutate it. */
+  getTableSettingsSnapshot = (): Readonly<AssetTableSettings> => {
+    const assetUid = getRouteAssetUid()
+    return (assetUid && this.settingsByAsset[assetUid]) || EMPTY_SETTINGS
   }
 
   /** Returns settings or empty object if no settings exist */
   getTableSettings(): AssetTableSettings {
-    const assetUid = getRouteAssetUid()
     // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
     // prepends the frozen columns to the selected columns).
-    return clonedeep((assetUid && this.settingsByAsset[assetUid]) || {})
+    return cloneDeep(this.getTableSettingsSnapshot())
   }
 
   /**
@@ -112,7 +124,7 @@ class TableStore extends Reflux.Store {
       }
     }
 
-    this.trigger(this.getData())
+    this.emit()
   }
 
   /** Returns a list of columns that user can hide */
@@ -349,9 +361,11 @@ class TableStore extends Reflux.Store {
   }
 }
 
-/**
- * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
- */
 const tableStore = new TableStore()
 
 export default tableStore
+
+/** Settings of the asset from the current route, re-rendering on every change. */
+export function useTableSettings() {
+  return useSyncExternalStore(tableStore.subscribe, tableStore.getTableSettingsSnapshot)
+}

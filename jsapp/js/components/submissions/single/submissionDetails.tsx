@@ -1,6 +1,6 @@
 import './submissionDetails.scss'
 import alertify from 'alertifyjs'
-import clonedeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash-es'
 import React from 'react'
 import { actions } from '#/actions'
 import { userCan, userHasPermForSubmission } from '#/components/permissions/utils'
@@ -135,7 +135,7 @@ export default class SubmissionDetails extends React.Component<SubmissionDetails
 
     this.setState({ isValidationStatusChangePending: false })
 
-    const newSubmissionData = clonedeep(this.state.submission)
+    const newSubmissionData = cloneDeep(this.state.submission)
 
     if (result && result.uid) {
       newSubmissionData._validation_status = result
