@@ -477,9 +477,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         detail_res = self.client.get(admin_detail_url)
         self.assertEqual(detail_res.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(detail_res.data['pending_transfer'])
-        self.assertEqual(
-            detail_res.data['pending_transfer']['uid'], str(transfer.uid)
-        )
+        self.assertEqual(detail_res.data['pending_transfer']['uid'], str(transfer.uid))
 
         # Recipient Admin can also see pending_transfer
         self.client.force_login(self.admin_user)

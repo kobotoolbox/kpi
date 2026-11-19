@@ -84,7 +84,6 @@ from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
-    OWNER_REMOVAL_ERROR,
     PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
@@ -617,7 +616,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             Q(metadata__organization_id=str(organization_id))
             | (
                 ~Q(metadata__has_key='organization_id')
-                & Q(sender__organizations_organizationuser__organization_id=organization_id)
+                & Q(sender__organizations_organizationuser__organization_id=organization_id)  # noqa E501
             ),
             status=InviteStatusChoices.PENDING,
             recipient_id__in=members_user_ids,
@@ -853,7 +852,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 Q(metadata__organization_id=str(member.organization_id))
                 | (
                     ~Q(metadata__has_key='organization_id')
-                    & Q(sender__organizations_organizationuser__organization_id=member.organization_id)
+                    & Q(sender__organizations_organizationuser__organization_id=member.organization_id)  # noqa E501
                 ),
                 recipient=member.user,
                 status=InviteStatusChoices.PENDING,
