@@ -66,11 +66,6 @@ export function isPublicCollectionsRoute(): boolean {
 }
 
 /** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
-export function isNewLibraryItemRoute(): boolean {
-  return getCurrentPath() === ROUTES.NEW_LIBRARY_ITEM
-}
-
-/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isLibraryItemRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM.replace(':uid', uid)
 }
@@ -198,11 +193,6 @@ export function isFormResetRoute(uid: string): boolean {
 /*
  * Additional functions
  */
-
-/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
-export function isAnyFormsRoute(): boolean {
-  return getCurrentPath().startsWith(ROUTES.FORMS)
-}
 
 /** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isAnyLibraryRoute(): boolean {
