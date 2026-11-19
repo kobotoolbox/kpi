@@ -310,6 +310,8 @@ describe('getFormLanguageSource', () => {
   it('returns nothing when the form language is unknown or has no code', () => {
     chai.expect(getFormLanguageSource(buildAsset(null, []))).to.equal(undefined)
     chai.expect(getFormLanguageSource(buildAsset(null, [null]))).to.equal(undefined)
+    // The responses are likely in the unnamed default language, not in the translation that has a name
+    chai.expect(getFormLanguageSource(buildAsset(null, [null, 'French (fr)']))).to.equal(undefined)
     chai.expect(getFormLanguageSource(buildAsset('English', ['English']))).to.equal(undefined)
   })
 })

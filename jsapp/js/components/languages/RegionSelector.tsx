@@ -81,8 +81,10 @@ const RegionSelector = ({
     })
   }, [language, serviceCode, serviceType])
 
-  // Needed to populate the Select value after getting data
+  // Needed to populate the Select value after getting data. While it loads there are no options yet, and reporting
+  // "no region" then would make the parent drop its `initialRegion` before we can select it.
   useEffect(() => {
+    if (isLoading) return
     if (regionOptions.length > 0) {
       const initialOption =
         regionOptions.find((option) => option.value === initialRegion)?.value ?? regionOptions[0].value
@@ -92,7 +94,7 @@ const RegionSelector = ({
       setSelectedRegion(null)
       onRegionChange(null)
     }
-  }, [regionOptions])
+  }, [regionOptions, isLoading])
 
   const handleRegionChange = (newRegion: string | null) => {
     setSelectedRegion(newRegion)

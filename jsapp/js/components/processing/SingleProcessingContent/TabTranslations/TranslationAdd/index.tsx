@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
@@ -69,17 +69,21 @@ export default function TranslationAdd({
     () => getTranslationSource(translationVersions) ?? { languageCode: null, locale: null },
   )
 
-  // Otherwise the response is likely in the form's language, so pre-select it, once we know it's one we have
-  const formLanguageSource = useMemo(() => getFormLanguageSource(asset), [asset])
-  const formLanguageCode = isTextQuestion && !source.languageCode ? (formLanguageSource?.languageCode ?? '') : ''
+  // Otherwise the response is likely in the form's language, so pre-select it once we know it's one we have. That
+  // happens only once: if the user clears the field afterwards, it stays empty.
+  const [formLanguageSource] = useState(() =>
+    isTextQuestion && !source.languageCode ? getFormLanguageSource(asset) : undefined,
+  )
+  const formLanguageCode = formLanguageSource?.languageCode ?? ''
   const { data: formLanguageData } = useLanguagesRetrieve(formLanguageCode, {
     query: { queryKey: getLanguagesRetrieveQueryKey(formLanguageCode), enabled: formLanguageCode !== '' },
   })
+  const hasPreselectedFormLanguage = useRef(false)
   useEffect(() => {
-    if (formLanguageData?.status === 200 && formLanguageSource) {
-      setSource((current) => (current.languageCode ? current : formLanguageSource))
-    }
-  }, [formLanguageData])
+    if (hasPreselectedFormLanguage.current || formLanguageData?.status !== 200 || !formLanguageSource) return
+    hasPreselectedFormLanguage.current = true
+    setSource((current) => (current.languageCode ? current : formLanguageSource))
+  }, [formLanguageData, formLanguageSource])
 
   // Translation conflicts are language-specific, but only once a target language
   // is selected. Before that we warn about any ongoing job, so users learn about
@@ -131,6 +135,7 @@ export default function TranslationAdd({
           onNext={(nextStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(nextStep)}
           onLimitExceeded={() => setIsLimitBlockModalOpen(true)}
           usageType={UsageLimitTypes.TRANSLATION}
+          automaticServiceType='translation'
           hiddenLanguages={languagesUnavailable}
           suggestedLanguages={getSuggestedLanguages(advancedFeatures)}
           languageCode={languageCode}

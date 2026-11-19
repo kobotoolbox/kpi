@@ -22,6 +22,8 @@ interface Props {
   onNext: (step: CreateSteps.Manual | CreateSteps.Automatic) => void
   onLimitExceeded: () => void
   usageType: UsageLimitTypes
+  /** Which automatic service the selected language(s) must be supported by for the "automatic" button. */
+  automaticServiceType: 'transcript' | 'translation'
   languageCode: LanguageCode | null
   setLanguageCode: (languageCode: LanguageCode | null) => void
   hiddenLanguages?: LanguageCode[]
@@ -45,6 +47,7 @@ export default function StepSelectLanguage({
   onNext,
   onLimitExceeded,
   usageType,
+  automaticServiceType,
   languageCode,
   setLanguageCode,
   hiddenLanguages = [],
@@ -77,11 +80,11 @@ export default function StepSelectLanguage({
   const isSourceMissing = source !== undefined && !source.languageCode
 
   const handleClickBack = () => {
-    // When clicking "back" we either unselect the languages (inner component "back" action) by clearing them,
-    // or if no language is selected, we let the parent know (the parent flow "back" action).
-    if (languageCode !== null || source?.languageCode) {
+    // When clicking "back" we either unselect the language (inner component "back" action) by clearing it,
+    // or if no language is selected, we let the parent know (the parent flow "back" action). A text response's source
+    // language is kept: it's often pre-selected, and it's the same for every translation of the response.
+    if (languageCode !== null) {
       setLanguageCode(null)
-      onSourceChange?.({ languageCode: null, locale: null })
     } else {
       onBack()
     }
@@ -170,7 +173,8 @@ export default function StepSelectLanguage({
           <TransxAutomaticButton
             onClick={handleClickNextAutomatic}
             selectedLanguage={languageCode}
-            type='transcript'
+            sourceLanguage={source?.languageCode}
+            type={automaticServiceType}
             disabled={isSourceMissing || disableAutomatic || showConflictingOngoingJobAlert}
           />
         </div>

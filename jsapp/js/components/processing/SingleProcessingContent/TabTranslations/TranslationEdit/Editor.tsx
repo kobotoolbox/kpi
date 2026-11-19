@@ -14,8 +14,15 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
-import type { TranslationVersionItem } from '#/components/processing/common/types'
-import { getTranslationSourcePayload, isSupplementVersionAutomatic } from '#/components/processing/common/utils'
+import { getProcessingQuestionType } from '#/components/processing/common/questionType'
+import type { TranslationSource, TranslationVersionItem } from '#/components/processing/common/types'
+import {
+  DEFAULT_TEXT_SOURCE_LANGUAGE,
+  getFormLanguageSource,
+  getTranslationSourcePayload,
+  isSupplementVersionAutomatic,
+  isTextQuestionType,
+} from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
@@ -65,6 +72,15 @@ export default function Editor({
   useEffect(() => {
     onUnsavedWorkChange(value !== initialValue)
   }, [value, initialValue, onUnsavedWorkChange])
+
+  // A text response's translation keeps the language it was translated from. Translations made before that was asked
+  // have none, and the backend requires one, so they get the form's language or, failing that, English.
+  const isTextQuestion = isTextQuestionType(getProcessingQuestionType(asset, questionXpath, submission))
+  const translationSource: TranslationSource | undefined = translationVersion._data.source_language
+    ? { languageCode: translationVersion._data.source_language, locale: translationVersion._data.source_locale ?? null }
+    : isTextQuestion
+      ? (getFormLanguageSource(asset) ?? { languageCode: DEFAULT_TEXT_SOURCE_LANGUAGE, locale: null })
+      : undefined
 
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.manual_translation && af.question_xpath === questionXpath,
@@ -134,11 +150,7 @@ export default function Editor({
             [ActionEnum.manual_translation]: {
               language: translationVersion._data.language,
               value: value,
-              // A text response keeps the language it was translated from
-              ...getTranslationSourcePayload(
-                translationVersion._data.source_language,
-                translationVersion._data.source_locale,
-              ),
+              ...getTranslationSourcePayload(translationSource?.languageCode, translationSource?.locale),
             },
           },
         },
