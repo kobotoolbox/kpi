@@ -49,8 +49,8 @@ type ManualQualWithValue = Extract<PatchedDataSupplementPayloadOneOfManualQual, 
 export type ManualQualValue = ManualQualWithValue['value']
 
 /**
- * The language a text response is written in, picked by the user to translate it. Nothing records it, unlike the
- * language of a transcript.
+ * The language a text response is written in, picked by the user to translate it, since there's no transcript to take
+ * it from. Each translation saves it as `source_language` and `source_locale`.
  */
 export interface TranslationSource {
   languageCode: LanguageCode | null

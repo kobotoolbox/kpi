@@ -22,7 +22,7 @@ interface RegionSelectorProps {
   size?: MantineSize
 }
 
-/** Dropdown only region selector for automated transcriptions */
+/** Dropdown only region selector for the regions a transcription or translation service supports */
 const RegionSelector = ({
   rootLanguage,
   serviceCode,

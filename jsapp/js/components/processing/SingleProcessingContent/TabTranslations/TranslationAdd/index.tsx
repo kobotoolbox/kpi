@@ -33,7 +33,7 @@ interface Props {
   submission: DataResponse
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
-  /** Languages that can't be picked: already translated into, or the transcript's own language. */
+  /** Target languages that can't be picked: already translated into, or the transcript's own language. */
   languagesUnavailable: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
@@ -173,6 +173,7 @@ export default function TranslationAdd({
           questionXpath={questionXpath}
           submission={submission}
           hasConflictingOngoingJob={hasConflictingOngoingJob}
+          isTextQuestion={isTextQuestion}
           source={isTextQuestion ? source : undefined}
           onCreate={onCreate}
           advancedFeatures={advancedFeatures}
