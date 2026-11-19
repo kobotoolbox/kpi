@@ -605,7 +605,7 @@ export interface TableSortBySetting {
  * a new settings draft too and it's simpler that way.
  */
 export interface AssetTableSettings {
-  'selected-columns'?: string[] | null
+  'hidden-columns'?: string[] | null
   /** Old settings keep a single column id as a string, see `tableStore.getFrozenColumns`. */
   'frozen-column'?: string[] | string | null
   'show-group-name'?: boolean | null
