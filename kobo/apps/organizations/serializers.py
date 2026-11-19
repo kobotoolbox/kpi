@@ -175,7 +175,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     | (
                         ~Q(metadata__has_key='organization_id')
                         & Q(
-                            sender__organizations_organizationuser__organization_id=obj.organization.id
+                            sender__organizations_organizationuser__organization_id=obj.organization.id  # noqa E501
                         )
                     ),
                     recipient=obj.user,
@@ -237,7 +237,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     | (
                         ~Q(metadata__has_key='organization_id')
                         & Q(
-                            sender__organizations_organizationuser__organization_id=org_user.organization_id
+                            sender__organizations_organizationuser__organization_id=org_user.organization_id  # noqa E501
                         )
                     ),
                     recipient=org_user.user,
