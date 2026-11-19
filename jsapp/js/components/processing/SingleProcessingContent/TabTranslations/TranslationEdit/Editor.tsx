@@ -15,7 +15,7 @@ import { userCan } from '#/components/permissions/utils'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
-import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
+import { getTranslationSourcePayload, isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
@@ -134,6 +134,11 @@ export default function Editor({
             [ActionEnum.manual_translation]: {
               language: translationVersion._data.language,
               value: value,
+              // A text response keeps the language it was translated from
+              ...getTranslationSourcePayload(
+                translationVersion._data.source_language,
+                translationVersion._data.source_locale,
+              ),
             },
           },
         },

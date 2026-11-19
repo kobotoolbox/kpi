@@ -48,6 +48,16 @@ export type DisplaysList = Array<LanguageCode | StaticDisplays>
 type ManualQualWithValue = Extract<PatchedDataSupplementPayloadOneOfManualQual, { value: any }>
 export type ManualQualValue = ManualQualWithValue['value']
 
+/**
+ * The language a text response is written in, picked by the user to translate it. Nothing records it, unlike the
+ * language of a transcript.
+ */
+export interface TranslationSource {
+  languageCode: LanguageCode | null
+  /** A dialect of `languageCode`, as a translation service code (e.g. `zh-TW`), when the service has any */
+  locale: LanguageCode | null
+}
+
 export enum CreateSteps {
   Begin = 'begin',
   Language = 'language',

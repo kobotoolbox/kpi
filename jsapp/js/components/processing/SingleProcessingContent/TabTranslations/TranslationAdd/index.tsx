@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
@@ -7,10 +7,17 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
+import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
-import { CreateSteps } from '#/components/processing/common/types'
-import { getSuggestedLanguages } from '#/components/processing/common/utils'
+import { getProcessingQuestionType } from '#/components/processing/common/questionType'
+import { CreateSteps, type TranslationSource } from '#/components/processing/common/types'
+import {
+  getFormLanguageSource,
+  getSuggestedLanguages,
+  getTranslationSource,
+  isTextQuestionType,
+} from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { getSubmissionRootUuid } from '#/utils'
@@ -55,6 +62,25 @@ export default function TranslationAdd({
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
 
+  // A text response is translated directly: there's no transcript to take its language from, so the user picks it.
+  // Every translation of a response comes from the same text, so start from the language picked for an earlier one.
+  const isTextQuestion = isTextQuestionType(getProcessingQuestionType(asset, questionXpath, submission))
+  const [source, setSource] = useState<TranslationSource>(
+    () => getTranslationSource(translationVersions) ?? { languageCode: null, locale: null },
+  )
+
+  // Otherwise the response is likely in the form's language, so pre-select it, once we know it's one we have
+  const formLanguageSource = useMemo(() => getFormLanguageSource(asset), [asset])
+  const formLanguageCode = isTextQuestion && !source.languageCode ? (formLanguageSource?.languageCode ?? '') : ''
+  const { data: formLanguageData } = useLanguagesRetrieve(formLanguageCode, {
+    query: { queryKey: getLanguagesRetrieveQueryKey(formLanguageCode), enabled: formLanguageCode !== '' },
+  })
+  useEffect(() => {
+    if (formLanguageData?.status === 200 && formLanguageSource) {
+      setSource((current) => (current.languageCode ? current : formLanguageSource))
+    }
+  }, [formLanguageData])
+
   // Translation conflicts are language-specific, but only once a target language
   // is selected. Before that we warn about any ongoing job, so users learn about
   // it on this tab too instead of only on the transcript one.
@@ -95,6 +121,7 @@ export default function TranslationAdd({
         <StepBegin
           asset={asset}
           hasConflictingOngoingJob={hasConflictingOngoingJob}
+          isTextQuestion={isTextQuestion}
           onNext={() => setStep(CreateSteps.Language)}
         />
       )}
@@ -113,6 +140,8 @@ export default function TranslationAdd({
           disableManual={hasConflictingOngoingJob}
           disableAutomatic={!envStore.data.asr_mt_features_enabled}
           showConflictingOngoingJobAlert={hasConflictingOngoingJob}
+          source={isTextQuestion ? source : undefined}
+          onSourceChange={setSource}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
@@ -124,6 +153,7 @@ export default function TranslationAdd({
           submission={submission}
           supplement={supplement}
           activeBulkActions={activeBulkActions}
+          source={isTextQuestion ? source : undefined}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
@@ -138,6 +168,7 @@ export default function TranslationAdd({
           questionXpath={questionXpath}
           submission={submission}
           hasConflictingOngoingJob={hasConflictingOngoingJob}
+          source={isTextQuestion ? source : undefined}
           onCreate={onCreate}
           advancedFeatures={advancedFeatures}
         />

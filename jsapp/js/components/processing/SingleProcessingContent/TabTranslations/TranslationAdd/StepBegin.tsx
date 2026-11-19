@@ -16,13 +16,19 @@ interface Props {
    * steps, so the language step's own check can't be the only guard.
    */
   hasConflictingOngoingJob: boolean
+  /** A text response is translated directly, it's not a transcript */
+  isTextQuestion: boolean
   onNext: () => void
 }
 
-export default function StepBegin({ asset, hasConflictingOngoingJob, onNext }: Props) {
+export default function StepBegin({ asset, hasConflictingOngoingJob, isTextQuestion, onNext }: Props) {
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
-      <header className={bodyStyles.header}>{t('This transcript does not have any translations yet')}</header>
+      <header className={bodyStyles.header}>
+        {isTextQuestion
+          ? t('This text response does not have any translations yet')
+          : t('This transcript does not have any translations yet')}
+      </header>
 
       <Button
         type='primary'

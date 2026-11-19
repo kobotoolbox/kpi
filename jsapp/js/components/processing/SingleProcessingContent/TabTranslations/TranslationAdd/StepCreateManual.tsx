@@ -5,6 +5,8 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { TranslationSource } from '#/components/processing/common/types'
+import { getTranslationSourcePayload } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import Editor from '../TranslationEdit/Editor'
@@ -16,6 +18,8 @@ interface Props {
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
   languageCode: LanguageCode
+  /** The language of a text response, see `StepSelectLanguage` */
+  source?: TranslationSource
   onBack: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -29,6 +33,7 @@ export default function StepCreateManual({
   supplement,
   activeBulkActions,
   languageCode,
+  source,
   onBack,
   onCreate,
   onUnsavedWorkChange,
@@ -46,7 +51,12 @@ export default function StepCreateManual({
           _uuid: '',
           _dateCreated: '',
           _dateAccepted: '',
-          _data: { language: languageCode, value: null },
+          // The editor saves the source language along with the translation
+          _data: {
+            language: languageCode,
+            value: null,
+            ...getTranslationSourcePayload(source?.languageCode, source?.locale),
+          },
           _dependency: { _actionId: '', _uuid: '' },
         }}
         onBack={onBack}

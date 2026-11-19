@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 
+import { Group, Stack } from '@mantine/core'
 import cx from 'classnames'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import {
@@ -8,11 +9,12 @@ import {
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/LanguageSelector'
+import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { CreateSteps } from '../../common/types'
+import { CreateSteps, type TranslationSource } from '../../common/types'
 import TransxAutomaticButton from './transxAutomaticButton'
 
 interface Props {
@@ -30,6 +32,12 @@ interface Props {
   disableManual?: boolean
   disableAutomatic: boolean
   showConflictingOngoingJobAlert?: boolean
+  /**
+   * The language a text response is written in, asked next to the target language when translating one. Both
+   * buttons stay disabled until it's picked. Leave out for a transcript, which carries its own language.
+   */
+  source?: TranslationSource
+  onSourceChange?: (source: TranslationSource) => void
 }
 
 export default function StepSelectLanguage({
@@ -46,6 +54,8 @@ export default function StepSelectLanguage({
   disableManual = false,
   disableAutomatic,
   showConflictingOngoingJobAlert = false,
+  source,
+  onSourceChange,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
   const usageLimitBlock = useMemo(
@@ -64,14 +74,26 @@ export default function StepSelectLanguage({
     setLanguageCode(newVal ?? null)
   }
 
+  const isSourceMissing = source !== undefined && !source.languageCode
+
   const handleClickBack = () => {
-    // When clicking "back" we either unselect the language (inner component "back" action) by clearing it,
+    // When clicking "back" we either unselect the languages (inner component "back" action) by clearing them,
     // or if no language is selected, we let the parent know (the parent flow "back" action).
-    if (languageCode !== null) {
+    if (languageCode !== null || source?.languageCode) {
       setLanguageCode(null)
+      onSourceChange?.({ languageCode: null, locale: null })
     } else {
       onBack()
     }
+  }
+
+  function handleChangeSourceLanguage(newLanguageCode: LanguageCode | null) {
+    // The dialects belong to the previous language, `RegionSelector` picks one of the new language's
+    onSourceChange?.({ languageCode: newLanguageCode, locale: null })
+  }
+
+  function handleChangeSourceLocale(newLocale: LanguageCode | null) {
+    if (source) onSourceChange?.({ ...source, locale: newLocale })
   }
 
   function handleClickNextManual() {
@@ -90,13 +112,45 @@ export default function StepSelectLanguage({
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-      <LanguageSelector
-        titleOverride={titleOverride}
-        onLanguageChange={handleChangeLanguage}
-        hiddenLanguages={hiddenLanguages}
-        suggestedLanguages={suggestedLanguages}
-        value={languageCode}
-      />
+      <Stack gap='md'>
+        {source && (
+          // Language and dialect side by side, like for an automatic transcription
+          <Group grow align='flex-end' wrap='nowrap'>
+            <LanguageSelector
+              titleOverride={t('Please select the language of the text response')}
+              onLanguageChange={handleChangeSourceLanguage}
+              // Translating into the same language makes no sense
+              hiddenLanguages={languageCode ? [languageCode] : []}
+              // The selected language only shows when it's an option, and it may not be one of the featured ones
+              suggestedLanguages={source.languageCode ? [source.languageCode] : []}
+              value={source.languageCode}
+              required
+            />
+
+            {source.languageCode && (
+              <RegionSelector
+                // Remount for each language, so its dialects replace the previous ones
+                key={source.languageCode}
+                rootLanguage={source.languageCode}
+                serviceCode='goog'
+                serviceType='translation'
+                onRegionChange={handleChangeSourceLocale}
+                initialRegion={source.locale}
+                titleOverride={t('Dialect')}
+              />
+            )}
+          </Group>
+        )}
+
+        <LanguageSelector
+          titleOverride={titleOverride}
+          onLanguageChange={handleChangeLanguage}
+          hiddenLanguages={source?.languageCode ? [...hiddenLanguages, source.languageCode] : hiddenLanguages}
+          suggestedLanguages={suggestedLanguages}
+          value={languageCode}
+          required={source !== undefined}
+        />
+      </Stack>
 
       {showConflictingOngoingJobAlert && <ConflictingOngoingJobAlert mt='md' />}
 
@@ -111,13 +165,13 @@ export default function StepSelectLanguage({
             onClick={handleClickNextManual}
             // We disable both manual and automatic entry points for a conflicting
             // job so users do not start edits that could be overwritten.
-            isDisabled={languageCode === null || disableManual || showConflictingOngoingJobAlert}
+            isDisabled={languageCode === null || isSourceMissing || disableManual || showConflictingOngoingJobAlert}
           />
           <TransxAutomaticButton
             onClick={handleClickNextAutomatic}
             selectedLanguage={languageCode}
             type='transcript'
-            disabled={disableAutomatic || showConflictingOngoingJobAlert}
+            disabled={isSourceMissing || disableAutomatic || showConflictingOngoingJobAlert}
           />
         </div>
       </footer>

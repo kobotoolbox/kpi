@@ -16,6 +16,8 @@ interface RegionSelectorProps {
   serviceType: 'transcription' | 'translation'
   /** Callback for a region is being selected. */
   onRegionChange: (selectedRegion: LanguageCode | null) => void
+  /** Region to select once the regions load, if it's one of them. Defaults to the first region. */
+  initialRegion?: LanguageCode | null
   titleOverride?: string
   size?: MantineSize
 }
@@ -26,6 +28,7 @@ const RegionSelector = ({
   serviceCode,
   serviceType,
   onRegionChange,
+  initialRegion,
   titleOverride,
   disabled,
   size,
@@ -81,7 +84,8 @@ const RegionSelector = ({
   // Needed to populate the Select value after getting data
   useEffect(() => {
     if (regionOptions.length > 0) {
-      const initialOption = regionOptions[0].value
+      const initialOption =
+        regionOptions.find((option) => option.value === initialRegion)?.value ?? regionOptions[0].value
       setSelectedRegion(initialOption)
       onRegionChange(initialOption)
     } else {

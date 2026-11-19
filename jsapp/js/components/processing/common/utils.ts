@@ -13,10 +13,13 @@ import type { LanguageCode, LocaleCode } from '#/components/languages/languagesS
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
+import { getLangAsObject } from '#/utils'
 import type {
   DisplaysList,
   QualVersionItem,
   TranscriptVersionItem,
+  TranslationSource,
   TranslationVersionItem,
   TransxVersionItem,
 } from './types'
@@ -352,6 +355,41 @@ export const getAllTranslationsFromSupplementData = (
   })
 
   return latestVersions
+}
+
+/**
+ * The `source_language` and `source_locale` properties of a translation request. The back end requires them to
+ * translate a text response and rejects them for any other question, so they're left out when there's no source
+ * language (i.e. for a transcript).
+ */
+export const getTranslationSourcePayload = (
+  languageCode: LanguageCode | null | undefined,
+  locale: LanguageCode | null | undefined,
+): { source_language?: LanguageCode; source_locale?: LanguageCode } => {
+  if (!languageCode) return {}
+  return locale ? { source_language: languageCode, source_locale: locale } : { source_language: languageCode }
+}
+
+/** The source language of the first translation that has one, i.e. one of a text response. */
+export const getTranslationSource = (
+  translationVersions: Array<{ _data: { source_language?: LanguageCode; source_locale?: LanguageCode } }>,
+): TranslationSource | undefined => {
+  const versionData = translationVersions.find((version) => version._data.source_language)?._data
+  if (!versionData?.source_language) return undefined
+  return { languageCode: versionData.source_language, locale: versionData.source_locale ?? null }
+}
+
+/**
+ * The form's language as a translation source: the `default_language` setting, or else the first translation, which
+ * is the default one. A text response is usually written in it, so it's a good first guess. Only names with a code,
+ * e.g. "English (en)", can be mapped; a code with a region, e.g. "es-MX", gives the language and that dialect.
+ */
+export const getFormLanguageSource = (asset: AssetResponse): TranslationSource | undefined => {
+  const formLanguage = asset.content?.settings?.default_language || asset.summary?.languages?.find(Boolean)
+  const code = formLanguage ? getLangAsObject(formLanguage)?.code : undefined
+  if (!code) return undefined
+  const languageCode = code.split('-')[0]
+  return { languageCode, locale: languageCode === code ? null : code }
 }
 
 // Question type support

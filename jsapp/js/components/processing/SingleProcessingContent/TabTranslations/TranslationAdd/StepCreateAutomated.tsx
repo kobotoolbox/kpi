@@ -20,7 +20,11 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
-import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
+import type { TranslationSource } from '#/components/processing/common/types'
+import {
+  getLatestAutomaticTranslationVersionItem,
+  getTranslationSourcePayload,
+} from '#/components/processing/common/utils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
@@ -32,6 +36,8 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse
   hasConflictingOngoingJob: boolean
+  /** The language of a text response, see `StepSelectLanguage` */
+  source?: TranslationSource
   onBack: () => void
   onLimitExceeded: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -44,6 +50,7 @@ export default function StepCreateAutomated({
   languageCode,
   submission,
   hasConflictingOngoingJob,
+  source,
   onBack,
   onLimitExceeded,
   onCreate,
@@ -152,7 +159,10 @@ export default function StepCreateAutomated({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            automatic_google_translation: { language: languageCode },
+            automatic_google_translation: {
+              language: languageCode,
+              ...getTranslationSourcePayload(source?.languageCode, source?.locale),
+            },
           },
         },
       })
@@ -201,7 +211,9 @@ export default function StepCreateAutomated({
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-      <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
+      <header className={bodyStyles.header}>
+        {source ? t('Automatic translation of text response to') : t('Automatic translation of transcript to')}
+      </header>
 
       <Flex component='section' direction='row' align='center' justify='center' mb='xxl'>
         <Group gap='xs'>
