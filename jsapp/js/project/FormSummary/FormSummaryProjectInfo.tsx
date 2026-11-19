@@ -36,7 +36,7 @@ function selectLatestSubmissionEnd(response: assetsDataListResponse) {
   return typeof latest?.end === 'string' ? latest.end : undefined
 }
 
-// Both InfoGroup and InfoItem are too small to justify a file of it's own, sorry
+// Both InfoGroup and InfoItem are too small to justify a file of its own, sorry
 
 /** A row of items, divided from the one above. */
 function InfoGroup(props: { children: React.ReactNode }) {

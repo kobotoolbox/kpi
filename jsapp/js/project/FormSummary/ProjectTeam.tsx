@@ -1,4 +1,5 @@
 import { Group } from '@mantine/core'
+import { IconUserPlus } from '@tabler/icons-react'
 import React from 'react'
 import ActionIcon from '#/components/common/ActionIcon'
 import Avatar from '#/components/common/avatar'
@@ -37,7 +38,7 @@ export default function ProjectTeam({ asset }: ProjectTeamProps) {
           <ActionIcon
             size='lg'
             variant='transparent'
-            iconName='user-share'
+            icon={IconUserPlus}
             tooltip={t('Share project')}
             className={styles.teamShareButton}
             onClick={() => openSharingModal({ asset })}

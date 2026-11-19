@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { actions } from '#/actions'
+import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey } from '#/api/react-query/manage-projects-and-library-content'
 
 interface AssetRefluxInvalidationOptions {
@@ -22,9 +23,8 @@ export function useAssetRefluxInvalidation(assetUid: string | undefined, options
     if (!assetUid) {
       return
     }
-    // Joins a refetch already in flight, so two components listening on one page make a single request
-    const invalidateAsset = () =>
-      queryClient.invalidateQueries({ queryKey: getAssetsRetrieveQueryKey(assetUid) }, { cancelRefetch: false })
+    // Cancels a refetch in flight, as it may have started before this change
+    const invalidateAsset = () => invalidateItem(getAssetsRetrieveQueryKey(assetUid), queryClient)
     const unlisteners = [
       actions.resources.deployAsset.completed.listen(invalidateAsset),
       actions.resources.setDeploymentActive.completed.listen(invalidateAsset),
