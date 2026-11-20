@@ -80,10 +80,10 @@ from kpi.utils.schema_extensions.response import (
 from kpi.views.v2.asset import AssetViewSet
 from ..accounts.mfa.utils import mfa_is_active_expression
 from .constants import (
-    CANNOT_REMOVE_OWNER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
+    OWNER_REMOVAL_ERROR,
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
@@ -847,7 +847,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 return
 
             if member.organization.is_owner(member.user):
-                raise InvalidMembershipRequest(CANNOT_REMOVE_OWNER_ERROR)
+                raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
 
             pending_transfers = list(
                 OrgOwnershipTransferInvite.objects.select_for_update().filter(

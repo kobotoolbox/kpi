@@ -74,7 +74,6 @@ RECIPIENT_MUST_BE_ADMIN_ERROR = t(
 PENDING_TRANSFER_ROLE_LOCKED_ERROR = t(
     'Role cannot be changed while an ownership transfer is pending for this user.'
 )
-CANNOT_REMOVE_OWNER_ERROR = t('The organization owner cannot be removed.')
 PENDING_TRANSFER_ACCOUNT_DELETION_ERROR = t(
     'You cannot delete your account while an organization ownership '
     'transfer is pending.'

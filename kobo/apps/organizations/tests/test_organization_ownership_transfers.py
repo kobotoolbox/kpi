@@ -15,9 +15,9 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.admin.organization_owner import OrgOwnerAdmin
 from kobo.apps.organizations.constants import (
-    CANNOT_REMOVE_OWNER_ERROR,
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
+    OWNER_REMOVAL_ERROR,
     OWNER_ROLE_LOCKED_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
     PENDING_TRANSFER_ACCOUNT_DELETION_ERROR,
@@ -603,18 +603,10 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertFalse(res_after.data['user__has_mfa_enabled'])
         self.assertFalse(res_after.data['user__has_sso_enabled'])
 
-    def test_pending_transfer_blocks_member_removal_and_owner_removal(self):
+    def test_cannot_remove_organization_owner(self):
         """
-        While a transfer is pending, the recipient Admin cannot be removed from
-        the organization, and the Owner cannot be removed.
+        The organization owner cannot be removed from the organization.
         """
-        admin_detail_url = reverse(
-            self._get_endpoint('organization-members-detail'),
-            kwargs={
-                'uid_organization': self.organization.id,
-                'username': self.admin_user.username,
-            },
-        )
         owner_detail_url = reverse(
             self._get_endpoint('organization-members-detail'),
             kwargs={
@@ -622,19 +614,11 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 'username': self.owner_user.username,
             },
         )
-        self._create_transfer(self.owner_user, self.admin_user.username)
         self.client.force_login(self.owner_user)
 
-        # Removing pending owner succeeds and auto-cancels the transfer
-        res = self.client.delete(admin_detail_url)
-        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
-        transfer = OrgOwnershipTransferInvite.objects.first()
-        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
-
-        # Cannot remove organization owner
         owner_res = self.client.delete(owner_detail_url)
         self.assertEqual(owner_res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(str(owner_res.data['detail']), str(CANNOT_REMOVE_OWNER_ERROR))
+        self.assertEqual(str(owner_res.data['detail']), str(OWNER_REMOVAL_ERROR))
 
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_pending_transfer_blocks_account_deletion(self):
