@@ -929,6 +929,50 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
         enqueue_poll.assert_called_once()
         item.refresh_from_db()
         self.assertEqual(item.service_id, 'operations/google-op-1')
+        # No version saved for it here: the poll still runs, not told its run
+        self.assertIsNone(enqueue_poll.call_args.kwargs['kwargs']['version_uuid'])
+
+    @patch(
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+    def test_start_bulk_item_job_tells_a_resumed_poll_its_run(
+        self,
+        mock_run_external_process,
+    ):
+        """
+        A poll resumed for a Google job already running checks on the run on
+        top, so it can never end a later run
+        """
+        mock_run_external_process.return_value = {'status': 'in_progress'}
+        SubmissionSupplement.revise_data(
+            self.asset,
+            {'meta/rootUuid': self.submission_uuid},
+            {
+                '_version': '20250820',
+                self.question_xpath: {self.action_id: {'language': 'en'}},
+            },
+        )
+        running_run = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )[self.question_xpath][self.action_id]['_versions'][0]['_uuid']
+
+        item = self.bulk_action.items.get(submission_root_uuid=self.submission_uuid)
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        item.status = BulkActionItemStatus.IN_PROGRESS
+        item.service_id = 'operations/google-op-1'
+        item.save(update_fields=['status', 'service_id'])
+
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as enqueue_poll:
+            start_bulk_item_job(item.pk)
+
+        enqueue_poll.assert_called_once()
+        self.assertEqual(
+            enqueue_poll.call_args.kwargs['kwargs']['version_uuid'], running_run
+        )
 
     @patch(
         'kobo.apps.subsequences.models.SubmissionSupplement.revise_data'

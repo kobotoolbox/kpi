@@ -309,8 +309,15 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                     'action_id': bulk_action.action_id,
                     'asset_id': asset.pk,
                     'question_xpath': bulk_action.question_xpath,
-                    # Not told its run: resuming a Google job does not read the
-                    # supplement, see `SubmissionSupplement.fail_in_progress_action()`
+                    # The Google job being resumed belongs to the run on top
+                    'version_uuid': _extract_bulk_item_version_uuid(
+                        asset=asset,
+                        action_context=bulk_action,
+                        supplement_data=_get_submission_supplement_data(
+                            asset=asset, submission=submission
+                        ),
+                        action_data=request_action_data,
+                    ),
                 },
                 countdown=10,
             )
@@ -713,12 +720,16 @@ def _extract_bulk_item_version_uuid(
     Return the `_uuid` of the latest version of a bulk-aware action, the run a
     poll is about to check on
 
-    Read leniently: a poll that is not told its run still works, whereas an
-    error here would fail the bulk item
+    Read leniently, `None` when there is no version to read: a poll that is
+    not told its run still works, whereas an error here would fail the bulk
+    item
     """
-    version, action_handler = _extract_bulk_item_latest_version(
-        asset, action_context, supplement_data, action_data
-    )
+    try:
+        version, action_handler = _extract_bulk_item_latest_version(
+            asset, action_context, supplement_data, action_data
+        )
+    except ValueError:
+        return None
     return version.get(action_handler.UUID_FIELD)
 
 
