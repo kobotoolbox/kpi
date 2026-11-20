@@ -1,5 +1,5 @@
 import chai from 'chai'
-import { renameQuestionReferences } from './questionReferences'
+import { hasQuestionReference, renameQuestionReferences } from './questionReferences'
 
 describe('renameQuestionReferences', () => {
   it('renames every reference to a renamed question', () => {
@@ -27,5 +27,16 @@ describe('renameQuestionReferences', () => {
 
   it('ignores names inherited from Object', () => {
     chai.expect(renameQuestionReferences('${constructor}', {})).to.equal('${constructor}')
+  })
+})
+
+describe('hasQuestionReference', () => {
+  it('finds plain and last-saved references', () => {
+    chai.expect(hasQuestionReference("${gender} = 'x'", 'gender')).to.equal(true)
+    chai.expect(hasQuestionReference('${last-saved#gender}', 'gender')).to.equal(true)
+  })
+
+  it('needs an exact name match', () => {
+    chai.expect(hasQuestionReference('${gender_001} + gender', 'gender')).to.equal(false)
   })
 })
