@@ -1720,3 +1720,55 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
         self.organization.refresh_from_db()
         self.assertFalse(self.organization.has_pending_ownership_transfer)
+
+    def test_cannot_demote_recipient_while_transfer_accepted(self):
+        """
+        Demoting the recipient to a regular member is blocked while an accepted
+        ownership transfer is queued to run.
+        """
+        OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.ACCEPTED,
+        )
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+        res = self.client.patch(admin_detail_url, data={'role': 'member'})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(str(PENDING_TRANSFER_ROLE_LOCKED_ERROR), str(res.data))
+        self.assertTrue(
+            OrganizationUser.objects.get(
+                organization=self.organization, user=self.admin_user
+            ).is_admin
+        )
+
+    def test_worker_rejects_demoted_recipient_before_owner_swap(self):
+        """
+        If the recipient is no longer an active admin when the worker starts,
+        the transfer is marked FAILED and ownership is not transferred.
+        """
+        transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.ACCEPTED,
+        )
+        OrganizationUser.objects.filter(
+            organization=self.organization, user=self.admin_user
+        ).update(is_admin=False)
+
+        with patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite:
+            transfer_organization_ownership(transfer.pk)
+
+        mock_create_invite.assert_not_called()
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.FAILED)
+        self.organization.refresh_from_db()
+        self.assertEqual(self.organization.owner_user_object, self.owner_user)

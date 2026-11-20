@@ -111,9 +111,13 @@ def transfer_organization_ownership(transfer_id: int):
                 .select_related('organization_user')
                 .get(organization=org)
             )
-            new_org_user = OrganizationUser.objects.select_for_update().get(
-                organization=org,
-                user=transfer.recipient,
+            new_org_user = (
+                OrganizationUser.objects.select_for_update()
+                .select_related('user')
+                .get(
+                    organization=org,
+                    user=transfer.recipient,
+                )
             )
 
             is_retry = transfer.status == InviteStatusChoices.IN_PROGRESS
@@ -128,6 +132,18 @@ def transfer_organization_ownership(transfer_id: int):
                 logging.warning(
                     f'Transfer {transfer_id} is stale: sender {transfer.sender_id} '
                     f'is no longer the owner of organization {org.id}.'
+                )
+                transfer.status = InviteStatusChoices.FAILED
+                transfer.save(update_fields=['status', 'date_modified'])
+                return
+
+            if not is_retry and (
+                not new_org_user.is_admin or not new_org_user.user.is_active
+            ):
+                logging.warning(
+                    f'Transfer {transfer_id} is invalid: recipient '
+                    f'{transfer.recipient_id} is no longer an active admin of '
+                    f'organization {org.id}.'
                 )
                 transfer.status = InviteStatusChoices.FAILED
                 transfer.save(update_fields=['status', 'date_modified'])

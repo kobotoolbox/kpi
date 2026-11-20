@@ -230,7 +230,10 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                 if OrgOwnershipTransferInvite.objects.filter(
                     metadata__organization_id=str(org_user.organization_id),
                     recipient=org_user.user,
-                    status=InviteStatusChoices.PENDING,
+                    status__in=(
+                        InviteStatusChoices.PENDING,
+                        InviteStatusChoices.ACCEPTED,
+                    ),
                 ).exists():
                     raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
 
