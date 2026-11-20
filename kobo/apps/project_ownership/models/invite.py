@@ -42,6 +42,8 @@ class InviteManager(models.Manager):
 
 class Invite(AbstractTimeStampedModel):
 
+    Status = InviteStatusChoices
+
     uid = KpiUidField(uid_prefix='poi')
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,

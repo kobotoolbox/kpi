@@ -71,5 +71,12 @@ RECIPIENT_AMBIGUOUS_EMAIL_ERROR = t(
 RECIPIENT_MUST_BE_ADMIN_ERROR = t(
     'The recipient must be an active administrator in this organization.'
 )
+PENDING_TRANSFER_ROLE_LOCKED_ERROR = t(
+    'Role cannot be changed while an ownership transfer is pending for this user.'
+)
+PENDING_TRANSFER_ACCOUNT_DELETION_ERROR = t(
+    'You cannot delete your account while an organization ownership '
+    'transfer is pending.'
+)
 TRANSFER_NO_LONGER_VALID_ERROR = t('Transfer is no longer valid.')
 TRANSFER_NOT_PENDING_ERROR = t('Transfer is not pending.')

@@ -611,6 +611,11 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             invitee_id__in=members_user_ids,
             organization_id=organization_id,
         ).order_by('invitee_id', 'created')
+        self._pending_transfers_queryset = OrgOwnershipTransferInvite.objects.filter(
+            metadata__organization_id=str(organization_id),
+            status=InviteStatusChoices.PENDING,
+            recipient_id__in=members_user_ids,
+        ).select_related('sender__extra_details', 'recipient')
         return page
 
     def get_queryset(self):
@@ -813,19 +818,47 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
                 invites_per_member[invite.invitee_id] = invite
             context['invites_per_member'] = invites_per_member
 
+        if hasattr(self, '_pending_transfers_queryset'):
+            pending_transfers_per_member = {}
+            for transfer in self._pending_transfers_queryset:
+                pending_transfers_per_member[transfer.recipient_id] = transfer
+            context['pending_transfers_per_member'] = pending_transfers_per_member
+
         return context
 
     def perform_destroy(self, instance):
         """
         Revoke asset permissions before deleting the user from the organization
         """
-        member = instance
-        if member.organization.is_owner(member.user):
-            raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
-
         with transaction.atomic():
+            try:
+                member = (
+                    OrganizationUser.objects.select_for_update()
+                    .select_related('organization', 'user')
+                    .get(pk=instance.pk)
+                )
+            except OrganizationUser.DoesNotExist:
+                return
+
+            if member.organization.is_owner(member.user):
+                raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
+
+            pending_transfers = list(
+                OrgOwnershipTransferInvite.objects.select_for_update().filter(
+                    metadata__organization_id=str(member.organization_id),
+                    recipient_id=member.user_id,
+                    status=InviteStatusChoices.PENDING,
+                )
+            )
+            for transfer in pending_transfers:
+                transfer.status = InviteStatusChoices.CANCELLED
+                transfer.save(update_fields=['status', 'date_modified'])
+
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
+
+        for transfer in pending_transfers:
+            transfer.send_cancellation_email()
 
 
 @extend_schema(
@@ -1198,15 +1231,8 @@ class OrganizationOwnershipTransferViewSet(
         if not organization_id:
             return OrgOwnershipTransferInvite.objects.none()
 
-        # Matches records explicitly bound to this org, and legacy records
-        # created before organization_id was added to metadata (scoped to sender's org).
-        queryset_filter = Q(metadata__organization_id=str(organization_id)) | (
-            ~Q(metadata__has_key='organization_id')
-            & Q(sender__organizations_organizationuser__organization_id=organization_id)
-        )
-
         queryset = OrgOwnershipTransferInvite.objects.filter(
-            queryset_filter
+            metadata__organization_id=str(organization_id)
         ).select_related('sender__extra_details', 'recipient')
 
         if self.action == 'list':
