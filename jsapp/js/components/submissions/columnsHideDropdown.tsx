@@ -3,6 +3,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Menu from '#/components/common/Menu'
 import ColumnsHideForm from '#/components/submissions/columnsHideForm'
 import type { ColumnsHideFormProps } from '#/components/submissions/columnsHideForm'
+import styles from './columnsHideDropdown.module.scss'
 
 /**
  * A dropdown to be used atop table to bulk hide columns.
@@ -22,8 +23,16 @@ export default function ColumnsHideDropdown(props: ColumnsHideFormProps) {
       withInitialFocusPlaceholder={false}
     >
       <Menu.Target>
-        <ButtonNew variant='transparent' size='md' leftIcon='hide' mr='lg'>
-          {t('Hide fields')}
+        <ButtonNew
+          className={styles.fields}
+          variant={props.hiddenCount ? 'light' : 'transparent'}
+          size='sm'
+          leftIcon='hide'
+          mr='lg'
+        >
+          {props.hiddenCount
+            ? `${props.hiddenCount} ${props.hiddenCount === 1 ? t('field hidden') : t('fields hidden')}`
+            : t('Hide fields')}
         </ButtonNew>
       </Menu.Target>
 
