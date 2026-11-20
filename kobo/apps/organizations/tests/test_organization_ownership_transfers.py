@@ -21,7 +21,6 @@ from kobo.apps.organizations.constants import (
     OWNER_ROLE_LOCKED_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
     PENDING_TRANSFER_ACCOUNT_DELETION_ERROR,
-    PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
     PENDING_TRANSFER_ROLE_LOCKED_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
@@ -626,25 +625,16 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self._create_transfer(self.owner_user, self.admin_user.username)
         self.client.force_login(self.owner_user)
 
-        # Cannot remove pending owner
+        # Removing pending owner succeeds and auto-cancels the transfer
         res = self.client.delete(admin_detail_url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            str(res.data['detail']), str(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR)
-        )
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
 
         # Cannot remove organization owner
         owner_res = self.client.delete(owner_detail_url)
         self.assertEqual(owner_res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(str(owner_res.data['detail']), str(CANNOT_REMOVE_OWNER_ERROR))
-
-        # Once transfer resolves, admin can be removed
-        transfer = OrgOwnershipTransferInvite.objects.first()
-        transfer.status = InviteStatusChoices.CANCELLED
-        transfer.save(update_fields=['status'])
-
-        res_after = self.client.delete(admin_detail_url)
-        self.assertEqual(res_after.status_code, status.HTTP_204_NO_CONTENT)
 
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_pending_transfer_blocks_account_deletion(self):
@@ -1242,11 +1232,11 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 str(PENDING_TRANSFER_ROLE_LOCKED_ERROR),
             )
 
-    def test_member_removal_fails_if_transfer_created_concurrently(self):
+    def test_member_removal_auto_cancels_transfer_created_concurrently(self):
         """
         If ownership transfer is created concurrently while member removal is in
         flight, the row lock and re-read inside perform_destroy() detects the
-        pending transfer and aborts (400).
+        pending transfer, cancels it, and completes removal (204).
         """
         admin_detail_url = reverse(
             self._get_endpoint('organization-members-detail'),
@@ -1257,7 +1247,7 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
         self.client.force_login(self.owner_user)
 
-        OrgOwnershipTransferInvite.objects.create(
+        transfer = OrgOwnershipTransferInvite.objects.create(
             organization=self.organization,
             sender=self.owner_user,
             recipient=self.admin_user,
@@ -1265,11 +1255,9 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         )
 
         res = self.client.delete(admin_detail_url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            str(res.data['detail']),
-            str(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR),
-        )
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
 
     @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
     def test_account_deletion_fails_if_transfer_created_concurrently(self):
@@ -1340,3 +1328,38 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         ):
             with self.assertRaises(IntegrityError):
                 self._create_transfer(self.owner_user, self.admin_user.username)
+
+    def test_removing_member_with_pending_transfer_auto_cancels_transfer(self):
+        """
+        Removing an invited member while their ownership transfer is PENDING
+        automatically cancels the transfer and frees the organization so a new
+        transfer can be created.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        self.assertEqual(transfer.status, InviteStatusChoices.PENDING)
+        self.assertTrue(self.organization.has_pending_ownership_transfer)
+
+        admin_member = OrganizationUser.objects.get(
+            organization=self.organization, user=self.admin_user
+        )
+        member_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': admin_member.user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+        with patch.object(
+            OrgOwnershipTransferInvite, 'send_cancellation_email'
+        ) as mock_email:
+            res = self.client.delete(member_url)
+            self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+            mock_email.assert_called_once()
+
+        self.assertFalse(OrganizationUser.objects.filter(pk=admin_member.pk).exists())
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
+        self.organization.refresh_from_db()
+        self.assertFalse(self.organization.has_pending_ownership_transfer)

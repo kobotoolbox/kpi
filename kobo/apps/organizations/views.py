@@ -84,7 +84,6 @@ from .constants import (
     INVITE_ALREADY_ACCEPTED_ERROR,
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
-    PENDING_TRANSFER_MEMBER_REMOVAL_ERROR,
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
@@ -850,21 +849,23 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             if member.organization.is_owner(member.user):
                 raise InvalidMembershipRequest(CANNOT_REMOVE_OWNER_ERROR)
 
-            if OrgOwnershipTransferInvite.objects.filter(
-                Q(metadata__organization_id=str(member.organization_id))
-                | (
-                    ~Q(metadata__has_key='organization_id')
-                    & Q(
-                        sender__organizations_organizationuser__organization_id=member.organization_id  # noqa E501
-                    )
-                ),
-                recipient=member.user,
-                status=InviteStatusChoices.PENDING,
-            ).exists():
-                raise InvalidMembershipRequest(PENDING_TRANSFER_MEMBER_REMOVAL_ERROR)
+            pending_transfers = list(
+                OrgOwnershipTransferInvite.objects.select_for_update().filter(
+                    Q(metadata__organization_id=str(member.organization_id))
+                    | ~Q(metadata__has_key='organization_id'),
+                    recipient_id=member.user_id,
+                    status=InviteStatusChoices.PENDING,
+                )
+            )
+            for transfer in pending_transfers:
+                transfer.status = InviteStatusChoices.CANCELLED
+                transfer.save(update_fields=['status', 'date_modified'])
 
             revoke_org_asset_perms(member.organization, [member.user_id])
             super().perform_destroy(member)
+
+        for transfer in pending_transfers:
+            transfer.send_cancellation_email()
 
 
 @extend_schema(
