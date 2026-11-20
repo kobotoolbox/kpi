@@ -140,7 +140,11 @@ class ChunkedTranscriptionRunTestCase(TestCase):
         ]
         assert list(
             TranscriptionChunk.objects.values_list(
-                'version_uuid', 'index', 'start_offset', 'end_offset', 'status',
+                'version_uuid',
+                'index',
+                'start_offset',
+                'end_offset',
+                'status',
                 'file_path',
             )
         ) == [

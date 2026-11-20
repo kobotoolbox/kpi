@@ -2,30 +2,30 @@ import uuid
 from datetime import timedelta
 from unittest.mock import patch
 
+from celery.exceptions import Retry
 from django.test import override_settings
 from django.utils import timezone
-from kpi.models import Asset
-from kpi.tests.base_test_case import BaseTestCase
+
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from kobo.apps.subsequences.models import (
+    PENDING_OPERATION_MARKER,
     BulkActionItemStatus,
     BulkActionStatus,
-    PENDING_OPERATION_MARKER,
     QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
 )
-from kobo.apps.subsequences.constants import Action
-from kobo.apps.subsequences.tasks import poll_run_external_process_failure
-
-
 from kobo.apps.subsequences.tasks import (
     poll_run_external_process,
+    poll_run_external_process_failure,
     resume_stuck_bulk_actions,
     start_bulk_item_job,
     update_batch_status,
 )
-from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
+from kpi.models import Asset
+from kpi.tests.base_test_case import BaseTestCase
 
 
 class TestPollRunExternalProcess(BaseTestCase):
@@ -320,7 +320,9 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
             'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process'  # noqa: E501
         ) as mock_run:
             mock_run.return_value = {
-                'status': 'complete', 'value': 'Hello', 'language': 'en'
+                'status': 'complete',
+                'value': 'Hello',
+                'language': 'en',
             }
             SubmissionSupplement.revise_data(
                 self.asset,
@@ -340,7 +342,10 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
             'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process',  # noqa: E501
             side_effect=RuntimeError('the database went away'),
         ):
-            poll_run_external_process(**self.task_kwargs['kwargs'])
+            poll_run_external_process(
+                **self.task_kwargs['kwargs'],
+                version_uuid=self._versions()[0]['_uuid'],
+            )
 
         latest_data = self._versions()[0]['_data']
         self.assertEqual(latest_data['status'], 'failed')
@@ -391,9 +396,7 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         supplement = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_uuid
         )
-        versions = supplement.content[self.question_xpath][self.action_id][
-            '_versions'
-        ]
+        versions = supplement.content[self.question_xpath][self.action_id]['_versions']
         later_run = {**versions[0], '_uuid': str(uuid.uuid4())}
         versions.insert(0, later_run)
         supplement.save(update_fields=['content'])
@@ -434,6 +437,45 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         latest = self._versions()[0]
         self.assertEqual(latest['_uuid'], later_run)
         self.assertEqual(latest['_data']['status'], 'in_progress')
+
+    def test_a_poll_not_told_its_run_learns_it_on_its_first_check(self):
+        """
+        A translation's poll is scheduled before its `in_progress` version is
+        saved, so it is not told its run. It learns it on its first check and
+        is queued again with it, so every retry and its end carry it
+        """
+        running_run = self._versions()[0]['_uuid']
+
+        with patch.object(
+            poll_run_external_process, 'retry', return_value=Retry()
+        ) as retry, patch(
+            'kobo.apps.subsequences.models.SubmissionSupplement.revise_data'
+        ) as revise_data:
+            with self.assertRaises(Retry):
+                poll_run_external_process(**self.task_kwargs['kwargs'])
+
+        retry.assert_called_once_with(
+            kwargs={**self.task_kwargs['kwargs'], 'version_uuid': running_run},
+            countdown=0,
+        )
+        # Nothing else is done on that check
+        revise_data.assert_not_called()
+
+    def test_a_poll_learns_only_a_run_in_progress(self):
+        """
+        Before its run's version is saved, or once a result has landed, there
+        is no run in progress to learn: the poll carries on, and tries again
+        on its next check
+        """
+        self._land_result()
+
+        with patch.object(poll_run_external_process, 'retry') as retry, patch(
+            'kobo.apps.subsequences.models.SubmissionSupplement.revise_data',
+            return_value=None,
+        ):
+            poll_run_external_process(**self.task_kwargs['kwargs'])
+
+        retry.assert_not_called()
 
     def test_a_later_run_started_after_the_read_is_kept(self):
         """
@@ -1168,6 +1210,11 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
                 },
             )
 
+        # The run the poll was scheduled for
+        running_run = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )[self.question_xpath][self.action_id]['_versions'][0]['_uuid']
+
         with patch(
             'kobo.apps.subsequences.models.SubmissionSupplement.revise_data',
             return_value=None,
@@ -1178,6 +1225,7 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
                     submission=submission,
                     question_xpath=self.question_xpath,
                     action_id=self.action_id,
+                    version_uuid=running_run,
                     action_data={
                         'language': 'en',
                         'bulk_action_uid': self.bulk_action.uid,

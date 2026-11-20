@@ -422,9 +422,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 )
                 return {
                     'status': 'failed',
-                    'error': (
-                        f'Transcription failed with error {per_file_error}'
-                    ),
+                    'error': f'Transcription failed with error {per_file_error}',
                 }
 
             # If Google finished within the request timeout, read the
@@ -443,9 +441,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 f'{self.submission_root_uuid=}, operation={operation_name}: '
                 f'{err}'
             )
-            self._clear_operation_reference(
-                xpath, source_language, bulk_action_uid
-            )
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
             return {
                 'status': 'failed',
                 'error': (

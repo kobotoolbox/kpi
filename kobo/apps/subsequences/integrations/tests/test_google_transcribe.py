@@ -511,9 +511,7 @@ def test_a_run_with_chunk_rows_reports_on_them(starting_service, chunking):
     starting_service._start_operation.assert_not_called()
 
 
-def test_polling_a_whole_file_job_does_not_look_for_chunks(
-    starting_service, chunking
-):
+def test_polling_a_whole_file_job_does_not_look_for_chunks(starting_service, chunking):
     """
     Short files are nearly all the traffic: polling one costs no chunk query
     """
@@ -551,7 +549,9 @@ def test_store_chunk_file_uploads_to_a_place_fixed_by_version_and_index():
         constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX = 'asr'
         uri = service.store_chunk_file('/tmp/work/chunk_002.flac', 'version-1', 2)
 
-    service.bucket.blob.assert_called_once_with('asr/speech-v2/chunks/version-1/002.flac')
+    service.bucket.blob.assert_called_once_with(
+        'asr/speech-v2/chunks/version-1/002.flac'
+    )
     service.bucket.blob.return_value.upload_from_filename.assert_called_once_with(
         '/tmp/work/chunk_002.flac', content_type='audio/flac'
     )

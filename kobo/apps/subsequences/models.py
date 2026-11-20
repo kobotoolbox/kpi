@@ -327,9 +327,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         out of retries. Saved only while that run is still the latest version
         and still `in_progress`: a result or a deletion that landed meanwhile
         is kept, and so is a later run launched after it, which an old poll
-        must never end. `version_uuid` is `None` for a poll that does not know
-        its run (scheduled before its `in_progress` version was saved), which
-        then ends whichever run is in progress
+        must never end. `version_uuid` is `None` only for a poll that has not
+        learned its run yet (see `poll_run_external_process`), which then ends
+        whichever run is in progress
         """
         supplemental_data = SubmissionSupplement.retrieve_data(
             asset, submission_root_uuid=submission_uuid

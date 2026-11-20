@@ -232,6 +232,7 @@ def probe_duration(path_or_url: str, label: str = '') -> float | None:
     presigned URL.
     """
     try:
+        # fmt: off
         result = subprocess.run(
             [
                 'ffprobe',
@@ -244,6 +245,7 @@ def probe_duration(path_or_url: str, label: str = '') -> float | None:
             text=True,
             timeout=30,
         )
+        # fmt: on
         data = json.loads(result.stdout)
         return float(data['format']['duration'])
     except subprocess.TimeoutExpired:
