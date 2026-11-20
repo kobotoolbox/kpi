@@ -1,0 +1,12 @@
+{% load i18n %}
+{% autoescape off %}
+{% trans "Dear" %} {{ previous_owner_username }},
+
+{% blocktrans trimmed %}{{ new_owner_username }} has accepted your request to transfer ownership of {{ team_name }}.{% endblocktrans %}
+
+{% trans "All submissions, data storage, and transcription and translation usage for this team have been transferred to the new team owner." %}
+
+{% trans "Note: You have become an admin of the team until the user permissions are changed." %}
+
+- KoboToolbox
+{% endautoescape %}
