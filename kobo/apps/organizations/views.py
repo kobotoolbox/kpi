@@ -835,6 +835,22 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         with transaction.atomic():
+            # Lock transfers before OrganizationUser to match the lock order in
+            # transfer_organization_ownership and avoid PostgreSQL deadlocks.
+            active_transfers = list(
+                OrgOwnershipTransferInvite.objects.select_for_update()
+                .filter(
+                    Q(sender_id=instance.user_id) | Q(recipient_id=instance.user_id),
+                    metadata__organization_id=str(instance.organization_id),
+                    status__in=(
+                        InviteStatusChoices.PENDING,
+                        InviteStatusChoices.ACCEPTED,
+                        InviteStatusChoices.IN_PROGRESS,
+                    ),
+                )
+                .order_by('id')
+            )
+
             try:
                 member = (
                     OrganizationUser.objects.select_for_update()
@@ -847,29 +863,21 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             if member.organization.is_owner(member.user):
                 raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
 
-            if (
-                OrgOwnershipTransferInvite.objects.select_for_update()
-                .filter(
-                    Q(sender_id=member.user_id) | Q(recipient_id=member.user_id),
-                    metadata__organization_id=str(member.organization_id),
-                    status__in=(
-                        InviteStatusChoices.ACCEPTED,
-                        InviteStatusChoices.IN_PROGRESS,
-                    ),
-                )
-                .exists()
+            if any(
+                transfer.status
+                in (InviteStatusChoices.ACCEPTED, InviteStatusChoices.IN_PROGRESS)
+                for transfer in active_transfers
             ):
                 raise InvalidMembershipRequest(
                     OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR
                 )
 
-            pending_transfers = list(
-                OrgOwnershipTransferInvite.objects.select_for_update().filter(
-                    metadata__organization_id=str(member.organization_id),
-                    recipient_id=member.user_id,
-                    status=InviteStatusChoices.PENDING,
-                )
-            )
+            pending_transfers = [
+                transfer
+                for transfer in active_transfers
+                if transfer.status == InviteStatusChoices.PENDING
+                and transfer.recipient_id == member.user_id
+            ]
             for transfer in pending_transfers:
                 transfer.status = InviteStatusChoices.CANCELLED
                 transfer.save(update_fields=['status', 'date_modified'])
