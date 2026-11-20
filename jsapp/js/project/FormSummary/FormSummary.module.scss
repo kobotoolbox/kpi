@@ -1,0 +1,132 @@
+@use 'scss/breakpoints';
+@use 'scss/colors';
+@use 'scss/variables';
+
+// The page scrolls itself, see `ProjectLayout`
+.root {
+  height: 100%;
+  overflow-y: auto;
+  background: colors.$kobo-gray-200;
+
+  @media print {
+    height: auto;
+    overflow: visible;
+    background: transparent;
+  }
+}
+
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px;
+}
+
+.mainColumn {
+  flex: 1;
+  min-width: 0;
+}
+
+@media screen and (min-width: breakpoints.$b768) {
+  .columns {
+    flex-direction: row;
+    gap: 30px;
+    padding: 40px;
+  }
+
+  .sideColumn {
+    width: 35%;
+  }
+}
+
+@media screen and (width >= 1024px) {
+  .sideColumn {
+    width: 30%;
+  }
+}
+
+// Section
+
+.sectionHeader {
+  padding-bottom: var(--mantine-spacing-lg);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: variables.$base-font-size;
+  font-weight: 500;
+  color: colors.$kobo-gray-800;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+.sectionBox {
+  background-color: colors.$kobo-white;
+}
+
+// Nav link
+
+.navLink {
+  padding: 6px 10px;
+  color: colors.$kobo-gray-700;
+  border-bottom: 1px solid colors.$kobo-gray-300;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: transparent;
+    color: colors.$kobo-gray-800;
+  }
+}
+
+// Only the left one, the right one is the chevron
+.navLinkIcon[data-position='left'] {
+  margin: 4px 10px 4px 4px;
+
+  i {
+    font-size: 24px;
+  }
+}
+
+.navLinkLabel {
+  font-size: variables.$base-font-size;
+}
+
+// Team
+
+.teamShareButton {
+  // Keeps the title row as high as in other sections
+  margin-block: -10px;
+  color: colors.$kobo-gray-700;
+
+  &:hover {
+    color: colors.$kobo-blue;
+  }
+}
+
+.team {
+  padding: var(--mantine-spacing-lg);
+}
+
+// Project information
+
+.infoGroup {
+  border-top: 1px solid colors.$kobo-gray-300;
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+.infoItem {
+  padding: var(--mantine-spacing-lg);
+}
+
+.infoLabel {
+  font-size: 12px;
+  opacity: 0.6;
+}

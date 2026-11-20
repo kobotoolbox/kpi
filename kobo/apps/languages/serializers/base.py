@@ -7,11 +7,24 @@ from rest_framework import serializers
 
 class BaseServiceSerializer(serializers.ModelSerializer):
 
+    # Service code → action ID, set by the inherited serializer class
+    ACTION_IDS_BY_SERVICE_CODE = {}
+
+    action_id = serializers.SerializerMethodField()
+
     class Meta:
         fields = [
             'name',
             'code',
+            'priority',
+            'action_id',
         ]
+
+    def get_action_id(self, service) -> str | None:
+        """
+        ID of the action that calls this service, null when no action does
+        """
+        return self.ACTION_IDS_BY_SERVICE_CODE.get(service.code)
 
 
 class BaseServiceLanguageM2MSerializer(serializers.ModelSerializer):

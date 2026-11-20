@@ -1,45 +1,21 @@
 import { Switch } from '@mantine/core'
 import cx from 'classnames'
+import { useState } from 'react'
 import securityStyles from '#/account/security/securityRoute.module.scss'
-import type { MfaModalType } from '#/components/bigModal/mfaModals'
+import MFAModals, { type MfaModalType } from '#/components/bigModal/mfaModals'
 import Button from '#/components/common/button'
-import Icon from '#/components/common/icon'
 import Tooltip from '#/components/common/tooltip'
-import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
-import pageState from '#/pageState.store'
 import profileStore from '#/stores/profile'
 import { formatTime } from '#/utils'
 import { useMfaActivate, useMfaStatus } from './mfa.api'
 import styles from './mfaSection.module.scss'
 
-/** Shown above every step, since they share one title */
-function renderModalHeader() {
-  return (
-    <header className='table-media-preview-header'>
-      <div className='table-media-preview-header__title'>
-        <Icon name='lock' size='s' />
-        {t('Two-factor authentication')}
-      </div>
-    </header>
-  )
-}
-
-/** Steps run in `BigModal`, so opening one writes to `pageState` */
-function showMfaModal(modalType: MfaModalType, qrCode?: string) {
-  pageState.showModal({
-    type: MODAL_TYPES.MFA_MODALS,
-    modalType,
-    qrCode,
-    customModalHeader: renderModalHeader(),
-    disableBackdropClose: true,
-    disableEscClose: true,
-  })
-}
-
 export default function MfaSection() {
   const { data: mfaStatus } = useMfaStatus()
   const activate = useMfaActivate()
+  /** `null` while closed */
+  const [openModal, setOpenModal] = useState<{ modalType: MfaModalType; qrCode?: string } | null>(null)
 
   const isMfaActive = mfaStatus?.isActive ?? false
 
@@ -49,6 +25,10 @@ export default function MfaSection() {
     profileStore.currentAccount.is_superuser
 
   const isDisabled = isSuperuserMfaLocked && isMfaActive
+
+  function showMfaModal(modalType: MfaModalType, qrCode?: string) {
+    setOpenModal({ modalType, qrCode })
+  }
 
   function onToggleChange(isActive: boolean) {
     if (isActive) {
@@ -120,6 +100,9 @@ export default function MfaSection() {
       ) : (
         toggle
       )}
+
+      {/* Mounted only while open, so every opening starts on its first step */}
+      {openModal && <MFAModals {...openModal} onModalClose={() => setOpenModal(null)} />}
     </section>
   )
 }
