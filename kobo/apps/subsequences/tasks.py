@@ -12,15 +12,17 @@ from django.db import DatabaseError, transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.subsequences.exceptions import (
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
     SubsequenceTimeoutError,
 )
 from kobo.celery import celery_app
-from kpi.utils.log import logging
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.log import logging
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 
 
@@ -67,7 +69,7 @@ def poll_run_external_process(
                 submission,
                 incoming_data
             )
-        except GoogleQuotaExceededError as err:
+        except ServiceQuotaExceededError as err:
             raise self.retry(countdown=err.retry_after, exc=err)
         if supplement_data is None:
             supplement_data = _get_submission_supplement_data(
@@ -339,7 +341,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
             supplement_data = apps.get_model(
                 'subsequences', 'SubmissionSupplement'
             ).revise_data(asset, submission, incoming_data)
-        except GoogleQuotaExceededError as err:
+        except ServiceQuotaExceededError as err:
             _clear_pending_operation_marker(item)
             raise self.retry(countdown=err.retry_after, exc=err)
 

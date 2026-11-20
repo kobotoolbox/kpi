@@ -1410,11 +1410,12 @@ BULK_ACTION_RATE_LIMITS = {
     },
 }
 
-# These limits restrict the maximum number of Google Cloud requests per minute
-# across the entire platform. They are intentionally set lower than Google
-# project quotas to leave headroom for window skew, manual retries, and services
-# that share the same Google project outside this process.
-GOOGLE_SERVICE_RATE_LIMITS = {
+# These limits restrict the maximum number of requests per minute sent to each
+# NLP service across the entire platform. They are intentionally set lower than
+# the provider quotas to leave headroom for window skew, manual retries, and
+# services that share the same provider project outside this process.
+# Quota names are prefixed by provider API, so the dict stays flat.
+NLP_SERVICE_RATE_LIMITS = {
     'speech_v2_batch_recognize': {
         'max_requests': env.int(
             'GOOGLE_SPEECH_V2_BATCH_RECOGNIZE_MAX_REQUESTS_PER_MINUTE',
