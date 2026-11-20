@@ -29,7 +29,6 @@ from ...constants import (
     DEPENDENCY_ACTION_ID_FIELD,
     DEPENDENCY_SOURCE_SUBMISSION,
     GOOGLE_CACHE_TIMEOUT,
-    GOOGLE_CODE,
 )
 from ...exceptions import (
     GoogleQuotaExceededError,
@@ -547,7 +546,7 @@ class GoogleTranslationService(GoogleService):
         """
         try:
             transcription_lang_service = TranscriptionService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranscriptionService.DoesNotExist:
             raise LanguageNotSupported(
@@ -561,7 +560,7 @@ class GoogleTranslationService(GoogleService):
         """
         try:
             translation_lang_service = TranslationService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranslationService.DoesNotExist:
             raise LanguageNotSupported(
