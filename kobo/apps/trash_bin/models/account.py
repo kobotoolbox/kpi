@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Optional
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
@@ -22,11 +25,25 @@ class AccountTrash(BaseTrash):
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
+    retention_setting = 'ACCOUNT_TRASH_RETENTION'
+
     def __str__(self) -> str:
-        try:
-            return f'{self.user.username} - {self.periodic_task.clocked.clocked_time}'
-        except AttributeError:
-            return f'{self.user.username} - None'
+        return f'{self.user.username} - {self.scheduled_time}'
+
+    @property
+    def scheduled_time(self) -> Optional[datetime]:
+        """
+        Return the time when the account becomes due for deletion.
+
+        "Delete selected users" sends the deletion right away (see
+        `move_to_trash()`), and it is the only action that does not retain a
+        placeholder: those accounts are due as soon as they are trashed.
+        """
+
+        if not self.retain_placeholder and not self.empty_manually:
+            return self.date_created
+
+        return super().scheduled_time
 
     @classmethod
     def toggle_statuses(

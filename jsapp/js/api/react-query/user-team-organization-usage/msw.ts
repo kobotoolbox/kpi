@@ -1078,6 +1078,28 @@ export const getOrganizationsOwnershipTransfersListResponseMock = (
   ...overrideResponse,
 })
 
+export const getOrganizationsOwnershipTransfersListResponseMock = (
+  overrideResponse: Partial<Extract<PaginatedOrganizationOwnershipTransferList, object>> = {},
+): PaginatedOrganizationOwnershipTransferList => ({
+  count: faker.helpers.arrayElement([faker.number.int(), faker.helpers.arrayElement(['many', 'unknown'] as const)]),
+  next: faker.helpers.arrayElement([faker.internet.url(), null]),
+  previous: faker.helpers.arrayElement([faker.internet.url(), null]),
+  results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+    uid: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_id: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    organization_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_name: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    sender_email: faker.internet.email(),
+    recipient: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    status: faker.helpers.arrayElement(Object.values(OrganizationOwnershipTransferStatusEnum)),
+    billing_review_requested: faker.datatype.boolean(),
+    created: faker.date.past().toISOString().slice(0, 19) + 'Z',
+    modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
+  })),
+  ...overrideResponse,
+})
+
 export const getOrganizationsOwnershipTransfersCreateResponseMock = (
   overrideResponse: Partial<Extract<OrganizationOwnershipTransfer, object>> = {},
 ): OrganizationOwnershipTransfer => ({

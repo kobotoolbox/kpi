@@ -12789,7 +12789,9 @@ paths:
 
         Search can be made with `q` parameter to search for the term in names and codes.
 
-        Results are order by name.
+        Results are ordered by priority (lower values first), then by name.
+
+        Each service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.
       parameters:
       - name: limit
         required: false
@@ -12887,13 +12889,14 @@ paths:
   /api/v2/translation-services/:
     get:
       operationId: api_v2_translation_services_list
-      description: |+
+      description: |
         ## List the translation services accessible to requesting (authenticated) user.
 
         Search can be made with `q` parameter to search for the term in names and codes.
 
-        Results are ordered by name.
+        Results are ordered by priority (lower values first), then by name.
 
+        Each service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.
       parameters:
       - name: limit
         required: false
@@ -19919,6 +19922,13 @@ components:
                 type: string
               name:
                 type: string
+              priority:
+                type: integer
+              action_id:
+                type:
+                - string
+                - 'null'
+                nullable: true
           readOnly: true
         translation_services:
           type: array
@@ -19929,6 +19939,13 @@ components:
                 type: string
               name:
                 type: string
+              priority:
+                type: integer
+              action_id:
+                type:
+                - string
+                - 'null'
+                nullable: true
           readOnly: true
         url:
           type: string
@@ -24996,7 +25013,20 @@ components:
         code:
           type: string
           maxLength: 10
+        priority:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: Lower values come first
+        action_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the action that calls this service, null when no action
+            does
+          readOnly: true
       required:
+      - action_id
       - code
       - name
     TransferListResponse:
@@ -25044,7 +25074,20 @@ components:
         code:
           type: string
           maxLength: 10
+        priority:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: Lower values come first
+        action_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the action that calls this service, null when no action
+            does
+          readOnly: true
       required:
+      - action_id
       - code
       - name
     UserListResponse:

@@ -473,6 +473,20 @@ export const SettingsChanges: Story = {
   },
 }
 
+/** Hiding a column keeps the other ones visible. */
+export const HideColumn: Story = {
+  ...Default,
+  beforeEach: () => {
+    resetTableSettings()
+    return resetTableSettings
+  },
+  play: async ({ canvasElement }) => {
+    await clickColumnMenuItem(canvasElement, 'Record a sound', 'Hide field')
+    await waitFor(() => expect(within(canvasElement).queryByText('Record a sound')).not.toBeInTheDocument())
+    expect(getHeaderCell(canvasElement, 'Validation')).toBeInTheDocument()
+  },
+}
+
 export const ProcessingColumnAndBanner: Story = {
   args: {
     asset: processingAsset,
