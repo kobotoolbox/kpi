@@ -56,7 +56,7 @@ def poll_run_external_process(
 
     `version_uuid` is `None` for a poll scheduled before its run's
     `in_progress` version was saved (a translation), or queued before it was
-    passed: such a poll learns its run on its first check
+    passed, see `SubmissionSupplement.fail_in_progress_action()`
     """
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model(
@@ -69,30 +69,6 @@ def poll_run_external_process(
             question_xpath: {action_id: request_action_data},
         }
         asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
-        if version_uuid is None and (
-            running_run := _get_running_version_uuid(
-                asset=asset,
-                action_context=_get_advanced_feature(asset, question_xpath, action_id),
-                supplement_data=_get_submission_supplement_data(
-                    asset=asset, submission=submission
-                ),
-                action_data=request_action_data,
-            )
-        ):
-            # Not told its run when it was scheduled (a translation saves its
-            # `in_progress` version afterwards): learn it now, while it is the
-            # run in progress, and carry it through every retry from here on
-            raise self.retry(
-                kwargs={
-                    'asset_id': asset_id,
-                    'submission': submission,
-                    'question_xpath': question_xpath,
-                    'action_id': action_id,
-                    'action_data': action_data,
-                    'version_uuid': running_run,
-                },
-                countdown=0,
-            )
         try:
             supplement_data = SubmissionSupplement.revise_data(
                 asset,
@@ -335,7 +311,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                     'asset_id': asset.pk,
                     'question_xpath': bulk_action.question_xpath,
                     # The Google job being resumed belongs to the run on top
-                    'version_uuid': _get_running_version_uuid(
+                    'version_uuid': _extract_bulk_item_version_uuid(
                         asset=asset,
                         action_context=bulk_action,
                         supplement_data=_get_submission_supplement_data(
@@ -451,7 +427,7 @@ def start_bulk_item_job(self, bulk_action_item_id: str):
                     'asset_id': asset.pk,
                     'question_xpath': bulk_action.question_xpath,
                     # The version `revise_data()` left on top is this item's run
-                    'version_uuid': _get_running_version_uuid(
+                    'version_uuid': _extract_bulk_item_version_uuid(
                         asset=asset,
                         action_context=bulk_action,
                         supplement_data=supplement_data,
@@ -735,17 +711,17 @@ def _extract_bulk_item_version_data(
     return version_data
 
 
-def _get_running_version_uuid(
+def _extract_bulk_item_version_uuid(
     asset: 'kpi.models.Asset',
     action_context: Union['SubsequenceBulkAction', 'QuestionAdvancedFeature'],
     supplement_data: dict,
     action_data: dict,
 ) -> str | None:
     """
-    Return the `_uuid` of the run in progress for a bulk-aware action, the one
-    a poll checks on, or `None` when its latest version is not `in_progress`
+    Return the `_uuid` of the latest version of a bulk-aware action, the run a
+    poll is about to check on
 
-    Read leniently, `None` too when there is no version to read: a poll that is
+    Read leniently, `None` when there is no version to read: a poll that is
     not told its run still works, whereas an error here would fail the bulk
     item
     """
@@ -754,9 +730,6 @@ def _get_running_version_uuid(
             asset, action_context, supplement_data, action_data
         )
     except ValueError:
-        return None
-    version_data = version.get(action_handler.VERSION_DATA_FIELD) or {}
-    if version_data.get('status') != 'in_progress':
         return None
     return version.get(action_handler.UUID_FIELD)
 

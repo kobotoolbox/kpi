@@ -33,7 +33,7 @@ from kpi.utils.audio_chunking import ChunkRange, convert_and_plan_chunks
 from kpi.utils.ffmpeg import cut_audio
 from kpi.utils.log import logging
 from ..constants import UNIQUE_TRANSCRIPTION_CHUNK_PER_VERSION
-from ..exceptions import ChunkStorageError
+from ..exceptions import ChunkStorageError, ChunkStorageRefusedError
 
 
 class ChunkedTranscriptionEngine(ABC):
@@ -58,7 +58,9 @@ class ChunkedTranscriptionEngine(ABC):
         The location depends only on `version_uuid` and `index`, so preparing
         the same run again replaces its files instead of leaving copies.
         Raise `ChunkStorageError` when storage cannot be reached, and the
-        chunks are prepared again on the next poll
+        chunks are prepared again on the next poll. Raise
+        `ChunkStorageRefusedError` when storage refuses the file, and the run
+        fails: preparing it again would be refused the same way
         """
 
 
@@ -133,6 +135,17 @@ class ChunkedTranscriptionRun:
                 f'{attachment.pk}, they are prepared again on the next poll'
             )
             return {'status': 'in_progress'}
+        except ChunkStorageRefusedError:
+            # Logged in full, but kept out of the version: the storage error
+            # names the bucket and the account it was refused to
+            logging.exception(
+                f'Storage refused the transcription chunks for attachment '
+                f'{attachment.pk}'
+            )
+            return {
+                'status': 'failed',
+                'error': 'Transcription failed: the audio file could not be stored',
+            }
 
         self._save_chunks(chunks)
         return {'status': 'in_progress'}

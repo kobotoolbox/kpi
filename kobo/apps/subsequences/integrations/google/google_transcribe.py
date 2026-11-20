@@ -17,6 +17,7 @@ from google.api_core.exceptions import (
     InvalidArgument,
     PermissionDenied,
     ResourceExhausted,
+    RetryError,
     Unauthenticated,
 )
 from google.cloud import speech_v2 as speech
@@ -39,6 +40,7 @@ from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
 from ...exceptions import (
     ChunkStorageError,
+    ChunkStorageRefusedError,
     GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
@@ -624,8 +626,15 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             self.bucket.blob(destination_path).upload_from_filename(
                 local_path, content_type='audio/flac'
             )
-        except (GoogleAPIError, GoogleCloudError) as err:
+        except RetryError as err:
+            # The client already retried what may pass (timeouts, lost
+            # connections, 429 and 5xx responses) until its deadline, then
+            # raised this: storage may be back by the next poll
             raise ChunkStorageError(str(err)) from err
+        except GoogleAPIError as err:
+            # Anything else is a refusal (permissions, missing bucket, etc.)
+            # that the next poll would meet again
+            raise ChunkStorageRefusedError(str(err)) from err
         return self._get_gcs_uri(destination_path)
 
     def _get_google_language_config(self, requested_language: str):

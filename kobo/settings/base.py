@@ -1463,11 +1463,17 @@ TRANSCRIPTION_SILENCE_MIN_DURATION = env.float(
 # threshold finds the pauses in all of them
 TRANSCRIPTION_SILENCE_THRESHOLDS_DB = (-30, -25, -20)
 
-# Longest a single ffmpeg pass over a recording to be chunked may run, in the
-# Celery worker. The first pass downloads and converts the whole recording, so
-# allow for a slow download; later passes read the local copy. A loud file can
-# take one pass per entry in `TRANSCRIPTION_SILENCE_THRESHOLDS_DB`, and all of
-# them must fit inside `CELERY_TASK_SOFT_TIME_LIMIT` (3 x 300 s against 1800 s)
+# Longest a single ffmpeg run over a recording to be chunked may take, in the
+# Celery worker. The first run downloads, decodes and converts the whole
+# recording, so allow for a slow download. Every later run reads the local
+# copy: one more pause detection per further entry in
+# `TRANSCRIPTION_SILENCE_THRESHOLDS_DB` for a loud file, then one cut per
+# chunk, each a few seconds in practice.
+#
+# This bounds each run, not the preparation as a whole: that also includes
+# the uploads, each retried by the storage client for up to 120 s. When the
+# whole of it outlasts `CELERY_TASK_SOFT_TIME_LIMIT`, the poll ends the run as
+# failed rather than leaving it running
 TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
     'TRANSCRIPTION_SILENCE_DETECT_TIMEOUT',
     300,

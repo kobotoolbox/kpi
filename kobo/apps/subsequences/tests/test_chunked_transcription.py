@@ -1,4 +1,5 @@
 import os
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -8,7 +9,8 @@ from django.test import TestCase, override_settings
 from kpi.exceptions import AudioDurationUnknownError, FFMpegException
 from kpi.models import Asset
 from kpi.utils.audio_chunking import ChunkRange
-from ..exceptions import ChunkStorageError
+from ..exceptions import ChunkStorageError, ChunkStorageRefusedError
+from ..integrations.google.google_transcribe import GoogleTranscriptionService
 from ..models import TranscriptionChunk, TranscriptionChunkStatus
 from ..utils.chunked_transcription import (
     ChunkedTranscriptionEngine,
@@ -16,6 +18,7 @@ from ..utils.chunked_transcription import (
 )
 
 MODULE = 'kobo.apps.subsequences.utils.chunked_transcription'
+SERVICE_MODULE = 'kobo.apps.subsequences.integrations.google.google_transcribe'
 
 # A 110 min recording, cut at 52:10 and 104:30
 RANGES = [
@@ -33,18 +36,23 @@ def _write_file(path: str) -> None:
 class FakeEngine(ChunkedTranscriptionEngine):
     """
     Records what it is asked to store. `failing_index` makes storing that
-    chunk fail, the way unreachable storage would
+    chunk raise `error`: by default the way unreachable storage would
     """
 
     CHUNK_HARD_LIMIT_SECONDS = 55 * 60
 
-    def __init__(self, failing_index: int | None = None):
+    def __init__(
+        self,
+        failing_index: int | None = None,
+        error: type[Exception] = ChunkStorageError,
+    ):
         self.failing_index = failing_index
+        self.error = error
         self.stored = []
 
     def store_chunk_file(self, local_path: str, version_uuid: str, index: int) -> str:
         if index == self.failing_index:
-            raise ChunkStorageError('storage is unreachable')
+            raise self.error('storage failed')
         # Uploaded while the file is still there
         assert os.path.exists(local_path)
         self.stored.append((os.path.basename(local_path), version_uuid, index))
@@ -174,6 +182,24 @@ class ChunkedTranscriptionRunTestCase(TestCase):
         source_path = convert_and_plan.call_args.args[1]
         assert not os.path.exists(os.path.dirname(source_path))
 
+    def test_a_chunk_refused_by_storage_fails_the_run(self):
+        """
+        Preparing it again would be refused the same way. The storage error
+        stays in the logs, out of the version the user sees
+        """
+
+        result, convert_and_plan, _ = self._start(
+            FakeEngine(failing_index=1, error=ChunkStorageRefusedError)
+        )
+
+        assert result == {
+            'status': 'failed',
+            'error': 'Transcription failed: the audio file could not be stored',
+        }
+        assert not TranscriptionChunk.objects.exists()
+        source_path = convert_and_plan.call_args.args[1]
+        assert not os.path.exists(os.path.dirname(source_path))
+
     def test_audio_that_cannot_be_processed_fails_the_run(self):
         for error in (FFMpegException, AudioDurationUnknownError):
             with self.subTest(error=error.__name__), patch(
@@ -243,6 +269,112 @@ class ChunkedTranscriptionRunTestCase(TestCase):
         self._create_chunk(question_xpath='other_question')
 
         assert self.run.get_status() is None
+
+
+@override_settings(
+    GS_BUCKET_NAME='kobo-bucket', TRANSCRIPTION_SILENCE_DETECT_TIMEOUT=300
+)
+class GoogleChunkedTranscriptionTestCase(TestCase):
+    """
+    The Google service and the chunked run together, from the launch to the
+    polls that find the chunks prepared. Only ffmpeg, the attachment, the
+    language settings and the bucket are replaced
+    """
+
+    fixtures = ['test_data']
+
+    def setUp(self):
+        service = object.__new__(GoogleTranscriptionService)
+        service.asset = Asset.objects.get(pk=2)
+        service.submission_root_uuid = 'submission-1'
+        service.bucket = MagicMock()
+        service._get_google_language_config = MagicMock(
+            return_value=MagicMock(language_code='en-US', location_code='global')
+        )
+        service._get_operation_reference = MagicMock(return_value=None)
+        service._get_attachment = MagicMock(return_value=MagicMock(pk=7))
+        service._before_new_operation = MagicMock()
+        service._start_operation = MagicMock()
+        self.service = service
+
+        def convert(attachment, source_path, hard_limit):
+            _write_file(source_path)
+            return RANGES
+
+        self.mocks = SimpleNamespace(
+            convert_and_plan=self._patch(
+                f'{MODULE}.convert_and_plan_chunks', side_effect=convert
+            ),
+            cut_audio=self._patch(
+                f'{MODULE}.cut_audio',
+                side_effect=lambda source, start, end, path, timeout: _write_file(path),
+            ),
+            celery_app=self._patch(f'{MODULE}.celery_app'),
+            get_audio_duration=self._patch(
+                f'{SERVICE_MODULE}.get_audio_duration', return_value=RANGES[-1].end
+            ),
+        )
+        self._patch(
+            f'{SERVICE_MODULE}.get_asr_language_code_overrides', return_value={}
+        )
+        self._patch(
+            f'{SERVICE_MODULE}.get_speech_location_for_model', return_value=None
+        )
+        constance = self._patch(f'{SERVICE_MODULE}.constance')
+        constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX = 'asr'
+
+    def _patch(self, target: str, **kwargs) -> MagicMock:
+        patcher = patch(target, **kwargs)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
+    def _process(self, *, is_launch: bool) -> dict:
+        """
+        Call the service the way the action does: the launch from a web
+        request, each poll from a Celery worker
+        """
+        self.mocks.celery_app.current_worker_task = None if is_launch else MagicMock()
+        return self.service.process_data(
+            'audio', {'language': 'en'}, version_uuid='version-1', is_launch=is_launch
+        )
+
+    def test_a_long_recording_is_launched_then_prepared_then_reported_on(self):
+        upload = self.service.bucket.blob.return_value.upload_from_filename
+        chunk_paths = [
+            f'asr/speech-v2/chunks/version-1/{chunk.index:03d}.flac' for chunk in RANGES
+        ]
+
+        # The launch checks the usage limit and replies at once
+        assert self._process(is_launch=True) == {'status': 'in_progress'}
+        self.service._before_new_operation.assert_called_once()
+        self.mocks.convert_and_plan.assert_not_called()
+        assert not TranscriptionChunk.objects.exists()
+
+        # Its first poll prepares the chunks, without checking the limit again
+        assert self._process(is_launch=False) == {'status': 'in_progress'}
+        self.service._before_new_operation.assert_called_once()
+        self.mocks.convert_and_plan.assert_called_once()
+        assert [
+            call.args[0] for call in self.service.bucket.blob.call_args_list
+        ] == chunk_paths
+        assert list(
+            TranscriptionChunk.objects.order_by('index').values_list(
+                'version_uuid', 'index', 'file_path'
+            )
+        ) == [
+            ('version-1', chunk.index, f'gs://kobo-bucket/{path}')
+            for chunk, path in zip(RANGES, chunk_paths)
+        ]
+
+        # Later polls find the rows: no attachment, no ffmpeg, no upload
+        self.service._get_attachment.reset_mock()
+        self.mocks.get_audio_duration.reset_mock()
+        assert self._process(is_launch=False) == {'status': 'in_progress'}
+        self.service._get_attachment.assert_not_called()
+        self.mocks.get_audio_duration.assert_not_called()
+        self.mocks.convert_and_plan.assert_called_once()
+        assert upload.call_count == len(RANGES)
+        self.service._start_operation.assert_not_called()
 
 
 def test_an_engine_must_state_its_hard_limit():

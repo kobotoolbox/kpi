@@ -2,7 +2,6 @@ import uuid
 from datetime import timedelta
 from unittest.mock import patch
 
-from celery.exceptions import Retry
 from django.test import override_settings
 from django.utils import timezone
 
@@ -437,45 +436,6 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         latest = self._versions()[0]
         self.assertEqual(latest['_uuid'], later_run)
         self.assertEqual(latest['_data']['status'], 'in_progress')
-
-    def test_a_poll_not_told_its_run_learns_it_on_its_first_check(self):
-        """
-        A translation's poll is scheduled before its `in_progress` version is
-        saved, so it is not told its run. It learns it on its first check and
-        is queued again with it, so every retry and its end carry it
-        """
-        running_run = self._versions()[0]['_uuid']
-
-        with patch.object(
-            poll_run_external_process, 'retry', return_value=Retry()
-        ) as retry, patch(
-            'kobo.apps.subsequences.models.SubmissionSupplement.revise_data'
-        ) as revise_data:
-            with self.assertRaises(Retry):
-                poll_run_external_process(**self.task_kwargs['kwargs'])
-
-        retry.assert_called_once_with(
-            kwargs={**self.task_kwargs['kwargs'], 'version_uuid': running_run},
-            countdown=0,
-        )
-        # Nothing else is done on that check
-        revise_data.assert_not_called()
-
-    def test_a_poll_learns_only_a_run_in_progress(self):
-        """
-        Before its run's version is saved, or once a result has landed, there
-        is no run in progress to learn: the poll carries on, and tries again
-        on its next check
-        """
-        self._land_result()
-
-        with patch.object(poll_run_external_process, 'retry') as retry, patch(
-            'kobo.apps.subsequences.models.SubmissionSupplement.revise_data',
-            return_value=None,
-        ):
-            poll_run_external_process(**self.task_kwargs['kwargs'])
-
-        retry.assert_not_called()
 
     def test_a_later_run_started_after_the_read_is_kept(self):
         """

@@ -21,6 +21,14 @@ class ChunkStorageError(Exception):
     """
 
 
+class ChunkStorageRefusedError(Exception):
+    """
+    Raised by a transcription engine when storage refuses a chunk file, for a
+    reason that trying again will not change (permissions, missing bucket,
+    etc.)
+    """
+
+
 class GoogleCloudStorageBucketNotFound(Exception):
 
     pass

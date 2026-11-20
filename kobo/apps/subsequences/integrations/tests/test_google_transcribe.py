@@ -4,13 +4,20 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import override_settings
-from google.api_core.exceptions import PermissionDenied, ServiceUnavailable
+from google.api_core.exceptions import (
+    Forbidden,
+    NotFound,
+    PermissionDenied,
+    RetryError,
+    ServiceUnavailable,
+)
 from google.cloud import speech_v2 as speech
 from google.rpc import status_pb2
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.exceptions import (
     ChunkStorageError,
+    ChunkStorageRefusedError,
     GoogleTranscriptionServiceNotConfigured,
     TranscriptionResultNotFound,
 )
@@ -558,16 +565,26 @@ def test_store_chunk_file_uploads_to_a_place_fixed_by_version_and_index():
     assert uri == 'gs://kobo-bucket/asr/speech-v2/chunks/version-1/002.flac'
 
 
-def test_store_chunk_file_reports_storage_errors_as_chunk_storage_errors():
+@pytest.mark.parametrize(
+    'error, expected',
+    [
+        # What the client raises once its own retries run out
+        (
+            RetryError('Timeout of 120.0s exceeded', ServiceUnavailable('GCS is down')),
+            ChunkStorageError,
+        ),
+        (Forbidden('no storage.objects.create access'), ChunkStorageRefusedError),
+        (NotFound('bucket does not exist'), ChunkStorageRefusedError),
+    ],
+)
+def test_store_chunk_file_tells_errors_that_may_pass_from_refusals(error, expected):
     """
-    The chunking code knows nothing about Google, so the error it retries on
-    is its own
+    The chunking code knows nothing about Google, so the errors it acts on are
+    its own: one is tried again on the next poll, the other fails the run
     """
     service = object.__new__(GoogleTranscriptionService)
     service.bucket = MagicMock()
-    service.bucket.blob.return_value.upload_from_filename.side_effect = (
-        ServiceUnavailable('GCS is down')
-    )
+    service.bucket.blob.return_value.upload_from_filename.side_effect = error
 
-    with patch(f'{SERVICE_MODULE}.constance'), pytest.raises(ChunkStorageError):
+    with patch(f'{SERVICE_MODULE}.constance'), pytest.raises(expected):
         service.store_chunk_file('/tmp/work/chunk_000.flac', 'version-1', 0)
