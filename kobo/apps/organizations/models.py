@@ -297,13 +297,7 @@ class Organization(AbstractOrganization):
             'project_ownership', 'OrgOwnershipTransferInvite'
         )
         return OrgOwnershipTransferInvite.objects.filter(
-            models.Q(metadata__organization_id=str(self.id))
-            | (
-                ~models.Q(metadata__has_key='organization_id')
-                & models.Q(
-                    sender__organizations_organizationuser__organization_id=self.id
-                )
-            ),
+            metadata__organization_id=str(self.id),
             status=OrgOwnershipTransferInvite.Status.PENDING,
         ).exists()
 

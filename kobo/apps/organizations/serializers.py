@@ -5,7 +5,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
-from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -171,13 +170,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
         except KeyError:
             transfer = (
                 OrgOwnershipTransferInvite.objects.filter(
-                    Q(metadata__organization_id=str(obj.organization.id))
-                    | (
-                        ~Q(metadata__has_key='organization_id')
-                        & Q(
-                            sender__organizations_organizationuser__organization_id=obj.organization.id  # noqa E501
-                        )
-                    ),
+                    metadata__organization_id=str(obj.organization.id),
                     recipient=obj.user,
                     status=InviteStatusChoices.PENDING,
                 )
@@ -233,13 +226,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                     raise InvalidMembershipRequest(OWNER_ROLE_LOCKED_ERROR)
 
                 if OrgOwnershipTransferInvite.objects.filter(
-                    Q(metadata__organization_id=str(org_user.organization_id))
-                    | (
-                        ~Q(metadata__has_key='organization_id')
-                        & Q(
-                            sender__organizations_organizationuser__organization_id=org_user.organization_id  # noqa E501
-                        )
-                    ),
+                    metadata__organization_id=str(org_user.organization_id),
                     recipient=org_user.user,
                     status=InviteStatusChoices.PENDING,
                 ).exists():

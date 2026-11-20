@@ -612,13 +612,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             organization_id=organization_id,
         ).order_by('invitee_id', 'created')
         self._pending_transfers_queryset = OrgOwnershipTransferInvite.objects.filter(
-            Q(metadata__organization_id=str(organization_id))
-            | (
-                ~Q(metadata__has_key='organization_id')
-                & Q(
-                    sender__organizations_organizationuser__organization_id=organization_id  # noqa E501
-                )
-            ),
+            metadata__organization_id=str(organization_id),
             status=InviteStatusChoices.PENDING,
             recipient_id__in=members_user_ids,
         ).select_related('sender__extra_details', 'recipient')
@@ -851,8 +845,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
             pending_transfers = list(
                 OrgOwnershipTransferInvite.objects.select_for_update().filter(
-                    Q(metadata__organization_id=str(member.organization_id))
-                    | ~Q(metadata__has_key='organization_id'),
+                    metadata__organization_id=str(member.organization_id),
                     recipient_id=member.user_id,
                     status=InviteStatusChoices.PENDING,
                 )
@@ -1238,15 +1231,8 @@ class OrganizationOwnershipTransferViewSet(
         if not organization_id:
             return OrgOwnershipTransferInvite.objects.none()
 
-        # Matches records explicitly bound to this org, and legacy records
-        # created before organization_id was added to metadata (scoped to sender's org).
-        queryset_filter = Q(metadata__organization_id=str(organization_id)) | (
-            ~Q(metadata__has_key='organization_id')
-            & Q(sender__organizations_organizationuser__organization_id=organization_id)
-        )
-
         queryset = OrgOwnershipTransferInvite.objects.filter(
-            queryset_filter
+            metadata__organization_id=str(organization_id)
         ).select_related('sender__extra_details', 'recipient')
 
         if self.action == 'list':
