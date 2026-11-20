@@ -200,7 +200,7 @@ class GoogleTranslationService(GoogleService):
 
         try:
             if from_submission:
-                source_language_code = self._get_text_source_language_code(source_lang)
+                source_language_code = self._get_translation_language_code(source_lang)
             else:
                 source_language_code = self._get_source_language_code(source_lang)
             target_language_code = self._get_translation_language_code(target_lang)
@@ -506,24 +506,6 @@ class GoogleTranslationService(GoogleService):
                 'Google transcription service is not configured.'
             )
         return transcription_lang_service.get_language_code(requested_language)
-
-    def _get_text_source_language_code(self, requested_language: str) -> str:
-        """
-        Resolve the Google source language code of a text response
-
-        Nothing was transcribed, so the language is looked up in the languages
-        Google translates. Those rarely list regional variants, so a locale such
-        as 'es-MX' falls back to its base language 'es' when it is not listed,
-        the way `TranscriptionService.get_language_code()` does.
-        """
-
-        try:
-            return self._get_translation_language_code(requested_language)
-        except LanguageNotSupported:
-            base_language = requested_language.split('-')[0]
-            if base_language == requested_language:
-                raise
-            return self._get_translation_language_code(base_language)
 
     def _get_translation_language_code(self, requested_language: str) -> str:
         """

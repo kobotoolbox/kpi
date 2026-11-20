@@ -16,5 +16,4 @@ export type PatchedDataSupplementPayloadOneOfManualTranslation = {
   /** @nullable */
   value: string | null
   source_language?: string
-  source_locale?: string
 }

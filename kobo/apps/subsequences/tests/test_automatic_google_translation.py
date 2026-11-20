@@ -16,6 +16,7 @@ from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import (
     GoogleQuotaExceededError,
+    InvalidSourceLanguage,
     SourceLanguageNotFound,
     TranscriptionNotFound,
 )
@@ -607,17 +608,6 @@ def test_attach_action_dependency_for_text_source_question():
     assert result['_dependency']['language'] == 'es'
 
 
-def test_attach_action_dependency_for_text_source_prefers_the_source_locale():
-    action = _get_text_action()
-
-    result = action.attach_action_dependency(
-        {'language': 'fr', 'source_language': 'es', 'source_locale': 'es-MX'},
-        TEXT_SUBMISSION,
-    )
-
-    assert result['_dependency']['language'] == 'es-MX'
-
-
 def test_cannot_translate_text_source_without_source_language():
     action = _get_text_action()
 
@@ -638,13 +628,19 @@ def test_text_source_language_cannot_be_empty():
         _get_text_action().validate_data({'language': 'fr', 'source_language': ''})
 
 
+def test_text_source_language_must_differ_from_target_language():
+    # Google rejects a translation into the language it is written in
+    with pytest.raises(InvalidSourceLanguage, match='must differ from'):
+        _get_text_action().validate_data({'language': 'es', 'source_language': 'es'})
+
+
 def test_source_language_is_only_accepted_for_text_source_questions():
-    data = {'language': 'fr', 'source_language': 'es', 'source_locale': 'es-MX'}
+    data = {'language': 'fr', 'source_language': 'es'}
 
     _get_text_action().validate_data(data)
 
     # A transcript carries its own language
-    with pytest.raises(jsonschema.exceptions.ValidationError):
+    with pytest.raises(InvalidSourceLanguage):
         _get_action().validate_data(data)
 
 
@@ -667,16 +663,15 @@ def test_text_source_translation_stores_its_source_language():
         result = action.revise_data(
             TEXT_SUBMISSION,
             EMPTY_SUPPLEMENT,
-            {'language': 'fr', 'source_language': 'es', 'source_locale': 'es-MX'},
+            {'language': 'fr', 'source_language': 'es'},
         )
 
-    assert sent_params[0]['_dependency']['language'] == 'es-MX'
+    assert sent_params[0]['_dependency']['language'] == 'es'
 
     version = result['fr']['_versions'][0]
     assert version['_data'] == {
         'language': 'fr',
         'source_language': 'es',
-        'source_locale': 'es-MX',
         'value': 'Bonjour',
         'status': 'complete',
     }

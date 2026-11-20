@@ -8,10 +8,9 @@ from kpi.schema_extensions.v2.generic.schema import (
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 
 # The language a text response is written in, stored with its translations.
-# Transcriptions and translations of transcripts never have them.
+# Transcriptions and translations of transcripts never have it.
 TRANSLATION_SOURCE_PROPERTIES = {
     'source_language': GENERIC_STRING_SCHEMA,
-    'source_locale': GENERIC_STRING_SCHEMA,
 }
 
 

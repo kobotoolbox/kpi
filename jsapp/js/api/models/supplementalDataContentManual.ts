@@ -14,7 +14,6 @@ export interface SupplementalDataContentManual {
   language: string
   locale?: string
   source_language?: string
-  source_locale?: string
   /** @nullable */
   value: string | null
 }

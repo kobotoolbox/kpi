@@ -431,11 +431,10 @@ class TestGoogleTranslate(TestCase):
     def test_sync_translation_reads_source_from_submission_for_text_question(self):
         """
         A text-source translation reads the answer straight from the submission
-        and translates from the source language given with the request, whatever
-        the form language
+        and translates from the source language given with the request
         """
+
         service = self._build_service()
-        service.asset.content = {'settings': {'default_language': 'English (en)'}}
         service.submission['q1'] = 'Hola desde el encuestado'
         service.translate_client.translate_text.return_value = 'Hello'
 
@@ -483,42 +482,6 @@ class TestGoogleTranslate(TestCase):
 
         assert response['status'] == 'failed'
         assert 'no text' in response['error'].lower()
-
-    @override_config(
-        ASR_MT_GOOGLE_PROJECT_ID='abc',
-        ASR_MT_GOOGLE_REGION='global',
-    )
-    def test_text_source_locale_falls_back_to_its_base_language(self):
-        """
-        Google's translation languages rarely list regional variants, so a
-        source locale such as 'es-MX' must still translate from 'es'
-        """
-
-        def resolve(language):
-            # Like `TranslationService.get_language_code()`, with no regions
-            if language not in ('es', 'en'):
-                raise LanguageNotSupported
-            return language
-
-        service = self._build_service()
-        service.submission['q1'] = 'Hola'
-        service.translate_client.translate_text.return_value = 'Hello'
-
-        with patch.object(
-            service, '_get_translation_language_code', side_effect=resolve
-        ):
-            with patch.object(service, 'update_counters'):
-                response = service.process_data(
-                    'q1',
-                    {
-                        'language': 'en',
-                        '_dependency': {'_actionId': 'submission', 'language': 'es-MX'},
-                    },
-                )
-
-        assert response == {'status': 'complete', 'value': 'Hello'}
-        request = service.translate_client.translate_text.call_args.kwargs['request']
-        assert request['source_language_code'] == 'es'
 
     @override_config(
         ASR_MT_GOOGLE_PROJECT_ID='abc',

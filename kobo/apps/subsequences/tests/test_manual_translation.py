@@ -3,7 +3,11 @@ import jsonschema
 import pytest
 
 from ..actions.manual_translation import ManualTranslationAction
-from ..exceptions import SourceLanguageNotFound, TranscriptionNotFound
+from ..exceptions import (
+    InvalidSourceLanguage,
+    SourceLanguageNotFound,
+    TranscriptionNotFound,
+)
 from .constants import (
     EMPTY_SUBMISSION,
     EMPTY_SUPPLEMENT,
@@ -270,7 +274,7 @@ def test_source_language_is_only_accepted_for_text_source_questions():
     _get_text_action().validate_data(data)
 
     # A transcript carries its own language
-    with pytest.raises(jsonschema.exceptions.ValidationError):
+    with pytest.raises(InvalidSourceLanguage):
         _get_action().validate_data(data)
 
 

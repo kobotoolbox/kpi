@@ -1224,7 +1224,30 @@ class TextQuestionTranslationAPITestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'No source language found' in str(response.data)
+        assert response.data['detail'] == (
+            'The source language is required to translate a text response.'
+        )
+
+    def test_cannot_translate_into_the_source_language(self):
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'fr',
+                    'source_language': 'fr',
+                    'value': 'Bonjour',
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['detail'] == (
+            '`source_language` must differ from `language`'
+        )
 
     def test_translation_stores_its_source_language(self):
         payload = {
@@ -1233,7 +1256,6 @@ class TextQuestionTranslationAPITestCase(SubsequenceBaseTestCase):
                 'manual_translation': {
                     'language': 'fr',
                     'source_language': 'es',
-                    'source_locale': 'es-MX',
                     'value': 'Bonjour',
                 },
             },
@@ -1247,7 +1269,6 @@ class TextQuestionTranslationAPITestCase(SubsequenceBaseTestCase):
         versions = response.data['q1']['manual_translation']['fr']['_versions']
         version_data = versions[0]['_data']
         assert version_data['source_language'] == 'es'
-        assert version_data['source_locale'] == 'es-MX'
 
 
 @ddt

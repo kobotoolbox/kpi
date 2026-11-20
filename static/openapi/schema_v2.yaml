@@ -4031,9 +4031,10 @@ paths:
         The PATCH payload follows the same per-question structure as the GET response.
 
         To translate a text question, also send the language the response is written
-        in with `source_language` (required) and `source_locale` (optional), e.g.
-        `{"language": "en", "source_language": "es"}`. Other questions are translated
-        from their accepted transcript, so these properties are rejected for them.
+        in with `source_language` (required), e.g.
+        `{"language": "en", "source_language": "es"}`. It must differ from `language`.
+        Other questions are translated from their accepted transcript, so this property
+        is rejected for them.
 
         To delete a submission supplement, you need to PATCH the submission supplement
         with the appropriate null or empty value.
@@ -21317,8 +21318,6 @@ components:
               nullable: true
             source_language:
               type: string
-            source_locale:
-              type: string
           additionalProperties: false
           required:
           - language
@@ -21353,8 +21352,6 @@ components:
               - null
               nullable: true
             source_language:
-              type: string
-            source_locale:
               type: string
           additionalProperties: false
           required:
@@ -23645,8 +23642,6 @@ components:
           type: string
         source_language:
           type: string
-        source_locale:
-          type: string
         status:
           type: string
           const: complete
@@ -23665,8 +23660,6 @@ components:
         locale:
           type: string
         source_language:
-          type: string
-        source_locale:
           type: string
         status:
           type: string
@@ -23687,8 +23680,6 @@ components:
           type: string
         source_language:
           type: string
-        source_locale:
-          type: string
         status:
           type: string
           const: failed
@@ -23708,8 +23699,6 @@ components:
           type: string
         source_language:
           type: string
-        source_locale:
-          type: string
         status:
           type: string
           const: in_progress
@@ -23725,8 +23714,6 @@ components:
         locale:
           type: string
         source_language:
-          type: string
-        source_locale:
           type: string
         value:
           type: string

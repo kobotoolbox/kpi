@@ -14,7 +14,6 @@ export interface SupplementalDataContentAutomaticFailed {
   language: string
   locale?: string
   source_language?: string
-  source_locale?: string
   status: 'failed'
   error: string
 }

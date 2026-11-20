@@ -18,5 +18,4 @@ export type PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation = {
   /** @nullable */
   value?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue
   source_language?: string
-  source_locale?: string
 }

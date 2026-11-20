@@ -118,6 +118,12 @@ class TranscriptionNotFound(DependencyNotFound):
         super().__init__(message)
 
 
+class InvalidSourceLanguage(Exception):
+    """
+    Raised when a translation request has an unusable `source_language`
+    """
+
+
 class SourceLanguageNotFound(DependencyNotFound):
     """
     Raised when translating a text response without its source language

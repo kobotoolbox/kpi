@@ -5478,7 +5478,7 @@
             },
             "patch": {
                 "operationId": "api_v2_assets_data_supplement_partial_update",
-                "description": "## Update submission supplementary data\n\nThis endpoint allows you to add, update, or delete supplementary data for a submission.\n\nIt supports the same action types as the GET endpoint:\n\n* NLP actions (manual and automatic transcription / translation)\n* Qualitative analysis (manual and automatic)\n\nThe PATCH payload follows the same per-question structure as the GET response.\n\nTo translate a text question, also send the language the response is written\nin with `source_language` (required) and `source_locale` (optional), e.g.\n`{\"language\": \"en\", \"source_language\": \"es\"}`. Other questions are translated\nfrom their accepted transcript, so these properties are rejected for them.\n\nTo delete a submission supplement, you need to PATCH the submission supplement\nwith the appropriate null or empty value.\n\n⚠️ In this documentation, request and response examples present each action in\nisolation for clarity. In practice, multiple actions may be combined within the same\npayload or response, including for the same question, and a single submission may\ncontain multiple questions.\n",
+                "description": "## Update submission supplementary data\n\nThis endpoint allows you to add, update, or delete supplementary data for a submission.\n\nIt supports the same action types as the GET endpoint:\n\n* NLP actions (manual and automatic transcription / translation)\n* Qualitative analysis (manual and automatic)\n\nThe PATCH payload follows the same per-question structure as the GET response.\n\nTo translate a text question, also send the language the response is written\nin with `source_language` (required), e.g.\n`{\"language\": \"en\", \"source_language\": \"es\"}`. It must differ from `language`.\nOther questions are translated from their accepted transcript, so this property\nis rejected for them.\n\nTo delete a submission supplement, you need to PATCH the submission supplement\nwith the appropriate null or empty value.\n\n⚠️ In this documentation, request and response examples present each action in\nisolation for clarity. In practice, multiple actions may be combined within the same\npayload or response, including for the same question, and a single submission may\ncontain multiple questions.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -29567,9 +29567,6 @@
                             },
                             "source_language": {
                                 "type": "string"
-                            },
-                            "source_locale": {
-                                "type": "string"
                             }
                         },
                         "additionalProperties": false,
@@ -29621,9 +29618,6 @@
                                 "nullable": true
                             },
                             "source_language": {
-                                "type": "string"
-                            },
-                            "source_locale": {
                                 "type": "string"
                             }
                         },
@@ -32798,9 +32792,6 @@
                     "source_language": {
                         "type": "string"
                     },
-                    "source_locale": {
-                        "type": "string"
-                    },
                     "status": {
                         "type": "string",
                         "const": "complete"
@@ -32826,9 +32817,6 @@
                         "type": "string"
                     },
                     "source_language": {
-                        "type": "string"
-                    },
-                    "source_locale": {
                         "type": "string"
                     },
                     "status": {
@@ -32858,9 +32846,6 @@
                     "source_language": {
                         "type": "string"
                     },
-                    "source_locale": {
-                        "type": "string"
-                    },
                     "status": {
                         "type": "string",
                         "const": "failed"
@@ -32888,9 +32873,6 @@
                     "source_language": {
                         "type": "string"
                     },
-                    "source_locale": {
-                        "type": "string"
-                    },
                     "status": {
                         "type": "string",
                         "const": "in_progress"
@@ -32912,9 +32894,6 @@
                         "type": "string"
                     },
                     "source_language": {
-                        "type": "string"
-                    },
-                    "source_locale": {
                         "type": "string"
                     },
                     "value": {

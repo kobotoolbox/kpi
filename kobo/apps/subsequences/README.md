@@ -868,11 +868,11 @@ Each action has its own expected format:
 - **Translation of a text question (manual or automatic)**
 
   A text response is translated straight from the submission, which does not
-  record the language it was written in, so `source_language` is required
-  (`source_locale` is optional). Both are rejected for other questions, whose
+  record the language it was written in, so `source_language` is required. It
+  must differ from `language`, and it is rejected for other questions, whose
   translations use the language of the accepted transcript.
   ```json
-  { "language": "en", "source_language": "es", "source_locale": "es-MX" }
+  { "language": "en", "source_language": "es" }
   ```
   ```json
   { "language": "en", "source_language": "es", "value": "My translation" }

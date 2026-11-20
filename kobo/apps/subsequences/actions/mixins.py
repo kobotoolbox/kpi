@@ -1,6 +1,5 @@
 from copy import deepcopy
 
-import jsonschema
 from dateutil import parser
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -11,7 +10,11 @@ from ..constants import (
     SUBMISSION_UUID_FIELD,
     TEXT_SOURCE_TYPE,
 )
-from ..exceptions import SourceLanguageNotFound, TranscriptionNotFound
+from ..exceptions import (
+    InvalidSourceLanguage,
+    SourceLanguageNotFound,
+    TranscriptionNotFound,
+)
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -256,17 +259,15 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
 
     def attach_action_dependency(self, action_data: dict, submission: dict):
         """
-        Attach the source like `RequiresTranscriptionMixin` does, with the
-        language of a text source taken from the request: `source_locale` when
-        given, otherwise `source_language`, the same way a transcript provides
-        its own locale or language.
+        Attach the source like `RequiresTranscriptionMixin` does. For a text
+        source, also set the dependency's `language` from the request's
+        `source_language`, where a transcript dependency carries its own
+        locale or language.
         """
 
         action_data = super().attach_action_dependency(action_data, submission)
         dependency = action_data.get(self.DEPENDENCY_FIELD)
-        source_language = action_data.get('source_locale') or action_data.get(
-            'source_language'
-        )
+        source_language = action_data.get('source_language')
         if (
             dependency
             and dependency[self.ACTION_ID_FIELD] == DEPENDENCY_SOURCE_SUBMISSION
@@ -441,28 +442,34 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
 
     def validate_data(self, data: dict):
         """
-        Check `source_language` and `source_locale` against the source question.
+        Check `source_language` against the source question.
 
         Nothing records the language a respondent typed in, so translating a
-        text question requires `source_language` (`source_locale` is optional).
-        Any other source is a transcript, which already provides its own
-        language, so both are rejected for it.
+        text question requires `source_language`. Any other source is a
+        transcript, which already provides its own language, so
+        `source_language` is rejected for those questions.
 
-        The schemas accept them for every source, so that stored translations
-        stay valid if the question is renamed or changes type in a later
-        deployment. Only new requests are checked against the question type.
+        The schemas accept `source_language` for every source, so that stored
+        translations stay valid if the question is renamed or changes type in
+        a later deployment. Only new requests are checked against the question
+        type.
+
+        `source_language` must also differ from the target `language`: a
+        response is already in its own language, so there is nothing to
+        translate, and Google rejects such a request.
 
         Raises:
           - SourceLanguageNotFound: if a text source has no `source_language`,
             unless the request only accepts or deletes an existing result.
+          - InvalidSourceLanguage: if `source_language` is sent for a non-text
+            source, or is the same as the target `language`.
         """
 
         super().validate_data(data)
         if self.get_source_question_type() != TEXT_SOURCE_TYPE:
-            if 'source_language' in data or 'source_locale' in data:
-                raise jsonschema.exceptions.ValidationError(
-                    '`source_language` and `source_locale` are only accepted for '
-                    'text questions'
+            if 'source_language' in data:
+                raise InvalidSourceLanguage(
+                    '`source_language` is only accepted for text questions'
                 )
             return
 
@@ -470,19 +477,22 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
         is_accept_or_delete = 'accepted' in data or (
             'value' in data and data['value'] is None
         )
-        if not data.get('source_language') and not is_accept_or_delete:
+        source_language = data.get('source_language')
+        if not source_language and not is_accept_or_delete:
             raise SourceLanguageNotFound
+
+        if source_language == data['language']:
+            raise InvalidSourceLanguage('`source_language` must differ from `language`')
 
     def _add_source_language_schema(self, schema: dict) -> dict:
         """
-        Add `source_language` and `source_locale` (e.g. "es" and "es-MX"), the
-        language a text response is written in.
+        Add `source_language` (e.g. "es"), the language a text response is
+        written in.
 
         A text response is translated straight from the submission, which does
         not record the language it was written in. `validate_data()` rejects
-        them in requests for any other source.
+        it in requests for any other source.
         """
 
         schema['properties']['source_language'] = {'type': 'string', 'minLength': 1}
-        schema['properties']['source_locale'] = {'$ref': '#/$defs/locale'}
         return schema

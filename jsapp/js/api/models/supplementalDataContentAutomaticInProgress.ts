@@ -14,6 +14,5 @@ export interface SupplementalDataContentAutomaticInProgress {
   language: string
   locale?: string
   source_language?: string
-  source_locale?: string
   status: 'in_progress'
 }
