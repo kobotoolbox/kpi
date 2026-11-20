@@ -578,7 +578,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Updates the hidden field count
    */
   private hiddenCount() {
-    const hiddenCount = tableStore.getHiddenCount(this.props.asset, this.state.submissions)
+    const hiddenCount = tableStore.getHiddenColumns().length
 
     if (hiddenCount !== this.state.hiddenCount) {
       this.setState({ hiddenCount })
