@@ -5,11 +5,13 @@ import type { SupplementalDataManualTranscription } from '#/api/models/supplemen
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import type { TranslationVersionItem } from './types'
 import {
   getBlockedTargetLanguages,
-  getFormLanguageSource,
+  getEditSourceLanguage,
+  getFormLanguageCode,
+  getSavedSourceLanguage,
   getSuggestedLanguages,
-  getTranslationSource,
   getTranslationSourceLanguages,
   getTranslationSourcePayload,
   hasAnalysisSource,
@@ -254,35 +256,69 @@ describe('getTranslationSourceLanguages', () => {
 
 describe('getTranslationSourcePayload', () => {
   it('is empty without a source language, as for a transcript', () => {
-    chai.expect(getTranslationSourcePayload(null, null)).to.deep.equal({})
-    chai.expect(getTranslationSourcePayload(undefined, 'es-MX')).to.deep.equal({})
+    chai.expect(getTranslationSourcePayload(null)).to.deep.equal({})
+    chai.expect(getTranslationSourcePayload(undefined)).to.deep.equal({})
   })
 
-  it('has the source language, and its locale when there is one', () => {
-    chai.expect(getTranslationSourcePayload('es', null)).to.deep.equal({ source_language: 'es' })
-    chai
-      .expect(getTranslationSourcePayload('zh', 'zh-TW'))
-      .to.deep.equal({ source_language: 'zh', source_locale: 'zh-TW' })
+  it('has the source language', () => {
+    chai.expect(getTranslationSourcePayload('es')).to.deep.equal({ source_language: 'es' })
   })
 })
 
-describe('getTranslationSource', () => {
+describe('getSavedSourceLanguage', () => {
   it('returns nothing when no translation has a source language', () => {
-    chai.expect(getTranslationSource([])).to.equal(undefined)
-    chai.expect(getTranslationSource([{ _data: {} }])).to.equal(undefined)
+    chai.expect(getSavedSourceLanguage([])).to.equal(undefined)
+    chai.expect(getSavedSourceLanguage([{ _dateCreated: '2026-01-01T00:00:00Z', _data: {} }])).to.equal(undefined)
   })
 
-  it('returns the source language of the first translation that has one', () => {
+  it('returns the source language of the most recent translation that has one', () => {
     chai
-      .expect(getTranslationSource([{ _data: {} }, { _data: { source_language: 'es' } }]))
-      .to.deep.equal({ languageCode: 'es', locale: null })
-    chai
-      .expect(getTranslationSource([{ _data: { source_language: 'zh', source_locale: 'zh-TW' } }]))
-      .to.deep.equal({ languageCode: 'zh', locale: 'zh-TW' })
+      .expect(
+        getSavedSourceLanguage([
+          { _dateCreated: '2026-01-01T00:00:00Z', _data: { source_language: 'en' } },
+          { _dateCreated: '2026-01-03T00:00:00Z', _data: {} },
+          { _dateCreated: '2026-01-02T00:00:00Z', _data: { source_language: 'es' } },
+        ]),
+      )
+      .to.equal('es')
   })
 })
 
-describe('getFormLanguageSource', () => {
+describe('getEditSourceLanguage', () => {
+  const asset = {
+    content: { settings: { default_language: 'French (fr)' } },
+    summary: { languages: ['French (fr)'] },
+  } as unknown as AssetResponse
+  const assetWithoutLanguage = { content: { settings: {} }, summary: { languages: [] } } as unknown as AssetResponse
+  const buildVersion = (language: string, sourceLanguage?: string) =>
+    ({
+      _uuid: language,
+      _dateCreated: '2026-01-01T00:00:00Z',
+      _dateAccepted: '',
+      _data: { language, value: 'text', ...(sourceLanguage ? { source_language: sourceLanguage } : {}) },
+      _dependency: { _actionId: '', _uuid: '' },
+    }) as unknown as TranslationVersionItem
+
+  it("keeps the translation's own source language", () => {
+    const version = buildVersion('de', 'es')
+    chai.expect(getEditSourceLanguage(version, [version], asset)).to.equal('es')
+  })
+
+  it("falls back to the other translations' source language, then the form's language, then English", () => {
+    const version = buildVersion('de')
+    chai.expect(getEditSourceLanguage(version, [version, buildVersion('pt', 'es')], asset)).to.equal('es')
+    chai.expect(getEditSourceLanguage(version, [version], asset)).to.equal('fr')
+    chai.expect(getEditSourceLanguage(version, [version], assetWithoutLanguage)).to.equal('en')
+  })
+
+  it("skips a guess that is the translation's own language", () => {
+    const version = buildVersion('fr')
+    chai.expect(getEditSourceLanguage(version, [version], asset)).to.equal('en')
+    chai.expect(getEditSourceLanguage(buildVersion('en'), [], assetWithoutLanguage)).to.equal(null)
+  })
+})
+
+describe('getFormLanguageCode', () => {
   const buildAsset = (defaultLanguage: string | null, languages: Array<string | null>) =>
     ({
       content: { settings: { default_language: defaultLanguage } },
@@ -290,29 +326,23 @@ describe('getFormLanguageSource', () => {
     }) as unknown as AssetResponse
 
   it('prefers the default language setting', () => {
-    chai
-      .expect(getFormLanguageSource(buildAsset('Spanish (es)', ['English (en)', 'Spanish (es)'])))
-      .to.deep.equal({ languageCode: 'es', locale: null })
+    chai.expect(getFormLanguageCode(buildAsset('Spanish (es)', ['English (en)', 'Spanish (es)']))).to.equal('es')
   })
 
   it('falls back to the first translation', () => {
-    chai
-      .expect(getFormLanguageSource(buildAsset(null, ['English (en)', 'Spanish (es)'])))
-      .to.deep.equal({ languageCode: 'en', locale: null })
+    chai.expect(getFormLanguageCode(buildAsset(null, ['English (en)', 'Spanish (es)']))).to.equal('en')
   })
 
-  it('splits a code with a region into the language and dialect', () => {
-    chai
-      .expect(getFormLanguageSource(buildAsset('Español (es-MX)', [])))
-      .to.deep.equal({ languageCode: 'es', locale: 'es-MX' })
+  it('gives the base language of a code with a region', () => {
+    chai.expect(getFormLanguageCode(buildAsset('Español (es-MX)', []))).to.equal('es')
   })
 
   it('returns nothing when the form language is unknown or has no code', () => {
-    chai.expect(getFormLanguageSource(buildAsset(null, []))).to.equal(undefined)
-    chai.expect(getFormLanguageSource(buildAsset(null, [null]))).to.equal(undefined)
+    chai.expect(getFormLanguageCode(buildAsset(null, []))).to.equal(undefined)
+    chai.expect(getFormLanguageCode(buildAsset(null, [null]))).to.equal(undefined)
     // The responses are likely in the unnamed default language, not in the translation that has a name
-    chai.expect(getFormLanguageSource(buildAsset(null, [null, 'French (fr)']))).to.equal(undefined)
-    chai.expect(getFormLanguageSource(buildAsset('English', ['English']))).to.equal(undefined)
+    chai.expect(getFormLanguageCode(buildAsset(null, [null, 'French (fr)']))).to.equal(undefined)
+    chai.expect(getFormLanguageCode(buildAsset('English', ['English']))).to.equal(undefined)
   })
 })
 

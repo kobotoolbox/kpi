@@ -20,7 +20,6 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
-import type { TranslationSource } from '#/components/processing/common/types'
 import {
   getLatestAutomaticTranslationVersionItem,
   getTranslationSourcePayload,
@@ -38,8 +37,8 @@ interface Props {
   hasConflictingOngoingJob: boolean
   /** A text response is translated directly, so the copy talks about it instead of a transcript */
   isTextQuestion: boolean
-  /** The language of a text response, see `StepSelectLanguage` */
-  source?: TranslationSource
+  /** The language of a text response, see `StepSelectLanguage`. `null` for a transcript. */
+  sourceLanguage: LanguageCode | null
   onBack: () => void
   onLimitExceeded: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -53,7 +52,7 @@ export default function StepCreateAutomated({
   submission,
   hasConflictingOngoingJob,
   isTextQuestion,
-  source,
+  sourceLanguage,
   onBack,
   onLimitExceeded,
   onCreate,
@@ -164,7 +163,7 @@ export default function StepCreateAutomated({
           [questionXpath]: {
             automatic_google_translation: {
               language: languageCode,
-              ...getTranslationSourcePayload(source?.languageCode, source?.locale),
+              ...getTranslationSourcePayload(sourceLanguage),
             },
           },
         },

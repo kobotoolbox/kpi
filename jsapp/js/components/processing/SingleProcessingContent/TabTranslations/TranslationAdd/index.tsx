@@ -10,13 +10,11 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 import { getLanguagesRetrieveQueryKey, useLanguagesRetrieve } from '#/api/react-query/other'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
-import { getProcessingQuestionType } from '#/components/processing/common/questionType'
-import { CreateSteps, type TranslationSource } from '#/components/processing/common/types'
+import { CreateSteps } from '#/components/processing/common/types'
 import {
-  getFormLanguageSource,
+  getFormLanguageCode,
+  getSavedSourceLanguage,
   getSuggestedLanguages,
-  getTranslationSource,
-  isTextQuestionType,
 } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -37,6 +35,8 @@ interface Props {
   languagesUnavailable: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
+  /** A text response is translated directly, from the language the user picks for it */
+  isTextQuestion: boolean
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onBack: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -52,6 +52,7 @@ export default function TranslationAdd({
   languagesUnavailable,
   initialStep,
   translationVersions,
+  isTextQuestion,
   onCreate,
   onBack,
   onUnsavedWorkChange,
@@ -62,28 +63,26 @@ export default function TranslationAdd({
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const { billingPeriod } = useBillingPeriod()
 
-  // A text response is translated directly: there's no transcript to take its language from, so the user picks it.
-  // Every translation of a response comes from the same text, so start from the language picked for an earlier one.
-  const isTextQuestion = isTextQuestionType(getProcessingQuestionType(asset, questionXpath, submission))
-  const [source, setSource] = useState<TranslationSource>(
-    () => getTranslationSource(translationVersions) ?? { languageCode: null, locale: null },
+  // Every translation of a text response comes from the same text, so start from the language picked for an earlier one
+  const [sourceLanguage, setSourceLanguage] = useState<LanguageCode | null>(
+    () => getSavedSourceLanguage(translationVersions) ?? null,
   )
+  const textSourceLanguage = isTextQuestion ? sourceLanguage : null
 
-  // Otherwise the response is likely in the form's language, so pre-select it once we know it's one we have. That
-  // happens only once: if the user clears the field afterwards, it stays empty.
-  const [formLanguageSource] = useState(() =>
-    isTextQuestion && !source.languageCode ? getFormLanguageSource(asset) : undefined,
+  // Otherwise the response is likely in the form's language, so pre-select it once we know it's one we have, unless
+  // it's already the target language. That happens only once: if the user clears the field afterwards, it stays empty.
+  const [formLanguageCode] = useState(() =>
+    isTextQuestion && !sourceLanguage ? (getFormLanguageCode(asset) ?? '') : '',
   )
-  const formLanguageCode = formLanguageSource?.languageCode ?? ''
   const { data: formLanguageData } = useLanguagesRetrieve(formLanguageCode, {
     query: { queryKey: getLanguagesRetrieveQueryKey(formLanguageCode), enabled: formLanguageCode !== '' },
   })
   const hasPreselectedFormLanguage = useRef(false)
   useEffect(() => {
-    if (hasPreselectedFormLanguage.current || formLanguageData?.status !== 200 || !formLanguageSource) return
+    if (hasPreselectedFormLanguage.current || formLanguageData?.status !== 200 || !formLanguageCode) return
     hasPreselectedFormLanguage.current = true
-    setSource((current) => (current.languageCode ? current : formLanguageSource))
-  }, [formLanguageData, formLanguageSource])
+    if (formLanguageCode !== languageCode) setSourceLanguage((current) => current ?? formLanguageCode)
+  }, [formLanguageData, formLanguageCode, languageCode])
 
   // Translation conflicts are language-specific, but only once a target language
   // is selected. Before that we warn about any ongoing job, so users learn about
@@ -145,8 +144,7 @@ export default function TranslationAdd({
           disableManual={hasConflictingOngoingJob}
           disableAutomatic={!envStore.data.asr_mt_features_enabled}
           showConflictingOngoingJobAlert={hasConflictingOngoingJob}
-          source={isTextQuestion ? source : undefined}
-          onSourceChange={setSource}
+          textSource={isTextQuestion ? { languageCode: sourceLanguage, onChange: setSourceLanguage } : undefined}
         />
       )}
       {step === CreateSteps.Manual && !!languageCode && (
@@ -158,7 +156,7 @@ export default function TranslationAdd({
           submission={submission}
           supplement={supplement}
           activeBulkActions={activeBulkActions}
-          source={isTextQuestion ? source : undefined}
+          sourceLanguage={textSourceLanguage}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
@@ -174,7 +172,7 @@ export default function TranslationAdd({
           submission={submission}
           hasConflictingOngoingJob={hasConflictingOngoingJob}
           isTextQuestion={isTextQuestion}
-          source={isTextQuestion ? source : undefined}
+          sourceLanguage={textSourceLanguage}
           onCreate={onCreate}
           advancedFeatures={advancedFeatures}
         />

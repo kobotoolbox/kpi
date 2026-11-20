@@ -5,6 +5,7 @@ import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { getProcessingQuestionType } from '#/components/processing/common/questionType'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid } from '#/utils'
@@ -12,9 +13,11 @@ import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import {
   getAllTranslationsFromSupplementData,
+  getEditSourceLanguage,
   getLatestAutomaticTranslationVersionItem,
   getTranslationSourceLanguages,
   isSupplementVersionAutomatic,
+  isTextQuestionType,
 } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
@@ -44,6 +47,9 @@ export default function TranslationTab({
     () => getAllTranslationsFromSupplementData(supplement, questionXpath, false),
     [supplement, questionXpath],
   )
+
+  // A text response is translated directly: there's no transcript to take its language from, so the user picks it
+  const isTextQuestion = isTextQuestionType(getProcessingQuestionType(asset, questionXpath, submission))
 
   // Languages already translated into, plus the source transcript's own language. Translating a transcript into its own
   // language leaves behind an empty column that can't be deleted, so that language has to go too.
@@ -160,6 +166,7 @@ export default function TranslationTab({
           languagesUnavailable={unavailableLanguages}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
+          isTextQuestion={isTextQuestion}
           activeBulkActions={activeBulkActions}
           onCreate={(newLanguageCode: LanguageCode, context: 'automated' | 'manual') => {
             // After creating automated translation, go straight into 'edit' mode
@@ -216,7 +223,10 @@ export default function TranslationTab({
             submission={submission}
             supplement={supplement}
             activeBulkActions={activeBulkActions}
-            translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
+            translationVersion={translationVersion}
+            sourceLanguage={
+              isTextQuestion ? getEditSourceLanguage(translationVersion, translationVersions, asset) : null
+            }
             onBack={() => setMode('view')}
             onSave={() => {
               setMode('view')

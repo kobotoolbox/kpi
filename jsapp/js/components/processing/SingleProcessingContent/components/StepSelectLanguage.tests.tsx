@@ -3,10 +3,9 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { themeKobo } from '#/theme'
-import type { TranslationSource } from '../../common/types'
 import StepSelectLanguage from './StepSelectLanguage'
 
-// The children fetch languages, regions and usage; these tests only cover this step's own logic.
+// The children fetch languages and usage; these tests only cover this step's own logic.
 const mockAutomaticButton = jest.fn()
 jest.mock('./transxAutomaticButton', () => ({
   __esModule: true,
@@ -21,10 +20,6 @@ jest.mock('#/components/languages/LanguageSelector', () => ({
     <output aria-label={props.titleOverride}>{props.value ?? ''}</output>
   ),
 }))
-jest.mock('#/components/languages/RegionSelector', () => ({
-  __esModule: true,
-  default: () => null,
-}))
 jest.mock('#/account/usage/useOrganizationsServiceUsageSummary', () => ({
   useOrganizationsServiceUsageSummary: () => ({ data: undefined }),
 }))
@@ -34,16 +29,21 @@ const SOURCE_TITLE = 'Please select the language of the text response'
 
 function renderStep({
   languageCode = null,
-  source,
+  sourceLanguage,
 }: {
   languageCode?: LanguageCode | null
-  source?: TranslationSource
+  sourceLanguage?: LanguageCode | null
 }) {
+  // `undefined` is a transcript, which isn't asked for a source language
   const handlers = {
     onBack: jest.fn(),
     setLanguageCode: jest.fn(),
-    onSourceChange: jest.fn(),
+    onSourceLanguageChange: jest.fn(),
   }
+  const textSource =
+    sourceLanguage === undefined
+      ? undefined
+      : { languageCode: sourceLanguage, onChange: handlers.onSourceLanguageChange }
   render(
     <MantineProvider theme={themeKobo}>
       <StepSelectLanguage
@@ -58,8 +58,7 @@ function renderStep({
         titleOverride={TARGET_TITLE}
         singleManualButtonLabel='translate'
         disableAutomatic={false}
-        source={source}
-        onSourceChange={handlers.onSourceChange}
+        textSource={textSource}
       />
     </MantineProvider>,
   )
@@ -88,7 +87,7 @@ describe('StepSelectLanguage', () => {
       chai.expect(isManualButtonDisabled()).to.equal(false)
       chai.expect(getLastAutomaticButtonProps()).to.include({
         selectedLanguage: 'fr',
-        sourceLanguage: undefined,
+        sourceLanguage: null,
         type: 'translation',
         disabled: false,
       })
@@ -96,25 +95,25 @@ describe('StepSelectLanguage', () => {
   })
 
   describe('for a text response', () => {
-    it('asks for the source language next to the target language', () => {
-      renderStep({ source: { languageCode: 'es', locale: null } })
+    it('asks for the source language along with the target language', () => {
+      renderStep({ sourceLanguage: 'es' })
       chai.expect(screen.getByLabelText(SOURCE_TITLE).textContent).to.equal('es')
       chai.expect(screen.queryByLabelText(TARGET_TITLE)).to.not.equal(null)
     })
 
     it('keeps both buttons disabled while the source language is missing', () => {
-      renderStep({ languageCode: 'fr', source: { languageCode: null, locale: null } })
+      renderStep({ languageCode: 'fr', sourceLanguage: null })
       chai.expect(isManualButtonDisabled()).to.equal(true)
       chai.expect(getLastAutomaticButtonProps()).to.include({ disabled: true })
     })
 
     it('keeps the manual button disabled while the target language is missing', () => {
-      renderStep({ source: { languageCode: 'es', locale: null } })
+      renderStep({ sourceLanguage: 'es' })
       chai.expect(isManualButtonDisabled()).to.equal(true)
     })
 
     it('enables the buttons once both languages are picked, checking the source for the automatic one', () => {
-      renderStep({ languageCode: 'fr', source: { languageCode: 'es', locale: null } })
+      renderStep({ languageCode: 'fr', sourceLanguage: 'es' })
       chai.expect(isManualButtonDisabled()).to.equal(false)
       chai.expect(getLastAutomaticButtonProps()).to.include({
         selectedLanguage: 'fr',
@@ -124,19 +123,19 @@ describe('StepSelectLanguage', () => {
     })
 
     it('clears only the target language on "back", keeping the source language', () => {
-      const handlers = renderStep({ languageCode: 'fr', source: { languageCode: 'es', locale: null } })
+      const handlers = renderStep({ languageCode: 'fr', sourceLanguage: 'es' })
       fireEvent.click(screen.getByRole('button', { name: 'back' }))
       chai.expect(handlers.setLanguageCode.mock.calls).to.deep.equal([[null]])
-      chai.expect(handlers.onSourceChange.mock.calls).to.have.lengthOf(0)
+      chai.expect(handlers.onSourceLanguageChange.mock.calls).to.have.lengthOf(0)
       chai.expect(handlers.onBack.mock.calls).to.have.lengthOf(0)
     })
 
     it('goes back when no target language is picked, even with a source language', () => {
-      const handlers = renderStep({ source: { languageCode: 'es', locale: null } })
+      const handlers = renderStep({ sourceLanguage: 'es' })
       fireEvent.click(screen.getByRole('button', { name: 'back' }))
       chai.expect(handlers.onBack.mock.calls).to.have.lengthOf(1)
       chai.expect(handlers.setLanguageCode.mock.calls).to.have.lengthOf(0)
-      chai.expect(handlers.onSourceChange.mock.calls).to.have.lengthOf(0)
+      chai.expect(handlers.onSourceLanguageChange.mock.calls).to.have.lengthOf(0)
     })
   })
 })

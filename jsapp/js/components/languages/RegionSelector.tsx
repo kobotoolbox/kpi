@@ -16,19 +16,16 @@ interface RegionSelectorProps {
   serviceType: 'transcription' | 'translation'
   /** Callback for a region is being selected. */
   onRegionChange: (selectedRegion: LanguageCode | null) => void
-  /** Region to select once the regions load, if it's one of them. Defaults to the first region. */
-  initialRegion?: LanguageCode | null
   titleOverride?: string
   size?: MantineSize
 }
 
-/** Dropdown only region selector for the regions a transcription or translation service supports */
+/** Dropdown only region selector for automated transcriptions */
 const RegionSelector = ({
   rootLanguage,
   serviceCode,
   serviceType,
   onRegionChange,
-  initialRegion,
   titleOverride,
   disabled,
   size,
@@ -81,20 +78,17 @@ const RegionSelector = ({
     })
   }, [language, serviceCode, serviceType])
 
-  // Needed to populate the Select value after getting data. While it loads there are no options yet, and reporting
-  // "no region" then would make the parent drop its `initialRegion` before we can select it.
+  // Needed to populate the Select value after getting data
   useEffect(() => {
-    if (isLoading) return
     if (regionOptions.length > 0) {
-      const initialOption =
-        regionOptions.find((option) => option.value === initialRegion)?.value ?? regionOptions[0].value
+      const initialOption = regionOptions[0].value
       setSelectedRegion(initialOption)
       onRegionChange(initialOption)
     } else {
       setSelectedRegion(null)
       onRegionChange(null)
     }
-  }, [regionOptions, isLoading])
+  }, [regionOptions])
 
   const handleRegionChange = (newRegion: string | null) => {
     setSelectedRegion(newRegion)

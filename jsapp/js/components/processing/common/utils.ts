@@ -19,7 +19,6 @@ import type {
   DisplaysList,
   QualVersionItem,
   TranscriptVersionItem,
-  TranslationSource,
   TranslationVersionItem,
   TransxVersionItem,
 } from './types'
@@ -358,42 +357,57 @@ export const getAllTranslationsFromSupplementData = (
 }
 
 /**
- * The `source_language` and `source_locale` properties of a translation request. The back end requires them to
- * translate a text response and rejects them for any other question, so they're left out when there's no source
- * language (i.e. for a transcript).
+ * The `source_language` property of a translation request. The back end requires it to translate a text response and
+ * rejects it for any other question, so it's left out when there's no source language (i.e. for a transcript).
  */
 export const getTranslationSourcePayload = (
-  languageCode: LanguageCode | null | undefined,
-  locale: LanguageCode | null | undefined,
-): { source_language?: LanguageCode; source_locale?: LanguageCode } => {
-  if (!languageCode) return {}
-  return locale ? { source_language: languageCode, source_locale: locale } : { source_language: languageCode }
-}
-
-/** The source language of the first translation that has one, i.e. one of a text response. */
-export const getTranslationSource = (
-  translationVersions: Array<{ _data: { source_language?: LanguageCode; source_locale?: LanguageCode } }>,
-): TranslationSource | undefined => {
-  const versionData = translationVersions.find((version) => version._data.source_language)?._data
-  if (!versionData?.source_language) return undefined
-  return { languageCode: versionData.source_language, locale: versionData.source_locale ?? null }
-}
-
-/** The source language for a text response's translation when none was picked and the form's language is unknown. */
-export const DEFAULT_TEXT_SOURCE_LANGUAGE: LanguageCode = 'en'
+  sourceLanguage: LanguageCode | null | undefined,
+): { source_language?: LanguageCode } => (sourceLanguage ? { source_language: sourceLanguage } : {})
 
 /**
- * The form's default language as a translation source: the `default_language` setting, or else the first of the form's
- * languages, which is the default one. A text response is usually written in it, so it's a good first guess. Only names
- * with a code, e.g. "English (en)", can be mapped; a code with a region, e.g. "es-MX", gives the language and that
- * dialect. An unnamed default language gives nothing, rather than one of the form's other languages.
+ * The source language of the most recent translation that has one, i.e. one of a text response. The latest wins, so a
+ * source corrected on a later translation replaces the earlier one.
  */
-export const getFormLanguageSource = (asset: AssetResponse): TranslationSource | undefined => {
+export const getSavedSourceLanguage = (
+  translationVersions: Array<{ _dateCreated: string; _data: { source_language?: LanguageCode } }>,
+): LanguageCode | undefined =>
+  // These are ISO-8601 strings, so comparing them as strings gives chronological order
+  [...translationVersions]
+    .sort((a, b) => (a._dateCreated < b._dateCreated ? 1 : -1))
+    .find((version) => version._data.source_language)?._data.source_language
+
+/** The source language for a text response's translation when none was picked and the form's language is unknown. */
+const DEFAULT_TEXT_SOURCE_LANGUAGE: LanguageCode = 'en'
+
+/**
+ * The code of the form's default language: the `default_language` setting, or else the first of the form's languages,
+ * which is the default one. A text response is usually written in it, so it's a good first guess for its source
+ * language. Only names with a code, e.g. "English (en)", can be mapped; a code with a region, e.g. "es-MX", gives its
+ * base language. An unnamed default language gives nothing, rather than one of the form's other languages.
+ */
+export const getFormLanguageCode = (asset: AssetResponse): LanguageCode | undefined => {
   const formLanguage = asset.content?.settings?.default_language || asset.summary?.languages?.[0]
-  const code = formLanguage ? getLangAsObject(formLanguage)?.code : undefined
-  if (!code) return undefined
-  const languageCode = code.split('-')[0]
-  return { languageCode, locale: languageCode === code ? null : code }
+  return formLanguage ? getLangAsObject(formLanguage)?.code.split('-')[0] : undefined
+}
+
+/**
+ * The source language to save an edit of a text response's translation with. The back end requires one, but
+ * translations made before it was asked have none, so they get the best guess: the source of the response's other
+ * translations, the form's language, or else English. A guess that is the translation's own language is skipped, since
+ * the back end rejects it; `null` when every guess is.
+ */
+export const getEditSourceLanguage = (
+  translationVersion: TranslationVersionItem,
+  translationVersions: Parameters<typeof getSavedSourceLanguage>[0],
+  asset: AssetResponse,
+): LanguageCode | null => {
+  const guesses = [
+    translationVersion._data.source_language,
+    getSavedSourceLanguage(translationVersions),
+    getFormLanguageCode(asset),
+    DEFAULT_TEXT_SOURCE_LANGUAGE,
+  ]
+  return guesses.find((code) => code && code !== translationVersion._data.language) ?? null
 }
 
 // Question type support

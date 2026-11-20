@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-import { Group, Stack } from '@mantine/core'
+import { Stack } from '@mantine/core'
 import cx from 'classnames'
 import type { UsageLimitTypes } from '#/account/stripe.types'
 import {
@@ -9,12 +9,11 @@ import {
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/LanguageSelector'
-import RegionSelector from '#/components/languages/RegionSelector'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { CreateSteps, type TranslationSource } from '../../common/types'
+import { CreateSteps } from '../../common/types'
 import TransxAutomaticButton from './transxAutomaticButton'
 
 interface Props {
@@ -35,11 +34,13 @@ interface Props {
   disableAutomatic: boolean
   showConflictingOngoingJobAlert?: boolean
   /**
-   * The language a text response is written in, asked next to the target language when translating one. Both
-   * buttons stay disabled until it's picked. Leave out for a transcript, which carries its own language.
+   * The language a text response is written in, asked above the target language when translating one. Both buttons
+   * stay disabled until it's picked. Leave out for a transcript, which carries its own language.
    */
-  source?: TranslationSource
-  onSourceChange?: (source: TranslationSource) => void
+  textSource?: {
+    languageCode: LanguageCode | null
+    onChange: (languageCode: LanguageCode | null) => void
+  }
 }
 
 export default function StepSelectLanguage({
@@ -57,8 +58,7 @@ export default function StepSelectLanguage({
   disableManual = false,
   disableAutomatic,
   showConflictingOngoingJobAlert = false,
-  source,
-  onSourceChange,
+  textSource,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
   const usageLimitBlock = useMemo(
@@ -77,7 +77,8 @@ export default function StepSelectLanguage({
     setLanguageCode(newVal ?? null)
   }
 
-  const isSourceMissing = source !== undefined && !source.languageCode
+  const sourceLanguage = textSource?.languageCode ?? null
+  const isSourceMissing = textSource !== undefined && !sourceLanguage
 
   const handleClickBack = () => {
     // When clicking "back" we either unselect the language (inner component "back" action) by clearing it,
@@ -88,15 +89,6 @@ export default function StepSelectLanguage({
     } else {
       onBack()
     }
-  }
-
-  function handleChangeSourceLanguage(newLanguageCode: LanguageCode | null) {
-    // The dialects belong to the previous language, `RegionSelector` picks one of the new language's
-    onSourceChange?.({ languageCode: newLanguageCode, locale: null })
-  }
-
-  function handleChangeSourceLocale(newLocale: LanguageCode | null) {
-    if (source) onSourceChange?.({ ...source, locale: newLocale })
   }
 
   function handleClickNextManual() {
@@ -116,42 +108,26 @@ export default function StepSelectLanguage({
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <Stack gap='md'>
-        {source && (
-          // Language and dialect side by side, like for an automatic transcription
-          <Group grow align='flex-end' wrap='nowrap'>
-            <LanguageSelector
-              titleOverride={t('Please select the language of the text response')}
-              onLanguageChange={handleChangeSourceLanguage}
-              // Translating into the same language makes no sense
-              hiddenLanguages={languageCode ? [languageCode] : []}
-              // The selected language only shows when it's an option, and it may not be one of the featured ones
-              suggestedLanguages={source.languageCode ? [source.languageCode] : []}
-              value={source.languageCode}
-              required
-            />
-
-            {source.languageCode && (
-              <RegionSelector
-                // Remount for each language, so its dialects replace the previous ones
-                key={source.languageCode}
-                rootLanguage={source.languageCode}
-                serviceCode='goog'
-                serviceType='translation'
-                onRegionChange={handleChangeSourceLocale}
-                initialRegion={source.locale}
-                titleOverride={t('Dialect')}
-              />
-            )}
-          </Group>
+        {textSource && (
+          <LanguageSelector
+            titleOverride={t('Please select the language of the text response')}
+            onLanguageChange={textSource.onChange}
+            // Translating into the same language makes no sense
+            hiddenLanguages={languageCode ? [languageCode] : []}
+            // The selected language only shows when it's an option, and it may not be one of the featured ones
+            suggestedLanguages={sourceLanguage ? [sourceLanguage] : []}
+            value={sourceLanguage}
+            required
+          />
         )}
 
         <LanguageSelector
           titleOverride={titleOverride}
           onLanguageChange={handleChangeLanguage}
-          hiddenLanguages={source?.languageCode ? [...hiddenLanguages, source.languageCode] : hiddenLanguages}
+          hiddenLanguages={sourceLanguage ? [...hiddenLanguages, sourceLanguage] : hiddenLanguages}
           suggestedLanguages={suggestedLanguages}
           value={languageCode}
-          required={source !== undefined}
+          required={textSource !== undefined}
         />
       </Stack>
 
@@ -173,7 +149,7 @@ export default function StepSelectLanguage({
           <TransxAutomaticButton
             onClick={handleClickNextAutomatic}
             selectedLanguage={languageCode}
-            sourceLanguage={source?.languageCode}
+            sourceLanguage={sourceLanguage}
             type={automaticServiceType}
             disabled={isSourceMissing || disableAutomatic || showConflictingOngoingJobAlert}
           />
