@@ -37,7 +37,7 @@ import type {
   TableSortBySetting,
 } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
-import type { TableColumn } from './table.types'
+import type { TableColumn, VisibleAudioXpaths } from './table.types'
 
 const ATTACHMENT_QUESTION_TYPES = new Set<AnyRowTypeName>([
   QUESTION_TYPES.audio.id,
@@ -850,24 +850,25 @@ export function isTableColumnFilterableByDropdown(questionType: AnyRowTypeName |
 }
 
 /**
- * Returns xpaths of the audio question columns among the given Data Table
- * columns. Pass the columns the table is rendering to get only the audio
- * columns the user can actually see, which is how we avoid looking up durations
- * for hidden columns.
+ * Returns the attachment xpaths of the columns that may show audio. Pass the columns the
+ * table is rendering, so hidden columns don't get their durations looked up.
  */
-export function getVisibleAudioXpaths(columns: TableColumn[]): string[] {
-  const xpaths: string[] = []
-  columns.forEach((column) => {
-    const question = column.question
-    const xpath = question?.$xpath
-    if (
-      xpath &&
-      (question?.type === QUESTION_TYPES.audio.id || question?.type === QUESTION_TYPES['background-audio'].id)
+export function getVisibleAudioXpaths(columns: TableColumn[]): VisibleAudioXpaths {
+  const result: VisibleAudioXpaths = { audioQuestion: [], noQuestion: [] }
+  for (const column of columns) {
+    // Same paths the cell looks its attachment up by.
+    const xpaths = [column.id, ...(column.legacyAttachmentPaths ?? [])]
+    // A column without a question (e.g. a renamed one) guesses its type from the file.
+    if (column.question === undefined) {
+      result.noQuestion.push(...xpaths)
+    } else if (
+      column.question.type === QUESTION_TYPES.audio.id ||
+      column.question.type === QUESTION_TYPES['background-audio'].id
     ) {
-      xpaths.push(xpath)
+      result.audioQuestion.push(...xpaths)
     }
-  })
-  return xpaths
+  }
+  return result
 }
 
 /**
