@@ -382,11 +382,49 @@ def test_run_external_process_passes_bulk_action_uid_to_service():
             'bulk_action_uid': 'bulk-action-uid',
         },
         bulk_action_uid='bulk-action-uid',
+        version_uuid=None,
+        is_launch=False,
     )
     assert result == {
         'value': 'Bonjour',
         'status': 'complete',
     }
+
+
+@pytest.mark.parametrize('in_progress_created_upfront', [True, False])
+def test_run_external_process_tells_the_service_which_run_it_is(
+    in_progress_created_upfront,
+):
+    """
+    The service is given the `_uuid` of the version on top, and whether this
+    call is the launch that just saved it (`True`) or a later call on the same
+    run, such as a poll (`False`)
+    """
+    xpath = 'group_name/question_name'
+    action = AutomaticGoogleTranscriptionAction(xpath, [{'language': 'fr'}])
+
+    mock_service = MagicMock()
+    mock_service.process_data.return_value = {'value': 'Bonjour', 'status': 'complete'}
+
+    service_path = (
+        'kobo.apps.subsequences.actions.automatic_google_transcription'
+        '.GoogleTranscriptionService'
+    )
+    with patch(service_path, return_value=mock_service):
+        action.run_external_process(
+            EMPTY_SUBMISSION,
+            {
+                '_uuid': 'version-1',
+                '_dateCreated': '2026-01-01T10:00:00Z',
+                '_data': {'language': 'fr', 'status': 'in_progress'},
+            },
+            {'language': 'fr'},
+            in_progress_created_upfront=in_progress_created_upfront,
+        )
+
+    _, kwargs = mock_service.process_data.call_args
+    assert kwargs['version_uuid'] == 'version-1'
+    assert kwargs['is_launch'] is in_progress_created_upfront
 
 
 def test_async_poll_keeps_auto_accept():

@@ -1,3 +1,4 @@
+import json
 import re
 import subprocess
 from dataclasses import dataclass
@@ -151,19 +152,138 @@ def detect_silences(
     Decode the audio at `path_or_url` and return the quiet runs in it
 
     Nothing is encoded (`-f null`), so this costs one decode pass and no more.
-    This runs inside the web request and reads whatever `absolute_path` gives
-    it, a presigned URL in production, so callers should pass a `timeout`.
+    Pass a `timeout` whenever `path_or_url` may be a presigned URL.
+    """
+
+    stderr = _run_silencedetect(
+        path_or_url, threshold_db, min_duration, ['-f', 'null', '-'], timeout
+    )
+    return parse_silences(stderr, duration)
+
+
+def convert_and_detect_silences(
+    path_or_url: str,
+    output_path: str,
+    threshold_db: int,
+    min_duration: float,
+    timeout: float | None = None,
+) -> tuple[list[Silence], float]:
+    """
+    Convert the audio at `path_or_url` to a mono FLAC file at `output_path`,
+    and return the quiet runs in it along with its duration
+
+    One decode pass does both, so a recording in remote storage is downloaded
+    once. The duration is read from the file just written rather than from
+    the original's header, which may be missing or a little off, so it is the
+    length of the audio that will actually be cut.
+    """
+    stderr = _run_silencedetect(
+        path_or_url,
+        threshold_db,
+        min_duration,
+        ['-f', 'flac', '-y', output_path],
+        timeout,
+    )
+    if (duration := probe_duration(output_path)) is None:
+        # ffmpeg reported success, so the file it wrote should be readable
+        raise FFMpegException
+    return parse_silences(stderr, duration), duration
+
+
+def cut_audio(
+    source_path: str,
+    start: float,
+    end: float,
+    output_path: str,
+    timeout: float | None = None,
+) -> None:
+    """
+    Write the audio of `source_path` between `start` and `end` seconds to its
+    own FLAC file at `output_path`
+
+    The slice is encoded again rather than copied (`-c copy`). A copied FLAC
+    keeps the original's header, which states the length of the whole file:
+    a 55 min chunk of a 2 h recording would claim to be 2 h long. Encoding is
+    cheap on a local file, and placing `-ss` before the input makes ffmpeg
+    seek to `start` instead of decoding everything before it.
+    """
+
+    # fmt: off
+    run_ffmpeg(
+        [
+            '-ss', _format_seconds(start),
+            '-to', _format_seconds(end),
+            *decode_args(source_path),
+            '-f', 'flac',
+            '-y', output_path,
+        ],
+        timeout=timeout,
+    )
+    # fmt: on
+
+
+def probe_duration(path_or_url: str, label: str = '') -> float | None:
+    """
+    Return the duration in seconds that ffprobe reads for `path_or_url`, or
+    `None` when it cannot tell (unsupported format, corrupt file, network
+    error, etc.)
+
+    `label` names the file in the log instead of `path_or_url`, which may be a
+    presigned URL.
+    """
+    try:
+        # fmt: off
+        result = subprocess.run(
+            [
+                'ffprobe',
+                '-v', 'error',
+                '-show_entries', 'format=duration',
+                '-of', 'json',
+                path_or_url,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        # fmt: on
+        data = json.loads(result.stdout)
+        return float(data['format']['duration'])
+    except subprocess.TimeoutExpired:
+        logging.info('ffprobe timed out for %s', label or path_or_url)
+        return None
+    except Exception as exc:
+        logging.info('ffprobe failed for %s: %s', label or path_or_url, exc)
+        return None
+
+
+def _format_seconds(seconds: float) -> str:
+    """
+    Write `seconds` the way ffmpeg reads a time
+
+    `str()` would switch to scientific notation for a tiny value such as
+    `1e-05`, which ffmpeg does not accept.
+    """
+    return f'{seconds:.6f}'
+
+
+def _run_silencedetect(
+    path_or_url: str,
+    threshold_db: int,
+    min_duration: float,
+    output_args: list[str],
+    timeout: float | None,
+) -> str:
+    """
+    Decode `path_or_url` through `silencedetect`, send the result to
+    `output_args`, and return the log the pauses are reported in
     """
 
     pipe = run_ffmpeg(
         [
             *decode_args(path_or_url),
             *silencedetect_args(threshold_db, min_duration),
-            '-f',
-            'null',
-            '-',
+            *output_args,
         ],
         timeout=timeout,
     )
-
-    return parse_silences(pipe.stderr.decode(errors='replace'), duration)
+    return pipe.stderr.decode(errors='replace')

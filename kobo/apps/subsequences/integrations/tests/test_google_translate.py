@@ -18,6 +18,10 @@ from kobo.apps.subsequences.integrations.google.rate_limit import (
 from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 
+# What `process_data()` is told about the run. A translation saves no version
+# upfront, so it is never told about a launch
+RUN = {'version_uuid': None, 'is_launch': False}
+
 
 class TestGoogleTranslate(TestCase):
 
@@ -105,9 +109,9 @@ class TestGoogleTranslate(TestCase):
                 ):
                     if should_refuse:
                         with pytest.raises(UsageLimitExceededException):
-                            service.process_data('q1', params)
+                            service.process_data('q1', params, **RUN)
                     else:
-                        service.process_data('q1', params)
+                        service.process_data('q1', params, **RUN)
 
                 if should_refuse:
                     mock_raise_if_exceeded.assert_called_once_with(
@@ -144,6 +148,7 @@ class TestGoogleTranslate(TestCase):
                             'value': 'Hello',
                         },
                     },
+                    **RUN,
                 )
 
         assert response['status'] == 'failed'
@@ -184,6 +189,7 @@ class TestGoogleTranslate(TestCase):
                                     'value': 'Hello ' * 10000,
                                 },
                             },
+                            **RUN,
                         )
 
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
@@ -226,6 +232,7 @@ class TestGoogleTranslate(TestCase):
                                     'value': 'Hello ' * 10000,
                                 },
                             },
+                            **RUN,
                         )
 
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
@@ -268,6 +275,7 @@ class TestGoogleTranslate(TestCase):
                                     'value': 'Hello ' * 10000,
                                 },
                             },
+                            **RUN,
                         )
 
         assert response == {'status': 'complete', 'value': 'Bonjour'}
@@ -304,6 +312,7 @@ class TestGoogleTranslate(TestCase):
                                 'value': 'Hello ' * 10000,
                             },
                         },
+                        **RUN,
                     )
 
         assert response == {'status': 'in_progress'}
@@ -341,6 +350,7 @@ class TestGoogleTranslate(TestCase):
                                 'value': 'Hello ' * 10000,
                             },
                         },
+                        **RUN,
                     )
 
         assert response == {'status': 'in_progress'}
@@ -409,6 +419,7 @@ class TestGoogleTranslate(TestCase):
                                         'value': 'Hello ' * 10000,
                                     },
                                 },
+                                **RUN,
                             )
 
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
@@ -448,6 +459,7 @@ class TestGoogleTranslate(TestCase):
                                     'value': 'Hello ' * 10000,
                                 },
                             },
+                            **RUN,
                         )
 
         cache_key = service._get_cache_key('mock_xpath', 'en-US', 'fr')
@@ -485,6 +497,7 @@ class TestGoogleTranslate(TestCase):
                                     'value': 'Hello',
                                 },
                             },
+                            **RUN,
                         )
 
         service.translate_client.translate_text.assert_not_called()
@@ -513,6 +526,7 @@ class TestGoogleTranslate(TestCase):
                         'language': 'fr',
                         '_dependency': {'_actionId': 'submission'},
                     },
+                    **RUN,
                 )
 
         assert response == {'status': 'complete', 'value': 'Bonjour'}
@@ -535,6 +549,7 @@ class TestGoogleTranslate(TestCase):
         response = service.process_data(
             'q1',
             {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+            **RUN,
         )
 
         assert response['status'] == 'failed'
@@ -574,6 +589,7 @@ class TestGoogleTranslate(TestCase):
                     response = service.process_data(
                         'q1',
                         {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+                        **RUN,
                     )
 
             assert response == {'status': 'complete', 'value': 'Bonjour'}
@@ -597,6 +613,7 @@ class TestGoogleTranslate(TestCase):
             response = service.process_data(
                 'q1',
                 {'language': 'fr', '_dependency': {'_actionId': 'submission'}},
+                **RUN,
             )
 
         assert response['status'] == 'failed'

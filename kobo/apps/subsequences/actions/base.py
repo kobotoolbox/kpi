@@ -781,23 +781,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         return
 
     @property
-    def chunk_hard_limit_seconds(self) -> float:
-        """
-        Longest piece of audio, in seconds, this action's engine will accept
-
-        A recording longer than this is cut into chunks before it is sent (see
-        `kpi.utils.audio_chunking`). Engines disagree about the limit, so there
-        is no shared default to inherit: Google STT v2 takes an hour while
-        Gemini-Transcribe takes far less, and one number for both would chunk
-        every engine at the lowest limit in the fleet.
-
-        The value is fixed by the engine's API rather than tuned per
-        deployment, so each action states it outright.
-        """
-
-        raise NotImplementedError
-
-    @property
     def external_data_schema(self) -> dict:
         """
         Schema rules:
@@ -1064,6 +1047,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 current_version,
                 action_data,
                 in_progress_created_upfront,
+                # The run this call belongs to: with `create_in_progress_upfront`
+                # the version on top is its `in_progress` version
+                version_uuid=action_supplemental_data.get(self.UUID_FIELD),
             )
         except (GoogleQuotaExceededError, APIException):
             # Not failures of the service, re-raised on purpose: Celery retries
@@ -1080,12 +1066,39 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             )
             return {'status': 'failed', 'error': str(e)}
 
+    def _schedule_poll(
+        self,
+        submission: dict,
+        action_data: dict,
+        version_uuid: str | None,
+        countdown: int,
+    ) -> None:
+        """
+        Schedule the Celery poll that checks on the run `version_uuid` until it
+        ends
+        """
+        celery_action_data = deepcopy(action_data)
+        celery_action_data.pop(self.DEPENDENCY_FIELD, None)
+
+        poll_run_external_process.apply_async(
+            kwargs={
+                'submission': submission,
+                'action_data': celery_action_data,
+                'action_id': self.ID,
+                'asset_id': self.asset.pk,
+                'question_xpath': self.source_question_xpath,
+                'version_uuid': version_uuid,
+            },
+            countdown=countdown,
+        )
+
     def _run_external_service(
         self,
         submission: dict,
         current_version: dict,
         action_data: dict,
         in_progress_created_upfront: bool,
+        version_uuid: str | None,
     ) -> dict | None:
         bulk_action_uid = action_data.get('bulk_action_uid')
 
@@ -1095,29 +1108,30 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         except GoogleCloudStorageBucketNotFound:
             return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
 
+        # The run a poll scheduled below checks on. Only known when its
+        # `in_progress` version is already saved: a translation saves it after
+        # this call, so its poll is not told
+        poll_version_uuid = version_uuid if in_progress_created_upfront else None
         quota_poll_scheduled = False
         try:
             service_data = service.process_data(
                 self.source_question_xpath,
                 action_data,
                 bulk_action_uid=bulk_action_uid,
+                version_uuid=version_uuid,
+                # Only a launch saves its `in_progress` version upfront: later
+                # calls (polls, repeated requests) find it already there
+                is_launch=in_progress_created_upfront,
             )
         except GoogleQuotaExceededError as err:
             if celery_app.current_worker_task:
                 raise
 
             if self.action_class_config.allow_async:
-                celery_action_data = deepcopy(action_data)
-                celery_action_data.pop(self.DEPENDENCY_FIELD, None)
-
-                poll_run_external_process.apply_async(
-                    kwargs={
-                        'submission': submission,
-                        'action_data': celery_action_data,
-                        'action_id': self.ID,
-                        'asset_id': self.asset.pk,
-                        'question_xpath': self.source_question_xpath,
-                    },
+                self._schedule_poll(
+                    submission,
+                    action_data,
+                    poll_version_uuid,
                     countdown=err.retry_after,
                 )
                 quota_poll_scheduled = True
@@ -1146,19 +1160,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
                 if not celery_app.current_worker_task and not quota_poll_scheduled:
-
-                    celery_action_data = deepcopy(action_data)
-                    celery_action_data.pop(self.DEPENDENCY_FIELD, None)
-
-                    poll_run_external_process.apply_async(
-                        kwargs={
-                            'submission': submission,
-                            'action_data': celery_action_data,
-                            'action_id': self.ID,
-                            'asset_id': self.asset.pk,
-                            'question_xpath': self.source_question_xpath,
-                        },
-                        countdown=10,  # Give it a small delay before retrying
+                    # Give it a small delay before retrying
+                    self._schedule_poll(
+                        submission, action_data, poll_version_uuid, countdown=10
                     )
             else:
                 logging.warn('Non-async task returned "in progress" status')

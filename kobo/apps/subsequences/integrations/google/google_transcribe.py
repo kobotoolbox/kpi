@@ -17,6 +17,7 @@ from google.api_core.exceptions import (
     InvalidArgument,
     PermissionDenied,
     ResourceExhausted,
+    RetryError,
     Unauthenticated,
 )
 from google.cloud import speech_v2 as speech
@@ -25,6 +26,7 @@ from google.protobuf.json_format import MessageToDict
 
 from kobo.apps.languages.exceptions import LanguageNotSupported
 from kobo.apps.languages.models.transcription import TranscriptionService
+from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.organizations.constants import UsageType
 from kpi.exceptions import (
     AttachmentNotFoundException,
@@ -33,14 +35,20 @@ from kpi.exceptions import (
     SubmissionNotFoundException,
     XPathNotFoundException,
 )
+from kpi.utils.audio_duration import get_audio_duration
 from kpi.utils.log import logging
 from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
 from ...exceptions import (
-    AudioTooLongError,
+    ChunkStorageError,
+    ChunkStorageRefusedError,
     GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     SubsequenceTimeoutError,
     TranscriptionResultNotFound,
+)
+from ...utils.chunked_transcription import (
+    ChunkedTranscriptionEngine,
+    ChunkedTranscriptionRun,
 )
 from .base import GoogleService
 from .locations import (
@@ -54,9 +62,6 @@ from .rate_limit import (
     require_google_service_quota,
 )
 
-# https://cloud.google.com/speech-to-text/docs/quotas
-ASYNC_MAX_LENGTH = timedelta(minutes=479)
-
 # Fallback STT model used when a language has no `model_code` set in the
 # `TranscriptionServiceLanguageM2M` database table. 'chirp_3' is chosen over
 # 'long' because it is available for every language in the 'us' and 'eu'
@@ -65,11 +70,22 @@ ASYNC_MAX_LENGTH = timedelta(minutes=479)
 DEFAULT_SPEECH_MODEL = 'chirp_3'
 
 
-class GoogleTranscriptionService(GoogleService):
+class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
     API_NAME = 'speech'
     API_VERSION = 'v2'
     API_RESOURCE = 'projects.locations.operations'
     USAGE_TYPE = UsageType.ASR_SECONDS
+
+    # Longest piece of audio, in seconds, this engine is sent in one request: a
+    # longer recording is cut into chunks first (see `kpi.utils.audio_chunking`),
+    # and no chunk is ever longer. Each engine states its own, as required by
+    # `ChunkedTranscriptionEngine`, since they disagree and one number for all
+    # would chunk every engine at the lowest limit in the fleet
+    #
+    # `DEFAULT_SPEECH_MODEL`, the model this engine falls back to, refuses
+    # audio longer than an hour. Five minutes under that leaves a margin for a
+    # recording that turns out slightly longer than ffprobe reported
+    CHUNK_HARD_LIMIT_SECONDS = 55 * 60
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
@@ -129,10 +145,6 @@ class GoogleTranscriptionService(GoogleService):
         """
         flac_content, duration = content
         total_seconds = int(duration.total_seconds())
-        if duration >= ASYNC_MAX_LENGTH:
-            raise AudioTooLongError(
-                'Audio file of duration %s is too long.' % duration
-            )
 
         speech_model = model_code or DEFAULT_SPEECH_MODEL
         if speech_location is None:
@@ -168,7 +180,7 @@ class GoogleTranscriptionService(GoogleService):
             files=[speech.BatchRecognizeFileMetadata(uri=gcs_input_uri)],
             recognition_output_config=speech.RecognitionOutputConfig(
                 gcs_output_config=speech.GcsOutputConfig(
-                    uri=f'gs://{settings.GS_BUCKET_NAME}/{output_prefix}/'
+                    uri=f'{self._get_gcs_uri(output_prefix)}/'
                 )
             ),
         )
@@ -179,16 +191,11 @@ class GoogleTranscriptionService(GoogleService):
     def counter_name(self):
         return 'google_asr_seconds'
 
-    def get_converted_audio(
-        self, xpath: str, submission_uuid: int, user: object
-    ) -> Union[bytes, tuple[bytes, timedelta]]:
+    def get_converted_audio(self, attachment: Attachment) -> tuple[bytes, timedelta]:
         """
         Converts attachment audio or video file to flac
         """
 
-        attachment = self.asset.deployment.get_attachment(
-            submission_uuid, user, xpath=xpath
-        )
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
     def process_data(
@@ -196,9 +203,18 @@ class GoogleTranscriptionService(GoogleService):
         xpath: str,
         params: dict,
         bulk_action_uid: str | None = None,
+        *,
+        version_uuid: str | None,
+        is_launch: bool,
     ) -> dict:
         """
         Start or resume a single-submission transcription request
+
+        `version_uuid` and `is_launch` identify the run, see
+        `GoogleService.process_data()`
+
+        A recording longer than `CHUNK_HARD_LIMIT_SECONDS` is transcribed in
+        chunks, see `ChunkedTranscriptionRun`. Any other goes to Google whole
 
         Returns:
         - `in_progress` while Google is still processing
@@ -255,156 +271,219 @@ class GoogleTranscriptionService(GoogleService):
             or get_speech_location_for_region()
         )
 
-        operation_name = self._get_operation_reference(
+        # An existing operation reference means this submission/language pair
+        # already has a Google batch job running: check on it
+        if operation_name := self._get_operation_reference(
             xpath, source_language, bulk_action_uid
-        )
-
-        # If no operation reference exists, this is treated as the first request for
-        # the given submission/language pair, and a new Google batch job is created
-        if not operation_name:
-            self._before_new_operation()
-            try:
-                converted_audio = self.get_converted_audio(
-                    xpath,
-                    self.submission_root_uuid,
-                    self.asset.owner,
-                )
-            except SubmissionNotFoundException:
-                return {'status': 'failed', 'error': 'Submission not found'}
-            except AttachmentNotFoundException:
-                return {'status': 'failed', 'error': 'Attachment not found'}
-            except (InvalidXPathException, XPathNotFoundException):
-                return {'status': 'failed', 'error': 'Invalid question name XPath'}
-            except NotSupportedFormatException:
-                return {'status': 'failed', 'error': 'Unsupported format'}
-
-            try:
-                # Launch a new batch job
-                operation, amount = self.begin_google_operation(
-                    xpath,
-                    source_lang=source_language,
-                    target_lang=None,
-                    content=converted_audio,
-                    model_code=language_config.model_code,
-                    speech_location=speech_location,
-                )
-            except AudioTooLongError as err:
-                return {'status': 'failed', 'error': str(err)}
-            except InvalidArgument as err:
-                logging.error(
-                    f'Google API rejected transcription request for {xpath=}: {err}'
-                )
-                return {
-                    'status': 'failed',
-                    'error': f'Transcription failed with error {str(err)}',
-                }
-            except GoogleServiceRateLimitExceeded as err:
-                logging.info(
-                    'Deferred Google transcription start because project quota '
-                    f'is exhausted for {xpath=}, '
-                    f'retry_after={err.retry_after}'
-                )
-                raise
-            except ResourceExhausted as err:
-                retry_after = get_google_retry_after_seconds(err)
-                logging.warning(
-                    'Google transcription quota was exhausted while starting '
-                    f'{xpath=}, retry_after={retry_after}: {err}'
-                )
-                raise GoogleQuotaExceededError(retry_after=retry_after) from err
-            except (GoogleAPIError, GoogleCloudError) as err:
-                # Unable to reach Google to start the transcription job,
-                # return 'in_progress' to allow celery to retry
-                logging.error(
-                    f'Google infrastructure error while starting transcription '
-                    f'for {xpath=}: {err}'
-                )
-                return {'status': 'in_progress'}
-            except Exception as err:
-                self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-                return {
-                    'status': 'failed',
-                    'error': f'Transcription failed with error {str(err)}',
-                }
-
-            operation_name = operation.operation.name
-            self.update_counters(amount)
-            self._save_operation_reference(
-                xpath, source_language, bulk_action_uid, operation_name
+        ):
+            return self._poll_operation(
+                xpath,
+                source_language=source_language,
+                speech_location=speech_location,
+                operation_name=operation_name,
+                bulk_action_uid=bulk_action_uid,
             )
 
-            try:
-                result = operation.result(
-                    timeout=constance.config.ASR_MT_GOOGLE_REQUEST_TIMEOUT
-                )
+        # Chunk rows mean this run's recording was long and is already split:
+        # report on its chunks. Checked after the operation reference, so that
+        # polling a short file costs no extra query
+        chunked_run = ChunkedTranscriptionRun(
+            self.asset, self.submission_root_uuid, xpath, version_uuid
+        )
+        if (status := chunked_run.get_status()) is not None:
+            return status
 
-                # Google may complete the batch request within this synchronous wait,
-                # but individual input files can still fail even when the operation
-                # itself succeeds. Check the BatchRecognizeResponse for per-file
-                # errors before attempting to read transcription output from GCS
-                per_file_error = self._extract_per_file_error(result)
-                if per_file_error:
-                    logging.error(
-                        f'Google batch per-file error for {xpath=}, '
-                        f'{self.submission_root_uuid=}, '
-                        f'operation={operation_name}: {per_file_error}'
-                    )
-                    self._clear_operation_reference(
-                        xpath, source_language, bulk_action_uid
-                    )
-                    return {
-                        'status': 'failed',
-                        'error': (
-                            f'Transcription failed with error {per_file_error}'
-                        ),
-                    }
+        # Otherwise nothing is running for this run yet: start it
+        try:
+            attachment = self._get_attachment(xpath)
+        except SubmissionNotFoundException:
+            return {'status': 'failed', 'error': 'Submission not found'}
+        except AttachmentNotFoundException:
+            return {'status': 'failed', 'error': 'Attachment not found'}
+        except (InvalidXPathException, XPathNotFoundException):
+            return {'status': 'failed', 'error': 'Invalid question name XPath'}
 
-                # If Google finished within the request timeout, read the
-                # output immediately and return a completed response
-                value = self._read_batch_result(xpath, source_language)
-                self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-                return {
-                    'status': 'complete',
-                    'value': value,
-                }
-            except TimeoutError:
-                return {'status': 'in_progress'}
-            except TranscriptionResultNotFound as err:
+        # An unknown duration takes the whole-file path, as every file did
+        # before chunking
+        duration = get_audio_duration(attachment)
+        is_long = duration is not None and duration > self.CHUNK_HARD_LIMIT_SECONDS
+
+        # A whole file is charged when its Google job starts, so the limit is
+        # checked right before that, as always. A chunked run is only charged
+        # once it is transcribed, so its limit is checked when it is launched,
+        # not again in the poll that prepares it: there, a limit crossed in
+        # between would leave the run stuck instead of letting it finish
+        if is_launch or not is_long:
+            self._before_new_operation()
+
+        try:
+            if is_long:
+                return chunked_run.start(self, attachment, is_launch=is_launch)
+            return self._start_operation(
+                xpath,
+                attachment,
+                source_language=source_language,
+                model_code=language_config.model_code,
+                speech_location=speech_location,
+                bulk_action_uid=bulk_action_uid,
+            )
+        except NotSupportedFormatException:
+            return {'status': 'failed', 'error': 'Unsupported format'}
+
+    def _start_operation(
+        self,
+        xpath: str,
+        attachment: Attachment,
+        *,
+        source_language: str,
+        model_code: str | None,
+        speech_location: str,
+        bulk_action_uid: str | None,
+    ) -> dict:
+        """
+        Convert the whole file, launch its Google batch job and wait for it up
+        to `ASR_MT_GOOGLE_REQUEST_TIMEOUT`, so a short clip can come back
+        complete within the request
+
+        A file that is not audio raises `NotSupportedFormatException`, which
+        `process_data()` reports for both paths
+        """
+        converted_audio = self.get_converted_audio(attachment)
+
+        try:
+            # Launch a new batch job
+            operation, amount = self.begin_google_operation(
+                xpath,
+                source_lang=source_language,
+                target_lang=None,
+                content=converted_audio,
+                model_code=model_code,
+                speech_location=speech_location,
+            )
+        except InvalidArgument as err:
+            logging.error(
+                f'Google API rejected transcription request for {xpath=}: {err}'
+            )
+            return {
+                'status': 'failed',
+                'error': f'Transcription failed with error {str(err)}',
+            }
+        except GoogleServiceRateLimitExceeded as err:
+            logging.info(
+                'Deferred Google transcription start because project quota '
+                f'is exhausted for {xpath=}, '
+                f'retry_after={err.retry_after}'
+            )
+            raise
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google transcription quota was exhausted while starting '
+                f'{xpath=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+        except (GoogleAPIError, GoogleCloudError) as err:
+            # Unable to reach Google to start the transcription job,
+            # return 'in_progress' to allow celery to retry
+            logging.error(
+                f'Google infrastructure error while starting transcription '
+                f'for {xpath=}: {err}'
+            )
+            return {'status': 'in_progress'}
+        except Exception as err:
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            return {
+                'status': 'failed',
+                'error': f'Transcription failed with error {str(err)}',
+            }
+
+        operation_name = operation.operation.name
+        self.update_counters(amount)
+        self._save_operation_reference(
+            xpath, source_language, bulk_action_uid, operation_name
+        )
+
+        try:
+            result = operation.result(
+                timeout=constance.config.ASR_MT_GOOGLE_REQUEST_TIMEOUT
+            )
+
+            # Google may complete the batch request within this synchronous wait,
+            # but individual input files can still fail even when the operation
+            # itself succeeds. Check the BatchRecognizeResponse for per-file
+            # errors before attempting to read transcription output from GCS
+            per_file_error = self._extract_per_file_error(result)
+            if per_file_error:
                 logging.error(
-                    f'No transcription output written to GCS for {xpath=}, '
-                    f'{self.submission_root_uuid=}, operation={operation_name}: '
-                    f'{err}'
+                    f'Google batch per-file error for {xpath=}, '
+                    f'{self.submission_root_uuid=}, '
+                    f'operation={operation_name}: {per_file_error}'
                 )
                 self._clear_operation_reference(
                     xpath, source_language, bulk_action_uid
                 )
                 return {
                     'status': 'failed',
-                    'error': (
-                        f'Transcription failed with error: {str(err)} '
-                        'It is possible Google was unable to transcribe the audio.'
-                    ),
-                }
-            except ResourceExhausted as err:
-                retry_after = get_google_retry_after_seconds(err)
-                logging.warning(
-                    'Google transcription quota was exhausted while waiting for '
-                    f'{xpath=}, retry_after={retry_after}: {err}'
-                )
-                raise GoogleQuotaExceededError(retry_after=retry_after) from err
-            except (GoogleAPIError, GoogleCloudError) as err:
-                # Unable to reach Google to check the operation status, but the
-                # job may have still succeeded. Return 'in_progress' to allow Celery
-                # to retry and check again later
-                logging.error(f'Google operation failed for {xpath=}: {err}')
-                return {'status': 'in_progress'}
-            except Exception as err:
-                self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-                return {
-                    'status': 'failed',
-                    'error': f'Transcription failed with error {str(err)}',
+                    'error': f'Transcription failed with error {per_file_error}',
                 }
 
+            # If Google finished within the request timeout, read the
+            # output immediately and return a completed response
+            value = self._read_batch_result(xpath, source_language)
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            return {
+                'status': 'complete',
+                'value': value,
+            }
+        except TimeoutError:
+            return {'status': 'in_progress'}
+        except TranscriptionResultNotFound as err:
+            logging.error(
+                f'No transcription output written to GCS for {xpath=}, '
+                f'{self.submission_root_uuid=}, operation={operation_name}: '
+                f'{err}'
+            )
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            return {
+                'status': 'failed',
+                'error': (
+                    f'Transcription failed with error: {str(err)} '
+                    'It is possible Google was unable to transcribe the audio.'
+                ),
+            }
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google transcription quota was exhausted while waiting for '
+                f'{xpath=}, retry_after={retry_after}: {err}'
+            )
+            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+        except (GoogleAPIError, GoogleCloudError) as err:
+            # Unable to reach Google to check the operation status, but the
+            # job may have still succeeded. Return 'in_progress' to allow Celery
+            # to retry and check again later
+            logging.error(f'Google operation failed for {xpath=}: {err}')
+            return {'status': 'in_progress'}
+        except Exception as err:
+            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            return {
+                'status': 'failed',
+                'error': f'Transcription failed with error {str(err)}',
+            }
+
+    def _poll_operation(
+        self,
+        xpath: str,
+        *,
+        source_language: str,
+        speech_location: str,
+        operation_name: str,
+        bulk_action_uid: str | None,
+    ) -> dict:
+        """
+        Ask Google whether the batch job `operation_name` is done, and read its
+        transcript once it is
+        """
         try:
             # For existing operations, poll the long-running operation and only
             # read the batch result after Google reports completion
@@ -524,7 +603,39 @@ class GoogleTranscriptionService(GoogleService):
             content,
             content_type='audio/flac',
         )
-        return f'gs://{settings.GS_BUCKET_NAME}/{destination_path}'
+        return self._get_gcs_uri(destination_path)
+
+    def store_chunk_file(self, local_path: str, version_uuid: str, index: int) -> str:
+        """
+        Upload one chunk of a long recording to GCS, where `BatchRecognize`
+        reads it, and return its `gs://` URI
+
+        Streamed from disk rather than loaded into memory. Chunks live under
+        `chunks/<version_uuid>/`, apart from the whole-file paths that
+        `_cleanup_batch_files()` empties, and are removed by the same bucket
+        lifecycle rule as every other input
+        """
+        destination_path = posixpath.join(
+            constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX,
+            'speech-v2',
+            'chunks',
+            version_uuid,
+            f'{index:03d}.flac',
+        )
+        try:
+            self.bucket.blob(destination_path).upload_from_filename(
+                local_path, content_type='audio/flac'
+            )
+        except RetryError as err:
+            # The client already retried what may pass (timeouts, lost
+            # connections, 429 and 5xx responses) until its deadline, then
+            # raised this: storage may be back by the next poll
+            raise ChunkStorageError(str(err)) from err
+        except GoogleAPIError as err:
+            # Anything else is a refusal (permissions, missing bucket, etc.)
+            # that the next poll would meet again
+            raise ChunkStorageRefusedError(str(err)) from err
+        return self._get_gcs_uri(destination_path)
 
     def _get_google_language_config(self, requested_language: str):
         """
@@ -539,6 +650,21 @@ class GoogleTranscriptionService(GoogleService):
                 'Google transcription service is not configured.'
             )
         return transcription_lang_service.get_configuration(requested_language)
+
+    @staticmethod
+    def _get_gcs_uri(path: str) -> str:
+        return f'gs://{settings.GS_BUCKET_NAME}/{path}'
+
+    def _get_attachment(self, xpath: str) -> Attachment:
+        """
+        Return the attachment answering the question at `xpath`
+
+        Raises when the submission, the question or its attachment cannot be
+        found, and `process_data()` turns those into a `failed` result
+        """
+        return self.asset.deployment.get_attachment(
+            self.submission_root_uuid, self.asset.owner, xpath=xpath
+        )
 
     def _get_batch_paths(
         self, xpath: str, source_lang: str
