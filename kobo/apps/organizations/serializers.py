@@ -2,7 +2,7 @@ import math
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -644,10 +644,10 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
-    organization_id = serializers.CharField(source='organization.id', read_only=True)
-    organization_name = serializers.CharField(
-        source='organization.name', read_only=True
-    )
+    sender_name = serializers.SerializerMethodField()
+    sender_email = serializers.EmailField(source='sender.email', read_only=True)
+    organization_id = serializers.SerializerMethodField()
+    organization_name = serializers.SerializerMethodField()
     created = serializers.DateTimeField(
         source='date_created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
     )
@@ -663,6 +663,8 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_id',
             'organization_name',
             'sender',
+            'sender_name',
+            'sender_email',
             'recipient',
             'status',
             'billing_review_requested',
@@ -671,22 +673,35 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'uid',
-            'organization_id',
-            'organization_name',
-            'sender',
             'status',
-            'created',
-            'modified',
         ]
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_sender_name(self, obj):
+        try:
+            return obj.sender.extra_details.data.get('name', '')
+        except (AttributeError, ObjectDoesNotExist):
+            return ''
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_organization_id(self, obj):
+        org = self._get_organization() or obj.organization
+        return str(org.id) if org else ''
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_organization_name(self, obj):
+        org = self._get_organization() or obj.organization
+        return str(org.name) if org else ''
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['recipient'] = instance.recipient.username
-        representation['billing_review_requested'] = instance.billing_review_requested
         return representation
 
     def _get_organization(self):
-        return self.context['view'].organization
+        if view := self.context.get('view'):
+            return getattr(view, 'organization', None)
+        return None
 
     def validate_recipient(self, value):
         organization = self._get_organization()
@@ -739,6 +754,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                 transfer = OrgOwnershipTransferInvite.objects.create(
                     sender=validated_data['sender'],
                     recipient=validated_data['recipient'],
+                    organization=self._get_organization(),
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
