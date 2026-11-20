@@ -37,21 +37,9 @@ SECTOR_CHOICE_DEFAULTS = (
     ("Other", t("Other")),
 )
 
-# You might generate such a list of countries with code like this:
-#
-#     import sys
-#
-#     url = 'https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0'
-#     while url:
-#         print('Fetching', url, file=sys.stderr)
-#         response = requests.get(url)
-#         j = response.json()
-#         if 'next' in j:
-#             url = j['next']['href']
-#         else:
-#             url = None
-#         for d in j['data']:
-#             print("({}, t({}))".format(repr(d['iso3']), repr(d['label'])))
+# The UN/LOCODE country table (`country-codes.csv` from
+# https://datahub.io/core/un-locode), keyed by ISO 3166-1 alpha-3 code, plus
+# Kosovo. `XZ` (installations in international waters) is left out.
 COUNTRIES = (
     # (value, human-readable label)
     ('AFG', 'Afghanistan'),
@@ -84,7 +72,6 @@ COUNTRIES = (
     ('BIH', 'Bosnia and Herzegovina'),
     ('BES', 'Bonaire, Sint Eustatius and Saba'),
     ('BWA', 'Botswana'),
-    ('BVT', 'Bouvet Island'),
     ('BRA', 'Brazil'),
     ('IOT', 'British Indian Ocean Territory'),
     ('BRN', 'Brunei Darussalam'),
@@ -113,7 +100,7 @@ COUNTRIES = (
     ('CUB', 'Cuba'),
     ('CUW', 'Cura\xe7ao'),
     ('CYP', 'Cyprus'),
-    ('CZE', 'Czech Republic'),
+    ('CZE', 'Czechia'),
     ('DNK', 'Denmark'),
     ('DJI', 'Djibouti'),
     ('DMA', 'Dominica'),
@@ -124,6 +111,7 @@ COUNTRIES = (
     ('GNQ', 'Equatorial Guinea'),
     ('ERI', 'Eritrea'),
     ('EST', 'Estonia'),
+    ('SWZ', 'Eswatini'),
     ('ETH', 'Ethiopia'),
     ('FLK', 'Falkland Islands (Malvinas)'),
     ('FRO', 'Faroe Islands'),
@@ -173,9 +161,7 @@ COUNTRIES = (
     ('KIR', 'Kiribati'),
     ('PRK', "Korea, Democratic People's Republic of"),
     ('KOR', 'Korea, Republic of'),
-    # Note that the addition of Kosovo is a divergence from ISO:3166 and the API
-    # output from
-    # https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0
+    # Kosovo is in neither UN/LOCODE nor ISO 3166. It is kept on purpose.
     ('XKX', 'Kosovo'),
     ('KWT', 'Kuwait'),
     ('KGZ', 'Kyrgyzstan'),
@@ -189,14 +175,13 @@ COUNTRIES = (
     ('LTU', 'Lithuania'),
     ('LUX', 'Luxembourg'),
     ('MAC', 'Macao'),
-    ('MKD', 'Macedonia, The Former Yugoslav Republic of'),
     ('MDG', 'Madagascar'),
     ('MWI', 'Malawi'),
     ('MYS', 'Malaysia'),
     ('MDV', 'Maldives'),
     ('MLI', 'Mali'),
     ('MLT', 'Malta'),
-    ('MHL', 'Marshall Islands'),
+    ('MHL', 'Marshall Islands (the)'),
     ('MTQ', 'Martinique'),
     ('MRT', 'Mauritania'),
     ('MUS', 'Mauritius'),
@@ -215,7 +200,6 @@ COUNTRIES = (
     ('NRU', 'Nauru'),
     ('NPL', 'Nepal'),
     ('NLD', 'Netherlands'),
-    ('ANT', 'Netherlands Antilles'),
     ('NCL', 'New Caledonia'),
     ('NZL', 'New Zealand'),
     ('NIC', 'Nicaragua'),
@@ -223,17 +207,18 @@ COUNTRIES = (
     ('NGA', 'Nigeria'),
     ('NIU', 'Niue'),
     ('NFK', 'Norfolk Island'),
-    ('MNP', 'Northern Mariana Islands'),
+    ('MKD', 'North Macedonia'),
+    ('MNP', 'Northern Mariana Islands (the)'),
     ('NOR', 'Norway'),
     ('OMN', 'Oman'),
     ('PAK', 'Pakistan'),
     ('PLW', 'Palau'),
-    ('PSE', 'occupied Palestinian territory'),
+    ('PSE', 'Palestine, State of'),
     ('PAN', 'Panama'),
     ('PNG', 'Papua New Guinea'),
     ('PRY', 'Paraguay'),
     ('PER', 'Peru'),
-    ('PHL', 'Philippines'),
+    ('PHL', 'Philippines (the)'),
     ('PCN', 'Pitcairn'),
     ('POL', 'Poland'),
     ('PRT', 'Portugal'),
@@ -241,25 +226,25 @@ COUNTRIES = (
     ('QAT', 'Qatar'),
     ('REU', 'R\xe9union'),
     ('ROU', 'Romania'),
-    ('RUS', 'Russian Federation'),
+    ('RUS', 'Russian Federation (the)'),
     ('RWA', 'Rwanda'),
     ('BLM', 'Saint Barth\xe9lemy'),
-    ('SHN', 'Saint Helena, Ascension and Tristan da Cunha'),
+    ('SHN', 'Saint Helena, Ascension and Tristan Da Cunha'),
     ('KNA', 'Saint Kitts and Nevis'),
     ('LCA', 'Saint Lucia'),
-    ('MAF', 'Saint Martin (French part)'),
+    ('MAF', 'Saint Martin (French Part)'),
     ('SPM', 'Saint Pierre and Miquelon'),
     ('VCT', 'Saint Vincent and the Grenadines'),
     ('WSM', 'Samoa'),
     ('SMR', 'San Marino'),
-    ('STP', 'S\xe3o Tom\xe9 and Pr\xedncipe'),
+    ('STP', 'Sao Tome and Principe'),
     ('SAU', 'Saudi Arabia'),
     ('SEN', 'Senegal'),
     ('SRB', 'Serbia'),
     ('SYC', 'Seychelles'),
     ('SLE', 'Sierra Leone'),
     ('SGP', 'Singapore'),
-    ('SXM', 'Sint Maarten (Dutch part)'),
+    ('SXM', 'Sint Maarten (Dutch Part)'),
     ('SVK', 'Slovakia'),
     ('SVN', 'Slovenia'),
     ('SLB', 'Solomon Islands'),
@@ -269,14 +254,13 @@ COUNTRIES = (
     ('ESP', 'Spain'),
     ('LKA', 'Sri Lanka'),
     ('SSD', 'South Sudan'),
-    ('SDN', 'Sudan'),
+    ('SDN', 'Sudan (the)'),
     ('SUR', 'Suriname'),
     ('SJM', 'Svalbard and Jan Mayen'),
-    ('SWZ', 'Swaziland'),
     ('SWE', 'Sweden'),
     ('CHE', 'Switzerland'),
-    ('SYR', 'Syrian Arab Republic'),
-    ('TWN', 'Taiwan, Province of China'),
+    ('SYR', 'Syrian Arab Republic (the)'),
+    ('TWN', 'Taiwan (Province of China)'),
     ('TJK', 'Tajikistan'),
     ('TZA', 'Tanzania, United Republic of'),
     ('THA', 'Thailand'),
@@ -286,23 +270,23 @@ COUNTRIES = (
     ('TON', 'Tonga'),
     ('TTO', 'Trinidad and Tobago'),
     ('TUN', 'Tunisia'),
-    ('TUR', 'Turkey'),
+    ('TUR', 'T\xfcrkiye'),
     ('TKM', 'Turkmenistan'),
-    ('TCA', 'Turks and Caicos Islands'),
+    ('TCA', 'Turks and Caicos Islands (the)'),
     ('TUV', 'Tuvalu'),
     ('UGA', 'Uganda'),
     ('UKR', 'Ukraine'),
-    ('ARE', 'United Arab Emirates'),
+    ('ARE', 'United Arab Emirates (the)'),
     ('GBR', 'United Kingdom'),
-    ('USA', 'United States'),
     ('UMI', 'United States Minor Outlying Islands'),
+    ('USA', 'United States of America (the)'),
     ('URY', 'Uruguay'),
     ('UZB', 'Uzbekistan'),
     ('VUT', 'Vanuatu'),
-    ('VEN', 'Venezuela, Bolivarian Republic of'),
+    ('VEN', 'Venezuela (Bolivarian Republic of)'),
     ('VNM', 'Viet Nam'),
-    ('VGB', 'Virgin Islands, British'),
-    ('VIR', 'Virgin Islands, U.S.'),
+    ('VGB', 'Virgin Islands (British)'),
+    ('VIR', 'Virgin Islands (U.S.)'),
     ('WLF', 'Wallis and Futuna'),
     ('ESH', 'Western Sahara'),
     ('YEM', 'Yemen'),

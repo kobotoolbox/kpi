@@ -1,7 +1,6 @@
 /*
  * NOTE: before using this file to check if route matches current route, please
- * try using react router way (we have it set up in `mixins.tsx` as
- * `contextRouter` methods)
+ * try using react router way (`useLocation` and `matchPath`).
  *
  * This file has a list of functions that allows for simple checking if given
  * route matches current route. It uses hashHistory from react router and a list
@@ -64,11 +63,6 @@ export function isMyLibraryRoute(): boolean {
 /** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isPublicCollectionsRoute(): boolean {
   return getCurrentPath() === ROUTES.PUBLIC_COLLECTIONS
-}
-
-/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
-export function isNewLibraryItemRoute(): boolean {
-  return getCurrentPath() === ROUTES.NEW_LIBRARY_ITEM
 }
 
 /** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
@@ -199,11 +193,6 @@ export function isFormResetRoute(uid: string): boolean {
 /*
  * Additional functions
  */
-
-/** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
-export function isAnyFormsRoute(): boolean {
-  return getCurrentPath().startsWith(ROUTES.FORMS)
-}
 
 /** @deprecated Use React Router's `useLocation` hook instead; see projectTopTabs for the recommended pattern. */
 export function isAnyLibraryRoute(): boolean {
