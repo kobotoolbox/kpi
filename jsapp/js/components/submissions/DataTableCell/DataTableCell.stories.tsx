@@ -333,7 +333,7 @@ export const AudioAttachment: Story = {
       <AudioDurationsProvider
         assetUid={simpleSurveyAsset.uid}
         submissions={[audioSubmission]}
-        visibleAudioXpaths={['Audio_question']}
+        visibleAudioXpaths={{ audioQuestion: ['Audio_question'], noQuestion: [] }}
       >
         <Story />
       </AudioDurationsProvider>

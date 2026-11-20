@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useMemo } from 'react'
-import type { SubmissionResponse } from '#/dataInterface'
-import { isAudioMimetype } from './submissionMediaUtils'
+import { QuestionTypeName } from '#/constants'
+import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import { inferAttachmentQuestionType } from './submissionMediaUtils'
+import type { VisibleAudioXpaths } from './table.types'
 import { useAudioDurations } from './useCalculateAudioDuration.hook'
 
 interface AudioDurationsContextValue {
@@ -17,12 +19,8 @@ const AudioDurationsContext = createContext<AudioDurationsContextValue>({
 interface AudioDurationsProviderProps {
   assetUid: string
   submissions: SubmissionResponse[]
-  /**
-   * Attachment xpaths of the visible columns that may show audio (see
-   * `getVisibleAudioXpaths`). Hidden columns are skipped, so we don't pay for
-   * ffprobe-backed lookups the user cannot see.
-   */
-  visibleAudioXpaths: string[]
+  /** Hidden columns are left out, so we don't pay for ffprobe-backed lookups the user cannot see. */
+  visibleAudioXpaths: VisibleAudioXpaths
   children: React.ReactNode
 }
 
@@ -43,21 +41,18 @@ export function AudioDurationsProvider({
   children,
 }: AudioDurationsProviderProps) {
   const attachmentUids = useMemo(() => {
-    // Bail out early (no query fired) when no audio columns are visible.
-    if (visibleAudioXpaths.length === 0) {
-      return []
-    }
+    const audioQuestionXpaths = new Set(visibleAudioXpaths.audioQuestion)
+    const noQuestionXpaths = new Set(visibleAudioXpaths.noQuestion)
 
-    const visibleXpaths = new Set(visibleAudioXpaths)
+    // Mirrors the cell: the question type decides, and the mimetype only when there's no question.
+    const isPlayedAsAudio = (attachment: SubmissionAttachment) =>
+      audioQuestionXpaths.has(attachment.question_xpath) ||
+      (noQuestionXpaths.has(attachment.question_xpath) &&
+        inferAttachmentQuestionType(attachment) === QuestionTypeName.audio)
+
     return submissions
       .flatMap((submission) => submission._attachments || [])
-      .filter(
-        (attachment) =>
-          !attachment.is_deleted &&
-          !!attachment.mimetype &&
-          isAudioMimetype(attachment.mimetype) &&
-          visibleXpaths.has(attachment.question_xpath),
-      )
+      .filter((attachment) => !attachment.is_deleted && isPlayedAsAudio(attachment))
       .map((attachment) => attachment.uid)
   }, [submissions, visibleAudioXpaths])
 

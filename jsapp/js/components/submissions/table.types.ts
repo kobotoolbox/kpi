@@ -13,6 +13,14 @@ export interface TableColumn extends Column<SubmissionResponse> {
   translationIndex?: number
 }
 
+/** Attachment xpaths of the visible columns that may show audio, see `getVisibleAudioXpaths`. */
+export interface VisibleAudioXpaths {
+  /** Audio question paths. The cell plays every file here, whatever its mimetype. */
+  audioQuestion: string[]
+  /** Paths of columns with no question. The cell plays only files with an audio mimetype. */
+  noQuestion: string[]
+}
+
 /**
  * This is a map of `submissionUid`s of selected rows, each pointing towards
  * "is selected" boolean.
