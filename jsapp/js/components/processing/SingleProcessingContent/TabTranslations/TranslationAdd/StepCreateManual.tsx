@@ -16,6 +16,8 @@ interface Props {
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
   languageCode: LanguageCode
+  /** The language of a text response, see `StepSelectLanguage`. `null` for a transcript. */
+  sourceLanguage: LanguageCode | null
   onBack: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -29,6 +31,7 @@ export default function StepCreateManual({
   supplement,
   activeBulkActions,
   languageCode,
+  sourceLanguage,
   onBack,
   onCreate,
   onUnsavedWorkChange,
@@ -49,6 +52,7 @@ export default function StepCreateManual({
           _data: { language: languageCode, value: null },
           _dependency: { _actionId: '', _uuid: '' },
         }}
+        sourceLanguage={sourceLanguage}
         onBack={onBack}
         onSave={() => onCreate(languageCode, 'manual')}
         onUnsavedWorkChange={onUnsavedWorkChange}

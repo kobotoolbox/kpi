@@ -20,7 +20,10 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
-import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
+import {
+  getLatestAutomaticTranslationVersionItem,
+  getTranslationSourcePayload,
+} from '#/components/processing/common/utils'
 import { ProcessingTab, goToProcessing } from '#/components/processing/routes.utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
@@ -32,6 +35,10 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse
   hasConflictingOngoingJob: boolean
+  /** A text response is translated directly, so the copy talks about it instead of a transcript */
+  isTextQuestion: boolean
+  /** The language of a text response, see `StepSelectLanguage`. `null` for a transcript. */
+  sourceLanguage: LanguageCode | null
   onBack: () => void
   onLimitExceeded: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
@@ -44,6 +51,8 @@ export default function StepCreateAutomated({
   languageCode,
   submission,
   hasConflictingOngoingJob,
+  isTextQuestion,
+  sourceLanguage,
   onBack,
   onLimitExceeded,
   onCreate,
@@ -152,7 +161,10 @@ export default function StepCreateAutomated({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            automatic_google_translation: { language: languageCode },
+            automatic_google_translation: {
+              language: languageCode,
+              ...getTranslationSourcePayload(sourceLanguage),
+            },
           },
         },
       })
@@ -201,7 +213,9 @@ export default function StepCreateAutomated({
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-      <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
+      <header className={bodyStyles.header}>
+        {isTextQuestion ? t('Automatic translation of text response to') : t('Automatic translation of transcript to')}
+      </header>
 
       <Flex component='section' direction='row' align='center' justify='center' mb='xxl'>
         <Group gap='xs'>
@@ -228,13 +242,21 @@ export default function StepCreateAutomated({
       <h2>{t('Translation provider')}</h2>
 
       <p>
-        {t(
-          'Automated translation is provided by Google Cloud Platform. By using ' +
-            'this service you agree that your transcript text will be sent to ' +
-            "Google's servers for the purpose of translation. However, it will not " +
-            "be stored on Google's servers beyond the very short period needed for " +
-            'completing the translation.',
-        )}
+        {isTextQuestion
+          ? t(
+              'Automated translation is provided by Google Cloud Platform. By using ' +
+                'this service you agree that your text response will be sent to ' +
+                "Google's servers for the purpose of translation. However, it will not " +
+                "be stored on Google's servers beyond the very short period needed for " +
+                'completing the translation.',
+            )
+          : t(
+              'Automated translation is provided by Google Cloud Platform. By using ' +
+                'this service you agree that your transcript text will be sent to ' +
+                "Google's servers for the purpose of translation. However, it will not " +
+                "be stored on Google's servers beyond the very short period needed for " +
+                'completing the translation.',
+            )}
       </p>
 
       {errorMessage && (

@@ -11,6 +11,7 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.data.mixins import (
+    TRANSLATION_SOURCE_PROPERTIES,
     SupplementalDataComponentsRegistrationMixin,
 )
 from kpi.schema_extensions.v2.generic.schema import (
@@ -126,9 +127,13 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'manual_transcription': self._nlp_manual_action_schema,
-                'manual_translation': self._nlp_manual_action_schema,
+                'manual_translation': self._with_source_language(
+                    self._nlp_manual_action_schema
+                ),
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
-                'automatic_google_translation': self._nlp_automatic_action_schema,
+                'automatic_google_translation': self._with_source_language(
+                    self._nlp_automatic_action_schema
+                ),
                 'manual_qual': self._manual_qual_schema(references),
                 'automatic_bedrock_qual': self._automatic_qual_schema(references),
             },
@@ -228,6 +233,16 @@ class DataSupplementPayloadExtension(
             },
             required=['language', 'value'],
         )
+
+    @staticmethod
+    def _with_source_language(schema: dict) -> dict:
+        """
+        Add the language a text response is written in, required to translate
+        it. Other sources are transcripts, which carry their own language.
+        """
+
+        schema['properties'].update(TRANSLATION_SOURCE_PROPERTIES)
+        return schema
 
 
 class DataSupplementResponseExtension(

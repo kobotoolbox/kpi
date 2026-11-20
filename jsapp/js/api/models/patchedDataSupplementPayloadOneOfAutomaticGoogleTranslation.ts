@@ -17,4 +17,5 @@ export type PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation = {
   accepted?: boolean
   /** @nullable */
   value?: PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslationValue
+  source_language?: string
 }

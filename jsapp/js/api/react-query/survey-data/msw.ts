@@ -489,6 +489,7 @@ export const getApiV2AssetsDataListResponseSupplementalDataContentAutomaticInPro
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'in_progress',
   },
   ...overrideResponse,
@@ -500,6 +501,7 @@ export const getApiV2AssetsDataListResponseSupplementalDataContentAutomaticFaile
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'failed',
     error: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
@@ -512,6 +514,7 @@ export const getApiV2AssetsDataListResponseSupplementalDataContentAutomaticCompl
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'complete',
     value: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
@@ -524,6 +527,7 @@ export const getApiV2AssetsDataListResponseSupplementalDataContentAutomaticDelet
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'deleted',
     value: null,
   },
@@ -677,6 +681,10 @@ export const getApiV2AssetsDataListResponseMock = (
                 _data: {
                   language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                   locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  source_language: faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    undefined,
+                  ]),
                   value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
                 },
               })),
@@ -700,6 +708,10 @@ export const getApiV2AssetsDataListResponseMock = (
                   _data: {
                     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                     locale: faker.helpers.arrayElement([
+                      faker.string.alpha({ length: { min: 10, max: 20 } }),
+                      undefined,
+                    ]),
+                    source_language: faker.helpers.arrayElement([
                       faker.string.alpha({ length: { min: 10, max: 20 } }),
                       undefined,
                     ]),
@@ -849,6 +861,7 @@ export const getApiV2AssetsDataRetrieveResponseSupplementalDataContentAutomaticI
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'in_progress',
   },
   ...overrideResponse,
@@ -860,6 +873,7 @@ export const getApiV2AssetsDataRetrieveResponseSupplementalDataContentAutomaticF
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'failed',
     error: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
@@ -872,6 +886,7 @@ export const getApiV2AssetsDataRetrieveResponseSupplementalDataContentAutomaticC
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'complete',
     value: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
@@ -884,6 +899,7 @@ export const getApiV2AssetsDataRetrieveResponseSupplementalDataContentAutomaticD
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'deleted',
     value: null,
   },
@@ -1031,6 +1047,10 @@ export const getApiV2AssetsDataRetrieveResponseMock = (overrideResponse: Partial
               _data: {
                 language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                 locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                source_language: faker.helpers.arrayElement([
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  undefined,
+                ]),
                 value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
               },
             })),
@@ -1054,6 +1074,10 @@ export const getApiV2AssetsDataRetrieveResponseMock = (overrideResponse: Partial
                 _data: {
                   language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                   locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  source_language: faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    undefined,
+                  ]),
                   value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
                 },
               })),
@@ -1199,6 +1223,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseSupplementalDataContentAut
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'in_progress',
   },
   ...overrideResponse,
@@ -1210,6 +1235,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseSupplementalDataContentAut
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'failed',
     error: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
@@ -1222,6 +1248,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseSupplementalDataContentAut
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'complete',
     value: faker.string.alpha({ length: { min: 10, max: 20 } }),
   },
@@ -1234,6 +1261,7 @@ export const getApiV2AssetsDataDuplicateCreateResponseSupplementalDataContentAut
   ...{
     language: faker.string.alpha({ length: { min: 10, max: 20 } }),
     locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+    source_language: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
     status: 'deleted',
     value: null,
   },
@@ -1385,6 +1413,10 @@ export const getApiV2AssetsDataDuplicateCreateResponseMock = (
               _data: {
                 language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                 locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                source_language: faker.helpers.arrayElement([
+                  faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  undefined,
+                ]),
                 value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
               },
             })),
@@ -1408,6 +1440,10 @@ export const getApiV2AssetsDataDuplicateCreateResponseMock = (
                 _data: {
                   language: faker.string.alpha({ length: { min: 10, max: 20 } }),
                   locale: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+                  source_language: faker.helpers.arrayElement([
+                    faker.string.alpha({ length: { min: 10, max: 20 } }),
+                    undefined,
+                  ]),
                   value: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
                 },
               })),
