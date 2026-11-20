@@ -13,11 +13,8 @@
 /**
  * * `accepted` - Accepted
  * * `cancelled` - Cancelled
- * * `complete` - Complete
  * * `declined` - Declined
  * * `expired` - Expired
- * * `failed` - Failed
- * * `in_progress` - In Progress
  * * `pending` - Pending
  * * `resent` - Resent
  */
@@ -26,11 +23,8 @@ export type InviteStatusChoicesEnum = (typeof InviteStatusChoicesEnum)[keyof typ
 export const InviteStatusChoicesEnum = {
   accepted: 'accepted',
   cancelled: 'cancelled',
-  complete: 'complete',
   declined: 'declined',
   expired: 'expired',
-  failed: 'failed',
-  in_progress: 'in_progress',
   pending: 'pending',
   resent: 'resent',
 } as const
