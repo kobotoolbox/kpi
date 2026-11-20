@@ -1637,19 +1637,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 30 minutes
-    'trash-bin-garbage-collector': {
-        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute='*/30'),
-        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
-        # the long deletions and transfers running there, and must not end up
-        # stuck behind the very backlog it exists to clear
-        'options': {'queue': 'kpi_queue'},
-    },
-    # Schedule every 30 minutes
+    # Schedule every 15 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/15'),
         # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
         # the long deletions and transfers running there, and must not end up
         # stuck behind the very backlog it exists to clear
@@ -2556,10 +2547,11 @@ USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
-# Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
+# Number of trash bin deletions, due or stuck, that `task_restarter` sends per
+# run and per type. It runs every 15 minutes.
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
-MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 1000)
 
 # Number of attachments `auto_delete_excess_attachments` moves to trash per user
 # and per run. A user still over their limit gets the next ones on a later run
@@ -2568,9 +2560,6 @@ AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
 )
 # Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
 # Users take turns, the next run continues with the following ones.
-# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
-# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
-# on every schedule reload, so raising this grows Beat's work too.
 AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
     'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
 )

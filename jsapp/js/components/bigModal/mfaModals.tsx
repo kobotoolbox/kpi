@@ -1,6 +1,6 @@
 import './mfaModals.scss'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { observer } from 'mobx-react-lite'
 import QRCode from 'react-qr-code'
@@ -14,6 +14,7 @@ import {
 } from '#/account/security/mfa/mfa.api'
 import { CredentialRejection } from '#/account/security/reauthentication/reauthentication.api'
 import bem, { makeBem } from '#/bem'
+import ModalNew from '#/components/common/ModalNew'
 import TextInput from '#/components/common/TextInput'
 import Button from '#/components/common/button'
 import envStore from '#/envStore'
@@ -43,7 +44,7 @@ type ModalSteps = 'backups' | 'disclaimer' | 'help' | 'manual' | 'qr' | 'token'
 export type MfaModalType = 'deactivate' | 'qr' | 'reconfigure' | 'regenerate'
 
 interface MFAModalsProps {
-  onModalClose: Function
+  onModalClose: () => void
   qrCode?: string
   modalType: MfaModalType
 }
@@ -103,17 +104,6 @@ function MFAModals(props: MFAModalsProps) {
     recoveryCodes.isPending ||
     deactivate.isPending ||
     regenerateCodes.isPending
-
-  // HACK FIX: the close icon belongs to the modal frame, and the codes are shown once - dismissing would lose them.
-  useEffect(() => {
-    if (currentStep !== 'backups') {
-      return
-    }
-    const closeIcon = document.getElementsByClassName('modal__x')[0] as HTMLElement | undefined
-    if (closeIcon) {
-      closeIcon.hidden = true
-    }
-  }, [currentStep])
 
   function closeModal() {
     props.onModalClose()
@@ -613,22 +603,40 @@ function MFAModals(props: MFAModalsProps) {
     throw new Error('Modal is expecting a qr code but did not recieve any')
   }
 
-  switch (currentStep) {
-    case 'qr':
-      return renderQRCodeStep()
-    case 'backups':
-      return renderBackupStep()
-    case 'manual':
-      return renderManualStep()
-    case 'token':
-      return renderTokenStep()
-    case 'disclaimer':
-      return renderDisclaimerStep()
-    case 'help':
-      return renderHelpStep()
-    default:
-      return null
+  function renderStep() {
+    switch (currentStep) {
+      case 'qr':
+        return renderQRCodeStep()
+      case 'backups':
+        return renderBackupStep()
+      case 'manual':
+        return renderManualStep()
+      case 'token':
+        return renderTokenStep()
+      case 'disclaimer':
+        return renderDisclaimerStep()
+      case 'help':
+        return renderHelpStep()
+      default:
+        return null
+    }
   }
+
+  return (
+    <ModalNew
+      opened
+      onClose={closeModal}
+      title={t('Two-factor authentication')}
+      size={570}
+      // A stray click or Esc would throw away a half-done setup
+      closeOnClickOutside={false}
+      closeOnEscape={false}
+      // Codes show only once, so only "I saved my codes" closes this step
+      withCloseButton={currentStep !== 'backups'}
+    >
+      {renderStep()}
+    </ModalNew>
+  )
 }
 
 export default observer(MFAModals)

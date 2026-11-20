@@ -126,7 +126,6 @@ class AttachmentRestorerTestCase(TestCase):
         self.xform.refresh_from_db()
 
         instance = create_instance(
-            self.user.username,
             io.BytesIO(
                 background_audio_submission_xml(
                     self.version_1, background_audio=ENKETO_BACKGROUND_AUDIO
