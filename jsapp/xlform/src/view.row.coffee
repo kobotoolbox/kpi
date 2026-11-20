@@ -517,9 +517,11 @@ module.exports = do ->
 
     switchSelectType: ->
       switchSelectTypeWithWarning(@model, =>
-        # Re-render for the new icon and appearances, keeping settings open
+        # Re-render for the new icon and appearances, keeping settings open.
+        # Closing settings first detaches them, so the skip logic and validation
+        # views (reused on reopen) keep their click handlers.
+        @toggleSettings(false)
         @already_rendered = false
-        @_settingsExpanded = false
         @render(fixScroll: true)
         @toggleSettings(true)
         return
