@@ -28,6 +28,8 @@ multiConfirm = require('#/alertify').multiConfirm
 alertify = require('alertifyjs')
 constants = require('#/constants')
 notify = require('#/utils').notify
+getSelectTypeSwitchLabel = require('#/components/formBuilder/selectTypeSwitch').getSelectTypeSwitchLabel
+switchSelectTypeWithWarning = require('#/components/formBuilder/selectTypeSwitch').switchSelectTypeWithWarning
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -488,6 +490,9 @@ module.exports = do ->
         else
           new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
+      if @model._isSelectQuestion()
+        @defaultRowDetailParent.append($viewTemplates.row.selectTypeSwitch(getSelectTypeSwitchLabel(@model)))
+
       questionType = @model.get('type').get('typeId')
       if (
         $configs.questionParams[questionType] and
@@ -509,6 +514,17 @@ module.exports = do ->
       @applyLocking()
 
       return @
+
+    switchSelectType: ->
+      switchSelectTypeWithWarning(@model, =>
+        # Re-render for the new icon and appearances, keeping settings open
+        @already_rendered = false
+        @_settingsExpanded = false
+        @render(fixScroll: true)
+        @toggleSettings(true)
+        return
+      )
+      return
 
     ###
     # Locking function for questions.
