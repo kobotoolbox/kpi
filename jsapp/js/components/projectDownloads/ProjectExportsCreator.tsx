@@ -489,7 +489,14 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
       }
     })
 
-    return <MultiCheckbox type='frame' items={rows} onChange={onSelectedRowsChange} />
+    return (
+      <MultiCheckbox
+        type='frame'
+        className='project-downloads__rows-selector'
+        items={rows}
+        onChange={onSelectedRowsChange}
+      />
+    )
   }
 
   function renderAdvancedView() {
