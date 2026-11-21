@@ -242,32 +242,6 @@
   padding: 20px 30px;
 }
 
-.custom-report--title {
-  padding-bottom: 30px;
-
-  input {
-    width: 100%;
-    font-size: 20px;
-    font-weight: 300;
-  }
-}
-
-.custom-report--questions {
-  margin: 10px 0;
-  overflow: auto;
-  width: 100%;
-
-  .graph-settings__question {
-    width: 100%;
-    padding: 5px 0;
-  }
-}
-
-.custom-report--footer {
-  margin: 15px 0;
-  text-align: right;
-}
-
 .custom-reports-selector {
   max-width: 300px;
 }
