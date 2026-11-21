@@ -1,29 +1,69 @@
 import datetime
 import itertools
+import random
+import string
+from abc import ABCMeta, abstractmethod
+from contextlib import ExitStack
+from unittest.mock import patch
 
+import django
+from allauth.account.adapter import get_adapter
 from allauth.account.models import EmailAddress
+from allauth.core.internal.ratelimit import Rate
+from allauth.mfa.totp.internal.auth import TOTP
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.cache import cache
-from django.test import Client, TestCase, override_settings
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
+from rest_framework import status
+from rest_framework.exceptions import Throttled
 
 from kobo.apps.accounts.mfa.tests.utils import (
     activate_mfa_for_user,
     get_mfa_code_for_user,
 )
+from kobo.apps.accounts.throttling import SETTINGS_BY_SCOPE, rate_limit
 from kobo.apps.kobo_auth.shortcuts import User
 
-HEADLESS_LOGIN_URL = '/api/v2/allauth/browser/v1/auth/login'
-HEADLESS_MFA_URL = '/api/v2/allauth/browser/v1/auth/2fa/authenticate'
-
 PASSWORD = 'a-Sufficiently-Long-Passphrase-42'
+ERROR_CODE_RATE_LIMITED = 'too_many_login_attempts'
+IP_1 = '1.2.3.4'
+IP_2 = '5.6.7.8'
 
 
 @ddt
-class RateLimitTestCase(TestCase):
+@override_settings(LOGIN_FAILED_RATE_LIMIT='1/1m/ip,1/1m/key')
+@override_settings(ACCOUNT_RATE_LIMITS=False)
+class BaseRateLimitTestCase(TestCase, metaclass=ABCMeta):
+    login_url_name = None
+    mfa_authenticate_url_name = None
+    mfa_reauthenticate_url_name = None
+    content_headers = {}
+    # there are slight variations across allauth how errors are reported at different
+    # stages of login and with headless vs templated
+    mfa_rate_limited_field = None
+    password_rate_limited_field = None
+    bad_password_field = None
+
+    @abstractmethod
+    def assert_failure(self, response, expected_error_field, expected_error_code):
+        pass
+
+    @abstractmethod
+    def assert_mfa_success(self, response):
+        pass
+
+    @abstractmethod
+    def assert_password_success(self, response, mfa):
+        pass
+
+    @abstractmethod
+    def login_with_password(self, user, password, ip):
+        pass
+
     def setUp(self):
         cache.clear()
         self.client = Client()
@@ -40,129 +80,440 @@ class RateLimitTestCase(TestCase):
         EmailAddress.objects.create(
             user=self.u2, email=self.u2.email, primary=True, verified=True
         )
+        self.now = timezone.now()
+        self.one_second_later = self.now + datetime.timedelta(seconds=1)
+        self.three_minutes_later = self.now + datetime.timedelta(minutes=3)
+        # allow tests to reuse mfa codes for easier testing
+        code_used_patch = patch.object(TOTP, '_mark_code_used', return_value=True)
+        code_used_patch.start()
+        self.addCleanup(code_used_patch.stop)
 
-    def _full_login_process_no_mfa(self, headless, username, password, ip):
-        login_url = HEADLESS_LOGIN_URL if headless else reverse('kobo_login')
-        username_key = 'username' if headless else 'login'
-        request_data = {username_key: username, 'password': password}
-        extra_args = {'content_type': 'application/json'} if headless else {}
+
+@ddt
+class RateLimitTestMixin:
+    @staticmethod
+    def _create_bad_token(user):
+        mfa_code = get_mfa_code_for_user(user)
+        return str(int(mfa_code) + 1)
+
+    def assert_all_logins_succeed(self, mfa):
+        for user, ip in itertools.product([self.u1, self.u2], [IP_1, IP_2]):
+            self.client.logout()
+            mfa_code = get_mfa_code_for_user(user) if mfa else None
+            response = self.login_with_password(user, password=PASSWORD, ip=ip)
+            self.assert_password_success(response, mfa)
+            if mfa:
+                response = self.mfa_authenticate(token=mfa_code, ip=ip)
+                self.assert_mfa_success(response)
+
+    def login_with_bad_token(self, user, ip):
+        response = self.login_with_password(user=user, password=PASSWORD, ip=ip)
+        self.assert_password_success(response=response, mfa=True)
+        bad_code = self._create_bad_token(user)
+        response = self.mfa_authenticate(token=bad_code, ip=ip)
+        self.assert_failure(
+            response=response,
+            expected_error_field='code',
+            expected_error_code='incorrect_code',
+        )
+
+    def mfa_authenticate(self, token, ip):
         return self.client.post(
-            login_url, data=request_data, REMOTE_ADDR=ip, **extra_args
+            path=reverse(self.mfa_authenticate_url_name),
+            data={'code': token},
+            REMOTE_ADDR=ip,
+            **self.content_headers,
         )
 
-    def _full_login_process_with_mfa(self, headless, username, password, ip, mfa_code):
-        self._full_login_process_no_mfa(headless, username, password, ip)
-        extra_args = {'content_type': 'application/json'} if headless else {}
-        mfa_authenticate_url = (
-            HEADLESS_MFA_URL if headless else reverse('mfa_authenticate')
-        )
-        return self.client.post(
-            mfa_authenticate_url, data={'code': mfa_code}, REMOTE_ADDR=ip, **extra_args
-        )
-
-    def _full_login_process(self, headless, username, password, ip, mfa_code=None):
-        if mfa_code:
-            return self._full_login_process_with_mfa(
-                headless, username, password, ip, mfa_code
-            )
-        return self._full_login_process_no_mfa(headless, username, password, ip)
-
-    def _assert_login_failed(self, response, headless, expected_allauth_error_code):
-        if headless:
-            assert response.status_code == 400
-            if expected_allauth_error_code:
-                assert (
-                    response.json()['errors'][0]['code'] == expected_allauth_error_code
+    @data(
+        # change user?, change ip?, expect error?,
+        (True, True, False),
+        (True, False, True),
+        (False, True, True),
+        (False, False, True),
+    )
+    @unpack
+    def test_mfa_user_cannot_login_with_password_when_rate_limited(
+        self, change_user, change_ip, expect_error
+    ):
+        activate_mfa_for_user(self.client, self.u1)
+        activate_mfa_for_user(self.client, self.u2)
+        current_user = self.u1
+        current_ip = IP_1
+        # correct password, incorrect token
+        self.login_with_bad_token(user=current_user, ip=current_ip)
+        if change_user:
+            current_user = self.u2
+        if change_ip:
+            current_ip = IP_2
+        # attempt to log in with the correct password
+        with freeze_time(self.one_second_later):
+            response = self.login_with_password(current_user, PASSWORD, current_ip)
+            # rate limited!
+            if expect_error:
+                self.assert_failure(
+                    response,
+                    expected_error_field=self.password_rate_limited_field,
+                    expected_error_code=ERROR_CODE_RATE_LIMITED,
                 )
-        else:
-            form = response.context_data['form']
-            assert not form.is_valid()
+            else:
+                self.assert_password_success(response=response, mfa=True)
+        with freeze_time(self.three_minutes_later):
+            self.assert_all_logins_succeed(mfa=True)
 
-    def _assert_login_succeeded(self, response, headless):
-        if headless:
+    def test_mfa_user_cannot_use_mfa_token_when_rate_limited(self):
+        activate_mfa_for_user(self.client, self.u1)
+        activate_mfa_for_user(self.client, self.u2)
+        current_user = self.u1
+        current_ip = IP_1
+        with freeze_time(self.now):
+            self.login_with_bad_token(user=current_user, ip=current_ip)
+
+        # attempt to use the correct code
+        with freeze_time(self.one_second_later):
+            mfa_code = get_mfa_code_for_user(current_user)
+            response = self.mfa_authenticate(token=mfa_code, ip=current_ip)
+            self.assert_failure(
+                response,
+                expected_error_field='code',
+                expected_error_code=ERROR_CODE_RATE_LIMITED,
+            )
+
+            # change ip and try again
+            current_ip = IP_2
+            response = self.mfa_authenticate(token=mfa_code, ip=current_ip)
+            self.assert_failure(
+                response,
+                expected_error_field='code',
+                expected_error_code=ERROR_CODE_RATE_LIMITED,
+            )
+
+        with freeze_time(self.three_minutes_later):
+            self.assert_all_logins_succeed(mfa=True)
+
+    def test_non_mfa_login_restricted_after_too_many_failures(self):
+        with freeze_time(self.now):
+            response = self.login_with_password(
+                user=self.u1, password=f'{PASSWORD}bad', ip=IP_1
+            )
+            self.assert_failure(
+                response,
+                expected_error_field=self.bad_password_field,
+                expected_error_code='username_password_mismatch',
+            )
+
+        with freeze_time(self.one_second_later):
+            # different user, same ip, correct password, should be blocked
+            response = self.login_with_password(
+                user=self.u2, password=PASSWORD, ip=IP_1
+            )
+            self.assert_failure(
+                response, self.password_rate_limited_field, ERROR_CODE_RATE_LIMITED
+            )
+
+            # same user, different ip, correct identifier, still blocked
+            response = self.login_with_password(
+                user=self.u1, password=PASSWORD, ip=IP_2
+            )
+            self.assert_failure(
+                response, self.password_rate_limited_field, ERROR_CODE_RATE_LIMITED
+            )
+
+        # time travel to after the limit has expired
+        with freeze_time(self.three_minutes_later):
+            self.assert_all_logins_succeed(mfa=False)
+
+    def test_reauthentication_is_rate_limited(self):
+        activate_mfa_for_user(self.client, self.u1)
+        # force login to simulate a stolen session
+        self.client.force_login(self.u1)
+        with freeze_time(self.now):
+            bad_token = self._create_bad_token(self.u1)
+            response = self.client.post(
+                path=reverse(self.mfa_reauthenticate_url_name),
+                data={'code': bad_token},
+                **self.content_headers,
+            )
+            self.assert_failure(
+                response,
+                expected_error_field='code',
+                expected_error_code='incorrect_code',
+            )
+
+        with freeze_time(self.one_second_later):
+            code = get_mfa_code_for_user(self.u1)
+            response = self.client.post(
+                path=reverse(self.mfa_reauthenticate_url_name),
+                data={'code': code},
+                **self.content_headers,
+            )
+            self.assert_failure(
+                response,
+                expected_error_field='code',
+                expected_error_code=ERROR_CODE_RATE_LIMITED,
+            )
+
+
+@ddt
+class HeadlessRateLimitTestCase(BaseRateLimitTestCase, RateLimitTestMixin):
+
+    login_url_name = 'headless:browser:account:login'
+    mfa_authenticate_url_name = 'headless:browser:mfa:authenticate'
+    mfa_reauthenticate_url_name = 'headless:browser:mfa:reauthenticate'
+    content_headers = {'content_type': 'application/json'}
+    bad_password_field = 'password'
+
+    def assert_failure(self, response, expected_error_field, expected_error_code):
+        assert response.status_code == 400
+        assert response.json()['errors'][0]['code'] == expected_error_code
+        assert response.json()['errors'][0].get('param') == expected_error_field
+
+    def assert_mfa_success(self, response):
+        assert response.status_code == status.HTTP_200_OK
+
+    def assert_password_success(self, response, mfa):
+        if mfa:
+            assert response.status_code == 401
+            authentication_flow = next(
+                flow
+                for flow in response.json()['data']['flows']
+                if flow['id'] == 'mfa_authenticate'
+            )
+            assert authentication_flow['is_pending'] is True
+        else:
             assert response.status_code == 200
+
+    def login_with_password(self, user, password, ip):
+        request_data = {'username': user.username, 'password': password}
+        return self.client.post(
+            path=reverse(self.login_url_name),
+            data=request_data,
+            REMOTE_ADDR=ip,
+            **self.content_headers,
+        )
+
+    def test_regenerate_codes_is_rate_limited(self):
+        activate_mfa_for_user(self.client, self.u1)
+        self.client.force_login(self.u1)
+        # force login to imitate a stolen session
+        now = timezone.now()
+        one_second_later = now + datetime.timedelta(seconds=1)
+        with freeze_time(now):
+            response = self.client.post(
+                path=reverse('mfa-regenerate', args=('app',)),
+                data={'code': '1234567890'},
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert response.json()['code'][0] == 'Invalid code'
+        with freeze_time(one_second_later):
+            code = get_mfa_code_for_user(self.u1)
+            response = self.client.post(
+                reverse('mfa-regenerate', args=('app',)), data={'code': code}
+            )
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert (
+                response.json()['code'][0]
+                == 'Too many failed login attempts. Try again later.'
+            )
+
+
+class TemplatedRateLimitTestCase(BaseRateLimitTestCase, RateLimitTestMixin):
+    login_url_name = 'account_login'
+    mfa_authenticate_url_name = 'mfa_authenticate'
+    mfa_reauthenticate_url_name = 'mfa_reauthenticate'
+    bad_password_field = '__all__'
+    password_rate_limited_field = '__all__'
+
+    def assert_failure(self, response, expected_error_field, expected_error_code):
+        form = response.context_data['form']
+        assert not form.is_valid()
+        assert form.errors[expected_error_field] == [
+            get_adapter().error_messages[expected_error_code]
+        ]
+
+    def assert_mfa_success(self, response):
+        self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
+
+    def assert_password_success(self, response, mfa):
+        if mfa:
+            self.assertRedirects(response, reverse(self.mfa_authenticate_url_name))
         else:
             self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
 
-    @override_settings(ACCOUNT_RATE_LIMITS={'login_failed': '1/2m/ip,1/2m/key'})
-    @data(
-        # headless?, use mfa?
-        (True, True),
-        (True, False),
-        (False, True),
-        (False, False),
-    )
-    @unpack
-    def test_login_restricted_after_too_many_failures(self, headless, use_mfa):
+    def login_with_password(self, user, password, ip):
+        request_data = {'login': user.username, 'password': password}
+        return self.client.post(
+            path=reverse(self.login_url_name),
+            data=request_data,
+            REMOTE_ADDR=ip,
+            **self.content_headers,
+        )
+
+
+@ddt
+class RateLimitingContextManagerTestCase(TestCase):
+    # plumbing tests for the context manager
+
+    def setUp(self) -> None:
+        self.scope = 'something'
+        patched_settings = patch.dict(
+            SETTINGS_BY_SCOPE, {self.scope: 'SOME_RATE_LIMIT'}
+        )
+        patched_settings.start()
+        self.addCleanup(patched_settings.stop)
+        cache.clear()
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
+    def test_rate_limit_by_key(self):
+        def dummy_func(request):
+            with rate_limit(self.scope, username='fred', request=request):
+                pass
         now = timezone.now()
         one_second_later = now + datetime.timedelta(seconds=1)
-        three_minutes_later = now + datetime.timedelta(minutes=3)
-        if use_mfa:
-            activate_mfa_for_user(self.client, self.u1)
-            activate_mfa_for_user(self.client, self.u2)
         with freeze_time(now):
-            # bad identifier (password or token), should lock the user and ip
-            password = PASSWORD if use_mfa else f'{PASSWORD}bad'
-            code = get_mfa_code_for_user(self.u1) if use_mfa else None
-            if code:
-                code = int(code) + 1
-                code = str(code)
-            response = self._full_login_process(
-                headless=headless,
-                username=self.u1.username,
-                password=password,
-                ip='1.2.3.4',
-                mfa_code=code,
-            )
-            expected_error_code = None if use_mfa else 'username_password_mismatch'
-            self._assert_login_failed(response, headless, expected_error_code)
-
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_2))
         with freeze_time(one_second_later):
-            # different user, same ip, correct identifier, should still be blocked
-            code = get_mfa_code_for_user(self.u2) if use_mfa else None
-            if code:
-                code = int(code) + 1
-                code = str(code)
-            response = self._full_login_process(
-                headless=headless,
-                username=self.u2.username,
-                password=PASSWORD,
-                ip='1.2.3.4',
-                mfa_code=code,
-            )
-            expected_error_code = None if use_mfa else 'too_many_login_attempts'
-            self._assert_login_failed(response, headless, expected_error_code)
+            with self.assertRaises(Throttled):
+                dummy_func(RequestFactory().post(path='/', REMOTE_ADDR='A.Third.One'))
 
-            # same user, different ip, correct identifier, still blocked
-            code = get_mfa_code_for_user(self.u1) if use_mfa else None
-            if code:
-                code = int(code) + 1
-                code = str(code)
-            response = self._full_login_process(
-                headless=headless,
-                username=self.u1.username,
-                password=PASSWORD,
-                ip='5.6.7.8',
-                mfa_code=code,
-            )
-            expected_error_code = None if use_mfa else 'too_many_login_attempts'
-            self._assert_login_failed(response, headless, expected_error_code)
+    @override_settings(SOME_RATE_LIMIT='2/1m/ip')
+    def test_rate_limit_by_ip(self):
+        def dummy_func(request):
+            username = ''.join(random.choices(string.ascii_letters, k=8))
+            with rate_limit(self.scope, username=username, request=request):
+                pass
 
-        # time travel to after the limit has expired
-        with freeze_time(three_minutes_later):
-            # should be able to log in as either user at either ip
-            for user, ip in itertools.product(
-                [self.u1, self.u2], ['1.2.3.4', '5.6.7.8']
+        now = timezone.now()
+        one_second_later = now + datetime.timedelta(seconds=1)
+        with freeze_time(now):
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
+            dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
+        with freeze_time(one_second_later):
+            with self.assertRaises(Throttled):
+                dummy_func(RequestFactory().post(path='/', REMOTE_ADDR=IP_1))
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
+    def test_rate_limit_rolls_back_with_signal(self):
+        some_signal = django.dispatch.Signal()
+
+        request = RequestFactory().post('/')
+
+        def dummy_func():
+            with rate_limit(
+                self.scope,
+                username='fred',
+                request=request,
+                rollback_signal=some_signal,
             ):
-                self.client.logout()
-                code = get_mfa_code_for_user(user) if use_mfa else None
-                response = self._full_login_process(
-                    headless=headless,
-                    username=user.username,
-                    password=PASSWORD,
-                    ip=ip,
-                    mfa_code=code,
-                )
-                self._assert_login_succeeded(response, headless)
-                # clear the cache so we can re-use mfa tokens
-                cache.clear()
+                some_signal.send(sender=None, request=request)
+
+        now = timezone.now()
+        one_second_later = now + datetime.timedelta(seconds=1)
+        with freeze_time(now):
+            dummy_func()
+            dummy_func()
+        with freeze_time(one_second_later):
+            dummy_func()
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
+    def test_rate_limit_does_not_rollback_if_request_doesnt_match(self):
+        some_signal = django.dispatch.Signal()
+
+        request1 = RequestFactory().post('/')
+        request2 = RequestFactory().post('/')
+
+        def dummy_func():
+            with rate_limit(
+                self.scope,
+                username='fred',
+                request=request1,
+                rollback_signal=some_signal,
+            ):
+                some_signal.send(sender=None, request=request2)
+
+        now = timezone.now()
+        one_second_later = now + datetime.timedelta(seconds=1)
+        with freeze_time(now):
+            dummy_func()
+            dummy_func()
+        with freeze_time(one_second_later):
+            with self.assertRaises(Throttled):
+                dummy_func()
+
+    def test_rate_limit_unknown_scope(self):
+        request = RequestFactory().post('/')
+        with self.assertRaises(KeyError):
+            with rate_limit('unknown_scope', username='fred', request=request):
+                pass
+
+    @override_settings(SOME_RATE_LIMIT=None)
+    def test_rate_limit_missing_configuration(self):
+        request = RequestFactory().post('/')
+        with patch(
+            'kobo.apps.accounts.throttling.single_rate_limit'
+        ) as rate_limiting_mock:
+            with rate_limit(self.scope, username='fred', request=request):
+                pass
+        rate_limiting_mock.assert_not_called()
+
+    @override_settings(SOME_RATE_LIMIT='1/2m/bananas')
+    @data(
+        ('bananas', ValueError),
+        ('1/2m/bananas', ValueError),
+        ('1/2m/key,1/2m/bananas', ValueError),
+    )
+    @unpack
+    def test_rate_limit_malformed_configuration(self, setting, exception):
+        request = RequestFactory().post('/')
+        with ExitStack() as stack:
+            stack.enter_context(override_settings(LOGIN_FAILED_RATE_LIMIT=setting))
+            rate_limiting_mock = stack.enter_context(
+                patch('kobo.apps.accounts.throttling.single_rate_limit')
+            )
+            stack.enter_context(self.assertRaises(exception))
+            stack.enter_context(
+                rate_limit(self.scope, username='fred', request=request)
+            )
+        rate_limiting_mock.assert_not_called()
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/key,10/5m/key')
+    def test_rate_limit_multiple_limits_one_identifier(self):
+        request = RequestFactory().post('/')
+        expected_rate_1 = Rate(amount=2, duration=60.0, per='key')
+        expected_rate_2 = Rate(amount=10, duration=300.0, per='key')
+        with patch(
+            'kobo.apps.accounts.throttling.single_rate_limit'
+        ) as rate_limiting_mock:
+            with rate_limit(self.scope, username='fred', request=request):
+                pass
+        rate_limiting_mock.assert_any_call(
+            scope=self.scope,
+            identifier='fred',
+            rate=expected_rate_1,
+            rollback_signal=None,
+            request=request,
+        )
+        rate_limiting_mock.assert_any_call(
+            scope=self.scope,
+            identifier='fred',
+            rate=expected_rate_2,
+            rollback_signal=None,
+            request=request,
+        )
+
+    @override_settings(SOME_RATE_LIMIT='2/1m/key')
+    def test_rate_limit_does_not_apply_to_get_requests(self):
+        request = RequestFactory().get('/')
+
+        def dummy_func():
+            with rate_limit(self.scope, username='fred', request=request):
+                pass
+
+        now = timezone.now()
+        one_second_later = now + datetime.timedelta(seconds=1)
+        with freeze_time(now):
+            dummy_func()
+            dummy_func()
+        with freeze_time(one_second_later):
+            dummy_func()

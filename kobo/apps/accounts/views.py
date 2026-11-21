@@ -1,7 +1,11 @@
 from http import HTTPStatus
+from typing import Any
 
+from allauth.account.internal.stagekit import unstash_login
 from allauth.account.models import EmailAddress
 from allauth.core.exceptions import ReauthenticationRequired
+from allauth.headless.account.views import LoginView as BaseHeadlessLoginView
+from allauth.headless.base.response import UnauthorizedResponse
 from allauth.headless.internal.restkit.response import ErrorResponse
 from allauth.headless.mfa.response import (
     RecoveryCodesNotFoundResponse,
@@ -22,7 +26,7 @@ from allauth.mfa.recovery_codes.internal.flows import view_recovery_codes
 from allauth.socialaccount.adapter import get_adapter as get_socialaccount_adapter
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.core.exceptions import MultipleObjectsReturned
-from django.http import Http404
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -30,6 +34,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
 )
 from rest_framework import generics, mixins, status, viewsets
+from rest_framework.exceptions import Throttled
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -58,7 +63,10 @@ from .extend_schemas.api.v2.email.serializers import (
 )
 from .mfa.inputs import MfaAuthenticateInput, MfaReauthenticateInput
 from .mfa.utils import has_hashed_migrated_codes
-from .mixins import MultipleFieldLookupMixin
+from .mixins import (
+    MultipleFieldLookupMixin,
+    ThrottledHeadlessMfaMixin,
+)
 from .permissions import NotManagedSSOPermission
 from .reauthentication import (
     did_recently_reauthenticate_with_mfa,
@@ -73,7 +81,8 @@ from .serializers import (
     SocialAccountSerializer,
     SocialAppDetailSerializer,
 )
-from .throttling import EmailConfirmationRequestEmailThrottle
+from .throttling import EmailConfirmationRequestEmailThrottle, auth_success, rate_limit
+from .utils import throttled_json_response
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -486,7 +495,9 @@ class HeadlessManageRecoveryCodesView(BaseHeadlessManageRecoveryCodesView):
         )
 
 
-class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
+class HeadlessMfaAuthenticateView(
+    BaseHeadlessMfaAuthenticateView, ThrottledHeadlessMfaMixin
+):
     """
     The 2FA step of the login, accepting legacy recovery codes like the
     templated page does
@@ -494,11 +505,51 @@ class HeadlessMfaAuthenticateView(BaseHeadlessMfaAuthenticateView):
 
     input_class = MfaAuthenticateInput
 
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        # at this point the user is only present in the session
+        login = unstash_login(request, peek=True)
+        if not login or not login.user:
+            return UnauthorizedResponse(request)
+        username = login.user.username
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().dispatch(request, *args, **kwargs)
+        except Throttled:
+            return self.throttled_response(request)
 
-class HeadlessMfaReauthenticateView(BaseHeadlessMfaReauthenticateView):
+
+class HeadlessMfaReauthenticateView(
+    BaseHeadlessMfaReauthenticateView, ThrottledHeadlessMfaMixin
+):
     """
     Re-authentication with a 2FA code, accepting legacy recovery codes like the
     templated page does
     """
 
     input_class = MfaReauthenticateInput
+
+    def dispatch(
+        self, request: HttpRequest, *args: Any, **kwargs: Any
+    ) -> HttpResponseBase:
+        try:
+            with rate_limit(
+                'login_failed', request.user.username, request, auth_success
+            ):
+                return super().dispatch(request, *args, **kwargs)
+        except Throttled:
+            return self.throttled_response(request)
+
+
+class HeadlessLoginView(BaseHeadlessLoginView):
+
+    def dispatch(self, request, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        request_data = self._parse_json(request)
+        username = request_data.get('username')
+        if not username:
+            # let the usual processing handle a missing username
+            return super().dispatch(request, *args, **kwargs)
+        try:
+            with rate_limit('login_failed', username, request, auth_success):
+                return super().dispatch(request, *args, **kwargs)
+        except Throttled:
+            return throttled_json_response(request)

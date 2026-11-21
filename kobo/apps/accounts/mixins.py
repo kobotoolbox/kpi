@@ -1,4 +1,13 @@
+from abc import ABC, abstractmethod
+
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+
+from kobo.apps.accounts.utils import (
+    throttled_json_response,
+    throttled_template_response,
+)
 
 
 # https://www.django-rest-framework.org/api-guide/generic-views/#creating-custom-mixins
@@ -32,3 +41,23 @@ class MultipleFieldLookupMixin:
         obj = get_object_or_404(queryset, **filter_kwargs)
         self.check_object_permissions(self.request, obj)
         return obj
+
+
+class ThrottledMixin(ABC):
+    @abstractmethod
+    def throttled_response(self, request: HttpRequest) -> Response:
+        pass
+
+
+class ThrottledHeadlessMfaMixin(ThrottledMixin):
+    def throttled_response(self, request):
+        return throttled_json_response(request, 'code')
+
+
+class ThrottledMfaMixin(ThrottledMixin):
+    def throttled_response(self, request):
+        return throttled_template_response(self, self.get_error_form(), 'code')
+
+    @abstractmethod
+    def get_error_form(self):
+        pass
