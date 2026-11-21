@@ -300,9 +300,11 @@ function MembersRoute() {
             <MemberActionsDropdown
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
+              targetRole={member.role}
               currentUserRole={organization.request_user_role}
               targetFullName={member.user__extra_details__name}
               orgName={organization.name}
+              orgId={organization.id}
               isPendingOwnershipTransfer={!!obj.pending_transfer}
             />
           )

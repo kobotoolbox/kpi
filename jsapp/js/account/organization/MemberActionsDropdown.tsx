@@ -3,6 +3,7 @@ import { type ReactNode, useState } from 'react'
 import { Menu } from '@mantine/core'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationsOwnershipTransfersCreate } from '#/api/react-query/user-team-organization-usage'
 import envStore from '#/envStore'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import router from '#/router/router'
@@ -16,8 +17,10 @@ interface MemberActionsDropdownProps {
   target: ReactNode
   targetUsername: string
   targetFullName?: string | null
+  targetRole?: MemberRoleEnum | null
   isPendingOwnershipTransfer?: boolean
   orgName: string
+  orgId: string
   /**
    * The role of the currently logged in user, i.e. the role of the user that
    * wants to do the actions (not the role of the target member).
@@ -32,7 +35,9 @@ export default function MemberActionsDropdown({
   target,
   targetUsername,
   targetFullName,
+  targetRole,
   orgName,
+  orgId,
   currentUserRole,
   isPendingOwnershipTransfer,
 }: MemberActionsDropdownProps) {
@@ -40,6 +45,7 @@ export default function MemberActionsDropdown({
   const isTransferOwnershipEnabled = useFeatureFlag(FeatureFlag.transferTeamOwnershipEnabled)
   const [isRemoveModalVisible, setIsRemoveModalVisible] = useState(false)
   const [isTransferOwnerVisible, setIsTransferOwnerVisible] = useState(false)
+  const transferMutation = useOrganizationsOwnershipTransfersCreate()
 
   // Wait for session
   if (!profile.currentLoggedAccount?.username) {
@@ -89,8 +95,17 @@ export default function MemberActionsDropdown({
         targetFullName={targetFullName}
         orgName={orgName}
         isModalOpen={isTransferOwnerVisible}
+        isLoading={transferMutation.isPending}
         onCancel={() => setIsTransferOwnerVisible(false)}
-        onConfirm={() => setIsTransferOwnerVisible(false)}
+        onConfirm={(showBillingDetails) =>
+          transferMutation.mutate(
+            {
+              uidOrganization: orgId,
+              data: { recipient: targetUsername, billing_review_requested: showBillingDetails },
+            },
+            { onSuccess: () => setIsTransferOwnerVisible(false) },
+          )
+        }
       />
 
       <Menu offset={0} position='bottom-end'>
@@ -104,7 +119,8 @@ export default function MemberActionsDropdown({
                 <Menu.Item variant='danger'>{t('Cancel invitation')}</Menu.Item>
               </>
             ) : (
-              isTransferOwnershipEnabled && (
+              isTransferOwnershipEnabled &&
+              targetRole === MemberRoleEnum.admin && (
                 <>
                   <Menu.Item variant='light' onClick={() => setIsTransferOwnerVisible(true)}>
                     {t('Make owner')}
