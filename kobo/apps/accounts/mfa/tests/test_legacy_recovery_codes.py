@@ -14,16 +14,16 @@ from django.test import RequestFactory, SimpleTestCase, override_settings
 from django.urls import Resolver404, resolve, reverse
 from rest_framework import status
 
-from kobo.apps.accounts.views import (
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.tests.kpi_test_case import BaseTestCase
+from ..serializers import MfaCodeSerializer
+from ..utils import MFA_METHOD_NAME
+from ..views import (
     HeadlessManageRecoveryCodesView,
     HeadlessManageTOTPView,
     HeadlessMfaAuthenticateView,
     HeadlessMfaReauthenticateView,
 )
-from kobo.apps.kobo_auth.shortcuts import User
-from kpi.tests.kpi_test_case import BaseTestCase
-from ..serializers import MfaCodeSerializer
-from ..utils import MFA_METHOD_NAME
 from .utils import (
     activate_mfa_for_user,
     get_mfa_code_for_user,
@@ -37,7 +37,7 @@ LEGACY_CODES = ['legacy-code-1', 'legacy-code-2']
 
 @ddt
 @override_config(MFA_ENABLED=True)
-@override_settings(ACCOUNT_RATE_LIMITS=False)
+@override_settings(LOGIN_FAILED_RATE_LIMIT=False)
 class HeadlessLegacyRecoveryCodesTestCase(BaseTestCase):
     """
     Recovery codes migrated from the former 2FA system are stored hashed, which
@@ -266,7 +266,7 @@ class HeadlessLegacyRecoveryCodesTestCase(BaseTestCase):
         assert response.json()['meta']['is_authenticated'] is True
         assert self._unused_legacy_code_count() == 1
 
-    @override_settings(ACCOUNT_RATE_LIMITS={'login_failed': '10/15m/key'})
+    @override_settings(LOGIN_FAILED_RATE_LIMIT='10/15m/key')
     def test_rate_limit_error_is_not_hidden(self):
         # A locked-out user must be told so, even when typing the right code
         cache.clear()
