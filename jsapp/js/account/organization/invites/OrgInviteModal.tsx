@@ -80,7 +80,6 @@ export default function OrgInviteModal(props: { orgId: string; inviteId: string;
 
   async function handleSignOut() {
     await logout.mutateAsync()
-    window.location.replace('')
   }
 
   let content: React.ReactNode = null

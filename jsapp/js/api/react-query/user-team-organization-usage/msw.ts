@@ -40,6 +40,8 @@ import { InviteStatusChoicesEnum } from '../../models/inviteStatusChoicesEnum'
 
 import { InviteeRoleEnum } from '../../models/inviteeRoleEnum'
 
+import type { LogoutResponse } from '../../models/logoutResponse'
+
 import type { MeListResponse } from '../../models/meListResponse'
 
 import type { MemberListResponse } from '../../models/memberListResponse'
@@ -1635,6 +1637,10 @@ export const getUsersRetrieveResponseMock = (
   ...overrideResponse,
 })
 
+export const getLogoutCreateResponseMock = (
+  overrideResponse: Partial<Extract<LogoutResponse, object>> = {},
+): LogoutResponse => ({ redirect_url: faker.string.alpha({ length: { min: 10, max: 20 } }), ...overrideResponse })
+
 export const getMeRetrieveResponseMock = (
   overrideResponse: Partial<Extract<MeListResponse, object>> = {},
 ): MeListResponse => ({
@@ -2713,6 +2719,28 @@ export const getUsersRetrieveMockHandler = (
   )
 }
 
+export const getLogoutCreateMockHandler = (
+  overrideResponse?:
+    | LogoutResponse
+    | ((info: Parameters<HttpResponseResolver>[0]) => Promise<LogoutResponse> | LogoutResponse),
+  options?: RequestHandlerOptions,
+) => {
+  return http.post(
+    '*/logout{/}?',
+    async (info: Parameters<HttpResponseResolver>[0]) => {
+      return HttpResponse.json(
+        overrideResponse !== undefined
+          ? typeof overrideResponse === 'function'
+            ? await overrideResponse(info)
+            : overrideResponse
+          : getLogoutCreateResponseMock(),
+        { status: 200 },
+      )
+    },
+    options,
+  )
+}
+
 export const getMeRetrieveMockHandler = (
   overrideResponse?:
     | MeListResponse
@@ -2926,6 +2954,7 @@ export const getUserTeamOrganizationUsageMock = () => [
   getServiceUsageListMockHandler(),
   getUsersListMockHandler(),
   getUsersRetrieveMockHandler(),
+  getLogoutCreateMockHandler(),
   getMeRetrieveMockHandler(),
   getMePartialUpdateMockHandler(),
   getMeDestroyMockHandler(),
