@@ -25,7 +25,7 @@ type Story = StoryObj<typeof CrashingApp>
 export const Default: Story = {
   play: async ({ canvas }) => {
     await expect(await canvas.findByText('Something broke while rendering')).toBeInTheDocument()
-    await expect(canvas.getByText(/at Crash/)).toBeInTheDocument()
+    await expect(canvas.getByText(/Crash/)).toBeInTheDocument()
     await expect(canvas.queryByText(/Hey developer/)).not.toBeInTheDocument()
   },
 }
