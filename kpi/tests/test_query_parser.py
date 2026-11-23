@@ -116,6 +116,7 @@ ALLOWED_QUERIES = [
     (Asset, 'tags__name__icontains:health'),
     (Asset, 'date_created__gte:2022-11-15'),
     (Asset, 'asset_type:survey'),
+    (Asset, 'created_by__iexact:meg'),
     (Asset, 'uid__in:abc'),
     (User, 'username:foo'),
     (User, 'extra_details__data__name:foo'),

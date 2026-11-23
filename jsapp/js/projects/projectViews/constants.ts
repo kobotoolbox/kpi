@@ -130,6 +130,7 @@ export const FILTER_CONDITIONS: FilterConditions = {
 
 export type ProjectFieldName =
   | 'countries'
+  | 'createdBy'
   | 'dateDeployed'
   | 'dateModified'
   | 'description'
@@ -266,6 +267,13 @@ export const PROJECT_FIELDS: ProjectFields = {
     apiOrderingName: 'last_modified_by',
     availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
   },
+  createdBy: {
+    name: 'createdBy',
+    label: t('Created by'),
+    apiFilteringName: 'created_by',
+    apiOrderingName: 'created_by',
+    availableConditions: ['contains', 'doesNotContain', 'endsWith', 'is', 'isNot', 'startsWith'],
+  },
   dateModified: {
     name: 'dateModified',
     label: t('Date modified'),
@@ -317,6 +325,7 @@ export const PROJECT_FIELDS: ProjectFields = {
  * to order the data by. AKA the default orderable fields.
  */
 export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
+  'createdBy',
   'dateDeployed',
   'dateModified',
   'description',
@@ -334,6 +343,7 @@ export const DEFAULT_ORDERABLE_FIELDS: ProjectFieldName[] = [
  * the orderable fields for the "My Projects" route.
  */
 export const HOME_ORDERABLE_FIELDS: ProjectFieldName[] = [
+  'createdBy',
   'dateModified',
   'dateDeployed',
   'lastModifiedBy',

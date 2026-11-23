@@ -82,6 +82,7 @@ ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
         'uid',
         'data_sharing',    # To allow data_sharing__enabled
         'last_modified_by',
+        'created_by',
     }),
     'kpi.importtask': frozenset({
         'data',
@@ -228,7 +229,6 @@ DENIED_LOOKUP_FIELDS: LookupFieldsMap = {
         'assetsnapshot',  # Unnecessary relational traversal
         'children',  # Unnecessary relational traversal
         'content',  # Internal system data
-        'created_by',  # Unnecessary relational traversal
         'data_collector_group',  # Unnecessary relational traversal
         'data_collector_group_id',  # Internal system data
         'disclaimers',  # Unnecessary relational traversal
