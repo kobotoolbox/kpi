@@ -78,6 +78,7 @@ export default class TransxAutomaticButton extends React.Component<
         hasServicesAvailable = results.every(Boolean)
       }
     } catch (error) {
+      // TODO: Add proper error handling or at least clean up the logged errors
       console.error(
         sourceLanguage
           ? `Language ${languageCode} or ${sourceLanguage} not found 3`
