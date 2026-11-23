@@ -1,7 +1,13 @@
 import { actions } from '#/actions'
 import { endpoints } from '#/api.endpoints'
 import type { BridgeSuccessHandler } from './shared'
-import { SpecializedAssetPatchField, getAssetUidFromAdvancedFeaturesPath, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
+import {
+  SpecializedAssetPatchField,
+  getAssetUidFromAdvancedFeaturesPath,
+  getLegacyDeploymentAsset,
+  isRecord,
+  toLegacyAssetFromUnknown,
+} from './shared'
 
 const reloadAssetAfterAdvancedFeatureChange: Omit<BridgeSuccessHandler, 'endpoint'> = {
   refluxAction: 'actions.resources.loadAsset (refresh)',

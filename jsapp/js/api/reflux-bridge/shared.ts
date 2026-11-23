@@ -116,18 +116,12 @@ export function getAssetUidFromAdvancedFeaturesPath(pathname: string): string | 
   const isCollectionPath = parts.length === 5 && parts[4] === 'advanced-features'
   const isFeatureDetailPath = parts.length === 6 && parts[4] === 'advanced-features'
 
-  if (
-    parts[0] === 'api' &&
-    parts[1] === 'v2' &&
-    parts[2] === 'assets' &&
-    (isCollectionPath || isFeatureDetailPath)
-  ) {
+  if (parts[0] === 'api' && parts[1] === 'v2' && parts[2] === 'assets' && (isCollectionPath || isFeatureDetailPath)) {
     return parts[3]
   }
 
   return undefined
 }
-
 
 /** Matches `/api/v2/assets/:uid/deployment/` */
 export function getAssetUidFromDeploymentPath(pathname: string): string | undefined {
