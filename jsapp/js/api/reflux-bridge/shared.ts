@@ -106,6 +106,29 @@ export function getAssetUidFromAssetPath(pathname: string): string | undefined {
   return undefined
 }
 
+/**
+ * Script helper for getting uid from advanced features path only
+ *
+ * Matches `api/v2/assets/:uid/advanced-features` and `api/v2/assets/:uid/advanced-features/:featureUid`
+ */
+export function getAssetUidFromAdvancedFeaturesPath(pathname: string): string | undefined {
+  const parts = getPathParts(pathname)
+  const isCollectionPath = parts.length === 5 && parts[4] === 'advanced-features'
+  const isFeatureDetailPath = parts.length === 6 && parts[4] === 'advanced-features'
+
+  if (
+    parts[0] === 'api' &&
+    parts[1] === 'v2' &&
+    parts[2] === 'assets' &&
+    (isCollectionPath || isFeatureDetailPath)
+  ) {
+    return parts[3]
+  }
+
+  return undefined
+}
+
+
 /** Matches `/api/v2/assets/:uid/deployment/` */
 export function getAssetUidFromDeploymentPath(pathname: string): string | undefined {
   const parts = getPathParts(pathname)

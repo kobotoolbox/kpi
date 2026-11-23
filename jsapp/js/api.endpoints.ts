@@ -8,6 +8,8 @@ export const endpoints = {
   ASSET_HISTORY: '/api/v2/assets/:asset_uid/history/',
   ASSET_HISTORY_ACTIONS: '/api/v2/assets/:asset_uid/history/actions',
   ASSET_HISTORY_EXPORT: '/api/v2/assets/:asset_uid/history/export/',
+  ASSET_ADVANCED_FEATURES: '/api/v2/assets/:uid/advanced-features/',
+  ASSET_ADVANCED_FEATURE: '/api/v2/assets/:uid/advanced-features/:uidAdvancedFeature/',
   ASSET_ADVANCED_FEATURES_BULK_ACTIONS: '/api/v2/assets/:uid/advanced-features/bulk-actions/',
   ASSETS_BULK_URL: '/api/v2/assets/bulk/',
   ASSETS_URL: '/api/v2/assets/',

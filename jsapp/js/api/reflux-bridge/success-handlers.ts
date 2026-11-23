@@ -1,7 +1,18 @@
 import { actions } from '#/actions'
 import { endpoints } from '#/api.endpoints'
 import type { BridgeSuccessHandler } from './shared'
-import { SpecializedAssetPatchField, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
+import { SpecializedAssetPatchField, getAssetUidFromAdvancedFeaturesPath, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
+
+const reloadAssetAfterAdvancedFeatureChange: Omit<BridgeSuccessHandler, 'endpoint'> = {
+  refluxAction: 'actions.resources.loadAsset (refresh)',
+  matches: ({ pathname }) => getAssetUidFromAdvancedFeaturesPath(pathname) !== undefined,
+  run: ({ pathname }) => {
+    const assetUid = getAssetUidFromAdvancedFeaturesPath(pathname)
+    if (assetUid) {
+      actions.resources.loadAsset({ id: assetUid }, true)
+    }
+  },
+}
 
 /**
  * Response-time success handlers.
@@ -150,4 +161,6 @@ export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
       actions.resources.setDeploymentActive.completed(asset)
     },
   },
+  { endpoint: `POST ${endpoints.ASSET_ADVANCED_FEATURES}`, ...reloadAssetAfterAdvancedFeatureChange },
+  { endpoint: `PATCH ${endpoints.ASSET_ADVANCED_FEATURE}`, ...reloadAssetAfterAdvancedFeatureChange },
 ]
