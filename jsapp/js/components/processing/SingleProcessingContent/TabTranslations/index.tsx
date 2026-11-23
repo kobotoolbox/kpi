@@ -158,6 +158,8 @@ export default function TranslationTab({
     <>
       {(mode === 'add' || !translationVersion) && (
         <TranslationAdd
+          // Switching questions keeps this mounted, so a key keeps one response's languages and step off the next
+          key={`${submission._uuid}-${questionXpath}`}
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
