@@ -890,7 +890,6 @@ class BaseDeploymentBackend(abc.ABC):
             submission, all_attachment_xpaths
         )
         submission = self._inject_root_uuid(submission)
-        submission = self._inject_date_modified(submission)
         submission['_validation_status'] = (
             submission.get('_validation_status', None) or {}
         )
@@ -907,6 +906,9 @@ class BaseDeploymentBackend(abc.ABC):
                 submission[SUBMISSION_TIME] = as_date.astimezone(
                     datetime.timezone.utc
                 ).isoformat()
+        # Must come after `_submission_time` is normalized above, it is the
+        # fallback value for `_date_modified`
+        submission = self._inject_date_modified(submission)
         submission.pop('_tags', None)
         submission.pop('_notes', None)
         return submission

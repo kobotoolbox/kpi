@@ -1806,7 +1806,9 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         assert [r['_id'] for r in response.data['results']] == [submission['_id']]
-        assert response.data['results'][0][DATE_MODIFIED] == '2030-01-01T12:00:00'
+        assert (
+            response.data['results'][0][DATE_MODIFIED] == '2030-01-01T12:00:00+00:00'
+        )
 
         response = self.client.get(
             self.submission_list_url,
@@ -1827,9 +1829,14 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         when `_submission_time` itself is not requested with `fields`
         """
         submission = self.submissions_submitted_by_someuser[0]
+        # Such submissions may also have been written before timezone
+        # information was added to `_submission_time`
         settings.MONGO_DB.instances.update_one(
             {'_id': submission['_id']},
-            {'$unset': {DATE_MODIFIED: ''}},
+            {
+                '$unset': {DATE_MODIFIED: ''},
+                '$set': {'_submission_time': '2020-01-01T12:00:00'},
+            },
         )
         assert DATE_MODIFIED not in settings.MONGO_DB.instances.find_one(
             {'_id': submission['_id']}
@@ -1845,6 +1852,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.get(url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
         submission_time = response.data['_submission_time']
+        assert submission_time == '2020-01-01T12:00:00+00:00'
         assert response.data[DATE_MODIFIED] == submission_time
 
         response = self.client.get(
