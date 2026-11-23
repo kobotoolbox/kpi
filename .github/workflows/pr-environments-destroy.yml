@@ -25,11 +25,10 @@ jobs:
         with:
           workflow: kpi_ephemeral_destroy.yml
           repo: kobotoolbox/devops
-          ref: kpi-auto-destroy # TODO: revert to main after testing
+          ref: main
           token: ${{ steps.app_token.outputs.token }}
           inputs: |
             {
               "input_type": "PR",
               "input_value": "${{ github.event.pull_request.number }}"
             }
-# olive is testing
