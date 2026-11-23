@@ -24,7 +24,7 @@ jest.mock('#/actions', () => {
   return { actions: mockedActions }
 })
 
-import chai from 'chai'
+import * as chai from 'chai'
 import {
   bridgeOrvalFailureToLegacyActions,
   bridgeOrvalStartToLegacyActions,

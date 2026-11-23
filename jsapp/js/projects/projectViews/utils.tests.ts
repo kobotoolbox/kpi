@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { ProjectsFilterDefinition } from './constants'
 import { buildQueriesFromFilters, getFilterValues, removeIncorrectFilters } from './utils'
 
