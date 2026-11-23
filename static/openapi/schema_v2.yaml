@@ -4025,6 +4025,12 @@ paths:
 
         The PATCH payload follows the same per-question structure as the GET response.
 
+        To translate a text question, also send the language the response is written
+        in with `source_language` (required), e.g.
+        `{"language": "en", "source_language": "es"}`. It must differ from `language`.
+        Other questions are translated from their accepted transcript, so this property
+        is rejected for them.
+
         To delete a submission supplement, you need to PATCH the submission supplement
         with the appropriate null or empty value.
 
@@ -22313,6 +22319,8 @@ components:
             value:
               type: string
               nullable: true
+            source_language:
+              type: string
           additionalProperties: false
           required:
           - language
@@ -22346,6 +22354,8 @@ components:
               enum:
               - null
               nullable: true
+            source_language:
+              type: string
           additionalProperties: false
           required:
           - language
@@ -24651,6 +24661,8 @@ components:
           type: string
         locale:
           type: string
+        source_language:
+          type: string
         status:
           type: string
           const: complete
@@ -24667,6 +24679,8 @@ components:
         language:
           type: string
         locale:
+          type: string
+        source_language:
           type: string
         status:
           type: string
@@ -24685,6 +24699,8 @@ components:
           type: string
         locale:
           type: string
+        source_language:
+          type: string
         status:
           type: string
           const: failed
@@ -24702,6 +24718,8 @@ components:
           type: string
         locale:
           type: string
+        source_language:
+          type: string
         status:
           type: string
           const: in_progress
@@ -24715,6 +24733,8 @@ components:
         language:
           type: string
         locale:
+          type: string
+        source_language:
           type: string
         value:
           type: string
