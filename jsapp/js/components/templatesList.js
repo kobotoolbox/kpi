@@ -8,8 +8,6 @@ import './templatesList.scss'
 import React from 'react'
 
 import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import profileStore from '#/stores/profile'
@@ -96,7 +94,5 @@ class TemplatesList extends React.Component {
     }
   }
 }
-
-reactMixin(TemplatesList.prototype, Reflux.ListenerMixin)
 
 export default TemplatesList

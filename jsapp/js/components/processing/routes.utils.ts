@@ -139,13 +139,6 @@ export function isAnyProcessingRoute(path?: string): boolean {
 }
 
 /**
- * Checks if currently loaded path is a processing route (any of them).
- */
-export function isAnyProcessingRouteActive(): boolean {
-  return isAnyProcessingRoute(getCurrentPath())
-}
-
-/**
  * Checks if given processing route is active (useful for checking if given tab
  * is active)
  */

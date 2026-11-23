@@ -26,8 +26,10 @@ class AttachmentTrash(BaseTrash):
     class Meta(BaseTrash.Meta):
         verbose_name = 'attachment'
 
+    retention_setting = 'ATTACHMENT_TRASH_RETENTION'
+
     def __str__(self) -> str:
-        return f'{self.attachment} - {self.periodic_task.clocked.clocked_time}'
+        return f'{self.attachment} - {self.scheduled_time}'
 
     @property
     def attachment(self):

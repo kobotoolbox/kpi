@@ -865,6 +865,19 @@ Each action has its own expected format:
   { "language": "en" }
   ```
 
+- **Translation of a text question (manual or automatic)**
+
+  A text response is translated straight from the submission, which does not
+  record the language it was written in, so `source_language` is required. It
+  must differ from `language`, and it is rejected for other questions, whose
+  translations use the language of the accepted transcript.
+  ```json
+  { "language": "en", "source_language": "es" }
+  ```
+  ```json
+  { "language": "en", "source_language": "es", "value": "My translation" }
+  ```
+
 - **All actions – delete request**
   ```json
   { "language": "en", "value": null }
@@ -1062,3 +1075,31 @@ In this case, a `_dependency` property is added to the persisted JSON.
 - The `_dependency` object references the transcription result that the translation was built upon.
 - It reuses the UUID and action ID from the transcription’s persisted result, ensuring referential integrity.
 - This allows clients to trace back a translation to the exact transcription version it relied on.
+
+**Example: Automatic Translation of a text question**
+
+There is no transcript to depend on: `_dependency` points at the submission
+itself, and the language of the response is kept in `_data`.
+
+```json
+{
+  "_dateCreated": "2025-09-01T12:15:42Z",
+  "_dateModified": "2025-09-01T12:17:28Z",
+  "_versions": [
+    {
+      "_data": {
+        "language": "en",
+        "source_language": "es",
+        "value": "Lunch was great today.",
+        "status": "complete"
+      },
+      "_dateCreated": "2025-09-01T12:17:28Z",
+      "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
+      "_dependency": {
+        "_uuid": "2bb75d6b-45f5-48ac-9472-38d7246c84f7",
+        "_actionId": "submission"
+      }
+    }
+  ]
+}
+```
