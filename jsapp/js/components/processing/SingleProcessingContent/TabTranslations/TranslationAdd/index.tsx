@@ -35,7 +35,6 @@ interface Props {
   languagesUnavailable: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic>
-  /** A text response is translated directly, from the language the user picks for it */
   isTextQuestion: boolean
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onBack: () => void

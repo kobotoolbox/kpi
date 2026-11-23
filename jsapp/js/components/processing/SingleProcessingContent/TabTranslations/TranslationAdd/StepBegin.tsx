@@ -26,7 +26,7 @@ export default function StepBegin({ asset, hasConflictingOngoingJob, isTextQuest
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
       <header className={bodyStyles.header}>
         {isTextQuestion
-          ? t('This text response does not have any translations yet')
+          ? t('This response does not have any translations yet')
           : t('This transcript does not have any translations yet')}
       </header>
 

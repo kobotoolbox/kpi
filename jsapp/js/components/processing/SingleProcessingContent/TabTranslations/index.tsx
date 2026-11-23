@@ -48,7 +48,6 @@ export default function TranslationTab({
     [supplement, questionXpath],
   )
 
-  // A text response is translated directly: there's no transcript to take its language from, so the user picks it
   const isTextQuestion = isTextQuestionType(getProcessingQuestionType(asset, questionXpath, submission))
 
   // Languages already translated into, plus the source transcript's own language. Translating a transcript into its own

@@ -35,9 +35,7 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse
   hasConflictingOngoingJob: boolean
-  /** A text response is translated directly, so the copy talks about it instead of a transcript */
   isTextQuestion: boolean
-  /** The language of a text response, see `StepSelectLanguage`. `null` for a transcript. */
   sourceLanguage: LanguageCode | null
   onBack: () => void
   onLimitExceeded: () => void
@@ -242,21 +240,13 @@ export default function StepCreateAutomated({
       <h2>{t('Translation provider')}</h2>
 
       <p>
-        {isTextQuestion
-          ? t(
-              'Automated translation is provided by Google Cloud Platform. By using ' +
-                'this service you agree that your text response will be sent to ' +
-                "Google's servers for the purpose of translation. However, it will not " +
-                "be stored on Google's servers beyond the very short period needed for " +
-                'completing the translation.',
-            )
-          : t(
-              'Automated translation is provided by Google Cloud Platform. By using ' +
-                'this service you agree that your transcript text will be sent to ' +
-                "Google's servers for the purpose of translation. However, it will not " +
-                "be stored on Google's servers beyond the very short period needed for " +
-                'completing the translation.',
-            )}
+        {t(
+          'Automated translation is provided by Google Cloud Platform. By using ' +
+            'this service you agree that your text data will be sent to ' +
+            "Google's servers for the purpose of translation. However, it will not " +
+            "be stored on Google's servers beyond the very short period needed for " +
+            'completing the translation.',
+        )}
       </p>
 
       {errorMessage && (

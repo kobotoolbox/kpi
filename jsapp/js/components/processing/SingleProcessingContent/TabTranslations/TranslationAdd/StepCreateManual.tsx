@@ -16,7 +16,6 @@ interface Props {
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
   languageCode: LanguageCode
-  /** The language of a text response, see `StepSelectLanguage`. `null` for a transcript. */
   sourceLanguage: LanguageCode | null
   onBack: () => void
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
