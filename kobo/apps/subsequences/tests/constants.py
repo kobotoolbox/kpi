@@ -1,6 +1,15 @@
 EMPTY_SUBMISSION = {}
 EMPTY_SUPPLEMENT = {}
 
+# A submission answering the text question of `get_mock_text_question_asset()`
+TEXT_QUESTION_XPATH = 'text_question'
+TEXT_SUBMISSION_UUID = '2bb75d6b-45f5-48ac-9472-38d7246c84f7'
+TEXT_SUBMISSION = {
+    'meta/rootUuid': f'uuid:{TEXT_SUBMISSION_UUID}',
+    '_uuid': TEXT_SUBMISSION_UUID,
+    TEXT_QUESTION_XPATH: 'Hola',
+}
+
 # =============================================================================
 # UUID Constants for Tests
 # =============================================================================

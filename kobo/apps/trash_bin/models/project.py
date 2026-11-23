@@ -24,8 +24,10 @@ class ProjectTrash(BaseTrash):
         verbose_name = 'project'
         verbose_name_plural = 'projects'
 
+    retention_setting = 'PROJECT_TRASH_RETENTION'
+
     def __str__(self) -> str:
-        return f'{self.asset} - {self.periodic_task.clocked.clocked_time}'
+        return f'{self.asset} - {self.scheduled_time}'
 
     @classmethod
     def toggle_statuses(

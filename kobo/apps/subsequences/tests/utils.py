@@ -1,5 +1,6 @@
 import json
 from io import StringIO
+from unittest.mock import MagicMock
 
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120
 from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
@@ -8,6 +9,7 @@ from kobo.apps.subsequences.actions.automatic_bedrock_qual_utils import (
     MantleClient,
     RuntimeClient,
 )
+from kobo.apps.subsequences.tests.constants import TEXT_QUESTION_XPATH
 
 
 class MockMantleClient(MantleClient):
@@ -73,6 +75,32 @@ def get_mock_claude_response(text='text', request_id='12345'):
 
 def get_mock_gemma_response(text='text', request_id='12345'):
     return MockMantleResponse(text, request_id=request_id)
+
+
+def get_mock_text_question_asset():
+    """
+    Return a mock asset whose survey has a single text question, at
+    `TEXT_QUESTION_XPATH`
+    """
+
+    mock_asset = MagicMock()
+    mock_asset.pk = 1
+    mock_asset.owner.pk = 1
+    mock_asset.content = {
+        'survey': [
+            {
+                'type': 'text',
+                'name': TEXT_QUESTION_XPATH,
+                '$xpath': TEXT_QUESTION_XPATH,
+            }
+        ]
+    }
+    # A mock has no unset attributes, so spell out what the survey metadata
+    # helper relies on: nothing memoized yet, and no deployed version to cache
+    # against
+    mock_asset._survey_metadata = None
+    mock_asset.latest_deployed_version_uid = None
+    return mock_asset
 
 
 def mock_get_response(model, text='text', request_id='12345'):

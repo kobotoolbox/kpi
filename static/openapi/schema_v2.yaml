@@ -4025,6 +4025,12 @@ paths:
 
         The PATCH payload follows the same per-question structure as the GET response.
 
+        To translate a text question, also send the language the response is written
+        in with `source_language` (required), e.g.
+        `{"language": "en", "source_language": "es"}`. It must differ from `language`.
+        Other questions are translated from their accepted transcript, so this property
+        is rejected for them.
+
         To delete a submission supplement, you need to PATCH the submission supplement
         with the appropriate null or empty value.
 
@@ -9671,6 +9677,68 @@ paths:
                   summary: Bad request
           description: ''
   /api/v2/organizations/{uid_organization}/ownership-transfers/:
+    get:
+      operationId: api_v2_organizations_ownership_transfers_list
+      description: |
+        ## List Organization Ownership Transfers
+
+        * List ownership transfers for the current user and organization.
+        * Accessible by organization owner and administrators.
+        * Transfers can be filtered by `status` query parameter (e.g. `pending`, `accepted`, `declined`, `cancelled`).
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filter ownership transfers by status (e.g. pending, accepted).
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizationOwnershipTransferList'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
     post:
       operationId: api_v2_organizations_ownership_transfers_create
       description: |
@@ -9733,6 +9801,372 @@ paths:
                     field_name:
                     - Error message
                   summary: Bad request
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/:
+    get:
+      operationId: api_v2_organizations_ownership_transfers_retrieve
+      description: |
+        ## Retrieve Organization Ownership Transfer
+
+        * Retrieve the details of an organization ownership transfer by UID.
+        * Accessible by the sender (owner) or recipient (invitee).
+      parameters:
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the ownership transfer
+        required: true
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/accept/:
+    patch:
+      operationId: api_v2_organizations_ownership_transfers_accept_partial_update
+      description: |
+        ## Accept Organization Ownership Transfer
+
+        * Accept an organization ownership transfer request.
+        * Can only be accepted by the designated recipient (invitee).
+        * The recipient must still be an active administrator in the organization.
+        * The sender must still be the current owner of the organization at the time of acceptance.
+      parameters:
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the ownership transfer
+        required: true
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                BadRequest:
+                  value:
+                    detail: Transfer is not pending.
+                  summary: Bad Request
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/cancel/:
+    patch:
+      operationId: api_v2_organizations_ownership_transfers_cancel_partial_update
+      description: |
+        ## Cancel Organization Ownership Transfer
+
+        * Cancel a pending organization ownership transfer request.
+        * Can only be cancelled by the sender (current organization owner).
+      parameters:
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the ownership transfer
+        required: true
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                BadRequest:
+                  value:
+                    detail: Transfer is not pending.
+                  summary: Bad Request
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/decline/:
+    patch:
+      operationId: api_v2_organizations_ownership_transfers_decline_partial_update
+      description: |
+        ## Decline Organization Ownership Transfer
+
+        * Decline a pending organization ownership transfer request.
+        * Can only be declined by the designated recipient (invitee).
+      parameters:
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the ownership transfer
+        required: true
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                BadRequest:
+                  value:
+                    detail: Transfer is not pending.
+                  summary: Bad Request
+          description: ''
+  /api/v2/organizations/{uid_organization}/ownership-transfers/{uid}/resend/:
+    post:
+      operationId: api_v2_organizations_ownership_transfers_resend_create
+      description: |
+        ## Resend Organization Ownership Transfer Invitation
+
+        * Resend the invitation email for a pending organization ownership transfer.
+        * Can only be triggered by the sender (current organization owner).
+        * Rate-limited to prevent rapid repeated invitations.
+      parameters:
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the ownership transfer
+        required: true
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: UID of the organization
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                TooManyRequests:
+                  value:
+                    detail: Request was throttled. Expected available in 60 seconds.
+                  summary: Too many requests
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                BadRequest:
+                  value:
+                    detail: Invitation cannot be resent.
+                  summary: Bad Request
           description: ''
   /api/v2/organizations/{uid_organization}/service_usage/:
     get:
@@ -12361,7 +12795,9 @@ paths:
 
         Search can be made with `q` parameter to search for the term in names and codes.
 
-        Results are order by name.
+        Results are ordered by priority (lower values first), then by name.
+
+        Each service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.
       parameters:
       - name: limit
         required: false
@@ -12459,13 +12895,14 @@ paths:
   /api/v2/translation-services/:
     get:
       operationId: api_v2_translation_services_list
-      description: |+
+      description: |
         ## List the translation services accessible to requesting (authenticated) user.
 
         Search can be made with `q` parameter to search for the term in names and codes.
 
-        Results are ordered by name.
+        Results are ordered by priority (lower values first), then by name.
 
+        Each service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.
       parameters:
       - name: limit
         required: false
@@ -19491,6 +19928,13 @@ components:
                 type: string
               name:
                 type: string
+              priority:
+                type: integer
+              action_id:
+                type:
+                - string
+                - 'null'
+                nullable: true
           readOnly: true
         translation_services:
           type: array
@@ -19501,6 +19945,13 @@ components:
                 type: string
               name:
                 type: string
+              priority:
+                type: integer
+              action_id:
+                type:
+                - string
+                - 'null'
+                nullable: true
           readOnly: true
         url:
           type: string
@@ -19732,9 +20183,14 @@ components:
           oneOf:
           - $ref: '#/components/schemas/InviteResponse'
           - type: 'null'
+        pending_transfer:
+          oneOf:
+          - $ref: '#/components/schemas/OrganizationOwnershipTransfer'
+          - type: 'null'
       required:
       - date_joined
       - invite
+      - pending_transfer
       - role
       - url
       - user
@@ -19905,6 +20361,13 @@ components:
         sender:
           type: string
           readOnly: true
+        sender_name:
+          type: string
+          readOnly: true
+        sender_email:
+          type: string
+          format: email
+          readOnly: true
         recipient:
           type: string
         status:
@@ -19929,6 +20392,8 @@ components:
       - organization_name
       - recipient
       - sender
+      - sender_email
+      - sender_name
       - status
       - uid
     OrganizationOwnershipTransferStatusEnum:
@@ -19988,6 +20453,9 @@ components:
         is_mmo:
           type: boolean
           readOnly: true
+        has_pending_ownership_transfer:
+          type: boolean
+          readOnly: true
         request_user_role:
           allOf:
           - $ref: '#/components/schemas/MemberRoleEnum'
@@ -20016,6 +20484,7 @@ components:
       - asset_usage
       - assets
       - created
+      - has_pending_ownership_transfer
       - id
       - is_mmo
       - is_owner
@@ -20911,6 +21380,41 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OneTimeAddOn'
+    PaginatedOrganizationOwnershipTransferList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          oneOf:
+          - type: integer
+            example: 123
+          - type: string
+            enum:
+            - many
+            - unknown
+          description: Exact number of results, or 'many' when it exceeds the server's
+            configured row limit (exposed as `limited_count_max_rows` in `/environment`),
+            or 'unknown' when counting timed out
+        next:
+          type:
+          - string
+          - 'null'
+          nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=400&limit=100
+        previous:
+          type:
+          - string
+          - 'null'
+          nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/api-endpoint/?start=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationOwnershipTransfer'
     PaginatedOrganizationResponseList:
       type: object
       required:
@@ -21815,6 +22319,8 @@ components:
             value:
               type: string
               nullable: true
+            source_language:
+              type: string
           additionalProperties: false
           required:
           - language
@@ -21848,6 +22354,8 @@ components:
               enum:
               - null
               nullable: true
+            source_language:
+              type: string
           additionalProperties: false
           required:
           - language
@@ -24153,6 +24661,8 @@ components:
           type: string
         locale:
           type: string
+        source_language:
+          type: string
         status:
           type: string
           const: complete
@@ -24169,6 +24679,8 @@ components:
         language:
           type: string
         locale:
+          type: string
+        source_language:
           type: string
         status:
           type: string
@@ -24187,6 +24699,8 @@ components:
           type: string
         locale:
           type: string
+        source_language:
+          type: string
         status:
           type: string
           const: failed
@@ -24204,6 +24718,8 @@ components:
           type: string
         locale:
           type: string
+        source_language:
+          type: string
         status:
           type: string
           const: in_progress
@@ -24217,6 +24733,8 @@ components:
         language:
           type: string
         locale:
+          type: string
+        source_language:
           type: string
         value:
           type: string
@@ -24515,7 +25033,20 @@ components:
         code:
           type: string
           maxLength: 10
+        priority:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: Lower values come first
+        action_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the action that calls this service, null when no action
+            does
+          readOnly: true
       required:
+      - action_id
       - code
       - name
     TransferListResponse:
@@ -24563,7 +25094,20 @@ components:
         code:
           type: string
           maxLength: 10
+        priority:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          description: Lower values come first
+        action_id:
+          type:
+          - string
+          - 'null'
+          description: ID of the action that calls this service, null when no action
+            does
+          readOnly: true
       required:
+      - action_id
       - code
       - name
     UserListResponse:

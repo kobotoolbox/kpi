@@ -2,7 +2,7 @@ import math
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -60,6 +60,7 @@ from .constants import (
     ORG_MEMBER_ROLE,
     OWNER_ROLE_LOCKED_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    PENDING_TRANSFER_ROLE_LOCKED_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
     USER_DOES_NOT_EXIST_ERROR,
@@ -70,10 +71,11 @@ from .tasks import transfer_member_data_ownership_to_org
 
 class OrganizationUserSerializer(serializers.ModelSerializer):
     invite = serializers.SerializerMethodField()
+    pending_transfer = serializers.SerializerMethodField()
     user = serializers.HyperlinkedRelatedField(
-        read_only=True,
         lookup_field='username',
         view_name='user-kpi-detail',
+        read_only=True,
     )
     role = serializers.CharField()
     user__has_mfa_enabled = serializers.BooleanField(
@@ -107,6 +109,7 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
             'date_joined',
             'user__is_active',
             'invite',
+            'pending_transfer',
         ]
 
     @extend_schema_field(OpenApiTypes.URI)
@@ -145,6 +148,45 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
 
         return None
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_pending_transfer(self, obj):
+        """
+        Get the active pending ownership transfer for the user if it exists.
+        Exposed to organization admins (including the owner) and the recipient member.
+        """
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        request_user = get_database_user(request.user)
+
+        if not (
+            obj.organization.is_admin(request_user) or obj.user_id == request_user.id
+        ):
+            return None
+
+        try:
+            pending_transfers_per_member = self.context['pending_transfers_per_member']
+        except KeyError:
+            transfer = (
+                OrgOwnershipTransferInvite.objects.filter(
+                    metadata__organization_id=str(obj.organization.id),
+                    recipient=obj.user,
+                    status=InviteStatusChoices.PENDING,
+                )
+                .select_related('sender__extra_details', 'recipient')
+                .first()
+            )
+        else:
+            transfer = pending_transfers_per_member.get(obj.user_id)
+
+        if transfer:
+            return OrganizationOwnershipTransferSerializer(
+                transfer, context=self.context
+            ).data
+
+        return None
+
     def to_representation(self, instance):
         """
         Handle representation of invite objects.
@@ -170,6 +212,35 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if role := validated_data.get('role', None):
             validated_data['is_admin'] = role == ORG_ADMIN_ROLE
+            with transaction.atomic():
+                try:
+                    org_user = (
+                        OrganizationUser.objects.select_for_update()
+                        .select_related('organization', 'user')
+                        .get(pk=instance.pk)
+                    )
+                except OrganizationUser.DoesNotExist:
+                    raise NotFound()
+
+                if org_user.organization.is_owner(org_user.user):
+                    raise InvalidMembershipRequest(OWNER_ROLE_LOCKED_ERROR)
+
+                if OrgOwnershipTransferInvite.objects.filter(
+                    metadata__organization_id=str(org_user.organization_id),
+                    recipient=org_user.user,
+                    status=InviteStatusChoices.PENDING,
+                ).exists():
+                    raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
+
+                updated_instance = super().update(org_user, validated_data)
+                updated_instance.has_mfa_enabled = getattr(
+                    instance, 'has_mfa_enabled', False
+                )
+                updated_instance.has_sso_enabled = getattr(
+                    instance, 'has_sso_enabled', False
+                )
+                return updated_instance
+
         return super().update(instance, validated_data)
 
     def validate_role(self, role):
@@ -186,6 +257,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
     assets = serializers.SerializerMethodField()
     asset_usage = serializers.SerializerMethodField()
+    has_pending_ownership_transfer = serializers.BooleanField(read_only=True)
     is_mmo = serializers.BooleanField(read_only=True)
     is_owner = serializers.SerializerMethodField()
     members = serializers.SerializerMethodField()
@@ -208,6 +280,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'modified',
             'is_owner',
             'is_mmo',
+            'has_pending_ownership_transfer',
             'request_user_role',
             'members',
             'assets',
@@ -644,10 +717,10 @@ class OrgMembershipInviteSerializer(serializers.ModelSerializer):
 class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
     recipient = serializers.CharField(required=True)
     sender = serializers.CharField(source='sender.username', read_only=True)
-    organization_id = serializers.CharField(source='organization.id', read_only=True)
-    organization_name = serializers.CharField(
-        source='organization.name', read_only=True
-    )
+    sender_name = serializers.SerializerMethodField()
+    sender_email = serializers.EmailField(source='sender.email', read_only=True)
+    organization_id = serializers.SerializerMethodField()
+    organization_name = serializers.SerializerMethodField()
     created = serializers.DateTimeField(
         source='date_created', format='%Y-%m-%dT%H:%M:%SZ', read_only=True
     )
@@ -663,6 +736,8 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
             'organization_id',
             'organization_name',
             'sender',
+            'sender_name',
+            'sender_email',
             'recipient',
             'status',
             'billing_review_requested',
@@ -671,22 +746,35 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'uid',
-            'organization_id',
-            'organization_name',
-            'sender',
             'status',
-            'created',
-            'modified',
         ]
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_sender_name(self, obj):
+        try:
+            return obj.sender.extra_details.data.get('name', '')
+        except (AttributeError, ObjectDoesNotExist):
+            return ''
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_organization_id(self, obj):
+        org = self._get_organization() or obj.organization
+        return str(org.id) if org else ''
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_organization_name(self, obj):
+        org = self._get_organization() or obj.organization
+        return str(org.name) if org else ''
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['recipient'] = instance.recipient.username
-        representation['billing_review_requested'] = instance.billing_review_requested
         return representation
 
     def _get_organization(self):
-        return self.context['view'].organization
+        if view := self.context.get('view'):
+            return getattr(view, 'organization', None)
+        return None
 
     def validate_recipient(self, value):
         organization = self._get_organization()
@@ -719,13 +807,11 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request_user = get_database_user(self.context['request'].user)
+        organization = self._get_organization()
 
         # Enforces the business rule that only one ownership transfer can
         # be pending per team
-        if OrgOwnershipTransferInvite.objects.filter(
-            sender=request_user,
-            status=InviteStatusChoices.PENDING,
-        ).exists():
+        if organization and organization.has_pending_ownership_transfer:
             raise serializers.ValidationError(
                 {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
             )
@@ -734,11 +820,35 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        organization = self._get_organization()
+        recipient_user = validated_data['recipient']
         try:
             with transaction.atomic():
+                try:
+                    org_user = (
+                        OrganizationUser.objects.select_for_update()
+                        .select_related('user')
+                        .get(organization=organization, user=recipient_user)
+                    )
+                except OrganizationUser.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {'recipient': [RECIPIENT_MUST_BE_ADMIN_ERROR]}
+                    )
+
+                if not org_user.is_admin or not org_user.user.is_active:
+                    raise serializers.ValidationError(
+                        {'recipient': [RECIPIENT_MUST_BE_ADMIN_ERROR]}
+                    )
+
+                if organization and organization.has_pending_ownership_transfer:
+                    raise serializers.ValidationError(
+                        {'detail': [OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR]}
+                    )
+
                 transfer = OrgOwnershipTransferInvite.objects.create(
                     sender=validated_data['sender'],
-                    recipient=validated_data['recipient'],
+                    recipient=recipient_user,
+                    organization=organization,
                     billing_review_requested=validated_data.get(
                         'billing_review_requested', False
                     ),
