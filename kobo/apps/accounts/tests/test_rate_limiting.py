@@ -455,6 +455,7 @@ class RateLimitingContextManagerTestCase(TestCase):
         ) as rate_limiting_mock:
             with rate_limit(self.scope, username='fred', request=request):
                 pass
+
         rate_limiting_mock.assert_not_called()
 
     @override_settings(SOME_RATE_LIMIT='1/2m/bananas')
