@@ -55,7 +55,9 @@ class LanguageSerializer(serializers.ModelSerializer):
         return TranscriptionServiceLanguageM2MSerializer(
             language.transcription_services.through.objects.select_related(
                 'language', 'region', 'service'
-            ).filter(language=language),
+            )
+            .filter(language=language)
+            .order_by('service__priority', 'service__name', 'pk'),
             many=True,
         ).data
 
@@ -64,7 +66,9 @@ class LanguageSerializer(serializers.ModelSerializer):
         return TranslationServiceLanguageM2MSerializer(
             language.translation_services.through.objects.select_related(
                 'language', 'region', 'service'
-            ).filter(language=language),
+            )
+            .filter(language=language)
+            .order_by('service__priority', 'service__name', 'pk'),
             many=True,
         ).data
 

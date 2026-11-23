@@ -8692,6 +8692,8 @@ paths:
         ```
 
         Results are order by `featured` first (descending order), then by their name.
+
+        The services of a language are ordered by `priority` (lower values first), then by name.
       parameters:
       - name: limit
         required: false
@@ -8747,6 +8749,8 @@ paths:
         ## Retrieve one language
 
         * `code` - is the unique identifier of a specific language
+
+        The services of a language are ordered by `priority` (lower values first), then by name.
       parameters:
       - in: path
         name: code

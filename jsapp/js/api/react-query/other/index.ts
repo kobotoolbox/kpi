@@ -148,6 +148,8 @@ export const getLanguagesListUrl = (params?: LanguagesListParams) => {
  * ```
  *
  * Results are order by `featured` first (descending order), then by their name.
+ *
+ * The services of a language are ordered by `priority` (lower values first), then by name.
  */
 export const languagesList = async (
   params?: LanguagesListParams,
@@ -233,6 +235,8 @@ export const getLanguagesRetrieveUrl = (code: string) => {
  * ## Retrieve one language
  *
  * * `code` - is the unique identifier of a specific language
+ *
+ * The services of a language are ordered by `priority` (lower values first), then by name.
  */
 export const languagesRetrieve = async (
   code: string,
