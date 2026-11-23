@@ -59,6 +59,7 @@ module.exports = do ->
       "click .js-add-to-question-library": "clickAddRowToQuestionLibrary"
       "click .js-add-group-to-library": "clickAddGroupToLibrary"
       "click .js-clone-question": "clickCloneQuestion"
+      "click .js-switch-select-type": "clickSwitchSelectType"
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
       "click .js-select-row--force": "forceSelectRow"
@@ -676,6 +677,9 @@ module.exports = do ->
 
     clickCloneQuestion: (evt)->
       @_getViewForTarget(evt).clone()
+
+    clickSwitchSelectType: (evt)->
+      @_getViewForTarget(evt).switchSelectType()
 
     clickRemoveRow: (evt)->
       evt.preventDefault()

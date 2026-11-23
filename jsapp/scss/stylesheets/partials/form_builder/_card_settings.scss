@@ -241,3 +241,9 @@
         border-left: 0;
     }
 }
+
+// Questions listed in the "Change question type?" warning
+.select-type-switch__references {
+  list-style: disc;
+  padding-left: 20px;
+}

@@ -430,6 +430,17 @@ module.exports = do ->
     """
     return template
 
+  # Question Options button that swaps Select One <-> Select Many
+  selectTypeSwitch = (buttonLabel) ->
+    return """
+    <div class="card__settings__fields__field">
+      <label>#{t('Question type')}:</label>
+      <span class="settings__input">
+        <button type="button" class="kobo-button kobo-button--storm kobo-button--small js-switch-select-type">#{buttonLabel}</button>
+      </span>
+    </div>
+    """
+
   rowErrorView = (atts)->
     template = """
     <div class="card card--error">
@@ -456,6 +467,7 @@ module.exports = do ->
     rankView: rankView
     groupSettingsView: groupSettingsView
     rowSettingsView: rowSettingsView
+    selectTypeSwitch: selectTypeSwitch
     iconTooltip: iconTooltip
     lockedFeatures: lockedFeatures
   }
