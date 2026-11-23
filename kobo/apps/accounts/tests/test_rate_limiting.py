@@ -368,6 +368,7 @@ class RateLimitingContextManagerTestCase(TestCase):
         def dummy_func(request):
             with rate_limit(self.scope, username='fred', request=request):
                 pass
+
         now = timezone.now()
         one_second_later = now + datetime.timedelta(seconds=1)
         with freeze_time(now):
