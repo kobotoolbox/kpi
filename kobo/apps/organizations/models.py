@@ -287,9 +287,15 @@ class Organization(AbstractOrganization):
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
+        """
+        Not a pure role check: tells whether `user` holds the implicit org-admin
+        rights over org-owned assets, which exist only while the organization is
+        MMO. When the plan lapses, admins keep their role but lose this access
+        (DEV-3169).
+        """
 
         # Be aware: Owners are also Admins
-        return super().is_admin(user) and not self.is_owner(user)
+        return super().is_admin(user) and not self.is_owner(user) and self.is_mmo
 
     @cache_for_request
     def is_owner(self, user: 'User') -> bool:

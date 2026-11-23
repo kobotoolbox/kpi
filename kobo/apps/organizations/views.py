@@ -82,6 +82,7 @@ from .permissions import (
     HasOrgRolePermission,
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
+    OrgAssetAccessPermission,
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
@@ -314,9 +315,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     # Bare `q` terms search project names (see SearchFilter)
     search_default_field_lookups = ['name__icontains']
 
-    @action(
-        detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
-    )
+    @action(detail=True, methods=['GET'], permission_classes=[OrgAssetAccessPermission])
     def assets(self, request: Request, *args, **kwargs):
 
         # `get_object()` checks permissions
@@ -333,7 +332,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=[IsOrgAdminPermission],
+        permission_classes=[OrgAssetAccessPermission],
         url_path='assets/counts',
     )
     def asset_counts(self, request: Request, *args, **kwargs):
@@ -347,7 +346,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=[IsOrgAdminPermission],
+        permission_classes=[OrgAssetAccessPermission],
         url_path='assets/minimal-list',
     )
     def asset_minimal_list(self, request: Request, *args, **kwargs):

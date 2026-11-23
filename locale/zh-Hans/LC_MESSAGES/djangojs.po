@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-28 17:49+0000\n"
+"POT-Creation-Date: 2026-11-10 16:58+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: Tino Kreutzer <tino.kreutzer@kobotoolbox.org>, 2017\n"
 "Language-Team: Chinese Simplified (http://app.transifex.com/kobotoolbox/kobotoolbox/language/zh-Hans/)\n"
@@ -344,7 +344,7 @@ msgid "Resend invitation"
 msgstr ""
 
 #: jsapp/js/account/organization/MemberActionsDropdown.tsx:48
-#: jsapp/js/account/security/email/emailSection.component.tsx:191
+#: jsapp/js/account/security/email/emailSection.component.tsx:196
 #: jsapp/js/assetQuickActions.tsx:298
 #: jsapp/js/components/RESTServices/RESTServicesCustomHeaders.tsx:117
 #: jsapp/js/components/dataAttachments/connectProjectsImports.tsx:155
@@ -813,33 +813,39 @@ msgstr ""
 msgid "Regenerate"
 msgstr ""
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:149
+#: jsapp/js/account/security/email/emailSection.api.ts:25
+msgid ""
+"For security, please log out and log back in, then change your email address"
+" right away."
+msgstr ""
+
+#: jsapp/js/account/security/email/emailSection.component.tsx:153
 msgid "Email address"
 msgstr "电邮地址"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:161
+#: jsapp/js/account/security/email/emailSection.component.tsx:165
 msgid "Type new email address"
 msgstr "输入新的电邮地址"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:177
+#: jsapp/js/account/security/email/emailSection.component.tsx:182
 msgid "Check your email ##UNVERIFIED_EMAIL##. "
 msgstr "查看你的电邮##UNVERIFIED_EMAIL##。 "
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:181
+#: jsapp/js/account/security/email/emailSection.component.tsx:186
 msgid ""
 "A verification link has been sent to confirm your ownership. Once confirmed,"
 " this address will replace ##UNVERIFIED_EMAIL##"
 msgstr "已发送验证链接以确认你的所有权。一旦确认，该地址将取代##UNVERIFIED_EMAIL##"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:188
+#: jsapp/js/account/security/email/emailSection.component.tsx:193
 msgid "Resend"
 msgstr ""
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:197
+#: jsapp/js/account/security/email/emailSection.component.tsx:202
 msgid "Email was sent again: ##TIMESTAMP##"
 msgstr "邮件再次被发送于：##TIMESTAMP##"
 
-#: jsapp/js/account/security/email/emailSection.component.tsx:215
+#: jsapp/js/account/security/email/emailSection.component.tsx:217
 msgid "Change"
 msgstr ""
 

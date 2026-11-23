@@ -1,4 +1,3 @@
-# coding: utf-8
 from django.shortcuts import get_object_or_404
 
 from kpi.models import Asset
@@ -12,9 +11,7 @@ class AssetNestedObjectViewsetMixin:
             return None
 
         if not hasattr(self, '_asset'):
-            asset = get_object_or_404(
-                Asset.objects.defer('content'), uid=self.asset_uid
-            )
+            asset = get_object_or_404(self.get_asset_queryset(), uid=self.asset_uid)
             setattr(self, '_asset', asset)
         return self._asset
 
@@ -24,3 +21,10 @@ class AssetNestedObjectViewsetMixin:
             asset_uid = self.get_parents_query_dict().get('asset')
             setattr(self, '_asset_uid', asset_uid)
         return self._asset_uid
+
+    def get_asset_queryset(self):
+        """
+        Return the queryset that `asset` is fetched from.
+        """
+
+        return Asset.objects.defer('content')

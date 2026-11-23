@@ -644,6 +644,26 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
         assert draft.uid in result_uids
         assert deployed.uid in result_uids
 
+    @data(
+        'organizations-assets',
+        'organizations-asset-counts',
+        'organizations-asset-minimal-list',
+    )
+    def test_asset_endpoints_when_mmo_lapses(self, endpoint):
+        url = reverse(
+            self._get_endpoint(endpoint),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        self.client.force_login(self.anotheruser)
+        assert self.client.get(url).status_code == status.HTTP_200_OK
+
+        self.organization.mmo_override = False
+        self.organization.save(update_fields=['mmo_override'])
+
+        assert self.client.get(url).status_code == status.HTTP_403_FORBIDDEN
+        self.client.force_login(self.someuser)
+        assert self.client.get(url).status_code == status.HTTP_200_OK
+
 
 @ddt
 class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
