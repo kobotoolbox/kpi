@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from dateutil import parser
+from django.utils.translation import gettext as t
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from ..constants import (
@@ -10,7 +11,11 @@ from ..constants import (
     SUBMISSION_UUID_FIELD,
     TEXT_SOURCE_TYPE,
 )
-from ..exceptions import TranscriptionNotFound
+from ..exceptions import (
+    InvalidSourceLanguage,
+    SourceLanguageNotFound,
+    TranscriptionNotFound,
+)
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -253,9 +258,38 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
     can reuse the same structure consistently.
     """
 
+    def attach_action_dependency(self, action_data: dict, submission: dict):
+        """
+        Attach the source like `RequiresTranscriptionMixin` does. For a text
+        source, also set the dependency's `language` from the request's
+        `source_language`, where a transcript dependency carries its own
+        locale or language.
+        """
+
+        action_data = super().attach_action_dependency(action_data, submission)
+        dependency = action_data.get(self.DEPENDENCY_FIELD)
+        source_language = action_data.get('source_language')
+        if (
+            dependency
+            and dependency[self.ACTION_ID_FIELD] == DEPENDENCY_SOURCE_SUBMISSION
+            and source_language
+        ):
+            # In-flight only, like the transcript language: the sanitizer in
+            # `revise_data` strips it before persistence
+            dependency['language'] = source_language
+        return action_data
+
     @property
     def col_type(self):
         return 'translation'
+
+    @property
+    def data_schema(self) -> dict:
+        return self._add_source_language_schema(super().data_schema)
+
+    @property
+    def external_data_schema(self) -> dict:
+        return self._add_source_language_schema(super().external_data_schema)
 
     @property
     def result_schema(self):
@@ -406,3 +440,62 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             result[key] = entry
 
         return result
+
+    def validate_data(self, data: dict):
+        """
+        Check `source_language` against the source question.
+
+        Nothing records the language a respondent typed in, so translating a
+        text question requires `source_language`. Any other source is a
+        transcript, which already provides its own language, so
+        `source_language` is rejected for those questions.
+
+        The schemas accept `source_language` for every source, so that stored
+        translations stay valid if the question is renamed or changes type in
+        a later deployment. Only new requests are checked against the question
+        type.
+
+        `source_language` must also differ from the target `language`: a
+        response is already in its own language, so there is nothing to
+        translate, and Google rejects such a request.
+
+        Raises:
+          - SourceLanguageNotFound: if a text source has no `source_language`,
+            unless the request only accepts or deletes an existing result.
+          - InvalidSourceLanguage: if `source_language` is sent for a non-text
+            source, or is the same as the target `language`.
+        """
+
+        super().validate_data(data)
+        if self.get_source_question_type() != TEXT_SOURCE_TYPE:
+            if 'source_language' in data:
+                raise InvalidSourceLanguage(
+                    t('`source_language` is only accepted for text questions')
+                )
+            return
+
+        # Accepting or deleting a result does not translate anything
+        is_accept_or_delete = 'accepted' in data or (
+            'value' in data and data['value'] is None
+        )
+        source_language = data.get('source_language')
+        if not source_language and not is_accept_or_delete:
+            raise SourceLanguageNotFound
+
+        if source_language == data['language']:
+            raise InvalidSourceLanguage(
+                t('`source_language` must differ from `language`')
+            )
+
+    def _add_source_language_schema(self, schema: dict) -> dict:
+        """
+        Add `source_language` (e.g. "es"), the language a text response is
+        written in.
+
+        A text response is translated straight from the submission, which does
+        not record the language it was written in. `validate_data()` rejects
+        it in requests for any other source.
+        """
+
+        schema['properties']['source_language'] = {'type': 'string', 'minLength': 1}
+        return schema
