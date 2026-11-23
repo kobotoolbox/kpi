@@ -31,6 +31,9 @@ from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.logger.utils.instance import (
+    add_validation_status_to_instance,
+)
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
@@ -1806,9 +1809,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         assert [r['_id'] for r in response.data['results']] == [submission['_id']]
-        assert (
-            response.data['results'][0][DATE_MODIFIED] == '2030-01-01T12:00:00+00:00'
-        )
+        assert response.data['results'][0][DATE_MODIFIED] == '2030-01-01T12:00:00+00:00'
 
         response = self.client.get(
             self.submission_list_url,
@@ -1821,6 +1822,60 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response_ids = [r['_id'] for r in response.data['results']]
         assert submission['_id'] not in response_ids
         assert len(response_ids) == len(self.submissions) - 1
+
+    def test_list_submissions_filter_by_date_modified_within_same_second(self):
+        """
+        `_date_modified` is precise to the second: a submission modified twice
+        within the same second keeps the same value. `$gte` must be used with
+        the last value received, `$gt` would miss the second modification
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        instance = Instance.objects.get(pk=submission['_id'])
+        with freeze_time('2030-01-01 12:00:00.100000'):
+            instance.save()
+            instance.parsed_instance.update_mongo(asynchronous=False)
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': json.dumps({'_id': submission['_id']}),
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        last_date_modified = response.data['results'][0][DATE_MODIFIED]
+        assert last_date_modified == '2030-01-01T12:00:00+00:00'
+        assert response.data['results'][0]['_validation_status'] == {}
+
+        with freeze_time('2030-01-01 12:00:00.900000'):
+            assert add_validation_status_to_instance(
+                self.someuser.username, 'validation_status_approved', instance
+            )
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': json.dumps({DATE_MODIFIED: {'$gt': last_date_modified}}),
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'] == []
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': json.dumps({DATE_MODIFIED: {'$gte': last_date_modified}}),
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert [r['_id'] for r in response.data['results']] == [submission['_id']]
+        assert response.data['results'][0][DATE_MODIFIED] == last_date_modified
+        assert (
+            response.data['results'][0]['_validation_status']['uid']
+            == 'validation_status_approved'
+        )
 
     def test_inject_date_modified_if_not_present(self):
         """
