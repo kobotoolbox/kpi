@@ -80,7 +80,7 @@ export async function hasTranslationServicesAvailable(code: LanguageCode): Promi
   try {
     const language = await languagesStore.getLanguage(code)
     if (language) {
-      return recordKeys(language.transcription_services).length >= 1
+      return recordKeys(language.translation_services).length >= 1
     } else {
       return false
     }

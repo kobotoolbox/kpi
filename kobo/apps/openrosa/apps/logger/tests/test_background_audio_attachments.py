@@ -382,7 +382,6 @@ class TestBackgroundAudioAttachments(TestCase):
 
     def _submit(self, xml: str, filenames: list[str]) -> Instance:
         return create_instance(
-            self.user.username,
             io.BytesIO(xml.encode()),
             media_files=[
                 SimpleUploadedFile(filename, filename.encode())

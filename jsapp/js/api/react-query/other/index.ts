@@ -1549,6 +1549,8 @@ export const getTranscriptionServicesListUrl = (params?: TranscriptionServicesLi
  * Search can be made with `q` parameter to search for the term in names and codes.
  *
  * Results are ordered by priority (lower values first), then by name.
+ *
+ * Each service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.
  */
 export const transcriptionServicesList = async (
   params?: TranscriptionServicesListParams,
@@ -1757,6 +1759,8 @@ export const getTranslationServicesListUrl = (params?: TranslationServicesListPa
  * Search can be made with `q` parameter to search for the term in names and codes.
  *
  * Results are ordered by priority (lower values first), then by name.
+ *
+ * Each service exposes `action_id`: the ID of the action to call to use it, or `null` when no action handles it.
  */
 export const translationServicesList = async (
   params?: TranslationServicesListParams,

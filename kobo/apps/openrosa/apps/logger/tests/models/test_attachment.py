@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
+from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
@@ -94,8 +95,12 @@ class TestAttachment(TestBase):
         )
         assert attachment.mimetype == 'image/svg+xml'
 
-        # Pillow cannot open an SVG: the original is served, no thumbnail is made
-        assert attachment.protected_path(suffix='small') == attachment.protected_path()
+        # Pillow cannot open an SVG: the original is served, no thumbnail is made.
+        # Freeze the clock so that both presigned S3 URLs share one signature date.
+        with freeze_time():
+            assert (
+                attachment.protected_path(suffix='small') == attachment.protected_path()
+            )
         thumbnail = get_optimized_image_path(attachment.media_file.name, 'small')
         assert not default_storage.exists(thumbnail)
 

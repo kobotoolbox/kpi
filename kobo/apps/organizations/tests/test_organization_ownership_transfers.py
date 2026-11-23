@@ -1,24 +1,42 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from constance import config
+from constance.test import override_config
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.contrib.admin.sites import AdminSite
 from django.core import mail
 from django.db import IntegrityError
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.admin.organization_owner import OrgOwnerAdmin
 from kobo.apps.organizations.constants import (
+    INVITE_ALREADY_ACCEPTED_ERROR,
+    INVITE_CANNOT_BE_RESENT_ERROR,
+    OWNER_REMOVAL_ERROR,
+    OWNER_ROLE_LOCKED_ERROR,
     OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR,
+    PENDING_TRANSFER_ACCOUNT_DELETION_ERROR,
+    PENDING_TRANSFER_ROLE_LOCKED_ERROR,
     RECIPIENT_AMBIGUOUS_EMAIL_ERROR,
     RECIPIENT_MUST_BE_ADMIN_ERROR,
+    TRANSFER_NO_LONGER_VALID_ERROR,
+    TRANSFER_NOT_PENDING_ERROR,
 )
-from kobo.apps.organizations.models import OrganizationOwner
+from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
+from kobo.apps.organizations.permissions import OrganizationOwnershipTransferPermission
+from kobo.apps.organizations.serializers import (
+    OrganizationOwnershipTransferSerializer,
+    OrganizationUserSerializer,
+)
 from kobo.apps.organizations.tests.test_organizations_api import (
     BaseOrganizationAssetApiTestCase,
 )
+from kobo.apps.organizations.views import OrganizationOwnershipTransferViewSet
 from kobo.apps.project_ownership.models import (
     InviteStatusChoices,
     OrgOwnershipTransferInvite,
@@ -57,6 +75,18 @@ class BaseOrganizationOwnershipTransferTestCase(BaseOrganizationAssetApiTestCase
             'billing_review_requested': billing_review_requested,
         }
         return self.client.post(self.list_url, data=payload)
+
+    def _get_detail_url(self, uid):
+        return reverse(
+            self._get_endpoint('organization-ownership-transfers-detail'),
+            kwargs={'uid_organization': self.organization.id, 'uid': uid},
+        )
+
+    def _get_action_url(self, action_name, uid):
+        return reverse(
+            self._get_endpoint(f'organization-ownership-transfers-{action_name}'),
+            kwargs={'uid_organization': self.organization.id, 'uid': uid},
+        )
 
 
 @ddt
@@ -382,6 +412,894 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
                 str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
             )
 
+    def test_members_endpoint_includes_pending_transfer_object(self):
+        """
+        GET /members/ and GET /members/{username}/ expose the nested
+        `pending_transfer` object (including `guid`) for the recipient Admin,
+        and `None` for all other members and invited rows.
+        """
+        members_list_url = reverse(
+            self._get_endpoint('organization-members-list'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+
+        # Before any transfer is created
+        res_before = self.client.get(members_list_url)
+        self.assertEqual(res_before.status_code, status.HTTP_200_OK)
+        for member in res_before.data['results']:
+            self.assertIsNone(member['pending_transfer'])
+
+        # Create ownership transfer to admin with billing review requested
+        create_res = self._create_transfer(
+            self.owner_user,
+            self.admin_user.username,
+            billing_review_requested=True,
+        )
+        self.assertEqual(create_res.status_code, status.HTTP_201_CREATED)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+
+        # List endpoint after transfer is created
+        res_after = self.client.get(members_list_url)
+        self.assertEqual(res_after.status_code, status.HTTP_200_OK)
+
+        admin_row = next(
+            m
+            for m in res_after.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNotNone(admin_row['pending_transfer'])
+        self.assertEqual(admin_row['pending_transfer']['uid'], str(transfer.uid))
+        self.assertEqual(
+            admin_row['pending_transfer']['status'],
+            InviteStatusChoices.PENDING,
+        )
+        self.assertTrue(admin_row['pending_transfer']['billing_review_requested'])
+
+        owner_row = next(
+            m
+            for m in res_after.data['results']
+            if m.get('user__username') == self.owner_user.username
+        )
+        self.assertIsNone(owner_row['pending_transfer'])
+
+        # Detail endpoint also includes pending_transfer
+        detail_res = self.client.get(admin_detail_url)
+        self.assertEqual(detail_res.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(detail_res.data['pending_transfer'])
+        self.assertEqual(detail_res.data['pending_transfer']['uid'], str(transfer.uid))
+
+        # Recipient Admin can also see pending_transfer
+        self.client.force_login(self.admin_user)
+        res_recipient = self.client.get(members_list_url)
+        self.assertEqual(res_recipient.status_code, status.HTTP_200_OK)
+        admin_row_rec = next(
+            m
+            for m in res_recipient.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNotNone(admin_row_rec['pending_transfer'])
+
+        # Regular member cannot see pending_transfer (None)
+        self.client.force_login(self.member_user)
+        res_member = self.client.get(members_list_url)
+        self.assertEqual(res_member.status_code, status.HTTP_200_OK)
+        admin_row_mem = next(
+            m
+            for m in res_member.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNone(admin_row_mem['pending_transfer'])
+
+        # Other organization admin can also see pending_transfer
+        unrelated_admin = User.objects.create_user(
+            username='unrelated_admin', email='unrelated_admin@example.com'
+        )
+        OrganizationUser.objects.create(
+            organization=self.organization, user=unrelated_admin, is_admin=True
+        )
+        self.client.force_login(unrelated_admin)
+        res_unrelated = self.client.get(members_list_url)
+        self.assertEqual(res_unrelated.status_code, status.HTTP_200_OK)
+        admin_row_unrel = next(
+            m
+            for m in res_unrelated.data['results']
+            if m.get('user__username') == self.admin_user.username
+        )
+        self.assertIsNotNone(admin_row_unrel['pending_transfer'])
+
+    def test_organization_exposes_has_pending_ownership_transfer_flag(self):
+        """
+        GET /organizations/{uid_organization}/ exposes
+        `has_pending_ownership_transfer` reflecting active transfer state.
+        """
+        org_detail_url = reverse(
+            self._get_endpoint('organizations-detail'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        self.client.force_login(self.owner_user)
+
+        res_before = self.client.get(org_detail_url)
+        self.assertEqual(res_before.status_code, status.HTTP_200_OK)
+        self.assertFalse(res_before.data['has_pending_ownership_transfer'])
+
+        create_res = self._create_transfer(self.owner_user, self.admin_user.username)
+        self.assertEqual(create_res.status_code, status.HTTP_201_CREATED)
+
+        res_pending = self.client.get(org_detail_url)
+        self.assertEqual(res_pending.status_code, status.HTTP_200_OK)
+        self.assertTrue(res_pending.data['has_pending_ownership_transfer'])
+
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        transfer.status = InviteStatusChoices.CANCELLED
+        transfer.save(update_fields=['status'])
+
+        res_resolved = self.client.get(org_detail_url)
+        self.assertEqual(res_resolved.status_code, status.HTTP_200_OK)
+        self.assertFalse(res_resolved.data['has_pending_ownership_transfer'])
+
+    def test_pending_transfer_locks_recipient_role_and_owner_role(self):
+        """
+        While a transfer is pending, the recipient Admin's role cannot be
+        changed, and the Owner's role can never be changed via PATCH.
+        """
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        owner_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.owner_user.username,
+            },
+        )
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        self.client.force_login(self.owner_user)
+
+        # Cannot demote pending owner to member
+        res = self.client.patch(admin_detail_url, data={'role': 'member'})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            str(res.data['detail']), str(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
+        )
+
+        # Cannot change owner role
+        owner_res = self.client.patch(owner_detail_url, data={'role': 'admin'})
+        self.assertEqual(owner_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(owner_res.data['detail']), str(OWNER_ROLE_LOCKED_ERROR))
+
+        # Cannot reassign member's user via PATCH without `role`
+        member_user_url = reverse(
+            self._get_endpoint('user-kpi-detail'),
+            kwargs={'username': self.member_user.username},
+        )
+        reassign_res = self.client.patch(
+            admin_detail_url, data={'user': member_user_url}
+        )
+        self.assertEqual(reassign_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(reassign_res.data['user__username'], self.admin_user.username)
+
+        # Once transfer resolves, admin role can be changed
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        transfer.status = InviteStatusChoices.DECLINED
+        transfer.save(update_fields=['status'])
+
+        res_after = self.client.patch(admin_detail_url, data={'role': 'member'})
+        self.assertEqual(res_after.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_after.data['role'], 'member')
+        self.assertIn('user__has_mfa_enabled', res_after.data)
+        self.assertIn('user__has_sso_enabled', res_after.data)
+        self.assertFalse(res_after.data['user__has_mfa_enabled'])
+        self.assertFalse(res_after.data['user__has_sso_enabled'])
+
+    def test_cannot_remove_organization_owner(self):
+        """
+        The organization owner cannot be removed from the organization.
+        """
+        owner_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.owner_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+
+        owner_res = self.client.delete(owner_detail_url)
+        self.assertEqual(owner_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(owner_res.data['detail']), str(OWNER_REMOVAL_ERROR))
+
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
+    def test_pending_transfer_blocks_account_deletion(self):
+        """
+        Neither the outgoing Owner nor the recipient Admin can delete their
+        account while an ownership transfer is pending.
+        """
+        me_url = reverse('currentuser-detail')
+        self._create_transfer(self.owner_user, self.admin_user.username)
+
+        # Outgoing owner cannot delete account
+        self.client.force_login(self.owner_user)
+        owner_res = self.client.delete(
+            me_url,
+            data={'confirm': self.owner_user.extra_details.uid},
+            format='json',
+        )
+        self.assertEqual(owner_res.status_code, status.HTTP_403_FORBIDDEN)
+        self.owner_user.refresh_from_db()
+        self.assertTrue(self.owner_user.is_active)
+
+        # Recipient admin cannot delete account while transfer is pending
+        self.client.force_login(self.admin_user)
+        admin_res = self.client.delete(
+            me_url,
+            data={'confirm': self.admin_user.extra_details.uid},
+            format='json',
+        )
+        self.assertEqual(admin_res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            str(admin_res.data['detail']),
+            str(PENDING_TRANSFER_ACCOUNT_DELETION_ERROR),
+        )
+        self.admin_user.refresh_from_db()
+        self.assertTrue(self.admin_user.is_active)
+
+    def test_retrieve_transfer(self):
+        """
+        GET /ownership-transfers/{uid}/ returns transfer metadata.
+        Only the sender (owner) and recipient (invited admin) can retrieve it.
+        """
+        self._create_transfer(
+            self.owner_user,
+            self.admin_user.username,
+            billing_review_requested=True,
+        )
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        detail_url = self._get_detail_url(transfer.uid)
+
+        # 1. Owner can retrieve
+        self.client.force_login(self.owner_user)
+        res_owner = self.client.get(detail_url)
+        self.assertEqual(res_owner.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_owner.data['uid'], str(transfer.uid))
+        self.assertEqual(res_owner.data['sender'], self.owner_user.username)
+        self.assertEqual(
+            res_owner.data['sender_name'],
+            self.owner_user.extra_details.data.get('name', ''),
+        )
+        self.assertEqual(res_owner.data['sender_email'], self.owner_user.email)
+        self.assertEqual(res_owner.data['recipient'], self.admin_user.username)
+        self.assertNotIn('recipient_username', res_owner.data)
+        self.assertEqual(res_owner.data['status'], InviteStatusChoices.PENDING)
+        self.assertTrue(res_owner.data['billing_review_requested'])
+        self.assertEqual(res_owner.data['organization_id'], self.organization.id)
+        self.assertEqual(res_owner.data['organization_name'], self.organization.name)
+
+        # 2. Recipient admin can retrieve
+        self.client.force_login(self.admin_user)
+        res_admin = self.client.get(detail_url)
+        self.assertEqual(res_admin.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_admin.data['uid'], str(transfer.uid))
+
+        # 3. Another admin in the same org cannot retrieve (403)
+        second_admin = User.objects.create(
+            username='second_admin',
+            email='second_admin@example.com',
+            is_active=True,
+        )
+        self.organization.add_user(second_admin, is_admin=True)
+        self.client.force_login(second_admin)
+        res_second_admin = self.client.get(detail_url)
+        self.assertEqual(res_second_admin.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 4. Member in the same org cannot retrieve (403)
+        self.client.force_login(self.member_user)
+        res_member = self.client.get(detail_url)
+        self.assertEqual(res_member.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 5. External user cannot retrieve (404)
+        self.client.force_login(self.external_user)
+        res_external = self.client.get(detail_url)
+        self.assertEqual(res_external.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 6. Non-existent UID returns 404
+        self.client.force_login(self.owner_user)
+        bad_url = self._get_detail_url('poi00000000000000000000')
+        res_bad = self.client.get(bad_url)
+        self.assertEqual(res_bad.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_transfers(self):
+        """
+        GET /ownership-transfers/ lists transfers for the requesting user.
+        Owner sees transfers they sent, recipient sees transfers they received.
+        Other admins see only their own. Supports ?status= query filter.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+
+        # 1. Owner sees the transfer they sent
+        self.client.force_login(self.owner_user)
+        res_owner = self.client.get(self.list_url)
+        self.assertEqual(res_owner.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_owner.data['results']), 1)
+        self.assertEqual(res_owner.data['results'][0]['uid'], str(transfer.uid))
+
+        # 2. Recipient admin sees the transfer they received
+        self.client.force_login(self.admin_user)
+        res_admin = self.client.get(self.list_url)
+        self.assertEqual(res_admin.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_admin.data['results']), 1)
+        self.assertEqual(res_admin.data['results'][0]['uid'], str(transfer.uid))
+
+        # 3. Another admin sees 0 transfers (neither sender nor recipient)
+        second_admin = User.objects.create(
+            username='second_admin',
+            email='second_admin@example.com',
+            is_active=True,
+        )
+        self.organization.add_user(second_admin, is_admin=True)
+        self.client.force_login(second_admin)
+        res_second = self.client.get(self.list_url)
+        self.assertEqual(res_second.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_second.data['results']), 0)
+
+        # 4. Status filter: matching returns results, non-matching returns empty
+        self.client.force_login(self.owner_user)
+        res_pending = self.client.get(self.list_url, data={'status': 'pending'})
+        self.assertEqual(res_pending.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_pending.data['results']), 1)
+
+        res_accepted = self.client.get(self.list_url, data={'status': 'accepted'})
+        self.assertEqual(res_accepted.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res_accepted.data['results']), 0)
+
+        # 5. Regular member receives 403 Forbidden
+        self.client.force_login(self.member_user)
+        res_member = self.client.get(self.list_url)
+        self.assertEqual(res_member.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 6. External user receives 404 Not Found
+        self.client.force_login(self.external_user)
+        res_ext = self.client.get(self.list_url)
+        self.assertEqual(res_ext.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_accept_transfer(self):
+        """
+        PATCH /ownership-transfers/{uid}/accept/ can only be called by the
+        invitee (recipient). Sets status to accepted.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        accept_url = self._get_action_url('accept', transfer.uid)
+
+        # 1. Non-recipient (owner) cannot accept (403)
+        self.client.force_login(self.owner_user)
+        res_owner = self.client.patch(accept_url)
+        self.assertEqual(res_owner.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 2. Member cannot accept (403)
+        self.client.force_login(self.member_user)
+        res_member = self.client.patch(accept_url)
+        self.assertEqual(res_member.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 3. External user receives 404
+        self.client.force_login(self.external_user)
+        res_ext = self.client.patch(accept_url)
+        self.assertEqual(res_ext.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 4. Invitee accepts successfully
+        self.client.force_login(self.admin_user)
+        res_accept = self.client.patch(accept_url)
+        self.assertEqual(res_accept.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_accept.data['status'], InviteStatusChoices.ACCEPTED)
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.ACCEPTED)
+
+        # 5. Calling accept on already accepted transfer fails with 400
+        res_reaccept = self.client.patch(accept_url)
+        self.assertEqual(res_reaccept.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            str(res_reaccept.data['detail']), str(INVITE_ALREADY_ACCEPTED_ERROR)
+        )
+
+    def test_demoted_invitee_cannot_accept_transfer(self):
+        """
+        Invitee cannot accept if they have been demoted to a regular member (403).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        accept_url = self._get_action_url('accept', transfer.uid)
+
+        # Demote admin user to member
+        OrganizationUser.objects.filter(
+            organization=self.organization, user=self.admin_user
+        ).update(is_admin=False)
+
+        self.client.force_login(self.admin_user)
+        res = self.client.patch(accept_url)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_accept_fails_if_sender_is_no_longer_owner(self):
+        """
+        If the sender is no longer the owner of the organization at accept time
+        (e.g. ownership changed outside the admin workflow), the request fails
+        with 400 Validation Error.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        accept_url = self._get_action_url('accept', transfer.uid)
+
+        # Directly reassign ownership outside admin workflow
+        new_owner = User.objects.create(
+            username='new_owner',
+            email='new_owner@example.com',
+            is_active=True,
+        )
+        self.organization.add_user(new_owner, is_admin=True)
+        new_owner_org_user = self.organization.organization_users.get(user=new_owner)
+        self.organization.owner.organization_user = new_owner_org_user
+        self.organization.owner.save(update_fields=['organization_user'])
+
+        self.client.force_login(self.admin_user)
+        res = self.client.patch(accept_url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res.data['detail']), str(TRANSFER_NO_LONGER_VALID_ERROR))
+
+    def test_former_admin_cannot_accept_transfer_after_joining_another_team(self):
+        """
+        If an invitee leaves team A and joins team B as an admin, they cannot
+        accept team A's transfer through team B's endpoint (404), nor can they
+        accept it through team A's endpoint (404).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+
+        # admin_user is removed from team A
+        self.organization.organization_users.filter(user=self.admin_user).delete()
+
+        # admin_user joins team B as an admin
+        team_b_owner = User.objects.create(
+            username='team_b_owner',
+            email='team_b_owner@example.com',
+            is_active=True,
+        )
+        team_b = team_b_owner.organization
+        team_b.mmo_override = True
+        team_b.save(update_fields=['mmo_override'])
+        team_b.add_user(self.admin_user, is_admin=True)
+
+        # 1. Attempt to accept team A's transfer through team B's URL -> 404
+        team_b_accept_url = reverse(
+            self._get_endpoint('organization-ownership-transfers-accept'),
+            kwargs={'uid_organization': team_b.id, 'uid': transfer.uid},
+        )
+        self.client.force_login(self.admin_user)
+        res_b = self.client.patch(team_b_accept_url)
+        self.assertEqual(res_b.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 2. Attempt to accept through team A's URL -> 404 (no longer a member of A)
+        team_a_accept_url = self._get_action_url('accept', transfer.uid)
+        res_a = self.client.patch(team_a_accept_url)
+        self.assertEqual(res_a.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_accept_fails_if_recipient_no_longer_admin_in_organization(self):
+        """
+        If recipient is no longer an active admin in the organization at accept time,
+        accept() rejects with 400 Validation Error.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        accept_url = self._get_action_url('accept', transfer.uid)
+
+        # Demote recipient to member
+        self.organization.organization_users.filter(user=self.admin_user).update(
+            is_admin=False
+        )
+
+        with patch.object(
+            OrganizationOwnershipTransferPermission,
+            'has_permission',
+            return_value=True,
+        ):
+            self.client.force_login(self.admin_user)
+            res = self.client.patch(accept_url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(
+                str(res.data['detail']), str(TRANSFER_NO_LONGER_VALID_ERROR)
+            )
+
+    def test_decline_transfer(self):
+        """
+        PATCH /ownership-transfers/{uid}/decline/ can only be called by the
+        invitee (recipient). Sets status to declined.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        decline_url = self._get_action_url('decline', transfer.uid)
+
+        # 1. Owner cannot decline (403)
+        self.client.force_login(self.owner_user)
+        res_owner = self.client.patch(decline_url)
+        self.assertEqual(res_owner.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 2. Invitee declines successfully
+        self.client.force_login(self.admin_user)
+        res_decline = self.client.patch(decline_url)
+        self.assertEqual(res_decline.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_decline.data['status'], InviteStatusChoices.DECLINED)
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.DECLINED)
+
+        # 3. Cannot decline if not pending
+        res_again = self.client.patch(decline_url)
+        self.assertEqual(res_again.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res_again.data['detail']), str(TRANSFER_NOT_PENDING_ERROR))
+
+    def test_cancel_transfer(self):
+        """
+        PATCH /ownership-transfers/{uid}/cancel/ can only be called by the
+        outgoing owner (sender). Sets status to cancelled.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        cancel_url = self._get_action_url('cancel', transfer.uid)
+
+        # 1. Invitee cannot cancel (403)
+        self.client.force_login(self.admin_user)
+        res_admin = self.client.patch(cancel_url)
+        self.assertEqual(res_admin.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 2. Member cannot cancel (403)
+        self.client.force_login(self.member_user)
+        res_member = self.client.patch(cancel_url)
+        self.assertEqual(res_member.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 3. Owner cancels successfully
+        self.client.force_login(self.owner_user)
+        res_cancel = self.client.patch(cancel_url)
+        self.assertEqual(res_cancel.status_code, status.HTTP_200_OK)
+        self.assertEqual(res_cancel.data['status'], InviteStatusChoices.CANCELLED)
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
+
+        # 4. Cannot cancel if not pending
+        res_again = self.client.patch(cancel_url)
+        self.assertEqual(res_again.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(str(res_again.data['detail']), str(TRANSFER_NOT_PENDING_ERROR))
+
+    def test_resend_transfer_and_rate_limiting(self):
+        """
+        POST /ownership-transfers/{uid}/resend/ resends the invitation email
+        and enforces cooldown rate-limiting.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        resend_url = self._get_action_url('resend', transfer.uid)
+        self.assertEqual(len(mail.outbox), 1)
+
+        # 1. Invitee cannot resend (403)
+        self.client.force_login(self.admin_user)
+        res_admin = self.client.post(resend_url)
+        self.assertEqual(res_admin.status_code, status.HTTP_403_FORBIDDEN)
+
+        # 2. Owner resends immediately -> rate limited (429)
+        self.client.force_login(self.owner_user)
+        res_rate_limited = self.client.post(resend_url)
+        self.assertEqual(
+            res_rate_limited.status_code, status.HTTP_429_TOO_MANY_REQUESTS
+        )
+        self.assertIn('Retry-After', res_rate_limited.headers)
+
+        # 3. Rewind modified timestamp beyond cooldown period
+        fake_modified = timezone.now() - timedelta(
+            seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER + 10
+        )
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer.pk).update(
+            date_modified=fake_modified
+        )
+
+        # 4. Owner resends successfully
+        res_resend = self.client.post(resend_url)
+        self.assertEqual(res_resend.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(mail.outbox), 2)
+
+        # 5. Cancel transfer -> cannot resend non-pending transfer (400)
+        transfer.status = InviteStatusChoices.CANCELLED
+        transfer.save(update_fields=['status'])
+
+        res_cancelled = self.client.post(resend_url)
+        self.assertEqual(res_cancelled.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            str(res_cancelled.data['detail']), str(INVITE_CANNOT_BE_RESENT_ERROR)
+        )
+
+    def test_accept_fails_if_transfer_cancelled_concurrently(self):
+        """
+        If owner cancels while recipient attempts to accept, the row lock and
+        re-read inside the transaction detects non-pending status and aborts (400).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        accept_url = self._get_action_url('accept', transfer.uid)
+
+        # In DB, the transfer is cancelled by owner concurrently
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer.pk).update(
+            status=InviteStatusChoices.CANCELLED
+        )
+
+        # Stale read simulating concurrent request having read pending status
+        stale_transfer = OrgOwnershipTransferInvite.objects.get(pk=transfer.pk)
+        stale_transfer.status = InviteStatusChoices.PENDING
+
+        with patch.object(
+            OrganizationOwnershipTransferViewSet,
+            'get_object',
+            return_value=stale_transfer,
+        ):
+            self.client.force_login(self.admin_user)
+            res = self.client.patch(accept_url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(str(res.data['detail']), str(TRANSFER_NOT_PENDING_ERROR))
+
+    def test_cancel_fails_if_transfer_accepted_concurrently(self):
+        """
+        If recipient accepts while owner attempts to cancel, the row lock and
+        re-read inside the transaction detects non-pending status and aborts (400).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        cancel_url = self._get_action_url('cancel', transfer.uid)
+
+        # In DB, the transfer is accepted by recipient concurrently
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer.pk).update(
+            status=InviteStatusChoices.ACCEPTED
+        )
+
+        # Stale read simulating concurrent request having read pending status
+        stale_transfer = OrgOwnershipTransferInvite.objects.get(pk=transfer.pk)
+        stale_transfer.status = InviteStatusChoices.PENDING
+
+        with patch.object(
+            OrganizationOwnershipTransferViewSet,
+            'get_object',
+            return_value=stale_transfer,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self.client.patch(cancel_url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(str(res.data['detail']), str(TRANSFER_NOT_PENDING_ERROR))
+
+    def test_resend_fails_if_cooldown_triggered_concurrently(self):
+        """
+        If concurrent resend requests pass initial read, the row lock and
+        re-read inside transaction enforces cooldown rate limiting (429).
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        resend_url = self._get_action_url('resend', transfer.uid)
+
+        # In DB, the transfer was modified/resent by concurrent request
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer.pk).update(
+            date_modified=timezone.now()
+        )
+
+        # Stale read simulating cooldown elapsed on initial fetch
+        stale_transfer = OrgOwnershipTransferInvite.objects.get(pk=transfer.pk)
+        stale_transfer.date_modified = timezone.now() - timedelta(
+            seconds=settings.ORG_INVITATION_RESENT_RESET_AFTER + 60
+        )
+
+        with patch.object(
+            OrganizationOwnershipTransferViewSet,
+            'get_object',
+            return_value=stale_transfer,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self.client.post(resend_url)
+            self.assertEqual(res.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    def test_transfer_creation_fails_if_recipient_demoted_concurrently(self):
+        """
+        If recipient is demoted concurrently after initial validation passes,
+        the row lock and re-check inside create() detects they are no longer an
+        admin and aborts (400).
+        """
+        OrganizationUser.objects.filter(
+            organization=self.organization, user=self.admin_user
+        ).update(is_admin=False)
+
+        with patch.object(
+            OrganizationOwnershipTransferSerializer,
+            'validate_recipient',
+            return_value=self.admin_user,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self._create_transfer(self.owner_user, self.admin_user.username)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('recipient', res.data)
+            self.assertEqual(
+                str(res.data['recipient'][0]),
+                str(RECIPIENT_MUST_BE_ADMIN_ERROR),
+            )
+            self.assertEqual(OrgOwnershipTransferInvite.objects.count(), 0)
+
+    def test_transfer_creation_fails_if_recipient_removed_concurrently(self):
+        """
+        If recipient is removed from the organization concurrently after initial
+        validation passes, the row lock inside create() detects they are no
+        longer a member and aborts (400).
+        """
+        OrganizationUser.objects.filter(
+            organization=self.organization, user=self.admin_user
+        ).delete()
+
+        with patch.object(
+            OrganizationOwnershipTransferSerializer,
+            'validate_recipient',
+            return_value=self.admin_user,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self._create_transfer(self.owner_user, self.admin_user.username)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('recipient', res.data)
+            self.assertEqual(
+                str(res.data['recipient'][0]),
+                str(RECIPIENT_MUST_BE_ADMIN_ERROR),
+            )
+            self.assertEqual(OrgOwnershipTransferInvite.objects.count(), 0)
+
+    def test_transfer_creation_fails_if_recipient_deactivates_concurrently(self):
+        """
+        If recipient account is deactivated/deleted concurrently after initial
+        validation passes, the row lock and re-check inside create() detects
+        the inactive status and aborts (400).
+        """
+        User.objects.filter(pk=self.admin_user.pk).update(is_active=False)
+
+        with patch.object(
+            OrganizationOwnershipTransferSerializer,
+            'validate_recipient',
+            return_value=self.admin_user,
+        ):
+            self.client.force_login(self.owner_user)
+            res = self._create_transfer(self.owner_user, self.admin_user.username)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn('recipient', res.data)
+            self.assertEqual(
+                str(res.data['recipient'][0]),
+                str(RECIPIENT_MUST_BE_ADMIN_ERROR),
+            )
+            self.assertEqual(OrgOwnershipTransferInvite.objects.count(), 0)
+
+    def test_demote_fails_if_transfer_created_concurrently(self):
+        """
+        If ownership transfer is created concurrently while a role change is in
+        flight, the row lock and re-read inside update() detects the pending
+        transfer and aborts (400).
+        """
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+
+        OrgOwnershipTransferInvite.objects.create(
+            organization=self.organization,
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            status=InviteStatusChoices.PENDING,
+        )
+
+        with patch.object(
+            OrganizationUserSerializer,
+            'validate_role',
+            return_value='member',
+        ):
+            res = self.client.patch(admin_detail_url, data={'role': 'member'})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(
+                str(res.data['detail']),
+                str(PENDING_TRANSFER_ROLE_LOCKED_ERROR),
+            )
+
+    def test_member_removal_auto_cancels_transfer_created_concurrently(self):
+        """
+        If ownership transfer is created concurrently while member removal is in
+        flight, the row lock and re-read inside perform_destroy() detects the
+        pending transfer, cancels it, and completes removal (204).
+        """
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+
+        transfer = OrgOwnershipTransferInvite.objects.create(
+            organization=self.organization,
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            status=InviteStatusChoices.PENDING,
+        )
+
+        res = self.client.delete(admin_detail_url)
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
+
+    @override_config(ALLOW_SELF_ACCOUNT_DELETION=True)
+    def test_account_deletion_fails_if_transfer_created_concurrently(self):
+        """
+        If ownership transfer is created concurrently while account deletion is in
+        flight, the row lock and re-read inside destroy() detects the pending
+        transfer and aborts (403).
+        """
+        me_url = reverse('currentuser-detail')
+        self.client.force_login(self.admin_user)
+
+        OrgOwnershipTransferInvite.objects.create(
+            organization=self.organization,
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            status=InviteStatusChoices.PENDING,
+        )
+
+        res = self.client.delete(
+            me_url,
+            data={'confirm': self.admin_user.extra_details.uid},
+            format='json',
+        )
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            str(res.data['detail']),
+            str(PENDING_TRANSFER_ACCOUNT_DELETION_ERROR),
+        )
+
+    def test_patch_member_concurrent_removal_returns_404(self):
+        """
+        If a member is deleted concurrently while a role change is in flight,
+        the locked lookup converts OrganizationUser.DoesNotExist to 404 NotFound.
+        """
+        admin_detail_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': self.admin_user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+
+        original_update = OrganizationUserSerializer.update
+
+        def delete_before_update(serializer_self, instance, validated_data):
+            OrganizationUser.objects.filter(pk=instance.pk).delete()
+            return original_update(serializer_self, instance, validated_data)
+
+        with patch.object(
+            OrganizationUserSerializer,
+            'update',
+            side_effect=delete_before_update,
+            autospec=True,
+        ):
+            res = self.client.patch(admin_detail_url, data={'role': 'member'})
+            self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_unrelated_integrity_error_is_reraised(self):
         """
         IntegrityErrors other than the unique pending transfer constraint
@@ -394,3 +1312,38 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         ):
             with self.assertRaises(IntegrityError):
                 self._create_transfer(self.owner_user, self.admin_user.username)
+
+    def test_removing_member_with_pending_transfer_auto_cancels_transfer(self):
+        """
+        Removing an invited member while their ownership transfer is PENDING
+        automatically cancels the transfer and frees the organization so a new
+        transfer can be created.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        self.assertEqual(transfer.status, InviteStatusChoices.PENDING)
+        self.assertTrue(self.organization.has_pending_ownership_transfer)
+
+        admin_member = OrganizationUser.objects.get(
+            organization=self.organization, user=self.admin_user
+        )
+        member_url = reverse(
+            self._get_endpoint('organization-members-detail'),
+            kwargs={
+                'uid_organization': self.organization.id,
+                'username': admin_member.user.username,
+            },
+        )
+        self.client.force_login(self.owner_user)
+        with patch.object(
+            OrgOwnershipTransferInvite, 'send_cancellation_email'
+        ) as mock_email:
+            res = self.client.delete(member_url)
+            self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+            mock_email.assert_called_once()
+
+        self.assertFalse(OrganizationUser.objects.filter(pk=admin_member.pk).exists())
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.CANCELLED)
+        self.organization.refresh_from_db()
+        self.assertFalse(self.organization.has_pending_ownership_transfer)

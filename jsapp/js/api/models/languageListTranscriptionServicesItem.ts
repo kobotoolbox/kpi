@@ -14,4 +14,6 @@ export type LanguageListTranscriptionServicesItem = {
   code?: string
   name?: string
   priority?: number
+  /** @nullable */
+  action_id?: string | null
 }
