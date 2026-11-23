@@ -2,17 +2,6 @@ from django.conf import settings
 from django.core.cache import cache
 
 
-def get_form_language(asset: 'kpi.models.Asset') -> str | None:
-    """
-    Return the language responses to this form are written in, if known.
-
-    Prefers the `default_language` setting and falls back to the first
-    translation, which is the default one. Both are absent on forms whose
-    language was never named, so the caller must handle None.
-    """
-    return _get_survey_metadata(asset)['form_language']
-
-
 def get_survey_question_type(
     asset: 'kpi.models.Asset', question_xpath: str
 ) -> str | None:
@@ -27,13 +16,13 @@ def get_survey_question_type(
 
 def _build_survey_metadata(asset: 'kpi.models.Asset', content: dict) -> dict:
     """
-    Map every question xpath in `content` to its type, with the form language.
+    Map every question xpath in `content` to its type.
 
     Missing `$xpath` values are injected on demand, mirroring
     `Asset.get_attachment_xpaths_from_version()`.
     """
     if not isinstance(content, dict):
-        return {'question_types': {}, 'form_language': None}
+        return {'question_types': {}}
 
     survey = content.get('survey')
     if not isinstance(survey, list):
@@ -41,25 +30,18 @@ def _build_survey_metadata(asset: 'kpi.models.Asset', content: dict) -> dict:
     elif any('$xpath' not in question for question in survey):
         asset._insert_xpath(content)
 
-    asset_settings = content.get('settings') or {}
-    translations = content.get('translations') or []
-
     return {
         'question_types': {
             question['$xpath']: question.get('type')
             for question in survey
             if question.get('$xpath')
         },
-        'form_language': (
-            asset_settings.get('default_language')
-            or next((translation for translation in translations if translation), None)
-        ),
     }
 
 
 def _get_survey_metadata(asset: 'kpi.models.Asset') -> dict:
     """
-    Return `{'question_types': {xpath: type}, 'form_language': str | None}`.
+    Return `{'question_types': {xpath: type}}`.
 
     Deployed assets are described by their latest deployed version, never by
     `Asset.content`, which keeps drafting a new version from changing how

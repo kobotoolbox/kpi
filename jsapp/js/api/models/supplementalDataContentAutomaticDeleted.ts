@@ -13,6 +13,7 @@
 export interface SupplementalDataContentAutomaticDeleted {
   language: string
   locale?: string
+  source_language?: string
   status: 'deleted'
   /** @nullable */
   value: null

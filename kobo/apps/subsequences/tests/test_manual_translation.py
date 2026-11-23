@@ -3,8 +3,19 @@ import jsonschema
 import pytest
 
 from ..actions.manual_translation import ManualTranslationAction
-from ..exceptions import TranscriptionNotFound
-from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
+from ..exceptions import (
+    InvalidSourceLanguage,
+    SourceLanguageNotFound,
+    TranscriptionNotFound,
+)
+from .constants import (
+    EMPTY_SUBMISSION,
+    EMPTY_SUPPLEMENT,
+    QUESTION_SUPPLEMENT,
+    TEXT_QUESTION_XPATH,
+    TEXT_SUBMISSION,
+)
+from .utils import get_mock_text_question_asset
 
 
 def test_valid_params_pass_validation():
@@ -227,6 +238,46 @@ def test_transform_data_for_output_with_delete():
     }
 
 
+def test_text_source_translation_stores_its_source_language():
+    action = _get_text_action()
+
+    result = action.revise_data(
+        TEXT_SUBMISSION,
+        EMPTY_SUPPLEMENT,
+        {'language': 'fr', 'source_language': 'es', 'value': 'Bonjour'},
+    )
+
+    assert result['fr']['_versions'][0]['_data'] == {
+        'language': 'fr',
+        'source_language': 'es',
+        'value': 'Bonjour',
+    }
+    action.validate_result(result)
+    # Still valid once the question is no longer a text question
+    _get_action().validate_result(result)
+
+
+def test_cannot_translate_text_source_without_source_language():
+    action = _get_text_action()
+
+    with pytest.raises(SourceLanguageNotFound):
+        action.revise_data(
+            TEXT_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {'language': 'fr', 'value': 'Bonjour'},
+        )
+
+
+def test_source_language_is_only_accepted_for_text_source_questions():
+    data = {'language': 'fr', 'source_language': 'es', 'value': 'Bonjour'}
+
+    _get_text_action().validate_data(data)
+
+    # A transcript carries its own language
+    with pytest.raises(InvalidSourceLanguage):
+        _get_action().validate_data(data)
+
+
 def _get_action(question_supplement=None):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
@@ -239,3 +290,12 @@ def _get_action(question_supplement=None):
         prefetched_dependencies={'question_supplemental_data': supplement},
     )
     return action
+
+
+def _get_text_action():
+    return ManualTranslationAction(
+        TEXT_QUESTION_XPATH,
+        [{'language': 'fr'}, {'language': 'en'}],
+        asset=get_mock_text_question_asset(),
+        prefetched_dependencies={'question_supplemental_data': {}},
+    )
