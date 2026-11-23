@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from dateutil import parser
+from django.utils.translation import gettext as t
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from ..constants import (
@@ -469,7 +470,7 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
         if self.get_source_question_type() != TEXT_SOURCE_TYPE:
             if 'source_language' in data:
                 raise InvalidSourceLanguage(
-                    '`source_language` is only accepted for text questions'
+                    t('`source_language` is only accepted for text questions')
                 )
             return
 
@@ -482,7 +483,9 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             raise SourceLanguageNotFound
 
         if source_language == data['language']:
-            raise InvalidSourceLanguage('`source_language` must differ from `language`')
+            raise InvalidSourceLanguage(
+                t('`source_language` must differ from `language`')
+            )
 
     def _add_source_language_schema(self, schema: dict) -> dict:
         """
