@@ -113,6 +113,8 @@ $submission-data-table-space: 12px;
     // as its link has no width to measure it against.
     height: 150px;
     width: auto;
+    // Already set globally, but kept here so a wide image never outgrows the response column
+    max-width: 100%;
     object-fit: contain;
   }
 }
