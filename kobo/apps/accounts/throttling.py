@@ -141,7 +141,9 @@ def single_rate_limit(
     rollback_signal: django.dispatch.Signal | None = None,
 ):
     # hide actual usernames and ips
-    identifier_hash = hashlib.sha256(identifier.strip().lower().encode()).hexdigest()
+    identifier_hash = hashlib.sha256(
+        str(identifier).strip().lower().encode()
+    ).hexdigest()
     # using the full rate in the cache key allows multiple rate limits on the same
     # identifier, like '1/2m/ip,5/2m/ip'. allauth allows it so we do too.
     cache_key = f'{scope}:{str(rate)}:{identifier_hash}'

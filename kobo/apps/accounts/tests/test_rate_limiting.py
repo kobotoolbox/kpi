@@ -468,7 +468,7 @@ class RateLimitingContextManagerTestCase(TestCase):
     def test_rate_limit_malformed_configuration(self, setting, exception):
         request = RequestFactory().post('/')
         with ExitStack() as stack:
-            stack.enter_context(override_settings(LOGIN_FAILED_RATE_LIMIT=setting))
+            stack.enter_context(override_settings(SOME_RATE_LIMIT=setting))
             rate_limiting_mock = stack.enter_context(
                 patch('kobo.apps.accounts.throttling.single_rate_limit')
             )
