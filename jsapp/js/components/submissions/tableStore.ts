@@ -1,5 +1,5 @@
-import clonedeep from 'lodash.clonedeep'
-import Reflux from 'reflux'
+import { cloneDeep } from 'lodash-es'
+import { useSyncExternalStore } from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import {
   DATA_TABLE_SETTINGS,
@@ -15,13 +15,11 @@ import { recordEntries } from '#/utils'
 /** Prefix for the per-user `localStorage` key, see `useSafeUsernameStorageKey`. */
 export const TABLE_SETTINGS_STORAGE_KEY_PREFIX = 'kpiDataTableSettings'
 
-export interface TableStoreData {
-  /** Settings of the asset from the current route. */
-  tableSettings: AssetTableSettings
-}
-
 /** One key per user holds the settings of every asset they've opened. */
 type TableSettingsByAsset = Record<string, AssetTableSettings>
+
+/** Same object every time, so `useSyncExternalStore` doesn't loop. */
+const EMPTY_SETTINGS: Readonly<AssetTableSettings> = Object.freeze({})
 
 function readStoredSettings(storageKey: string): TableSettingsByAsset {
   try {
@@ -45,13 +43,26 @@ function readStoredSettings(storageKey: string): TableSettingsByAsset {
  * NOTE: nothing is persisted until `setStorageKey` is called (see
  * `DataTableWrapper`), only kept in memory.
  *
- * @deprecated migrate out of Reflux (DEV-3191) whenever you need to adjust things beyond simple rename
+ * NOTE: React components should read settings with `useTableSettings`.
  */
-class TableStore extends Reflux.Store {
+class TableStore {
   private storageKey: string | null = null
   private settingsByAsset: TableSettingsByAsset = {}
   /** Assets with changes that failed to persist, kept in memory only. */
   private unsavedAssetUids = new Set<string>()
+  private listeners = new Set<() => void>()
+
+  /** Returns a function that unsubscribes. */
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener)
+    return () => {
+      this.listeners.delete(listener)
+    }
+  }
+
+  private emit() {
+    this.listeners.forEach((listener) => listener())
+  }
 
   /** Loads the settings stored under given key and persists future changes there. */
   setStorageKey(storageKey: string) {
@@ -61,24 +72,25 @@ class TableStore extends Reflux.Store {
     this.storageKey = storageKey
     this.settingsByAsset = readStoredSettings(storageKey)
     this.unsavedAssetUids.clear()
-    this.trigger(this.getData())
+    this.emit()
   }
 
-  private getData(): TableStoreData {
-    return { tableSettings: this.getTableSettings() }
+  /** Like `getTableSettings`, but not a clone: same object until settings change. Don't mutate it. */
+  getTableSettingsSnapshot = (): Readonly<AssetTableSettings> => {
+    const assetUid = getRouteAssetUid()
+    return (assetUid && this.settingsByAsset[assetUid]) || EMPTY_SETTINGS
   }
 
   /** Returns settings or empty object if no settings exist */
   getTableSettings(): AssetTableSettings {
-    const assetUid = getRouteAssetUid()
     // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
     // prepends the frozen columns to the selected columns).
-    return clonedeep((assetUid && this.settingsByAsset[assetUid]) || {})
+    return cloneDeep(this.getTableSettingsSnapshot())
   }
 
   /**
    * @param newTableSettings - will be merged into current settings. Passing
-   * `null` for a setting brings back its default.
+   * `null` or an empty list for a setting brings back its default.
    */
   saveTableSettings(newTableSettings: AssetTableSettings) {
     const assetUid = getRouteAssetUid()
@@ -97,9 +109,9 @@ class TableStore extends Reflux.Store {
     }
 
     const mergedSettings = { ...this.settingsByAsset[assetUid], ...newTableSettings }
-    // `null` means "use default", so there's no point storing it.
+    // `null` and `[]` mean "use default", so there's no point storing them.
     this.settingsByAsset[assetUid] = Object.fromEntries(
-      recordEntries(mergedSettings).filter(([, value]) => value !== null),
+      recordEntries(mergedSettings).filter(([, value]) => value !== null && !(Array.isArray(value) && !value.length)),
     ) as AssetTableSettings
 
     if (this.storageKey) {
@@ -112,7 +124,7 @@ class TableStore extends Reflux.Store {
       }
     }
 
-    this.trigger(this.getData())
+    this.emit()
   }
 
   /** Returns a list of columns that user can hide */
@@ -125,25 +137,30 @@ class TableStore extends Reflux.Store {
     return columns
   }
 
-  /**
-   * `null` means no selection, i.e. all columns
-   */
-  getSelectedColumns(): string[] | null {
-    const tableSettings = this.getTableSettings()
-    if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
-      return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] || null
-    }
-    return null
+  /** No copy, as Data Table checks it for every column. Don't mutate it. */
+  private readHiddenColumns(): readonly string[] {
+    const hiddenColumns = this.getTableSettingsSnapshot()[DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]
+    return Array.isArray(hiddenColumns) ? hiddenColumns : []
   }
 
-  /** Returns ids of frozen columns, in the order they were frozen. */
-  getFrozenColumns(): string[] {
-    const frozenColumns = this.getTableSettings()[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
+  /** No copy, as Data Table checks it for every column. Don't mutate it. */
+  private readFrozenColumns(): readonly string[] {
+    const frozenColumns = this.getTableSettingsSnapshot()[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
     // Old settings keep a single column id as a string.
     if (typeof frozenColumns === 'string') {
       return [frozenColumns]
     }
     return Array.isArray(frozenColumns) ? frozenColumns : []
+  }
+
+  /** We store hidden columns, not visible ones, so new form questions show up by default. */
+  getHiddenColumns(): string[] {
+    return [...this.readHiddenColumns()]
+  }
+
+  /** Returns ids of frozen columns, in the order they were frozen. */
+  getFrozenColumns(): string[] {
+    return [...this.readFrozenColumns()]
   }
 
   isFieldVisible(fieldId: string) {
@@ -157,28 +174,18 @@ class TableStore extends Reflux.Store {
       return true
     }
 
-    const selectedColumns = this.getSelectedColumns()
-    // nothing is selected, so all columns are visible
-    if (selectedColumns === null) {
-      return true
-    }
-
-    if (Array.isArray(selectedColumns)) {
-      return selectedColumns.includes(fieldId)
-    }
-
-    return true
+    return !this.readHiddenColumns().includes(fieldId)
   }
 
   isFieldFrozen(fieldId: string) {
-    return this.getFrozenColumns().includes(fieldId)
+    return this.readFrozenColumns().includes(fieldId)
   }
 
   /** Freezes or unfreezes given column, leaving other frozen columns as they are. */
   setFrozenColumn(fieldId: string, isFrozen: boolean) {
     const otherColumns = this.getFrozenColumns().filter((id) => id !== fieldId)
     const newFrozenColumns = isFrozen ? [...otherColumns, fieldId] : otherColumns
-    this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns.length ? newFrozenColumns : null })
+    this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns })
   }
 
   /**
@@ -221,96 +228,23 @@ class TableStore extends Reflux.Store {
   }
 
   showAllFields() {
-    const settingsObj: AssetTableSettings = {}
-    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = null
-    this.saveTableSettings(settingsObj)
+    this.setHiddenColumns([])
   }
 
-  /** Show single column - shortcut method for setFieldsVisibility */
-  showField(
-    asset: AssetResponse,
-    submissions: SubmissionResponse[],
-    bulkActions: BulkActionResponse[],
-    fieldId: string,
-  ) {
-    const selectedColumns = this.getSelectedColumns()
-
-    // We start with `null` just to be safe, but the case when selectedColumns
-    // is `null` already (i.e. all columns visible) and we show column should
-    // never happen.
-    let newSelectedColumns = null
-
-    // Some fields are selected and we show one column
-    if (Array.isArray(selectedColumns)) {
-      newSelectedColumns = [...selectedColumns]
-      newSelectedColumns.push(fieldId)
-    }
-
-    this.setFieldsVisibility(asset, submissions, bulkActions, newSelectedColumns)
+  hideField(fieldId: string) {
+    this.setHiddenColumns([...this.getHiddenColumns(), fieldId])
   }
 
-  /** Hide single column - a shortcut method for setFieldsVisibility */
-  hideField(
-    asset: AssetResponse,
-    submissions: SubmissionResponse[],
-    bulkActions: BulkActionResponse[],
-    fieldId: string,
-  ) {
-    const selectedColumns = this.getSelectedColumns()
-    const hideableColumns = this.getHideableColumns(asset, submissions, bulkActions)
-
-    let newSelectedColumns: string[] = []
-
-    // Case 1: nothing selected and we hide one column, i.e. we need to select all but one
-    if (selectedColumns === null) {
-      newSelectedColumns = [...hideableColumns]
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1)
+  setHiddenColumns(hiddenColumns: string[]) {
+    const settingsObj: AssetTableSettings = {
+      [DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]: hiddenColumns,
+      // Hidden columns can't stay frozen, so we unfreeze them.
+      [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: this.getFrozenColumns().filter((id) => !hiddenColumns.includes(id)),
     }
 
-    // Case 2: some fields selected and we hide one column
-    if (Array.isArray(selectedColumns)) {
-      newSelectedColumns = [...selectedColumns]
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1)
-    }
-
-    this.setFieldsVisibility(asset, submissions, bulkActions, newSelectedColumns)
-  }
-
-  setFieldsVisibility(
-    asset: AssetResponse,
-    submissions: SubmissionResponse[],
-    bulkActions: BulkActionResponse[],
-    columnsToBeVisible: string[] | null,
-  ) {
-    const hideableColumns = this.getHideableColumns(asset, submissions, bulkActions)
-    let newSelectedColumns = columnsToBeVisible
-
-    // If we make all possible columns visible, we save `null` value
-    if (Array.isArray(newSelectedColumns) && newSelectedColumns.length === hideableColumns.length) {
-      newSelectedColumns = null
-    }
-
-    const settingsObj: AssetTableSettings = {}
-    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns
-
-    // Hidden columns can't stay frozen, so we unfreeze them.
-    if (Array.isArray(newSelectedColumns)) {
-      const frozenColumns = this.getFrozenColumns()
-      const visibleFrozenColumns = frozenColumns.filter((id) => newSelectedColumns.includes(id))
-      if (visibleFrozenColumns.length !== frozenColumns.length) {
-        settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = visibleFrozenColumns.length ? visibleFrozenColumns : null
-      }
-    }
-
-    // If we are hiding the column that data is sorted by, we need to unsort it.
+    // Data can't stay sorted by a hidden column.
     const sortBy = this.getSortBy()
-    if (
-      sortBy !== null &&
-      typeof sortBy === 'object' &&
-      Array.isArray(newSelectedColumns) &&
-      !newSelectedColumns.includes(sortBy.fieldId)
-    ) {
-      // Currently we allow only one sort column, so we just set it to `null`.
+    if (sortBy && hiddenColumns.includes(sortBy.fieldId)) {
       settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = null
     }
 
@@ -349,9 +283,11 @@ class TableStore extends Reflux.Store {
   }
 }
 
-/**
- * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
- */
 const tableStore = new TableStore()
 
 export default tableStore
+
+/** Settings of the asset from the current route, re-rendering on every change. */
+export function useTableSettings() {
+  return useSyncExternalStore(tableStore.subscribe, tableStore.getTableSettingsSnapshot)
+}

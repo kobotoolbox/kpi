@@ -1,8 +1,11 @@
+import { Group, Stack } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import React from 'react'
 import { actions } from '#/actions'
 import type { DataResponse } from '#/api/models/dataResponse'
-import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
+import AttachmentActionButtons from '#/attachments/AttachmentActionButtons'
+import ProcessingActionButton from '#/components/common/ProcessingActionButton'
+import { getProcessingActionLabel } from '#/components/processing/common/utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
@@ -22,6 +25,8 @@ interface OpenTableMediaPreviewModalAttachmentArgs {
   submissionTotal?: number
   submission: SubmissionResponse | DataResponse
   asset: AssetResponse
+  /** Adds a button (e.g. "Analyze image") that closes the dialog and calls this to open Processing. Omit to leave it out. */
+  onOpenProcessing?: () => void
   /** Leaves out the "Delete" action, e.g. in Processing, which doesn't refresh after a deletion made here. */
   hideDeleteAction?: boolean
 }
@@ -47,6 +52,11 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
       args.mediaAttachment.download_url || args.submissionIndex === undefined || args.submissionTotal === undefined
         ? truncateString(args.displayValue, 30)
         : getSubmissionPositionLabel(args.submissionIndex, args.submissionTotal)
+    const onOpenProcessing = args.onOpenProcessing
+    const onDeleted = () => {
+      actions.resources.refreshTableSubmissions()
+      modals.close(modalId)
+    }
 
     modalId = modals.open({
       title: (
@@ -56,27 +66,37 @@ export function openTableMediaPreviewModal(args: OpenTableMediaPreviewModalArgs)
           submissionTotal={args.submissionTotal}
           titleText={titleText}
           titleTextTooltip={args.displayValue}
-          actions={
-            <AttachmentActionsDropdown
-              asset={args.asset}
-              submission={args.submission}
-              attachmentUid={args.mediaAttachment.uid}
-              hideDeleteAction={args.hideDeleteAction}
-              onDeleted={() => {
-                actions.resources.refreshTableSubmissions()
-                modals.close(modalId)
-              }}
-            />
-          }
         />
       ),
       size: 'xl',
       children: (
-        <TableMediaPreview
-          questionType={args.questionType}
-          mediaAttachment={args.mediaAttachment}
-          displayValue={args.displayValue}
-        />
+        <Stack>
+          <TableMediaPreview
+            questionType={args.questionType}
+            mediaAttachment={args.mediaAttachment}
+            displayValue={args.displayValue}
+          />
+
+          <Group justify='space-between'>
+            <AttachmentActionButtons
+              asset={args.asset}
+              submission={args.submission}
+              attachmentUid={args.mediaAttachment.uid}
+              hideDeleteAction={args.hideDeleteAction}
+              onDeleted={onDeleted}
+            />
+
+            {onOpenProcessing && (
+              <ProcessingActionButton
+                label={getProcessingActionLabel(args.questionType)}
+                onClick={() => {
+                  modals.close(modalId)
+                  onOpenProcessing()
+                }}
+              />
+            )}
+          </Group>
+        </Stack>
       ),
     })
   } else {

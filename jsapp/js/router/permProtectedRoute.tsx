@@ -3,6 +3,7 @@ import React, { Suspense, useEffect } from 'react'
 
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
+import { getNewerAsset } from '#/assetUtils'
 import { getAuthGateDecision } from '#/auth/authGate'
 import { useAuthStatus } from '#/auth/useAuthStatus'
 import { useGoToLogin } from '#/auth/useGoToLogin'
@@ -96,6 +97,10 @@ const AssetAccessDenied = observer(function AssetAccessDenied({ errorStatus, err
 /**
  * A gateway component for rendering the route only for a user who has
  * permission to view it. Should be used only for asset routes.
+ *
+ * Both asset response handlers pass an updater function to `setState` rather than an object on purpose. Two responses
+ * can land before React commits either update, so reading `this.state.asset` would compare both of them against the
+ * same stale asset and let the older one win.
  */
 class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermProtectedRouteState> {
   private unlisteners: Function[] = []
@@ -179,14 +184,20 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
       return
     }
 
-    this.setState({
-      asset: asset,
-      isLoadAssetFinished: true,
-      userHasRequiredPermissions: this.getUserHasRequiredPermissions(
-        asset,
-        this.props.requiredPermissions,
-        this.props.requireAll,
-      ),
+    this.setState((prevState, props) => {
+      // A save that landed while this load was in flight carries newer data, so keep that one and judge permissions
+      // by it.
+      const newerAsset = getNewerAsset(prevState.asset, asset)
+
+      return {
+        asset: newerAsset,
+        isLoadAssetFinished: true,
+        userHasRequiredPermissions: this.getUserHasRequiredPermissions(
+          newerAsset,
+          props.requiredPermissions,
+          props.requireAll,
+        ),
+      }
     })
   }
 
@@ -202,7 +213,12 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
       return
     }
 
-    this.setState({ asset: asset })
+    this.setState((prevState) => {
+      const newerAsset = getNewerAsset(prevState.asset, asset)
+      // A refresh may have already brought in a version newer than this save response, in which case there is nothing
+      // to apply - returning `null` tells React to skip the update.
+      return newerAsset === prevState.asset ? null : { asset: newerAsset }
+    })
   }
 
   onLoadAssetFailed(response: FailResponse) {

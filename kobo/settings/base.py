@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from collections import OrderedDict
 from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
@@ -14,11 +15,7 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kpi.constants import (
-    AUTH_SERVER_TAG_CHOICES,
-    PERM_DELETE_ASSET,
-    PERM_MANAGE_ASSET,
-)
+from kpi.constants import AUTH_SERVER_TAG_CHOICES, PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
@@ -168,6 +165,7 @@ MIDDLEWARE = [
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'hub.middleware.NeverCacheJSONMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -810,106 +808,118 @@ CONSTANCE_ADDITIONAL_FIELDS = {
     ],
 }
 
-CONSTANCE_CONFIG_FIELDSETS = {
-    'General Options': (
-        'REGISTRATION_OPEN',
-        'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
-        'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
-        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
-        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
-        'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
-        'SHOW_KOBOTOOLBOX_LOGO',
-        'AUTH_SERVER_TAG',
-        'TERMS_OF_SERVICE_URL',
-        'LAST_TOS_UPDATE',
-        'PRIVACY_POLICY_URL',
-        'SOURCE_CODE_URL',
-        'SUPPORT_EMAIL',
-        'SUPPORT_URL',
-        'ACADEMY_URL',
-        'COMMUNITY_URL',
-        'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
-        'EXPORT_RETENTION',
-        'EXPOSE_GIT_REV',
-        'FRONTEND_MIN_RETRY_TIME',
-        'FRONTEND_MAX_RETRY_TIME',
-        'USE_TEAM_LABEL',
-        'ORGANIZATION_INVITE_EXPIRY',
-        'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
-        'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
-        'MASS_EMAIL_TEST_EMAILS',
-        'USAGE_LIMIT_ENFORCEMENT',
-        'USER_REPORTS_PAGE_SIZE_LIMIT',
-        'ENKETO_USE_INTERNAL_OPENROSA_URL',
-    ),
-    'Rest Services': (
-        'ALLOW_UNSECURED_HOOK_ENDPOINTS',
-        'HOOK_MAX_RETRIES',
-    ),
-    'Natural language processing': (
-        'ASR_MT_INVITEE_USERNAMES',
-        'ASR_MT_GOOGLE_PROJECT_ID',
-        'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
-        'ASR_MT_GOOGLE_REGION',
-        'ASR_LANGUAGE_CODE_OVERRIDES',
-        'ASR_MT_GOOGLE_CREDENTIALS',
-        'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
-        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
-    ),
-    'Security': (
-        'SSRF_ALLOWED_IP_ADDRESS',
-        'SSRF_DENIED_IP_ADDRESS',
-        'MFA_ISSUER_NAME',
-        'MFA_ENABLED',
-        'MFA_LOCALIZED_HELP_TEXT',
-        'SUPERUSER_AUTH_ENFORCEMENT',
-        'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
-    ),
-    'Metadata options': (
-        'USER_METADATA_FIELDS',
-        'PROJECT_METADATA_FIELDS',
-        'SECTOR_CHOICES',
-        'OPERATIONAL_PURPOSE_CHOICES',
-    ),
-    'Password Validation': (
-        'ENABLE_PASSWORD_ENTROPY_METER',
-        'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
-        'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
-        'ENABLE_COMMON_PASSWORD_VALIDATION',
-        'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
-        'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
-        'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
-        'MINIMUM_PASSWORD_LENGTH',
-        'PASSWORD_USER_ATTRIBUTES',
-        'PASSWORD_CUSTOM_CHARACTER_RULES',
-        'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
-        'CUSTOM_PASSWORD_GUIDANCE_TEXT',
-    ),
-    'Transfer project ownership': (
-        'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
-        'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
-        'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
-        'PROJECT_OWNERSHIP_INVITE_EXPIRY',
-        'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
-        'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
-        'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
-    ),
-    'Trash bin': (
-        'ACCOUNT_TRASH_RETENTION',
-        'ATTACHMENT_TRASH_RETENTION',
-        'PROJECT_TRASH_RETENTION',
-        'OVER_LIMIT_ATTACHMENT_RETENTION',
-        'AUTO_DELETE_ATTACHMENTS',
-        'ALLOW_SELF_ACCOUNT_DELETION',
-    ),
-    'Regular maintenance settings': (
-        'ASSET_SNAPSHOT_DAYS_RETENTION',
-        'IMPORT_TASK_DAYS_RETENTION',
-        'SUBMISSION_HISTORY_RETENTION',
-    ),
-}
+CONSTANCE_CONFIG_FIELDSETS = OrderedDict(
+    {
+        'Registration': (
+            'REGISTRATION_OPEN',
+            'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
+            'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+            'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+            'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
+            'REGISTRATION_SSO_MANAGED_EMAIL_DOMAINS',
+            'EMAIL_CONFIRMATION_REQUESTS_PER_HOUR',
+        ),
+        'Security': (
+            'SSRF_ALLOWED_IP_ADDRESS',
+            'SSRF_DENIED_IP_ADDRESS',
+            'MFA_ISSUER_NAME',
+            'MFA_ENABLED',
+            'MFA_LOCALIZED_HELP_TEXT',
+            'SUPERUSER_AUTH_ENFORCEMENT',
+        ),
+        'Password Validation': (
+            'ENABLE_PASSWORD_ENTROPY_METER',
+            'ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION',
+            'ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION',
+            'ENABLE_COMMON_PASSWORD_VALIDATION',
+            'ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION',
+            'ENABLE_MOST_RECENT_PASSWORD_VALIDATION',
+            'ENABLE_CUSTOM_PASSWORD_GUIDANCE_TEXT',
+            'MINIMUM_PASSWORD_LENGTH',
+            'PASSWORD_USER_ATTRIBUTES',
+            'PASSWORD_CUSTOM_CHARACTER_RULES',
+            'PASSWORD_CUSTOM_CHARACTER_RULES_REQUIRED_TO_PASS',
+            'CUSTOM_PASSWORD_GUIDANCE_TEXT',
+        ),
+        'Transfer project ownership': (
+            'PROJECT_OWNERSHIP_RESUME_THRESHOLD',
+            'PROJECT_OWNERSHIP_STUCK_THRESHOLD',
+            'PROJECT_OWNERSHIP_INVITE_HISTORY_RETENTION',
+            'PROJECT_OWNERSHIP_INVITE_EXPIRY',
+            'PROJECT_OWNERSHIP_IN_APP_MESSAGES_EXPIRY',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL_SUBJECT',
+            'PROJECT_OWNERSHIP_ADMIN_EMAIL_BODY',
+            'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
+        ),
+        'Natural language processing': (
+            'ASR_MT_INVITEE_USERNAMES',
+            'ASR_MT_GOOGLE_PROJECT_ID',
+            'ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX',
+            'ASR_MT_GOOGLE_REGION',
+            'ASR_LANGUAGE_CODE_OVERRIDES',
+            'ASR_MT_GOOGLE_CREDENTIALS',
+            'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+            'AUTOMATIC_QA_REQUESTS_PER_SECOND',
+        ),
+        'Mass emails': (
+            'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
+            'MASS_EMAIL_STALE_RECORD_RECHECK_HOURS',
+            'MASS_EMAIL_TEST_EMAILS',
+        ),
+        'Metadata options': (
+            'USER_METADATA_FIELDS',
+            'PROJECT_METADATA_FIELDS',
+            'SECTOR_CHOICES',
+            'OPERATIONAL_PURPOSE_CHOICES',
+        ),
+        'Usage limits': (
+            'USAGE_LIMIT_ENFORCEMENT',
+            'OVER_LIMIT_ATTACHMENT_RETENTION',
+            'AUTO_DELETE_ATTACHMENTS',
+        ),
+        'Trash bin': (
+            'ACCOUNT_TRASH_RETENTION',
+            'ATTACHMENT_TRASH_RETENTION',
+            'PROJECT_TRASH_RETENTION',
+            'ALLOW_SELF_ACCOUNT_DELETION',
+        ),
+        'Regular maintenance settings': (
+            'ASSET_SNAPSHOT_DAYS_RETENTION',
+            'IMPORT_TASK_DAYS_RETENTION',
+            'SUBMISSION_HISTORY_RETENTION',
+            'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+            'EXPORT_RETENTION',
+        ),
+        'Rest Services': (
+            'ALLOW_UNSECURED_HOOK_ENDPOINTS',
+            'HOOK_MAX_RETRIES',
+        ),
+        'Organizations': (
+            'USE_TEAM_LABEL',
+            'ORGANIZATION_INVITE_EXPIRY',
+        ),
+        'Legal and support links': (
+            'SHOW_KOBOTOOLBOX_LOGO',
+            'AUTH_SERVER_TAG',
+            'TERMS_OF_SERVICE_URL',
+            'LAST_TOS_UPDATE',
+            'PRIVACY_POLICY_URL',
+            'SOURCE_CODE_URL',
+            'SUPPORT_EMAIL',
+            'SUPPORT_URL',
+            'ACADEMY_URL',
+            'COMMUNITY_URL',
+        ),
+        'General Options': (
+            'EXPOSE_GIT_REV',
+            'FRONTEND_MIN_RETRY_TIME',
+            'FRONTEND_MAX_RETRY_TIME',
+            'USER_REPORTS_PAGE_SIZE_LIMIT',
+            'ENKETO_USE_INTERNAL_OPENROSA_URL',
+        ),
+    }
+)
 
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -1623,19 +1633,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 30 minutes
-    'trash-bin-garbage-collector': {
-        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute='*/30'),
-        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
-        # the long deletions and transfers running there, and must not end up
-        # stuck behind the very backlog it exists to clear
-        'options': {'queue': 'kpi_queue'},
-    },
-    # Schedule every 30 minutes
+    # Schedule every 15 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/15'),
         # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
         # the long deletions and transfers running there, and must not end up
         # stuck behind the very backlog it exists to clear
@@ -2542,10 +2543,11 @@ USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
-# Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
+# Number of trash bin deletions, due or stuck, that `task_restarter` sends per
+# run and per type. It runs every 15 minutes.
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
-MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 1000)
 
 # Number of attachments `auto_delete_excess_attachments` moves to trash per user
 # and per run. A user still over their limit gets the next ones on a later run
@@ -2554,9 +2556,6 @@ AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
 )
 # Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
 # Users take turns, the next run continues with the following ones.
-# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
-# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
-# on every schedule reload, so raising this grows Beat's work too.
 AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
     'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
 )
@@ -2575,6 +2574,11 @@ PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 # Maximum timeout (in minutes) for hook processing
 HOOK_STALLED_PENDING_TIMEOUT = 120
 HOOK_STALLED_RETRY_TIMEOUT = 1440
+
+# Exponential backoff (in seconds) between automatic hook retries.
+# Retries wait 5, 10, 20, 20, ... minutes.
+HOOK_RETRY_BACKOFF = 300
+HOOK_RETRY_BACKOFF_MAX = 1200
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400

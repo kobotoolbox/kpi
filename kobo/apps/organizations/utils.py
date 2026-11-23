@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Union
+from typing import TYPE_CHECKING, Union
 from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
@@ -8,9 +8,11 @@ from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.organizations.models import Organization
 from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kpi.models.object_permission import ObjectPermission
+
+if TYPE_CHECKING:
+    from kobo.apps.organizations.models import Organization
 
 
 def get_billing_dates(organization: Union['Organization', None]):
@@ -39,7 +41,7 @@ def get_real_owner(user: User) -> User:
     return user
 
 
-def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
+def revoke_org_asset_perms(organization: 'Organization', user_ids: list[int]):
     """
     Revokes permissions assigned to removed members on all assets belonging to
     the organization.

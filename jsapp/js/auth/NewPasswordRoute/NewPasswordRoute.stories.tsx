@@ -7,9 +7,7 @@ import AuthContainer from '#/auth/AuthContainer/AuthContainer'
 import { type Canvas, field } from '#/auth/authStoryHelpers'
 import {
   PASSWORD_RESET_URL,
-  passwordResetDoneAndSignedInMock,
   passwordResetErrorsMock,
-  passwordResetKeyConflictMock,
   passwordResetKeyInvalidMock,
   passwordResetKeyValidMock,
 } from '#/endpoints/allauth.mocks'
@@ -104,24 +102,6 @@ export const PasswordChanged: Story = {
   },
 }
 
-/** The same reset where the server signs the account in on its way out: nothing left to log into. */
-export const PasswordChangedAndSignedIn: Story = {
-  parameters: { msw: { handlers: storyHandlers({ reset: passwordResetDoneAndSignedInMock() }) } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    await fillForm(canvas)
-    await submit(canvas)
-
-    await canvas.findByRole('heading', { level: 1, name: 'Password has been successfully changed' })
-    // A plain `href`, so the click leaves `/auth` and loads the app with the session allauth just handed out.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute(
-      'href',
-      `${window.location.origin}/`,
-    )
-  },
-}
-
 /** Nothing filled in, then a confirmation that does not match - neither reaches the server. */
 export const ClientValidation: Story = {
   parameters: { msw: { handlers: storyHandlers({ reset: resetRecordingMock() }) } },
@@ -178,20 +158,5 @@ export const InvalidKey: Story = {
     await canvas.findByRole('heading', { level: 1, name: 'Password reset failed' })
     expect(canvas.queryByLabelText(/^New password/)).not.toBeInTheDocument()
     expect(canvas.getByRole('link', { name: 'Go back to Login' })).toHaveAttribute('href', AUTH_ROUTES.LOGIN)
-  },
-}
-
-/** A reset link opened in a browser that is already signed in - allauth answers 409 and refuses. */
-export const AlreadyLoggedIn: Story = {
-  parameters: { msw: { handlers: storyHandlers({ keyCheck: passwordResetKeyConflictMock() }) } },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-
-    await canvas.findByRole('heading', { level: 1, name: 'You are already logged in' })
-    // A plain `href`, so the click leaves `/auth` and loads the app with the session that was there.
-    expect(canvas.getByRole('link', { name: 'Continue to KoboToolbox' })).toHaveAttribute(
-      'href',
-      `${window.location.origin}/`,
-    )
   },
 }

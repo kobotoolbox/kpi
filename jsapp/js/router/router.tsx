@@ -3,7 +3,6 @@ import React, { Suspense } from 'react'
 import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'react-router-dom'
 import accountRoutes from '#/account/routes'
 import App from '#/app'
-import authAccountRoutes from '#/auth/accountRoutes'
 import authRoutes from '#/auth/routes'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'
 import LibraryItemRoute from '#/components/library/LibraryItemRoute'
@@ -35,10 +34,7 @@ export const router = createHashRouter(
       {authRoutes()}
       <Route path={ROUTES.ROOT} element={<App />}>
         <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
-        <Route path={ROUTES.ACCOUNT_ROOT}>
-          {accountRoutes()}
-          {authAccountRoutes()}
-        </Route>
+        <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
         {projectsRoutes()}
         <Route path={ROUTES.LIBRARY}>
           <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />

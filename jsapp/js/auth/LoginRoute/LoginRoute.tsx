@@ -10,7 +10,6 @@ import ResendVerificationLink from '#/auth/ResendVerificationLink'
 import { getUrlForNextRoute, goToPage } from '#/auth/nextUrl'
 import { useNextRoute } from '#/auth/useNextRoute'
 import ButtonNew from '#/components/common/ButtonNew'
-import { PATHS } from '#/router/routerConstants'
 import { isPlainClick } from '#/utils'
 import emailEnvelopeIllustration from '../../../img/email-envelope-illustration.svg'
 import LoginForm, { type LoginOutcome } from './LoginForm'
@@ -108,21 +107,6 @@ function MfaExpiredPanel({ onRestart }: { onRestart: () => void }) {
   )
 }
 
-/** allauth accepted the password and then asked for a step that is not built yet - verifying a phone, say. */
-function AnotherStepRequiredPanel() {
-  return (
-    <Stack gap='md' ta='center'>
-      <Title order={1} size='h3'>
-        {t('One more step')}
-      </Title>
-      <Text>{t('This account needs an extra verification step, which is not available on this page yet.')}</Text>
-      <ButtonNew component='a' href={PATHS.MFA_AUTHENTICATE} size='lg' fullWidth>
-        {t('Continue signing in')}
-      </ButtonNew>
-    </Stack>
-  )
-}
-
 export interface LoginRouteProps {
   /** What to do once the session exists */
   onAuthenticated?: (url: string) => void
@@ -175,7 +159,6 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
           {outcome.kind === 'alreadyAuthenticated' && <AlreadyLoggedInPanel continueUrl={destinationUrl} />}
           {outcome.kind === 'emailVerificationRequired' && <EmailVerificationRequiredPanel />}
           {outcome.kind === 'mfaExpired' && <MfaExpiredPanel onRestart={() => setOutcome(null)} />}
-          {outcome.kind === 'unsupportedStep' && <AnotherStepRequiredPanel />}
         </AuthCard>
       )
     }
