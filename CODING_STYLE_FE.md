@@ -83,9 +83,9 @@ Main principle is, keep related code close for modularity. Organize by feature/u
 - Include type of file in filename only for tests and storybook. Such as:
     - `{index,Example}.tsx?`
     - `{index,Example}.stories.tsx`
-    - `{index,Example}.{spec,test}.tsx?`
+    - `{index,Example}.tests.tsx?`
     - `useExample.tsx?`
-    - `useExample.{spec,test}.tsx?`
+    - `useExample.tests.tsx?`
 
 
 ### React specific
