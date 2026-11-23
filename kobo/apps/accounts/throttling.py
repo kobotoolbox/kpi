@@ -115,11 +115,12 @@ def rate_limit(scope, username, request, rollback_signal=None):
         return
     rates = parse_rates(limits)
     identifiers = {'ip': get_adapter().get_client_ip(request), 'key': username}
+    # imitate allauth behavior for unknown rate types
+    unknown_per_values = [rate.per for rate in rates if rate.per not in ['key', 'ip']]
+    if unknown_per_values:
+        raise ValueError(unknown_per_values[0])
     with ExitStack() as stack:
         for rate in rates:
-            if rate.per not in ['key', 'ip']:
-                # imitate allauth behavior
-                raise ValueError(rate.per)
             stack.enter_context(
                 single_rate_limit(
                     scope=scope,
