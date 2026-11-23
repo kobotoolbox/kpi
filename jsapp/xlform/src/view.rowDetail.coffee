@@ -469,15 +469,16 @@ module.exports = do ->
           'minimal',
           'autocomplete',
           'quick',
-          'horizontal-compact',
-          'horizontal',
+          # `columns*` instead of Enketo-only `horizontal*`, so Collect works too
+          'columns-pack',
+          'columns',
           'likert',
           'compact',
           'quickcompact',
           'label',
           'list-nolabel',
         ]
-        select_multiple: ['minimal', 'horizontal-compact', 'horizontal', 'compact', 'label', 'list-nolabel']
+        select_multiple: ['minimal', 'columns-pack', 'columns', 'compact', 'label', 'list-nolabel']
         image: ['signature', 'draw', 'annotate']
         date: ['month-year', 'year']
         group: groupTypes
@@ -513,21 +514,17 @@ module.exports = do ->
         $input = $('<input/>', {class:'text', type: 'text', width: 'auto'})
         if modelValue != ''
           appearanceTypes = @getTypes()
-          # Because appearance types are now `string` or `string[]`, we need to
-          # make a more detailed check to verify the model value is in the list
-          # before selecting it
-          hasValue = false
-          if appearanceTypes
-            for appearanceType in appearanceTypes
-              if typeof appearanceType is 'string'
-                hasValue = modelValue == appearanceType
-              else if Array.isArray(appearanceType)
-                hasValue = modelValue == appearanceType[0]
+          # Appearance types are `string` or `[value, label]`
+          hasValue = appearanceTypes?.some (appearanceType) ->
+            value = if Array.isArray(appearanceType) then appearanceType[0] else appearanceType
+            modelValue == value
 
           if hasValue
             $select.val(modelValue)
           else
+            # Unlisted values (e.g. legacy `horizontal`) stay editable as text
             $select.val('other')
+            $input.val(modelValue)
             @$('.settings__input').append $input
             @listenForInputChange el: $input
 
