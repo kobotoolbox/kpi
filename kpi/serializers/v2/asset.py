@@ -18,7 +18,6 @@ from rest_framework.reverse import reverse
 
 from hub.models.extra_user_detail import ExtraUserDetail
 from kobo.apps.openrosa.apps.logger.models import XForm
-from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
@@ -235,7 +234,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
             return
 
         user_filter = [self.__user]
-        if self.__user.organization.is_admin(self.__user):
+        if self.__user.organization.is_admin_only(self.__user):
             user_filter.append(self.__user.organization.owner_user_object)
 
         if not delete_request:
@@ -1019,7 +1018,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'organization', asset.owner.organization
             )
 
-        if organization.get_user_role(request.user) == ORG_ADMIN_ROLE:
+        if organization.is_admin_only(get_database_user(request.user)):
             access_types.extend(['shared', 'org-admin'])
             access_types = list(set(access_types))
 
