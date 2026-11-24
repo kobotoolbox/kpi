@@ -3,8 +3,6 @@ export const PATHS = Object.freeze({
   LOGIN: '/accounts/login',
   RESET: '/accounts/password/reset/',
   MS_SSO: '/accounts/microsoft/login/',
-  /** allauth's own one-time code prompt. Redirects to `LOGIN` when no verification is pending. */
-  MFA_AUTHENTICATE: '/accounts/2fa/authenticate/',
 })
 
 // List of React app routes (the # ones)
@@ -39,6 +37,14 @@ export const ROUTES = Object.freeze({
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
+  /**
+   * A single submission record. Sits under the table, as that is the list it
+   * belongs to and where "Back" leads, wherever it was opened from.
+   *
+   * Has: :uid, :submissionId - where the latter is a submission root UUID
+   * (preferred, as it survives edits) or a numeric `_id`.
+   */
+  FORM_SUBMISSION: '/forms/:uid/data/table/submission/:submissionId',
   /** Has: :uid, :xpath, :submissionEditId */
   FORM_PROCESSING_ROOT: '/forms/:uid/data/processing/:xpath/:submissionEditId',
   FORM_SETTINGS: '/forms/:uid/settings',
@@ -65,10 +71,6 @@ export const AUTH_ROUTES: { readonly [key: string]: string } = {
   RESET_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset',
   /** Where the link in the password reset email lands, to pick the new password */
   NEW_PASSWORD: ROUTES.AUTH_ROOT + '/password/reset/key/:key',
-  /** One-time code prompt, for a sign-in allauth paused after the password */
-  MFA_AUTHENTICATE: ROUTES.AUTH_ROOT + '/authenticate/totp',
-  /** The same prompt, answered with a recovery code */
-  MFA_RECOVERY_CODES: ROUTES.AUTH_ROOT + '/authenticate/recovery-codes',
   /**
    * Where a single sign-on link lands, to confirm the provider before the handshake starts. This is the only
    * way in for a provider kept off the login page.
@@ -76,30 +78,6 @@ export const AUTH_ROUTES: { readonly [key: string]: string } = {
   PROVIDER_LOGIN: ROUTES.AUTH_ROOT + '/provider/:providerId/login',
   /** Where an SSO sign-in lands when allauth still needs a username or an address */
   PROVIDER_SIGNUP: ROUTES.AUTH_ROOT + '/provider/signup',
-}
-
-/**
- * The authentication screens that need a session.
- *
- * Unlike {@link AUTH_ROUTES} these sit inside `<App />`, next to the rest of `/account/…`.
- * Kept apart from `ACCOUNT_ROUTES`, which is profile and billing settings and isn't behind a flag.
- */
-export const ACCOUNT_AUTH_ROUTES: { readonly [key: string]: string } = {
-  EMAIL: ROUTES.ACCOUNT_ROOT + '/email',
-  /** TODO: Duplicates the live `ACCOUNT_ROUTES.CHANGE_PASSWORD`; this allauth path takes over ultimately. */
-  CHANGE_PASSWORD: ROUTES.ACCOUNT_ROOT + '/password/change',
-  PROVIDERS: ROUTES.ACCOUNT_ROOT + '/providers',
-  /** Every browser signed in to this account */
-  SESSIONS: ROUTES.ACCOUNT_ROOT + '/sessions',
-  MFA: ROUTES.ACCOUNT_ROOT + '/2fa',
-  MFA_TOTP_ACTIVATE: ROUTES.ACCOUNT_ROOT + '/2fa/totp/activate',
-  MFA_TOTP_DEACTIVATE: ROUTES.ACCOUNT_ROOT + '/2fa/totp/deactivate',
-  MFA_RECOVERY_CODES: ROUTES.ACCOUNT_ROOT + '/2fa/recovery-codes',
-  MFA_RECOVERY_CODES_GENERATE: ROUTES.ACCOUNT_ROOT + '/2fa/recovery-codes/generate',
-  /** allauth asks for the password again before a sensitive change. The two below are for when it isn't enough. */
-  REAUTHENTICATE: ROUTES.ACCOUNT_ROOT + '/reauthenticate',
-  REAUTHENTICATE_TOTP: ROUTES.ACCOUNT_ROOT + '/reauthenticate/totp',
-  REAUTHENTICATE_RECOVERY_CODES: ROUTES.ACCOUNT_ROOT + '/reauthenticate/recovery-codes',
 }
 
 export const PROJECTS_ROUTES: { readonly [key: string]: string } = {

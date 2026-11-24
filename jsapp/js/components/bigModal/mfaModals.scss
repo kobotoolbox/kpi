@@ -2,22 +2,9 @@
 
 $mfa-paragraph-spacing: 18px;
 
-// FIXME: should not depend on another header's CSS. Standardize modal headers
-.modal--mfa-setup .table-media-preview-header__title {
-  font-size: 14px;
-  font-weight: 600;
-
-  .k-icon {
-    color: colors.$kobo-blue;
-    position: relative;
-    top: 2px;
-    padding-right: 12px;
-  }
-}
-
 .mfa-modal {
-  padding: 30px 60px 0; // bottom padding is handled by footer
-  height: 100%;
+  // Adds to Mantine's padding. The footer pads the bottom
+  padding: 10px 40px 0;
   display: flex;
   flex-direction: column;
 
@@ -32,13 +19,13 @@ $mfa-paragraph-spacing: 18px;
   font-size: 18px !important;
 }
 
-.mfa-modal__body {
-  flex: 1;
-}
-
 .mfa-modal__p {
   &.mfa-modal__p--align-right {
     text-align: right;
+  }
+
+  &.mfa-modal__p--align-center {
+    text-align: center;
   }
 }
 
@@ -100,7 +87,7 @@ $mfa-paragraph-spacing: 18px;
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
-  padding-bottom: 60px;
+  padding-bottom: 40px;
 
   .mfa-modal__footer-left {
     width: 40%;
@@ -110,22 +97,5 @@ $mfa-paragraph-spacing: 18px;
     width: 40%;
     margin-left: auto;
     order: 2;
-  }
-}
-
-.mfa-modal.mfa-modal--step-manual,
-.mfa-modal.mfa-modal--step-backup,
-.mfa-modal.mfa-modal--step-qr {
-  .mfa-modal__body {
-    display: flex;
-    flex-direction: column;
-
-    .mfa-modal__codes-wrapper,
-    .mfa-modal__qrcode-wrapper {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      flex: 1;
-    }
   }
 }

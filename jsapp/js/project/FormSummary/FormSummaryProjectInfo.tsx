@@ -1,45 +1,70 @@
-import React, { useState, useEffect } from 'react'
-
-import { handleApiFail } from '#/api'
+import { Box, Group } from '@mantine/core'
+import React from 'react'
+import type { AssetsDataListParams } from '#/api/models/assetsDataListParams'
+import {
+  type assetsDataListResponse,
+  getAssetsDataListQueryKey,
+  useAssetsDataList,
+} from '#/api/react-query/survey-data'
 import { getCountryDisplayString, getSectorDisplayString } from '#/assetUtils'
-import bem from '#/bem'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Avatar from '#/components/common/avatar'
 import { EXTRA_PROJECT_METADATA_FIELD_TYPES } from '#/constants'
-import type { AssetResponse, FailResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
-import { dataInterface } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import profileStore from '#/stores/profile'
 import { currentLang, formatTime } from '#/utils'
+import styles from './FormSummary.module.scss'
+import SummarySection from './SummarySection'
 
 interface FormSummaryProjectInfoProps {
   asset: AssetResponse
 }
 
+/** The newest submission, with only the fields we show. */
+const LATEST_SUBMISSION_PARAMS: AssetsDataListParams = {
+  limit: 1,
+  start: 0,
+  sort: JSON.stringify({ _id: -1 }),
+  fields: JSON.stringify(['_id', 'end']),
+}
+
+/** `end` of the newest submission. Only forms with the `end` meta question have it. */
+function selectLatestSubmissionEnd(response: assetsDataListResponse) {
+  // TODO: stop casting after backend openAPI task DEV-1727 is done, `DataResponse` has no question fields
+  const latest =
+    response.status === 200 ? (response.data.results[0] as unknown as Record<string, unknown> | undefined) : undefined
+  return typeof latest?.end === 'string' ? latest.end : undefined
+}
+
+// Both InfoGroup and InfoItem are too small to justify a file of its own, sorry
+
+/** A row of items, divided from the one above. */
+function InfoGroup(props: { children: React.ReactNode }) {
+  return (
+    <Group gap={0} className={styles.infoGroup}>
+      {props.children}
+    </Group>
+  )
+}
+
+function InfoItem(props: { label: string; children: React.ReactNode }) {
+  return (
+    <Box className={styles.infoItem}>
+      <Box className={styles.infoLabel}>{props.label}</Box>
+      {props.children}
+    </Box>
+  )
+}
+
 export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProps) {
-  // NOTE: this will only work with forms that have `end` meta question enabled
-  const [latestSubmissionDate, setLatestSubmissionDate] = useState<string | undefined>()
-
-  useEffect(() => {
-    // The call below will fail with 400 if asset doesn't have submissions,
-    // plus there is no point trying to get last submission data in such case
-    if (!props.asset?.deployment__submission_count) {
-      return
-    }
-
-    // Fetches one last submission, and only two fields for it.
-    dataInterface
-      .getSubmissions(props.asset?.uid, 1, 0, [{ id: '_id', desc: true }], ['_id', 'end'])
-      .done((response: PaginatedResponse<SubmissionResponse>) => {
-        const latest = response.results[0]
-        if (latest) {
-          setLatestSubmissionDate(latest['end'])
-        }
-      })
-      // Only the response, because jQuery's second argument is its own `textStatus` and `handleApiFail` reads that as
-      // a message to display.
-      .fail((response: FailResponse) => handleApiFail(response))
-  }, [])
+  const latestSubmissionDate = useAssetsDataList(props.asset.uid, LATEST_SUBMISSION_PARAMS, {
+    query: {
+      queryKey: getAssetsDataListQueryKey(props.asset.uid, LATEST_SUBMISSION_PARAMS),
+      // It fails with 400 when there are no submissions
+      enabled: props.asset.deployment__submission_count > 0,
+      select: selectLatestSubmissionEnd,
+    },
+  }).data
 
   const lastDeployedDate = props.asset.deployed_versions?.results?.[0]?.date_modified
 
@@ -73,146 +98,92 @@ export default function FormSummaryProjectInfo(props: FormSummaryProjectInfoProp
   })
 
   return (
-    <bem.FormView__row>
-      <bem.FormView__cell m={['label', 'first']}>{t('Project information')}</bem.FormView__cell>
+    <SummarySection title={t('Project information')}>
+      {metadata.description && (
+        <InfoGroup>
+          <InfoItem label={metadata.description.label ?? t('Description')}>
+            <div dir='auto'>{props.asset.settings.description || '-'}</div>
+          </InfoItem>
+        </InfoGroup>
+      )}
 
-      <bem.FormView__cell m='box'>
-        {metadata.description && (
-          <bem.FormView__group m='items'>
-            {/* description - takes whole row */}
-            <bem.FormView__cell m={['padding', 'full-width']}>
-              <bem.FormView__label>{metadata.description?.label ?? t('Description')}</bem.FormView__label>
-              <div dir='auto'>{props.asset.settings.description || '-'}</div>
-            </bem.FormView__cell>
-          </bem.FormView__group>
-        )}
+      <InfoGroup>
+        <InfoItem label={t('Status')}>
+          <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />
+        </InfoItem>
 
-        <bem.FormView__group m='items'>
-          {/* status */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Status')}</bem.FormView__label>
-            <AssetStatusBadge deploymentStatus={props.asset.deployment_status} />
-          </bem.FormView__cell>
+        <InfoItem label={t('Questions')}>{props.asset.summary.row_count || '-'}</InfoItem>
 
-          {/* questions count */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Questions')}</bem.FormView__label>
-            {props.asset.summary.row_count || '-'}
-          </bem.FormView__cell>
+        <InfoItem label={t('Owner')}>
+          <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
+        </InfoItem>
 
-          {/* owner */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Owner')}</bem.FormView__label>
-            {props.asset.owner_label === profileStore.currentAccount.username ? (
-              t('me')
-            ) : (
-              <Avatar username={props.asset.owner_label} size='s' isUsernameVisible />
-            )}
-          </bem.FormView__cell>
-
-          {/* last edited */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Last edited')}</bem.FormView__label>
-            {props.asset.last_modified_by === profileStore.currentAccount.username && t('me')}
-            {props.asset.last_modified_by !== null &&
-              props.asset.last_modified_by !== profileStore.currentAccount.username && (
-                <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
-              )}
-          </bem.FormView__cell>
-        </bem.FormView__group>
-
-        <bem.FormView__group m='items'>
-          {/* date modified */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Last modified')}</bem.FormView__label>
-            {props.asset.date_modified ? formatTime(props.asset.date_modified) : '-'}
-          </bem.FormView__cell>
-
-          {/* date deployed */}
-          <bem.FormView__cell m='padding'>
-            <bem.FormView__label>{t('Last deployed')}</bem.FormView__label>
-            {lastDeployedDate && formatTime(lastDeployedDate)}
-            {!lastDeployedDate && '-'}
-          </bem.FormView__cell>
-
-          {/* date of last submission */}
-          {latestSubmissionDate && (
-            <bem.FormView__cell m='padding'>
-              <bem.FormView__label>{t('Latest submission')}</bem.FormView__label>
-              {formatTime(latestSubmissionDate)}
-            </bem.FormView__cell>
+        <InfoItem label={t('Last edited')}>
+          {props.asset.last_modified_by !== null && (
+            <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
           )}
-        </bem.FormView__group>
+        </InfoItem>
+      </InfoGroup>
 
-        {(metadata.sector || metadata.country) && (
-          <bem.FormView__group m='items'>
-            {/* sector */}
-            {metadata.sector && (
-              <bem.FormView__cell m='padding'>
-                <bem.FormView__label>{metadata.sector?.label ?? t('Sector')}</bem.FormView__label>
-                {getSectorDisplayString(props.asset)}
-              </bem.FormView__cell>
-            )}
+      <InfoGroup>
+        <InfoItem label={t('Last modified')}>
+          {props.asset.date_modified ? formatTime(props.asset.date_modified) : '-'}
+        </InfoItem>
 
-            {/* countries */}
-            {metadata.country && (
-              <bem.FormView__cell m='padding'>
-                <bem.FormView__label>{metadata.country?.label ?? t('Countries')}</bem.FormView__label>
-                {getCountryDisplayString(props.asset)}
-              </bem.FormView__cell>
-            )}
-          </bem.FormView__group>
-        )}
+        <InfoItem label={t('Last deployed')}>{lastDeployedDate ? formatTime(lastDeployedDate) : '-'}</InfoItem>
 
-        {/* extra metadata fields */}
-        {extraFields.length > 0 && (
-          <bem.FormView__group m='items'>
-            {extraFields.map(({ field, displayValue }) => (
-              <bem.FormView__cell key={field.name} m='padding'>
-                <bem.FormView__label>{envStore.data.getExtraFieldLabel(field, lang)}</bem.FormView__label>
-                {displayValue}
-              </bem.FormView__cell>
+        {latestSubmissionDate && <InfoItem label={t('Latest submission')}>{formatTime(latestSubmissionDate)}</InfoItem>}
+      </InfoGroup>
+
+      {(metadata.sector || metadata.country) && (
+        <InfoGroup>
+          {metadata.sector && (
+            <InfoItem label={metadata.sector.label ?? t('Sector')}>{getSectorDisplayString(props.asset)}</InfoItem>
+          )}
+
+          {metadata.country && (
+            <InfoItem label={metadata.country.label ?? t('Countries')}>{getCountryDisplayString(props.asset)}</InfoItem>
+          )}
+        </InfoGroup>
+      )}
+
+      {extraFields.length > 0 && (
+        <InfoGroup>
+          {extraFields.map(({ field, displayValue }) => (
+            <InfoItem key={field.name} label={envStore.data.getExtraFieldLabel(field, lang)}>
+              {displayValue}
+            </InfoItem>
+          ))}
+        </InfoGroup>
+      )}
+
+      {props.asset.summary?.languages && props.asset.summary.languages.length > 1 && (
+        <InfoGroup>
+          <InfoItem label={t('Languages')}>
+            {props.asset.summary.languages.map((language, index) => (
+              <div key={`lang-${index}`}>
+                {/* Unnamed languages arrive as null, and a blank row hides why the form won't open in Formbuilder */}
+                {language || t('Unnamed language')}
+              </div>
             ))}
-          </bem.FormView__group>
-        )}
+          </InfoItem>
+        </InfoGroup>
+      )}
 
-        {/* languages */}
-        {props.asset.summary?.languages && props.asset.summary.languages.length > 1 && (
-          <bem.FormView__group m='items'>
-            <bem.FormView__cell m='padding'>
-              <bem.FormView__label>{t('Languages')}</bem.FormView__label>
-              {props.asset.summary.languages.map((language, index) => (
-                <bem.FormView__cell key={`lang-${index}`} data-index={index}>
-                  {/* Unnamed languages arrive as null, and a blank row hides why the form won't open in Formbuilder */}
-                  {language || t('Unnamed language')}
-                </bem.FormView__cell>
-              ))}
-            </bem.FormView__cell>
-          </bem.FormView__group>
-        )}
-
-        {/* operational purpose and PII */}
-        {(metadata.operational_purpose || metadata.collects_pii) && (
-          <bem.FormView__group m='items'>
-            {metadata.operational_purpose && (
-              <bem.FormView__cell m='padding'>
-                <bem.FormView__label>
-                  {metadata.operational_purpose?.label ?? t('Operational purpose of data')}
-                </bem.FormView__label>
-                {props.asset.settings.operational_purpose?.label ?? '-'}
-              </bem.FormView__cell>
-            )}
-            {metadata.collects_pii && (
-              <bem.FormView__cell m='padding'>
-                <bem.FormView__label>
-                  {metadata.collects_pii?.label ?? t('Collects personally identifiable information')}
-                </bem.FormView__label>
-                {props.asset.settings.collects_pii?.label ?? '-'}
-              </bem.FormView__cell>
-            )}
-          </bem.FormView__group>
-        )}
-      </bem.FormView__cell>
-    </bem.FormView__row>
+      {(metadata.operational_purpose || metadata.collects_pii) && (
+        <InfoGroup>
+          {metadata.operational_purpose && (
+            <InfoItem label={metadata.operational_purpose.label ?? t('Operational purpose of data')}>
+              {props.asset.settings.operational_purpose?.label ?? '-'}
+            </InfoItem>
+          )}
+          {metadata.collects_pii && (
+            <InfoItem label={metadata.collects_pii.label ?? t('Collects personally identifiable information')}>
+              {props.asset.settings.collects_pii?.label ?? '-'}
+            </InfoItem>
+          )}
+        </InfoGroup>
+      )}
+    </SummarySection>
   )
 }

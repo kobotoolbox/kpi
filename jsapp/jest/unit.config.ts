@@ -47,7 +47,7 @@ const config: Config = {
   // These packages are explicitly allowlisted because they can publish ESM output,
   // which otherwise causes parse errors like "unexpected token export/import" in tests.
   transformIgnorePatterns: [
-    'node_modules/(?!(msw|@mswjs|@open-draft|@bundled-es-modules|headers-polyfill|outvariant|is-node-process|strict-event-emitter|statuses|until-async|rettime)/)',
+    'node_modules/(?!(msw|@mswjs|@open-draft|@bundled-es-modules|headers-polyfill|outvariant|is-node-process|strict-event-emitter|statuses|until-async|rettime|lodash-es)/)',
   ],
 
   // Set up test environment

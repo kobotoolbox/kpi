@@ -89,10 +89,14 @@ export const getLanguagesListResponseMock = (
     transcription_services: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      priority: faker.helpers.arrayElement([faker.number.int(), undefined]),
+      action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     })),
     translation_services: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
       code: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
       name: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), undefined]),
+      priority: faker.helpers.arrayElement([faker.number.int(), undefined]),
+      action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
     })),
     url: faker.internet.url(),
   })),
@@ -546,6 +550,8 @@ export const getTranscriptionServicesListResponseMock = (
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 100 } }),
     code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+    priority: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 32767 }), undefined]),
+    action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   })),
   ...overrideResponse,
 })
@@ -555,6 +561,8 @@ export const getTranscriptionServicesRetrieveResponseMock = (
 ): TranscriptionService => ({
   name: faker.string.alpha({ length: { min: 10, max: 100 } }),
   code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  priority: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 32767 }), undefined]),
+  action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   ...overrideResponse,
 })
 
@@ -567,6 +575,8 @@ export const getTranslationServicesListResponseMock = (
   results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
     name: faker.string.alpha({ length: { min: 10, max: 100 } }),
     code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+    priority: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 32767 }), undefined]),
+    action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   })),
   ...overrideResponse,
 })
@@ -576,6 +586,8 @@ export const getTranslationServicesRetrieveResponseMock = (
 ): TranslationService => ({
   name: faker.string.alpha({ length: { min: 10, max: 100 } }),
   code: faker.string.alpha({ length: { min: 10, max: 10 } }),
+  priority: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 32767 }), undefined]),
+  action_id: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
   ...overrideResponse,
 })
 

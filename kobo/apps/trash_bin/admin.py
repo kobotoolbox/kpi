@@ -103,12 +103,6 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
     def empty_trash(self, request, queryset, **kwargs):
         super().empty_trash(request, queryset, **kwargs)
 
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.select_related(
-            'periodic_task'
-        )
-
     @admin.action(description='Put back selected users')
     def put_back(self, request, queryset, **kwargs):
         users = queryset.annotate(pk=F('user_id'), username=F('user__username')).values(
@@ -157,9 +151,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.filter(asset__owner__is_active=True).select_related(
-            'periodic_task'
-        )
+        return queryset.filter(asset__owner__is_active=True)
 
     @admin.display(description='Project')
     def get_project_name(self, obj):
@@ -224,12 +216,6 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
     @admin.action(description='Empty trash for selected attachments')
     def empty_trash(self, request, queryset, **kwargs):
         super().empty_trash(request, queryset, **kwargs)
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        return queryset.select_related(
-            'periodic_task'
-        )
 
     @admin.display(description='Attachment')
     def get_attachment_name(self, obj):

@@ -173,13 +173,6 @@ export interface PasswordUpdateFailResponse {
   new_password: string[]
 }
 
-interface ProcessingResponseData {
-  [questionName: string]: any
-  _id: number
-}
-
-export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingResponseData>
-
 /**
  * @deprecated use _DataResponseAttachments from Orval instead.
  */
@@ -605,7 +598,7 @@ export interface TableSortBySetting {
  * a new settings draft too and it's simpler that way.
  */
 export interface AssetTableSettings {
-  'selected-columns'?: string[] | null
+  'hidden-columns'?: string[] | null
   /** Old settings keep a single column id as a string, see `tableStore.getFrozenColumns`. */
   'frozen-column'?: string[] | string | null
   'show-group-name'?: boolean | null
@@ -1043,18 +1036,26 @@ export interface ValidationStatusResponse {
   label: string
 }
 
+/** In priority order: each column breaks the ties of the one before it. */
+export type SubmissionsSort = Array<{
+  /** Column name */
+  id: string
+  /** Is `true` for descending and `false` for ascending */
+  desc: boolean
+}>
+
+/** The data API's `sort` param, e.g. `{"_submission_time": 1, "_id": -1}`. */
+export function getSubmissionsSortQuery(sort: SubmissionsSort): Record<string, 1 | -1> {
+  return Object.fromEntries(sort.map(({ id, desc }) => [id, desc ? -1 : 1]))
+}
+
 // TODO: this should be moved to some better place, like
 // `…/actions/submissions.js` after moving it to TypeScript
 export interface GetSubmissionsOptions {
   uid: string
   pageSize?: number
   page?: number
-  sort?: Array<{
-    /** Column name */
-    id: string
-    /** Is `true` for descending and `false` for ascending */
-    desc: boolean
-  }>
+  sort?: SubmissionsSort
   fields?: string[]
   filter?: string
 }
@@ -1887,7 +1888,7 @@ export const dataInterface: DataInterface = {
     uid: string,
     pageSize: number = DEFAULT_PAGE_SIZE,
     page = 0,
-    sort: Array<{ desc: boolean; id: string }> = [],
+    sort: SubmissionsSort = [],
     fields: string[] = [],
     filter = '',
   ): JQuery.jqXHR<PaginatedResponse<SubmissionResponse>> {
@@ -1895,7 +1896,7 @@ export const dataInterface: DataInterface = {
     let s = '&sort={"_id":-1}' // default sort
     let f = ''
     if (sort.length) {
-      s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`
+      s = `&sort=${JSON.stringify(getSubmissionsSortQuery(sort))}`
     }
     if (fields.length) {
       f = `&fields=${JSON.stringify(fields)}`
@@ -1903,13 +1904,6 @@ export const dataInterface: DataInterface = {
 
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-      method: 'GET',
-    })
-  },
-
-  getSubmission(uid: string, sid: string): JQuery.jqXHR<SubmissionResponse> {
-    return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'GET',
     })
   },

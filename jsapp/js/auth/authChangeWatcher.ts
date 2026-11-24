@@ -32,12 +32,12 @@ interface AuthMetaBody {
 }
 
 /**
- * Whether an allauth answer says anything about who is signed in. `401` and `410` always do, since allauth has no
- * other use for either status, and both carry a full reading. A `200` only when it claims `meta.is_authenticated` -
- * `getAuthStatus` reads any `200` as a live session, so `GET /config` and the `/account/*` lists have to stay out.
+ * Whether an allauth answer says anything about who is signed in. A `401` always does, since allauth has no other use
+ * for it, and it carries a full reading. A `200` only when it claims `meta.is_authenticated` - `getAuthStatus` reads
+ * any `200` as a live session, so `GET /config` and the `/account/*` lists have to stay out.
  */
 export function isAuthChangeResponse(response: AllauthResponse): boolean {
-  if (response.status === 401 || response.status === 410) {
+  if (response.status === 401) {
     return true
   }
 
@@ -67,9 +67,9 @@ export async function recordAllauthResponse(request: AllauthRequest, response: A
   const isFromOwnCall = !isAuthStatusQueryFetch(request)
   newestReadingIsFromOwnCall = isFromOwnCall
 
-  // react-query lets a landing query result beat a manual write, so an in-flight session fetch would undo this one -
-  // and since `GET /auth/session` cannot express a reauthentication ask, that ask would be gone. Cancel-then-write is
-  // what the optimistic update docs prescribe. Not for the session fetch's own answer: that would abort it mid-flight.
+  // react-query lets a landing query result beat a manual write, so an in-flight session fetch (sent before this
+  // answer changed the session) would undo this one. Cancel-then-write is what the optimistic update docs prescribe.
+  // Not for the session fetch's own answer: that would abort it mid-flight.
   if (isFromOwnCall) {
     await queryClient.cancelQueries({ queryKey, exact: true })
   }

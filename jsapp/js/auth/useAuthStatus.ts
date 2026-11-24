@@ -4,7 +4,7 @@ import { getAuthStatusQueryKey } from './authChangeWatcher'
 import { type AuthStatus, getAuthStatus } from './authStatus'
 
 // Who is signed in, according to allauth - the live answer (something `profileStore.isLoggedIn` fails to be).
-// Anonymous-safe. All three of the endpoint's answers are normal and `fetchAllauth` hands the two non-2xx ones back as
+// Anonymous-safe. Both of the endpoint's answers (200 and 401) are normal and `fetchAllauth` hands the 401 back as
 // data, so a rejection here means a 5xx or a dead connection - never "nobody is signed in".
 //
 // `getAuthStatusQueryKey` is the shared key, so one request covers every guard on a page - and an answer from any

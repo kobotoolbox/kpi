@@ -1,7 +1,6 @@
 import { Group, Stack } from '@mantine/core'
 import { IconWorldFilled } from '@tabler/icons-react'
 import React from 'react'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
@@ -31,7 +30,7 @@ import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import profileStore from '#/stores/profile'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify } from '#/utils'
+import { copyToClipboard, formatTime, notify } from '#/utils'
 import FormHistory from './FormHistory'
 
 /** `mixins.dmix` reads the asset uid out of the route params. */
@@ -392,6 +391,14 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
     )
   }
 
+  async copyCollectLink(text: string) {
+    if (await copyToClipboard(text)) {
+      notify(t('Copied to clipboard'))
+    } else {
+      notify.error(t('Could not copy to clipboard'))
+    }
+  }
+
   renderCollectLink(asset: AssetResponse) {
     const chosenMethod = this.state.selectedCollectMethod
     const chosenMethodLink = getCollectMethodLink(asset, chosenMethod)
@@ -423,29 +430,18 @@ class FormLanding extends React.Component<FormLandingProps, FormLandingState> {
 
     if (chosenMethod === CollectionMethodName.iframe_url) {
       return (
-        <CopyToClipboard
-          text={`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`}
-          onCopy={() => {
-            notify(t('Copied to clipboard'))
-          }}
-          options={{ format: 'text/plain' }}
-        >
-          <Button type='secondary' size='m' label={t('Copy')} />
-        </CopyToClipboard>
+        <Button
+          type='secondary'
+          size='m'
+          onClick={() => this.copyCollectLink(`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`)}
+          label={t('Copy')}
+        />
       )
     }
 
     return (
       <React.Fragment>
-        <CopyToClipboard
-          text={chosenMethodLink}
-          onCopy={() => {
-            notify(t('Copied to clipboard'))
-          }}
-          options={{ format: 'text/plain' }}
-        >
-          <Button type='secondary' size='m' label={t('Copy')} />
-        </CopyToClipboard>
+        <Button type='secondary' size='m' onClick={() => this.copyCollectLink(chosenMethodLink)} label={t('Copy')} />
 
         <Button
           type='secondary'

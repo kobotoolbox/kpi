@@ -17,7 +17,6 @@
 
 import Reflux from 'reflux'
 import { recordKeys } from '#/utils'
-import { actions } from './actions'
 
 function changes(orig_obj, new_obj) {
   var out = {},
@@ -49,21 +48,5 @@ stores.surveyState = Reflux.createStore({
       Object.assign(this.state, state)
       this.trigger(chz)
     }
-  },
-})
-
-/**
- * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
- */
-stores.snapshots = Reflux.createStore({
-  init() {
-    this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated)
-    this.listenTo(actions.resources.createSnapshot.failed, this.snapshotCreationFailed)
-  },
-  snapshotCreated(snapshot) {
-    this.trigger(Object.assign({ success: true }, snapshot))
-  },
-  snapshotCreationFailed(jqxhr) {
-    this.trigger(Object.assign({ success: false }, jqxhr.responseJSON))
   },
 })

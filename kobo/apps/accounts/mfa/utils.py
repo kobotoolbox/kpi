@@ -1,6 +1,8 @@
 from allauth.mfa.base.internal.flows import delete_and_cleanup
 from allauth.mfa.models import Authenticator
+from allauth.mfa.recovery_codes.internal.auth import RecoveryCodes
 from constance import config
+from django.contrib.auth.hashers import check_password, identify_hasher
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef
@@ -31,6 +33,65 @@ def user_has_active_mfa(user) -> bool:
     return Authenticator.objects.filter(
         user_id=user.pk, type=Authenticator.Type.TOTP
     ).exists()
+
+
+def validate_mfa_code(user, code: str) -> Authenticator | None:
+    """
+    Return the authenticator that accepts `code`, or `None`
+
+    A matching recovery code is spent. Besides allauth's own codes, accepts the
+    recovery codes migrated from the former 2FA system, which are stored hashed
+    and which allauth compares as plain text. Rate limiting is left to callers
+    """
+    authenticators = Authenticator.objects.filter(
+        user_id=user.pk,
+        type__in=[Authenticator.Type.TOTP, Authenticator.Type.RECOVERY_CODES],
+    )
+    # TOTP first: the common case, and cheap, unlike the hashed checks
+    for authenticator in sorted(
+        authenticators, key=lambda a: a.type != Authenticator.Type.TOTP
+    ):
+        wrapped = authenticator.wrap()
+        if authenticator.type == Authenticator.Type.RECOVERY_CODES and (
+            has_hashed_migrated_codes(wrapped)
+        ):
+            # Not through allauth, which would compare `code` with the stored
+            # hashes themselves
+            if _spend_hashed_migrated_code(wrapped, code):
+                return authenticator
+            continue
+        if wrapped.validate_code(code):
+            return authenticator
+    return None
+
+
+def has_hashed_migrated_codes(recovery_codes: RecoveryCodes) -> bool:
+    """
+    Whether `recovery_codes` holds unused codes migrated from the former 2FA
+    system, which only stored their hashes
+    """
+    codes = recovery_codes._get_migrated_codes()
+    # `None` without migrated codes, `[]` once every one of them is spent
+    if not codes:
+        return False
+    try:
+        identify_hasher(codes[0])
+    except ValueError:
+        # Plain-text migrated codes, which allauth handles
+        return False
+    return True
+
+
+def _spend_hashed_migrated_code(recovery_codes: RecoveryCodes, code: str) -> bool:
+    """
+    Spend `code` if it matches one of the hashed migrated recovery codes
+    """
+    for hashed_code in recovery_codes._get_migrated_codes():
+        if check_password(code, hashed_code):
+            # The codes read so far may be stale: `validate_code()` locks the
+            # row and refuses a code that a concurrent request has just spent
+            return recovery_codes.validate_code(hashed_code)
+    return False
 
 
 def mfa_is_active_expression(user_ref: str = 'pk') -> Exists:

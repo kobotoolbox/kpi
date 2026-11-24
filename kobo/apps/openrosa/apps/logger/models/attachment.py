@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.http import urlencode
+from PIL import UnidentifiedImageError
 
 from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -190,7 +191,11 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
                 self.media_file.name, suffix
             )
             if not default_storage.exists(optimized_image_path):
-                resize(self.media_file.name)
+                try:
+                    resize(self.media_file.name)
+                except UnidentifiedImageError:
+                    # Pillow cannot open it (e.g. SVG): serve the original
+                    optimized_image_path = None
 
         if is_filesystem_storage(default_storage):
             # Django normally sanitizes accented characters in file names during

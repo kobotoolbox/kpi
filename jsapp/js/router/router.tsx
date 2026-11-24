@@ -3,7 +3,6 @@ import React, { Suspense } from 'react'
 import { Navigate, Route, createHashRouter, createRoutesFromElements } from 'react-router-dom'
 import accountRoutes from '#/account/routes'
 import App from '#/app'
-import authAccountRoutes from '#/auth/accountRoutes'
 import authRoutes from '#/auth/routes'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'
 import LibraryItemRoute from '#/components/library/LibraryItemRoute'
@@ -24,6 +23,9 @@ const FormSubScreens = React.lazy(() => import(/* webpackPrefetch: true */ '#/pr
 const FormXform = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formXform'))
 const FormJson = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formJson'))
 const SectionNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/sectionNotFound'))
+const SubmissionRoute = React.lazy(
+  () => import(/* webpackPrefetch: true */ '#/components/submissions/single/submissionRoute'),
+)
 const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/components/formNotFound'))
 
 export const router = createHashRouter(
@@ -32,10 +34,7 @@ export const router = createHashRouter(
       {authRoutes()}
       <Route path={ROUTES.ROOT} element={<App />}>
         <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
-        <Route path={ROUTES.ACCOUNT_ROOT}>
-          {accountRoutes()}
-          {authAccountRoutes()}
-        </Route>
+        <Route path={ROUTES.ACCOUNT_ROOT}>{accountRoutes()}</Route>
         {projectsRoutes()}
         <Route path={ROUTES.LIBRARY}>
           <Route path='' element={<Navigate to={ROUTES.MY_LIBRARY} replace />} />
@@ -157,7 +156,10 @@ export const router = createHashRouter(
                     requiredPermissions={[PERMISSIONS_CODENAMES.view_submissions]}
                   />
                 }
-              />
+              >
+                {/* Nested, so the table can stay mounted under a record opened from it */}
+                <Route path={ROUTES.FORM_SUBMISSION} element={<SubmissionRoute />} />
+              </Route>
               <Route
                 path={ROUTES.FORM_DOWNLOADS}
                 element={

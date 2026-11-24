@@ -1,6 +1,6 @@
-import { simpleSurveyAsset, simpleSurveySubmission } from '#/components/submissions/submissionUtils.mocks'
+import { act, renderHook } from '@testing-library/react'
 import { DATA_TABLE_SETTINGS, SortValues } from '#/components/submissions/tableConstants'
-import tableStore from '#/components/submissions/tableStore'
+import tableStore, { useTableSettings } from '#/components/submissions/tableStore'
 import { getRouteAssetUid } from '#/router/routerUtils'
 
 jest.mock('#/router/routerUtils', () => ({
@@ -114,11 +114,44 @@ describe('tableStore', () => {
     tableStore.setFrozenColumn('First_name', true)
     tableStore.setFrozenColumn('start', true)
 
-    tableStore.hideField(simpleSurveyAsset, [simpleSurveySubmission], [], 'start')
+    tableStore.hideField('start')
 
-    chai.expect(tableStore.getSelectedColumns()).to.include('First_name').and.not.include('start')
-
+    chai.expect(tableStore.getHiddenColumns()).to.deep.equal(['start'])
     chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['First_name'])
+  })
+
+  it('should show columns added to the form after some were hidden', () => {
+    tableStore.hideField('start')
+
+    chai.expect(tableStore.isFieldVisible('start')).to.equal(false)
+    chai.expect(tableStore.isFieldVisible('New_question')).to.equal(true)
+  })
+
+  it('should not let callers mutate stored columns', () => {
+    tableStore.hideField('start')
+    tableStore.setFrozenColumn('Age', true)
+
+    tableStore.getHiddenColumns().push('Name')
+    tableStore.getFrozenColumns().push('Name')
+
+    chai.expect(tableStore.isFieldVisible('Name')).to.equal(true)
+    chai.expect(tableStore.isFieldFrozen('Name')).to.equal(false)
+  })
+
+  it('should unsort when hiding the sorted column', () => {
+    tableStore.setSortBy('Age', SortValues.ASCENDING)
+
+    tableStore.setHiddenColumns(['Name', 'Age'])
+
+    chai.expect(tableStore.getSortBy()).to.equal(null)
+  })
+
+  it('should drop hidden columns when showing all', () => {
+    tableStore.hideField('Age')
+
+    tableStore.showAllFields()
+
+    chai.expect(JSON.parse(localStorage.getItem(storageKey) || '')).to.deep.equal({ assetA: {} })
   })
 
   it('should not save anything outside of an asset route', () => {
@@ -129,5 +162,35 @@ describe('tableStore', () => {
 
     chai.expect(localStorage.getItem(storageKey)).to.equal(null)
     consoleErrorSpy.mockRestore()
+  })
+
+  it('should notify subscribers until they unsubscribe', () => {
+    const listener = jest.fn()
+    const unsubscribe = tableStore.subscribe(listener)
+
+    tableStore.setSortBy('Name', SortValues.ASCENDING)
+    unsubscribe()
+    tableStore.setSortBy('Age', SortValues.ASCENDING)
+
+    chai.expect(listener.mock.calls.length).to.equal(1)
+  })
+
+  it('should keep the same snapshot until settings change', () => {
+    const snapshot = tableStore.getTableSettingsSnapshot()
+    chai.expect(tableStore.getTableSettingsSnapshot()).to.equal(snapshot)
+
+    tableStore.setSortBy('Name', SortValues.ASCENDING)
+
+    chai.expect(tableStore.getTableSettingsSnapshot()).to.not.equal(snapshot)
+    chai.expect(tableStore.getTableSettingsSnapshot()).to.deep.equal(tableStore.getTableSettings())
+  })
+
+  it('should re-render `useTableSettings` on change', () => {
+    const { result } = renderHook(() => useTableSettings())
+    chai.expect(result.current).to.deep.equal({})
+
+    act(() => tableStore.setFrozenColumn('Age', true))
+
+    chai.expect(result.current).to.deep.equal({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: ['Age'] })
   })
 })

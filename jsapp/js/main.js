@@ -36,6 +36,7 @@ import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import Modal from 'react-modal'
 import { watchJqueryResponses } from '#/auth/jqueryAuthWatcher'
+import { setupGoogleAnalytics } from '#/googleAnalytics'
 import AllRoutes from '#/router/allRoutes'
 import { csrfSafeMethod, currentLang, getCsrfToken } from '#/utils'
 import RegistrationPasswordApp from './registrationPasswordApp'
@@ -48,7 +49,8 @@ if (sentryDsnEl !== null) {
     sendClientReports: false,
     autoSessionTracking: false,
   })
-  window.Raven = Sentry // Legacy use (formbuilder)
+  // Legacy use: formbuilder only needs this. Exposing all of `Sentry` would bundle all of it, Replay included.
+  window.Raven = { captureException: Sentry.captureException }
   /*
     In TS files, it's safe to do
 
@@ -60,7 +62,7 @@ if (sentryDsnEl !== null) {
 
     In CoffeeScript, you can keep using
 
-        window.Raven?.captureMessage(...)
+        window.Raven?.captureException(...)
 
     Support for `import` syntax (or literal JS in backticks) varies between
     CoffeeScript versions. We might invoke Sentry as a CommonJS module (perhaps
@@ -72,17 +74,7 @@ if (sentryDsnEl !== null) {
 // Tell moment library what is the app language
 moment.locale(currentLang())
 
-// Setup Google Analytics
-const gaTokenEl = document.head.querySelector('meta[name=google-analytics-token]')
-if (gaTokenEl !== null && gaTokenEl.content) {
-  window.dataLayer = window.dataLayer || []
-  // biome-ignore lint/complexity/useArrowFunction: arrow functions lack `arguments`
-  window.gtag = function () {
-    window.dataLayer.push(arguments)
-  }
-  window.gtag('js', new Date())
-  window.gtag('config', gaTokenEl.content)
-}
+setupGoogleAnalytics()
 
 // Setup the authentication of AJAX calls
 $.ajaxSetup({

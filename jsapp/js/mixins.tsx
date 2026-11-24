@@ -8,31 +8,10 @@ import type { AssetStoreData } from '#/assetStore'
 import type { AssetResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import {
-  getCurrentPath,
-  getRouteAssetUid,
-  isAnyFormsRoute,
-  isAnyLibraryRoute,
-  isMyLibraryRoute,
-  isNewLibraryItemRoute,
-  isPublicCollectionsRoute,
-} from '#/router/routerUtils'
-import { notify, recordKeys } from '#/utils'
+import { getRouteAssetUid } from '#/router/routerUtils'
+import { recordKeys } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES } from './constants'
-
-interface ContextRouterMixin extends Mixin<any, any> {
-  isFormList: () => boolean
-  isLibrary: () => boolean
-  isMyLibrary: () => boolean
-  isPublicCollections: () => boolean
-  isLibrarySingle: () => boolean
-  isFormSingle: () => boolean
-  currentAssetID: () => string | undefined
-  currentAsset: () => AssetResponse | undefined
-  isActiveRoute: (path: string) => boolean
-  isFormBuilder: () => boolean
-}
 
 interface DmixProps {
   params?: {
@@ -62,7 +41,6 @@ interface DmixContext {
 // Note: This mixin assumes it will be mixed into a React.Component,
 // so props/state/setState will be available at runtime
 interface DmixMixin extends Mixin<DmixProps, DmixState> {
-  afterCopy: (this: DmixMixin & DmixContext) => void
   saveCloneAs: (this: DmixMixin & DmixContext, versionId?: string) => void
   toggleDeploymentHistory: (this: DmixMixin & DmixContext) => void
   summaryDetails: (this: DmixMixin & DmixContext) => JSX.Element
@@ -77,7 +55,6 @@ interface DmixMixin extends Mixin<DmixProps, DmixState> {
 }
 
 interface MixinsObject {
-  contextRouter: ContextRouterMixin
   dmix: DmixMixin
 }
 
@@ -106,10 +83,6 @@ interface MixinsObject {
 const mixins: MixinsObject = {
   dmix: {
     // props, state, and setState are added by react-mixin when mixed into a component
-    afterCopy(this: DmixMixin & DmixContext) {
-      notify(t('copied to clipboard'))
-    },
-
     saveCloneAs(this: DmixMixin & DmixContext, versionId?: string) {
       const name = `${t('Clone of')} ${this.state.name}`
 
@@ -241,55 +214,6 @@ const mixins: MixinsObject = {
       if (uid) {
         removeAssetSharing(uid)
       }
-    },
-  },
-  /**
-   * @deprecated Use `routerUtils.ts` instead.
-   */
-  contextRouter: {
-    isFormList() {
-      return isAnyFormsRoute() && this.currentAssetID() === undefined
-    },
-    isLibrary() {
-      return isAnyLibraryRoute()
-    },
-    isMyLibrary() {
-      return isMyLibraryRoute()
-    },
-    isPublicCollections() {
-      return isPublicCollectionsRoute()
-    },
-    isLibrarySingle() {
-      return isAnyLibraryRoute() && this.currentAssetID() !== undefined
-    },
-    isFormSingle() {
-      return isAnyFormsRoute() && this.currentAssetID() !== undefined
-    },
-    currentAssetID() {
-      return getRouteAssetUid() ?? undefined
-    },
-    currentAsset() {
-      const assetId = this.currentAssetID()
-      return assetId ? assetStore.data[assetId] : undefined
-    },
-    isActiveRoute(path: string) {
-      return getCurrentPath().startsWith(path)
-    },
-    isFormBuilder() {
-      if (isNewLibraryItemRoute()) {
-        return true
-      }
-
-      const uid = this.currentAssetID()
-      if (uid === undefined) {
-        return false
-      }
-
-      return (
-        getCurrentPath().startsWith(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
-        getCurrentPath().startsWith(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-        getCurrentPath().startsWith(ROUTES.FORM_EDIT.replace(':uid', uid))
-      )
     },
   },
 }

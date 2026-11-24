@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import json
 from collections.abc import Iterable
 from copy import deepcopy
-from datetime import timedelta
+from functools import partial
 from typing import Optional
 
 from django.conf import settings
@@ -11,16 +10,12 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models.query import QuerySet
-from django.utils import timezone
-from django_celery_beat.models import ClockedSchedule, PeriodicTask
+from django_celery_beat.models import PeriodicTask
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType, ProjectHistoryLog
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.trash_bin.constants import (
-    DELETE_ATTACHMENT_STR_PREFIX,
-    DELETE_PROJECT_STR_PREFIX,
-    DELETE_USER_STR_PREFIX,
     RETRYABLE_FAILURE_PATTERNS,
     TIME_LIMIT_FAILURE_PATTERNS,
 )
@@ -63,8 +58,7 @@ def move_to_trash(
     retain_placeholder: bool = True,
 ) -> tuple[QuerySet, int]:
     """
-    Move the objects listed in `objects_list` to trash and create their associated
-    scheduled Celery tasks.
+    Move the objects listed in `objects_list` to trash.
 
     Each entry in `objects_list` must be a dictionary containing at least a `'pk'` key,
     along with any other keys that will be stored as attributes in `AuditLog.metadata`.
@@ -81,22 +75,19 @@ def move_to_trash(
         - `'pk'`
         - `'attachment_basename'`
 
-    Projects, accounts, and attachments remain in trash for the duration of the
-    `grace_period`.
-    After this period, they are hard-deleted by the related scheduled Celery task.
+    Projects, accounts, and attachments remain in trash for the retention set
+    in Constance for their type (see `BaseTrash.scheduled_time`). After this
+    period, `task_restarter` sends their hard deletion. A `grace_period` of -1
+    keeps them in trash until a superuser empties them manually, and a
+    `grace_period` of 0 sends their deletion as soon as the transaction commits.
 
     If `retain_placeholder` is True, a `kobo_auth.User` instance with the same
     primary key and username is retained while all other associated data is deleted.
     """
 
-    (
-        trash_model,
-        fk_field_name,
-        related_model,
-        unique_identifier,
-        task,
-        task_name_placeholder
-    ) = _get_settings(trash_type, retain_placeholder)
+    trash_model, fk_field_name, related_model, unique_identifier, task_name = (
+        _get_settings(trash_type)
+    )
 
     if not retain_placeholder:
         # Total deletion, without retaining any placeholder, supersedes
@@ -123,45 +114,18 @@ def move_to_trash(
             )
         )
 
-    max_char = PeriodicTask._meta.get_field('name').max_length
-
-    def shorten_name(name):
-        if len(name) <= max_char:
-            return name
-        return f'{name[0:max_char-3]}...'
-
-    with temporarily_disconnect_signals(save=True):
-        clocked_time = timezone.now() + timedelta(days=grace_period)
-        clocked = ClockedSchedule.objects.create(clocked_time=clocked_time)
+    try:
         trash_model.objects.bulk_create(trash_objects)
-        try:
-            python_file = task.replace('empty_', '')
-            periodic_tasks = PeriodicTask.objects.bulk_create(
-                [
-                    PeriodicTask(
-                        clocked=clocked,
-                        name=shorten_name(task_name_placeholder.format(**ato.metadata)),
-                        task=f'kobo.apps.trash_bin.tasks.{python_file}.{task}',
-                        args=json.dumps([ato.id]),
-                        one_off=True,
-                        enabled=not empty_manually,
-                    )
-                    for ato in trash_objects
-                ],
-            )
+    except IntegrityError:
+        raise TrashIntegrityError
 
-        except IntegrityError:
-            raise TrashIntegrityError
+    if grace_period == 0:
+        # Imported here, because the tasks module imports this one
+        from kobo.apps.trash_bin import tasks
 
-    # Update relationships between periodic task and trash objects
-    updated_trash_objects = []
-    for idx, trash_object in enumerate(trash_objects):
-        periodic_task = periodic_tasks[idx]
-        assert periodic_task.args == json.dumps([trash_object.pk])
-        trash_object.periodic_task = periodic_tasks[idx]
-        updated_trash_objects.append(trash_object)
-
-    trash_model.objects.bulk_update(updated_trash_objects, fields=['periodic_task_id'])
+        task = getattr(tasks, task_name)
+        for trash_object in trash_objects:
+            transaction.on_commit(partial(task.delay, trash_object.pk))
 
     _build_log_entries(objects_list, request_author, related_model, trash_type)
 
@@ -223,12 +187,9 @@ def process_deletion(
     finally:
         cache.delete(lock_key)
 
-    # The related PeriodicTask is intentionally NOT deleted here to avoid
-    # triggering a `PeriodicTasks.changed()` signal for each completed task.
-    # On high-volume servers, these individual signals cause Celery Beat to
-    # reload its entire schedule thousands of times, starving task dispatch.
-    # The garbage_collector task cleans up orphaned PeriodicTasks in batch
-    # with signals suppressed (via `temporarily_disconnect_signals`).
+    # A legacy `PeriodicTask` that is still attached to the object is left in
+    # place: deleting it would make Celery Beat reload its whole schedule. The
+    # long-running migration that removes trash `PeriodicTask`s deletes it.
     return object_trash, True
 
 
@@ -403,30 +364,12 @@ def _format_failure_error(exception: Exception | str) -> str:
     return str(exception) or repr(exception)
 
 
-def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
+def _get_settings(trash_type: str) -> tuple:
     if trash_type == 'asset':
-        return (
-            ProjectTrash,
-            'asset_id',
-            Asset,
-            'asset_uid',
-            'empty_project',
-            f'{DELETE_PROJECT_STR_PREFIX} ({{asset_uid}}) {{asset_name}}',
-        )
+        return ProjectTrash, 'asset_id', Asset, 'asset_uid', 'empty_project'
 
     if trash_type == 'user':
-        return (
-            AccountTrash,
-            'user_id',
-            get_user_model(),
-            'pk',
-            'empty_account',
-            (
-                f'{DELETE_USER_STR_PREFIX} data ({{username}})'
-                if retain_placeholder
-                else f'{DELETE_USER_STR_PREFIX} account ({{username}})'
-            ),
-        )
+        return AccountTrash, 'user_id', get_user_model(), 'pk', 'empty_account'
 
     if trash_type == 'attachment':
         return (
@@ -435,7 +378,6 @@ def _get_settings(trash_type: str, retain_placeholder: bool = True) -> tuple:
             Attachment,
             'attachment_uid',
             'empty_attachment',
-            f'{DELETE_ATTACHMENT_STR_PREFIX} ({{attachment_uid}}) {{attachment_basename}}',  # noqa E501
         )
 
     raise TrashNotImplementedError

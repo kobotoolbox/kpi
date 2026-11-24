@@ -80,11 +80,6 @@
     display: table-row-group;
   }
 
-  body .form-view__sidetabs,
-  body .form-view__toptabs {
-    display: none;
-  }
-
   body .modal__backdrop {
     position: static;
 
@@ -104,15 +99,6 @@
 
   body .form-view.form-view--fullscreen {
     position: static;
-  }
-
-  body .page-wrapper {
-    &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
-      .form-view.form-view--table {
-        // hide table, when displaying submission modal and user is printing
-        display: none;
-      }
-    }
   }
 }
 

@@ -23,12 +23,12 @@ from google.protobuf.json_format import MessageToDict
 from kobo.apps.languages.exceptions import LanguageNotSupported
 from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
+from kobo.apps.organizations.constants import UsageType
 from kpi.utils.log import logging
 from ...constants import (
     DEPENDENCY_ACTION_ID_FIELD,
     DEPENDENCY_SOURCE_SUBMISSION,
     GOOGLE_CACHE_TIMEOUT,
-    GOOGLE_CODE,
 )
 from ...exceptions import (
     GoogleQuotaExceededError,
@@ -53,6 +53,7 @@ class GoogleTranslationService(GoogleService):
     API_NAME = 'translate'
     API_VERSION = 'v3'
     API_RESOURCE = 'projects.locations.operations'
+    USAGE_TYPE = UsageType.MT_CHARACTERS
     MAX_SYNC_CHARS = 30720
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
@@ -225,6 +226,7 @@ class GoogleTranslationService(GoogleService):
             }
 
         if len(content) <= self.MAX_SYNC_CHARS:
+            self._before_new_operation()
             return self._translate_sync(
                 content,
                 source_language_code,
@@ -239,6 +241,7 @@ class GoogleTranslationService(GoogleService):
         )
 
         if not operation_name:
+            self._before_new_operation()
             return self._start_async_translation(
                 xpath,
                 content,
@@ -543,7 +546,7 @@ class GoogleTranslationService(GoogleService):
         """
         try:
             transcription_lang_service = TranscriptionService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranscriptionService.DoesNotExist:
             raise LanguageNotSupported(
@@ -557,7 +560,7 @@ class GoogleTranslationService(GoogleService):
         """
         try:
             translation_lang_service = TranslationService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranslationService.DoesNotExist:
             raise LanguageNotSupported(

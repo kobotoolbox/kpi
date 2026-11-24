@@ -17,9 +17,10 @@ interface MemberRoleSelectorProps {
   currentUserRole: MemberRoleEnum
   /** URL for patching org member invites. Should only be passed if invite is still open */
   inviteUrl?: string
+  disabled?: boolean
 }
 
-export default function MemberRoleSelector({ username, role, inviteUrl }: MemberRoleSelectorProps) {
+export default function MemberRoleSelector({ username, role, inviteUrl, disabled }: MemberRoleSelectorProps) {
   const [organization] = useOrganizationAssumed()
 
   const orgMembersPatch = useOrganizationsMembersPartialUpdate({})
@@ -57,6 +58,7 @@ export default function MemberRoleSelector({ username, role, inviteUrl }: Member
         ]}
         value={role}
         onChange={handleRoleChange}
+        disabled={disabled}
       />
     </>
   )

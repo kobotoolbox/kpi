@@ -54,6 +54,8 @@ function renderStatusBadge(isEnabled: boolean | null | undefined) {
  */
 type MembersTableOrderableField = 'user__username' | 'status' | 'date_joined' | 'role' | 'user__has_sso_enabled'
 
+// TODO: remove once orval regenerates with this field from the backend
+
 const ORDERABLE_FIELDS: MembersTableOrderableField[] = [
   'user__username',
   'status',
@@ -192,13 +194,16 @@ function MembersRoute() {
       key: 'invite',
       label: renderSortableHeader('status', t('Status')),
       size: 120,
+      // TODO: replace with MemberListResponse after backend is ready
       cellFormatter: (obj: MemberListResponse) => {
         const { invite } = getMemberOrInviteDetails(obj)
         if (invite) {
           return <Badge color='light-blue' size='s' label={t('Invited')} />
-        } else {
-          return <Badge color='light-green' size='s' label={t('Active')} />
         }
+        if (obj.pending_transfer) {
+          return <Badge color='light-blue' size='s' label={t('Pending owner')} />
+        }
+        return <Badge color='light-green' size='s' label={t('Active')} />
       },
     },
     {
@@ -214,6 +219,7 @@ function MembersRoute() {
       key: 'role',
       label: renderSortableHeader('role', t('Role')),
       size: 140,
+      // TODO: replace with MemberListResponse after backend is ready
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         if (member?.role === MemberRoleEnum.owner || !isUserAdminOrOwner) {
@@ -245,6 +251,7 @@ function MembersRoute() {
             username={member!.user__username!}
             role={member!.role!}
             currentUserRole={organization.request_user_role}
+            disabled={!!obj.pending_transfer}
           />
         )
       },
@@ -278,6 +285,7 @@ function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
+      // TODO: replace with MemberListResponse after backend is ready
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner
@@ -293,6 +301,9 @@ function MembersRoute() {
               target={target}
               targetUsername={member?.user__username ?? invite!.invitee}
               currentUserRole={organization.request_user_role}
+              targetFullName={member.user__extra_details__name}
+              orgName={organization.name}
+              isPendingOwnershipTransfer={!!obj.pending_transfer}
             />
           )
         } else if (invite) {
