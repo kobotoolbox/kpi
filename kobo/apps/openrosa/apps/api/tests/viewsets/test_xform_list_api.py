@@ -657,6 +657,22 @@ class TestXFormListAsOrgAdminApiBase(TestXFormListApiBase):
         self.assertTrue(response.has_header('Date'))
         self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
+    def test_get_xform_list_with_formid_parameter_after_mmo_lapse(self):
+        """
+        Alice keeps her admin role once Bob's org is no longer MMO, but org
+        projects are not served to her anymore.
+        """
+        organization = self.xform.user.organization
+        organization.mmo_override = False
+        organization.save(update_fields=['mmo_override'])
+
+        response = self.digest_client.get(
+            f'{self.list_url}?formID={self.xform.id_string}'
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.render().content.decode() == EMPTY_LIST_CONTENT
+
     def test_get_xform_list_with_formid_parameter(self):
         """
         Test `formList` with `?formID=[id_string]` filter
