@@ -13,6 +13,7 @@
 export interface SupplementalDataContentAutomaticComplete {
   language: string
   locale?: string
+  source_language?: string
   status: 'complete'
   value: string
 }

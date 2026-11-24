@@ -33,8 +33,10 @@ from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidImageDimensions,
     InvalidImageFile,
+    InvalidSourceLanguage,
     InvalidXPath,
     ManualQualNotFound,
+    SourceLanguageNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
@@ -614,6 +616,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
             raise serializers.ValidationError({'detail': 'No transcription found'})
+        except (InvalidSourceLanguage, SourceLanguageNotFound) as e:
+            raise serializers.ValidationError({'detail': str(e)})
         except SubsequenceVerificationError:
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:
@@ -637,7 +641,9 @@ class DataViewSet(
                 {'detail': 'Image cannot be rescaled for LLM analysis'}
             )
         except InvalidImageFile:
-            raise serializers.ValidationError({'detail': 'Corrupted image file'})
+            raise serializers.ValidationError(
+                {'detail': 'Invalid image type or corrupted image file'}
+            )
 
         return Response(supplemental_data)
 

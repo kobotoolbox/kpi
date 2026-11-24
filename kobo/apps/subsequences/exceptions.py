@@ -1,3 +1,6 @@
+from django.utils.translation import gettext as t
+
+
 class AnalysisQuestionNotFound(Exception):
     """
     Raised when the uuid for automatic qual analysis is not found in the manual params
@@ -128,6 +131,25 @@ class TranscriptionNotFound(DependencyNotFound):
         )
     ):
         super().__init__(message)
+
+
+class InvalidSourceLanguage(Exception):
+    """
+    Raised when a translation request has an unusable `source_language`
+    """
+
+
+class SourceLanguageNotFound(DependencyNotFound):
+    """
+    Raised when translating a text response without its source language
+    """
+
+    def __init__(self, message=None):
+        # Translated when raised, so it's in the language of the request
+        super().__init__(
+            message
+            or t('The source language is required to translate a text response.')
+        )
 
 
 class TranscriptionResultNotFound(Exception):

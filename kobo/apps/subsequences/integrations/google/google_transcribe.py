@@ -37,7 +37,7 @@ from kpi.exceptions import (
 )
 from kpi.utils.audio_duration import get_audio_duration
 from kpi.utils.log import logging
-from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
+from ...constants import GOOGLE_CACHE_TIMEOUT
 from ...exceptions import (
     ChunkStorageError,
     ChunkStorageRefusedError,
@@ -641,7 +641,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         """
         try:
             transcription_lang_service = TranscriptionService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranscriptionService.DoesNotExist:
             raise GoogleTranscriptionServiceNotConfigured(

@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
+from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
@@ -11,6 +12,7 @@ from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.tests.utils import image_url
 from kobo.apps.openrosa.libs.utils.image_tools import resize
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
 from kpi.constants import SAFE_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
@@ -83,6 +85,24 @@ class TestAttachment(TestBase):
             filename = attachment.media_file.name.replace('.heic', '')
             thumbnail = f'{filename}-{size}.jpg'
             self.assertFalse(default_storage.exists(thumbnail))
+
+    def test_protected_path_serves_original_when_image_cannot_be_resized(self):
+        attachment = Attachment.objects.create(
+            instance=self.instance,
+            media_file=ContentFile(
+                b'<svg xmlns="http://www.w3.org/2000/svg"/>', name='drawing.svg'
+            ),
+        )
+        assert attachment.mimetype == 'image/svg+xml'
+
+        # Pillow cannot open an SVG: the original is served, no thumbnail is made.
+        # Freeze the clock so that both presigned S3 URLs share one signature date.
+        with freeze_time():
+            assert (
+                attachment.protected_path(suffix='small') == attachment.protected_path()
+            )
+        thumbnail = get_optimized_image_path(attachment.media_file.name, 'small')
+        assert not default_storage.exists(thumbnail)
 
     def test_create_thumbnails_command(self):
         call_command('create_image_thumbnails')

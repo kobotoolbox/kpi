@@ -1,0 +1,30 @@
+/* Matches the Select dropdown border. */
+.dropdown {
+  border-color: var(--mantine-color-gray-6);
+}
+
+/* Mantine hovers with `gray-0`, our near-black. Same specificity as its rules, but loaded after them. */
+.day:not([data-selected], [data-in-range], [data-disabled]):is(:hover, :active),
+.control:not([data-selected], [data-in-range], [data-disabled]):is(:hover, :active),
+.headerControl:not([data-disabled], [data-static], :disabled):is(:hover, :active) {
+  background-color: var(--mantine-color-blue-9);
+}
+
+/* Mantine greys these out too faintly to pass contrast checks. The placeholder is a real element, unlike `::placeholder`, so it gets checked. */
+.weekday,
+.placeholder,
+.day[data-outside] {
+  color: var(--mantine-color-gray-2);
+}
+
+/* Same clear button as in Select. */
+.clearButton {
+  color: var(--mantine-color-gray-4);
+}
+
+.clearButton svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentcolor;
+  stroke-width: 0.5;
+}

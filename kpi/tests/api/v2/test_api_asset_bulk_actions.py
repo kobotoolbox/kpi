@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.trash_bin.models.project import ProjectTrash
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
@@ -27,6 +28,20 @@ class BaseAssetBulkActionsTestCase(BaseTestCase):
 
     def setUp(self):
         self.url = reverse(self._get_endpoint('asset-bulk'))
+
+    def _add_lapsed_org_admin(self) -> User:
+        """
+        Makes anotheruser an admin of someuser's organization, then ends its
+        MMO plan
+        """
+        organization = User.objects.get(username='someuser').organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        anotheruser = User.objects.get(username='anotheruser')
+        organization.add_user(anotheruser, is_admin=True)
+        organization.mmo_override = False
+        organization.save(update_fields=['mmo_override'])
+        return anotheruser
 
     def _add_one_asset_for_someuser(self) -> Asset:
         """
@@ -301,6 +316,20 @@ class AssetBulkArchiveAPITestCase(BaseAssetBulkActionsTestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_lapsed_org_admin_cannot_archive_org_assets(self):
+        """
+        Catches the owner's manage_asset rows satisfying the permission count
+        for an admin whose organization is no longer MMO
+        """
+        asset = self._add_one_asset_for_someuser()
+        self.client.force_login(self._add_lapsed_org_admin())
+
+        response = self._create_send_payload([asset.uid], 'archive')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        asset.refresh_from_db()
+        assert asset.deployment.active is True
+
 
 @ddt
 class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
@@ -541,6 +570,21 @@ class AssetBulkDeleteAPITestCase(BaseAssetBulkActionsTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert created_asset.pending_delete
         assert owned_asset.pending_delete
+
+    def test_lapsed_org_admin_cannot_delete_org_assets(self):
+        """
+        Catches org projects being treated as owned by an admin whose
+        organization is no longer MMO
+        """
+        asset = self._add_one_asset_for_someuser()
+        self.client.force_login(self._add_lapsed_org_admin())
+
+        response = self._create_send_payload([asset.uid], 'delete')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        asset.refresh_from_db()
+        assert not asset.pending_delete
+        assert not ProjectTrash.objects.filter(asset=asset).exists()
 
     def test_bulk_delete_permissions_check_uses_constant_queries(self):
         someuser = User.objects.get(username='someuser')

@@ -31,9 +31,7 @@ class TrashMixin:
 
     @admin.display(description='Scheduled time')
     def get_start_time(self, obj):
-        if obj.empty_manually:
-            return '-'
-        return obj.periodic_task.clocked.clocked_time
+        return obj.scheduled_time or '-'
 
     def has_add_permission(self, request):
         return False
