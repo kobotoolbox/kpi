@@ -885,6 +885,7 @@ class BaseDeploymentBackend(abc.ABC):
         self,
         submission: dict,
         all_attachment_xpaths: list[str],
+        inject_date_modified: bool = True,
     ) -> dict:
         submission = self._rewrite_json_attachment_urls(
             submission, all_attachment_xpaths
@@ -908,7 +909,8 @@ class BaseDeploymentBackend(abc.ABC):
                 ).isoformat()
         # Must come after `_submission_time` is normalized above, it is the
         # fallback value for `_date_modified`
-        submission = self._inject_date_modified(submission)
+        if inject_date_modified:
+            submission = self._inject_date_modified(submission)
         submission.pop('_tags', None)
         submission.pop('_notes', None)
         return submission

@@ -1922,6 +1922,34 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert len(response.data['results']) == 1
         assert response.data['results'][0][DATE_MODIFIED] == submission_time
 
+    def test_fields_submission_time_does_not_inject_stale_date_modified(self):
+        """
+        When `fields` requests `_submission_time` without `_date_modified`,
+        `_date_modified` must not be injected from `_submission_time`, as doing
+        so would return a stale modification timestamp for edited submissions
+        """
+        submission = self.submissions_submitted_by_someuser[0]
+        instance = Instance.objects.get(pk=submission['_id'])
+        with freeze_time('2030-01-01 12:00:00'):
+            instance.save()
+            instance.parsed_instance.update_mongo(asynchronous=False)
+
+        response = self.client.get(
+            self.submission_list_url,
+            {
+                'format': 'json',
+                'query': json.dumps({'_id': submission['_id']}),
+                'fields': json.dumps(['_submission_time']),
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 1
+        assert DATE_MODIFIED not in response.data['results'][0]
+        assert (
+            response.data['results'][0]['_submission_time']
+            == instance.date_created.strftime(MONGO_STRFTIME)
+        )
+
 
 @ddt
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
