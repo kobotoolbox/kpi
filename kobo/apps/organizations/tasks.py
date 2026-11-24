@@ -336,4 +336,3 @@ def mark_organization_invite_as_expired():
         Mailer.send(email_messages)
     except MailerError as e:
         logging.warning(f'Failed to send expired organization invite emails: {e}')
-
