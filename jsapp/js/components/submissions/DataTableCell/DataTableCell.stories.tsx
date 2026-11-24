@@ -2,10 +2,13 @@ import { Box } from '@mantine/core'
 import { ModalsProvider } from '@mantine/modals'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { expect, within } from 'storybook/test'
+import { getAssetsAttachmentsAudioDurationCreateMockHandler } from '#/api/react-query/survey-data/msw'
 import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { SubmissionAttachment, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import { KOBO_MODAL_SHARED_PROPS } from '#/theme/kobo/Modal'
+import { AudioDurationsProvider } from '../AudioDurationsContext'
 import {
   simpleSurvey,
   simpleSurveyAsset,
@@ -323,6 +326,32 @@ export const AudioAttachment: Story = {
     showGroupName: false,
     translationIndex: 0,
     submissionCount: 2,
+  },
+  // The table wraps cells in this provider, which is where the length comes from.
+  decorators: [
+    (Story) => (
+      <AudioDurationsProvider
+        assetUid={simpleSurveyAsset.uid}
+        submissions={[audioSubmission]}
+        visibleAudioXpaths={{ audioQuestion: ['Audio_question'], noQuestion: [] }}
+      >
+        <Story />
+      </AudioDurationsProvider>
+    ),
+  ],
+  parameters: {
+    msw: {
+      handlers: [
+        getAssetsAttachmentsAudioDurationCreateMockHandler({
+          attachments: [{ uid: 'attachment-audio-1', seconds: 232 }],
+          total: 232,
+        }),
+      ],
+    },
+  },
+  // The length shows before anything is played.
+  play: async ({ canvasElement }) => {
+    await expect(await within(canvasElement).findByText('00:03:52')).toBeInTheDocument()
   },
 }
 
