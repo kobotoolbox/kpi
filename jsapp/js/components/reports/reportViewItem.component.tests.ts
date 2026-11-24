@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { QuestionTypeName } from '#/constants'
 import { ReportViewItem, type ReportViewItemProps } from './reportViewItem.component'
 import { reportStyleFactory, reportsResponseDataFactory } from './reports.factory'

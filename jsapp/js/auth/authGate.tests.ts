@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { type GateInput, getAnonymousGateDecision, getAuthGateDecision } from './authGate'
 import { ANONYMOUS_AUTH_STATUS, type AuthStatus, getAuthStatus } from './authStatus'
 

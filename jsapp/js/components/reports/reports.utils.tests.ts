@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { getAssetsRetrieveResponseMock } from '#/api/react-query/manage-projects-and-library-content/msw'
 import { QuestionTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'

@@ -6,7 +6,7 @@ jest.mock('#/utils', () => {
   return { notify: mockedNotify }
 })
 
-import chai from 'chai'
+import * as chai from 'chai'
 import { ServerError } from './ServerError'
 import { getFieldErrors, onErrorDefaultHandler } from './onErrorDefaultHandler'
 

@@ -1,4 +1,7 @@
+import { expect } from '@jest/globals'
+import * as chai from 'chai'
 import { QuestionTypeName } from '#/constants'
+import type { SubmissionSupplementalDetails } from '#/dataInterface'
 import assetDataFactory from '#/endpoints/assetData.factory'
 import {
   DisplayGroup,
@@ -52,76 +55,61 @@ import {
   withRowMovedIntoNewGroup,
 } from './submissionUtils.mocks'
 
-// getSubmissionDisplayData() returns objects that have prototype chains, while
-// the simple mock objects do not. Be able to exclude __proto__ when comparing
-// the two
-import chai from 'chai'
-import chaiExclude from 'chai-exclude'
-chai.use(chaiExclude)
-
-// getSubmissionDisplayData might return objects with declared, undefined key:
-//    {... "label": "hi", "listName": undefined, "name": "hi" ...}
-// Assuming this is correct, test fixtures like this are equivalent enough:
-//    {... "label": "hi", "name": "hi" ...}
-// After a recent chai / deep-eql update, tests relying on this behavior would
-// fail. Hence, use this looser comparison function.
-import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
-import type { SubmissionSupplementalDetails } from '#/dataInterface'
-chai.use(chaiDeepEqualIgnoreUndefined)
-
+// Jest's `toEqual` ignores undefined keys and prototypes, which the display data
+// has and the mocks don't.
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
     const test = getSubmissionDisplayData(simpleSurveyAsset, 1, simpleSurveySubmission)
     const target = simpleSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a null data entries for a survey with no answers', () => {
     const test = getSubmissionDisplayData(simpleSurveyAsset, 0, simpleSurveySubmissionEmpty)
     const target = simpleSurveyDisplayDataEmpty
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a survey with a repeat group', () => {
     const test = getSubmissionDisplayData(repeatSurveyAsset, 0, repeatSurveySubmission)
     const target = repeatSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a survey with nested repeat groups', () => {
     const test = getSubmissionDisplayData(nestedRepeatSurveyAsset, 0, nestedRepeatSurveySubmission)
     const target = nestedRepeatSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a survey with a matrix', () => {
     const test = getSubmissionDisplayData(matrixSurveyAsset, 0, matrixSurveySubmission)
     const target = matrixSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a survey with all kinds of groups', () => {
     const test = getSubmissionDisplayData(groupsSurveyAsset, 0, groupsSurveySubmission)
     const target = groupsSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for every possible question type', () => {
     const test = getSubmissionDisplayData(everythingSurveyAsset, 0, everythingSurveySubmission)
     const target = everythingSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a matrix group inside repeat group', () => {
     const test = getSubmissionDisplayData(matrixRepeatSurveyAsset, 0, matrixRepeatSurveySubmission)
     const target = matrixRepeatSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a submission with supplemental details', () => {
     const test = getSubmissionDisplayData(assetWithSupplementalDetails, 0, submissionWithSupplementalDetails)
     const target = supplementalDetailsSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a submission with a nested supplemental details', () => {
@@ -131,13 +119,13 @@ describe('getSubmissionDisplayData', () => {
       submissionWithNestedSupplementalDetails,
     )
     const target = nestedSupplementalDetailsSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 
   it('should return a valid data for a project with all qualitative analysis questions', () => {
     const test = getSubmissionDisplayData(assetWithAllQual, 0, submissionWithAllQual)
     const target = allQualSurveyDisplayData
-    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+    expect(test).toEqual(target)
   })
 })
 
