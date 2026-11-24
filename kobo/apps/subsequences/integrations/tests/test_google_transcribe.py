@@ -477,9 +477,7 @@ def test_polling_a_finished_job_reads_its_transcript_and_forgets_the_job():
     assert result == {'status': 'complete', 'value': 'Hello'}
     service._get_operation_payload.assert_called_once_with('operations/1', 'eu')
     service._read_batch_result.assert_called_once_with('output')
-    service._clear_operation_reference.assert_called_once_with(
-        'audio', 'en-US', None
-    )
+    service._clear_operation_reference.assert_called_once_with('audio', 'en-US', None)
 
 
 @pytest.mark.parametrize(

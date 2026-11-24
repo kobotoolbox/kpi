@@ -475,13 +475,12 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         in its language for a localized action
         """
         versions = running_data.get(action.VERSION_FIELD) or []
-        if not versions or versions[0][action.VERSION_DATA_FIELD].get(
-            'status'
-        ) not in ('complete', 'failed'):
+        if not versions:
             return False
-        return version_uuid in (
-            version[action.UUID_FIELD] for version in versions[:2]
-        )
+        latest_status = versions[0][action.VERSION_DATA_FIELD].get('status')
+        if latest_status not in ('complete', 'failed'):
+            return False
+        return version_uuid in (version[action.UUID_FIELD] for version in versions[:2])
 
     @staticmethod
     def _update_while_in_progress(

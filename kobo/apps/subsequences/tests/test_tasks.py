@@ -1465,9 +1465,7 @@ class TestBulkTranscriptionOfALongRecording(BulkTranscriptionTestCase):
         self.submit = self._patch(
             f'{self.SERVICE}._batch_recognize',
             side_effect=lambda input_uri, output_prefix, config: SimpleNamespace(
-                operation=SimpleNamespace(
-                    name=f'operations/{self.submit.call_count}'
-                )
+                operation=SimpleNamespace(name=f'operations/{self.submit.call_count}')
             ),
         )
         self.job_done = False
@@ -1543,9 +1541,7 @@ class TestBulkTranscriptionOfALongRecording(BulkTranscriptionTestCase):
         return content[self.question_xpath][self.action_id]['_versions'][0]
 
     def _assert_item(self, status: str) -> None:
-        items = self.bulk_action.items.filter(
-            submission_root_uuid=self.submission_uuid
-        )
+        items = self.bulk_action.items.filter(submission_root_uuid=self.submission_uuid)
         self.assertEqual(
             list(items.values_list('status', 'service_id')), [(status, '')]
         )
