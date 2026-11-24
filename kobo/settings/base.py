@@ -1406,6 +1406,10 @@ BULK_ACTION_RATE_LIMITS = {
     },
 }
 
+# Model called for automatic transcription with Gemini. Deliberately not in
+# Constance: changing the model must go through a release
+GEMINI_MODEL = 'gemini-3.5-transcribe'
+
 # These limits restrict the maximum number of Google Cloud requests per minute
 # across the entire platform. They are intentionally set lower than Google
 # project quotas to leave headroom for window skew, manual retries, and services
