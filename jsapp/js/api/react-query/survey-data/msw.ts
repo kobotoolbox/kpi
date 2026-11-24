@@ -674,6 +674,7 @@ export const getAssetsDataListResponseMock = (
       faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), null]),
     ),
     _submission_time: faker.date.past().toISOString().slice(0, 19) + 'Z',
+    _date_modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
     _validation_status: faker.helpers.arrayElement([{ ...getApiV2AssetsDataListResponseDataValidationStatusMock() }]),
     _submitted_by: faker.string.alpha({ length: { min: 10, max: 20 } }),
     _supplementalDetails: faker.helpers.arrayElement([
@@ -1029,6 +1030,7 @@ export const getAssetsDataRetrieveResponseMock = (
     faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), null]),
   ),
   _submission_time: faker.date.past().toISOString().slice(0, 19) + 'Z',
+  _date_modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   _validation_status: faker.helpers.arrayElement([{ ...getApiV2AssetsDataRetrieveResponseDataValidationStatusMock() }]),
   _submitted_by: faker.string.alpha({ length: { min: 10, max: 20 } }),
   _supplementalDetails: faker.helpers.arrayElement([
@@ -1380,6 +1382,7 @@ export const getAssetsDataDuplicateCreateResponseMock = (
     faker.helpers.arrayElement([faker.number.float({ fractionDigits: 2 }), null]),
   ),
   _submission_time: faker.date.past().toISOString().slice(0, 19) + 'Z',
+  _date_modified: faker.date.past().toISOString().slice(0, 19) + 'Z',
   _validation_status: faker.helpers.arrayElement([
     { ...getApiV2AssetsDataDuplicateCreateResponseDataValidationStatusMock() },
   ]),

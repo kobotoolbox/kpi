@@ -25,6 +25,7 @@ export const EXCLUDED_COLUMNS = [
   'meta/deprecatedID',
   // Internal only: the list of form versions a submission has been through
   'meta/formVersions',
+  '_date_modified',
   '_validation_status',
   // The audit log, which a submission carries in its `meta` block per the ODK
   // spec: https://getodk.github.io/xforms-spec/#metadata. The survey's own audit
