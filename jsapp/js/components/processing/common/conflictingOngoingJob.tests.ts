@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { ActionIdEnum } from '#/api/models/actionIdEnum'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
 import { BulkActionResponseStatusEnum } from '#/api/models/bulkActionResponseStatusEnum'
