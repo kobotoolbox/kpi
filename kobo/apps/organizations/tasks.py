@@ -6,6 +6,7 @@ from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.utils.translation import gettext as t
 from more_itertools import chunked
@@ -79,21 +80,20 @@ def transfer_organization_ownership(transfer_id: int):
         # Phase 1: Atomically swap OrganizationOwner and update outgoing
         # owner role to Admin in its own transaction so row locks are released
         # quickly and do not block concurrent requests.
-        # Resolve the organization before locking so we can lock in strict order:
-        # OrganizationOwner -> OrgOwnershipTransferInvite -> OrganizationUser.
-        org = (
-            OrgOwnershipTransferInvite.objects.select_related('sender')
-            .get(pk=transfer_id)
-            .organization
-        )
+        # Resolve the organization ID before locking so we can lock in strict
+        # order: OrganizationOwner -> OrgOwnershipTransferInvite -> OrganizationUser.
+        metadata = OrgOwnershipTransferInvite.objects.values_list(
+            'metadata', flat=True
+        ).get(pk=transfer_id)
+        org_id = metadata.get('organization_id') if metadata else None
 
         with transaction.atomic():
             org_owner = (
                 OrganizationOwner.objects.select_for_update()
                 .select_related('organization_user')
-                .filter(organization=org)
+                .filter(organization_id=org_id)
                 .first()
-                if org
+                if org_id
                 else None
             )
 
@@ -116,7 +116,7 @@ def transfer_organization_ownership(transfer_id: int):
                 )
                 return
 
-            if not org or not org_owner:
+            if not org_id or not org_owner:
                 logging.error(f'Organization not found for transfer {transfer_id}')
                 transfer.status = InviteStatusChoices.FAILED
                 transfer.save(update_fields=['status', 'date_modified'])
@@ -126,7 +126,7 @@ def transfer_organization_ownership(transfer_id: int):
                 OrganizationUser.objects.select_for_update()
                 .select_related('user')
                 .get(
-                    organization=org,
+                    organization_id=org_id,
                     user=transfer.recipient,
                 )
             )
@@ -142,7 +142,7 @@ def transfer_organization_ownership(transfer_id: int):
             ):
                 logging.warning(
                     f'Transfer {transfer_id} is stale: sender {transfer.sender_id} '
-                    f'is no longer the owner of organization {org.id}.'
+                    f'is no longer the owner of organization {org_id}.'
                 )
                 transfer.status = InviteStatusChoices.FAILED
                 transfer.save(update_fields=['status', 'date_modified'])
@@ -154,7 +154,7 @@ def transfer_organization_ownership(transfer_id: int):
                 logging.warning(
                     f'Transfer {transfer_id} is invalid: recipient '
                     f'{transfer.recipient_id} is no longer an active admin of '
-                    f'organization {org.id}.'
+                    f'organization {org_id}.'
                 )
                 transfer.status = InviteStatusChoices.FAILED
                 transfer.save(update_fields=['status', 'date_modified'])
@@ -169,39 +169,44 @@ def transfer_organization_ownership(transfer_id: int):
                 org_owner.save(update_fields=['organization_user'])
 
                 outgoing_org_user = OrganizationUser.objects.select_for_update().get(
-                    organization=org,
+                    organization_id=org_id,
                     user=transfer.sender,
                 )
                 if not outgoing_org_user.is_admin:
                     outgoing_org_user.is_admin = True
                     outgoing_org_user.save(update_fields=['is_admin'])
 
-        # Phase 2: Batch project transfers chunk by chunk. Each chunk commits
-        # its own project transfers and immediately kicks off Celery tasks for
-        # Mongo and S3 file moves. If the task is interrupted, .exclude()
-        # scoped to this transfer's creation timestamp ensures it picks up only
-        # the remaining assets without skipping assets from prior transfer cycles.
+        # Phase 2: Batch project transfers using keyset pagination so memory
+        # stays bounded for large collections and no server-side cursor is held
+        # across create_invite() commits. NOT EXISTS scoped to this transfer's
+        # creation timestamp ensures retries pick up only remaining assets
+        # without skipping assets from prior transfer cycles.
         sender = transfer.sender
         recipient = transfer.recipient
-        user_assets = (
-            sender.assets.only('pk', 'uid')
-            .exclude(
-                pk__in=Transfer.objects.values_list('asset_id', flat=True).filter(
-                    invite__sender=sender,
-                    invite__recipient=recipient,
-                    date_created__gte=transfer.date_created,
-                )
-            )
-            .iterator()
+        already_attempted = Transfer.objects.filter(
+            asset_id=OuterRef('pk'),
+            invite__sender=sender,
+            invite__recipient=recipient,
+            date_created__gte=transfer.date_created,
         )
+        batch_size = settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
+        last_pk = 0
 
-        for asset_batch in chunked(
-            user_assets, settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
-        ):
+        while True:
+            asset_batch = list(
+                sender.assets.only('pk', 'uid')
+                .filter(pk__gt=last_pk)
+                .exclude(Exists(already_attempted))
+                .order_by('pk')[:batch_size]
+            )
+            if not asset_batch:
+                break
+
+            last_pk = asset_batch[-1].pk
             create_invite(
                 sender=sender,
                 recipient=recipient,
-                assets=list(asset_batch),
+                assets=asset_batch,
                 invite_class_name='OrgMembershipAutoInvite',
             )
 
@@ -214,8 +219,10 @@ def transfer_organization_ownership(transfer_id: int):
         ).exists()
 
         with transaction.atomic():
-            transfer = OrgOwnershipTransferInvite.objects.select_for_update().get(
-                pk=transfer_id
+            transfer = (
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient__extra_details')
+                .get(pk=transfer_id)
             )
             if has_failed_transfers:
                 logging.error(
@@ -257,7 +264,9 @@ def transfer_organization_ownership_failure(sender=None, **kwargs):
     )
     transfer_id = kwargs['args'][0]
     try:
-        OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).update(
+        OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).exclude(
+            status=InviteStatusChoices.FAILED
+        ).update(
             status=InviteStatusChoices.FAILED,
             date_modified=timezone.now(),
         )

@@ -1284,9 +1284,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 if locked_transfer.status == InviteStatusChoices.ACCEPTED:
@@ -1335,9 +1335,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
@@ -1358,9 +1358,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
@@ -1381,9 +1381,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
