@@ -1945,10 +1945,9 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['results']) == 1
         assert DATE_MODIFIED not in response.data['results'][0]
-        assert (
-            response.data['results'][0]['_submission_time']
-            == instance.date_created.strftime(MONGO_STRFTIME)
-        )
+        assert response.data['results'][0][
+            '_submission_time'
+        ] == instance.date_created.strftime(MONGO_STRFTIME)
 
 
 @ddt
