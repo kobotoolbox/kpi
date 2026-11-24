@@ -27,9 +27,14 @@ from .constants import (
     SUBMISSION_UUID_FIELD,
     UNIQUE_TRANSCRIPTION_CHUNK_PER_VERSION,
     Action,
+    TranscriptionChunkStatus,
 )
-from .exceptions import InvalidAction, InvalidXPath
+from .exceptions import InvalidAction, InvalidXPath, PolledRunNotInProgressError
 from .schemas import validate_submission_supplement
+from .utils.chunked_transcription import (
+    ChunkedTranscriptionEngine,
+    ChunkedTranscriptionRun,
+)
 from .utils.time import utc_datetime_to_js_str
 
 
@@ -51,7 +56,22 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         return f'Supplement for submission {self.submission_uuid}'
 
     @staticmethod
-    def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
+    def revise_data(
+        asset: 'kpi.Asset',
+        submission: dict,
+        incoming_data: dict,
+        *,
+        poll_version_uuid: str | None = None,
+    ) -> dict:
+        """
+        Apply `incoming_data` to the submission's supplement and return it
+
+        `poll_version_uuid` is set by a poll checking on the run whose
+        `in_progress` version has this `_uuid`. When the action's latest
+        version is anything else, nothing is saved and
+        `PolledRunNotInProgressError` is raised, telling whether that run has
+        ended or was replaced (e.g. by a later one, which has its own poll)
+        """
 
         from .utils.versioning import migrate_submission_supplementals
 
@@ -116,6 +136,23 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     'question_supplemental_data': question_supplemental_data,
                 }
                 action = feature.to_action(prefetched_dependencies)
+
+                if poll_version_uuid:
+                    _, current_data = SubmissionSupplement._locate_action(
+                        action, question_xpath, action_data, action_supplemental_data
+                    )
+                    if not SubmissionSupplement._get_running_version(
+                        action, current_data, poll_version_uuid
+                    ):
+                        # Going on would check on a run this poll does not own
+                        # or, once its run has ended, take it for a new launch
+                        # and transcribe (and charge) the audio again
+                        raise PolledRunNotInProgressError(
+                            run_ended=SubmissionSupplement._has_run_ended(
+                                action, current_data, poll_version_uuid
+                            )
+                        )
+
                 action.check_limits(asset.owner, action_data)
 
                 # Create the `in_progress` version before calling the service,
@@ -330,6 +367,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         must never end. `version_uuid` is `None` for a poll that does not know
         its run (scheduled before its `in_progress` version was saved), which
         then ends whichever run is in progress
+
+        Once ended, what is left of a chunked run is cancelled: nothing else
+        would send its remaining chunks, nor stop the job of the one being
+        transcribed
         """
         supplemental_data = SubmissionSupplement.retrieve_data(
             asset, submission_root_uuid=submission_uuid
@@ -348,11 +389,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         action_path, running_data = SubmissionSupplement._locate_action(
             action, question_xpath, action_data, action_supplemental_data
         )
-        versions = running_data.get(action.VERSION_FIELD) or []
-        if (
-            not versions
-            or versions[0][action.VERSION_DATA_FIELD].get('status') != 'in_progress'
-            or (version_uuid and versions[0][action.UUID_FIELD] != version_uuid)
+        if not (
+            running_version := SubmissionSupplement._get_running_version(
+                action, running_data, version_uuid
+            )
         ):
             return False
 
@@ -370,19 +410,77 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             action.get_new_action_supplemental_data(
                 action_supplemental_data,
                 failed_data,
-                versions[0].get(action.DEPENDENCY_FIELD),
+                running_version.get(action.DEPENDENCY_FIELD),
             ),
         )
+        # The run read above, even for a poll that does not know its run:
+        # the `failed` version is built on it, and its chunks are cancelled
+        run_uuid = running_version[action.UUID_FIELD]
         # Checked again in the update itself: a result or a new run can still
         # land between the read above and this write
-        return SubmissionSupplement._update_while_in_progress(
+        if not SubmissionSupplement._update_while_in_progress(
             asset,
             submission_uuid,
             action_path,
             UpdateJSONFieldAttributes(
                 'content', path=action_path, updates=failed_action_data
             ),
-            version_uuid=version_uuid,
+            version_uuid=run_uuid,
+        ):
+            return False
+
+        service_class = action.get_nlp_service_class()
+        if issubclass(service_class, ChunkedTranscriptionEngine):
+            ChunkedTranscriptionRun(
+                asset, submission_uuid, question_xpath, run_uuid
+            ).cancel(
+                lambda: service_class(
+                    submission={SUBMISSION_UUID_FIELD: submission_uuid}, asset=asset
+                )
+            )
+        return True
+
+    @staticmethod
+    def _get_running_version(
+        action, running_data: dict, version_uuid: str | None
+    ) -> dict | None:
+        """
+        Return the latest version of the action while it is `in_progress`, and
+        is the run `version_uuid` when one is given, otherwise `None`
+
+        `running_data` is the action's data as `_locate_action()` returns it,
+        in its language for a localized action
+        """
+        versions = running_data.get(action.VERSION_FIELD) or []
+        if not versions:
+            return None
+        latest_version = versions[0]
+        if latest_version[action.VERSION_DATA_FIELD].get('status') != 'in_progress':
+            return None
+        if version_uuid and latest_version[action.UUID_FIELD] != version_uuid:
+            return None
+        return latest_version
+
+    @staticmethod
+    def _has_run_ended(action, running_data: dict, version_uuid: str) -> bool:
+        """
+        Tell whether the latest version of the action is the result of the run
+        `version_uuid`
+
+        A result is saved as a new version right on top of its run's
+        `in_progress` one. A poll resumed once it was saved is given the
+        result's own `_uuid` instead, see `_extract_bulk_item_version_uuid()`.
+
+        `running_data` is the action's data as `_locate_action()` returns it,
+        in its language for a localized action
+        """
+        versions = running_data.get(action.VERSION_FIELD) or []
+        if not versions or versions[0][action.VERSION_DATA_FIELD].get(
+            'status'
+        ) not in ('complete', 'failed'):
+            return False
+        return version_uuid in (
+            version[action.UUID_FIELD] for version in versions[:2]
         )
 
     @staticmethod
@@ -1108,14 +1206,6 @@ class SubsequenceBulkActionItem(AbstractTimeStampedModel):
             submission={SUBMISSION_UUID_FIELD: self.submission_root_uuid},
             asset=self.parent.asset,
         )
-
-
-class TranscriptionChunkStatus(models.TextChoices):
-    PENDING = 'pending'
-    IN_PROGRESS = 'in_progress'
-    COMPLETE = 'complete'
-    FAILED = 'failed'
-    CANCELLED = 'cancelled'
 
 
 class TranscriptionChunk(AbstractTimeStampedModel):

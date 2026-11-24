@@ -1479,6 +1479,18 @@ TRANSCRIPTION_SILENCE_DETECT_TIMEOUT = env.int(
     300,
 )
 
+# Each chunk of a long recording is sent once, then again up to
+# `TRANSCRIPTION_CHUNK_MAX_RETRIES` times when it fails or is still not
+# transcribed `TRANSCRIPTION_CHUNK_TIMEOUT` seconds after it was sent. Chunks go
+# one after another, so in the worst case a run takes
+#   chunks × (retries + 1) × timeout + preparation
+# which must stay within the 8 h its poll lasts (`GOOGLE_CACHE_TIMEOUT`).
+# Google transcribes a 55 min chunk in about 5 min (p90), so 900 s leaves room
+# for a slow day, and with 2 retries the worst case still covers 10 chunks,
+# about 9 h of audio
+TRANSCRIPTION_CHUNK_MAX_RETRIES = env.int('TRANSCRIPTION_CHUNK_MAX_RETRIES', 2)
+TRANSCRIPTION_CHUNK_TIMEOUT = env.int('TRANSCRIPTION_CHUNK_TIMEOUT', 900)
+
 DJSTRIPE_SUBSCRIBER_MODEL = 'organizations.Organization'
 DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = dj_stripe_request_callback_method
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'

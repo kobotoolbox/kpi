@@ -6,10 +6,13 @@ import pytest
 from django.test import override_settings
 from google.api_core.exceptions import (
     Forbidden,
+    InvalidArgument,
     NotFound,
     PermissionDenied,
+    ResourceExhausted,
     RetryError,
     ServiceUnavailable,
+    Unauthenticated,
 )
 from google.cloud import speech_v2 as speech
 from google.rpc import status_pb2
@@ -18,11 +21,13 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.exceptions import (
     ChunkStorageError,
     ChunkStorageRefusedError,
+    GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     TranscriptionResultNotFound,
 )
 from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscriptionService,
+    SpeechConfig,
 )
 from kobo.apps.subsequences.integrations.google.rate_limit import (
     GoogleServiceRateLimitExceeded,
@@ -66,6 +71,7 @@ def _get_service_for_process_data():
     service = object.__new__(GoogleTranscriptionService)
     service.submission_root_uuid = 'submission-1'
     service.asset = MagicMock()
+    service._get_batch_paths = MagicMock(return_value=('input.flac', 'output'))
     service._clear_operation_reference = MagicMock()
     return service
 
@@ -245,7 +251,7 @@ def test_read_batch_result_raises_when_no_json_result_files_exist():
     )
 
     with pytest.raises(TranscriptionResultNotFound) as exc_info:
-        service._read_batch_result('audio', 'en-US')
+        service._read_batch_result('output')
 
     assert 'No transcription JSON result files were found' in str(exc_info.value)
 
@@ -272,7 +278,7 @@ def test_read_batch_result_returns_empty_transcript_for_silent_audio_result():
         ]
     )
 
-    assert service._read_batch_result('audio', 'en-US') == ''
+    assert service._read_batch_result('output') == ''
 
 
 def test_read_batch_result_joins_transcripts_from_json_result_files():
@@ -289,7 +295,9 @@ def test_read_batch_result_joins_transcripts_from_json_result_files():
         ]
     )
 
-    assert service._read_batch_result('audio', 'en-US') == 'Hello world'
+    assert service._read_batch_result('output') == 'Hello world'
+    # Within the job's folder only
+    service.bucket.list_blobs.assert_called_once_with(prefix='output/')
 
 
 def test_process_data_returns_failed_for_missing_google_service_config():
@@ -457,6 +465,43 @@ def test_process_data_returns_failed_for_unexpected_polling_errors(
     )
 
 
+def test_polling_a_finished_job_reads_its_transcript_and_forgets_the_job():
+    service = _get_service_for_process_data()
+    service._get_operation_payload = MagicMock(return_value={'done': True})
+    service._read_batch_result = MagicMock(return_value='Hello')
+
+    result = service._poll_operation(
+        'audio', 'operations/1', SpeechConfig('en-US', 'chirp_3', 'eu'), None
+    )
+
+    assert result == {'status': 'complete', 'value': 'Hello'}
+    service._get_operation_payload.assert_called_once_with('operations/1', 'eu')
+    service._read_batch_result.assert_called_once_with('output')
+    service._clear_operation_reference.assert_called_once_with(
+        'audio', 'en-US', None
+    )
+
+
+@pytest.mark.parametrize(
+    'error, retryable',
+    [
+        (PermissionDenied('permission denied'), False),
+        (Unauthenticated('invalid credentials'), False),
+        (AttributeError('unexpected bug'), True),
+    ],
+)
+def test_only_refused_credentials_make_a_failed_job_not_worth_starting_again(
+    error, retryable
+):
+    service = _get_service_for_process_data()
+    service._get_operation_payload = MagicMock(side_effect=error)
+
+    report = service._check_batch_operation('operations/1', 'eu', 'output')
+
+    assert report.status == 'failed'
+    assert report.retryable is retryable
+
+
 @pytest.mark.parametrize('duration', [60.0, HARD_LIMIT, None])
 @pytest.mark.parametrize('run', [LAUNCH, POLL])
 def test_a_recording_up_to_the_hard_limit_goes_to_google_whole(
@@ -512,6 +557,15 @@ def test_a_run_with_chunk_rows_reports_on_them(starting_service, chunking):
     result = starting_service.process_data('audio', {'language': 'en'}, **POLL)
 
     assert result == {'status': 'in_progress'}
+    # Moved forward with the run's speech settings
+    chunking.run.get_status.assert_called_once_with(
+        starting_service,
+        SpeechConfig(
+            language_code='en-US',
+            model=starting_service._get_google_language_config.return_value.model_code,
+            location='global',
+        ),
+    )
     starting_service._get_attachment.assert_not_called()
     starting_service._before_new_operation.assert_not_called()
     chunking.run.start.assert_not_called()
@@ -529,6 +583,52 @@ def test_polling_a_whole_file_job_does_not_look_for_chunks(starting_service, chu
 
     chunking.run_class.assert_not_called()
     starting_service._get_attachment.assert_not_called()
+
+
+def test_a_cancelled_bulk_item_sends_nothing_more(starting_service, chunking):
+    """
+    Whether its chunks are prepared or not: the run is cancelled, without
+    starting anything
+    """
+    starting_service._get_bulk_action_item = MagicMock(
+        return_value=SimpleNamespace(status='cancelled')
+    )
+
+    result = starting_service.process_data(
+        'audio', {'language': 'en'}, bulk_action_uid='bulk-1', **POLL
+    )
+
+    assert result == {'status': 'failed', 'error': 'Transcription cancelled'}
+    starting_service._get_bulk_action_item.assert_called_once_with('bulk-1')
+    chunking.run.cancel.assert_called_once()
+    # Asked for its engine, it is this service
+    assert chunking.run.cancel.call_args.args[0]() is starting_service
+    chunking.run.get_status.assert_not_called()
+    chunking.run.start.assert_not_called()
+    starting_service._get_attachment.assert_not_called()
+    starting_service._start_operation.assert_not_called()
+
+
+def test_a_whole_file_job_finished_before_the_cancel_still_saves_its_transcript(
+    starting_service, chunking
+):
+    """
+    It is charged once started
+    """
+    starting_service._get_bulk_action_item = MagicMock(
+        return_value=SimpleNamespace(status='cancelled')
+    )
+    starting_service._get_operation_reference.return_value = 'operations/1'
+    starting_service._poll_operation = MagicMock(
+        return_value={'status': 'complete', 'value': 'Hello'}
+    )
+
+    result = starting_service.process_data(
+        'audio', {'language': 'en'}, bulk_action_uid='bulk-1', **POLL
+    )
+
+    assert result == {'status': 'complete', 'value': 'Hello'}
+    chunking.run.cancel.assert_not_called()
 
 
 @pytest.mark.parametrize('duration', [60.0, HARD_LIMIT + 1])
@@ -588,3 +688,80 @@ def test_store_chunk_file_tells_errors_that_may_pass_from_refusals(error, expect
 
     with patch(f'{SERVICE_MODULE}.constance'), pytest.raises(expected):
         service.store_chunk_file('/tmp/work/chunk_000.flac', 'version-1', 0)
+
+
+CHUNK_CONFIG = SpeechConfig('en-US', 'chirp_3', 'eu')
+
+
+def _get_chunk(retry_count: int = 0) -> SimpleNamespace:
+    return SimpleNamespace(
+        index=1,
+        version_uuid='version-1',
+        retry_count=retry_count,
+        file_path='gs://kobo-bucket/asr/speech-v2/chunks/version-1/001.flac',
+        service_id='projects/kobo/locations/us/operations/42',
+    )
+
+
+def test_starting_a_chunk_submits_its_job_without_waiting():
+    service = _get_service_for_process_data()
+    service._batch_recognize = MagicMock(
+        return_value=MagicMock(operation=SimpleNamespace(name='operations/1'))
+    )
+
+    with patch(f'{SERVICE_MODULE}.require_google_service_quota') as require_quota:
+        report = service.start_chunk(_get_chunk(retry_count=1), CHUNK_CONFIG)
+
+    require_quota.assert_called_once_with('speech_v2_batch_recognize')
+    service._batch_recognize.assert_called_once_with(
+        'gs://kobo-bucket/asr/speech-v2/chunks/version-1/001.flac',
+        # Next to the chunk file, one folder per attempt
+        'asr/speech-v2/chunks/version-1/001/1',
+        CHUNK_CONFIG,
+    )
+    service._batch_recognize.return_value.result.assert_not_called()
+    assert report.status == 'in_progress'
+    assert report.service_id == 'operations/1'
+
+
+@pytest.mark.parametrize(
+    'error, status, retryable',
+    [
+        (InvalidArgument('bad request'), 'failed', False),
+        (PermissionDenied('permission denied'), 'failed', False),
+        (Unauthenticated('invalid credentials'), 'failed', False),
+        # Not sent: sent again as the same attempt
+        (ServiceUnavailable('unreachable'), 'in_progress', True),
+    ],
+)
+def test_a_chunk_google_does_not_take_is_reported(error, status, retryable):
+    service = _get_service_for_process_data()
+    service._batch_recognize = MagicMock(side_effect=error)
+
+    with patch(f'{SERVICE_MODULE}.require_google_service_quota'):
+        report = service.start_chunk(_get_chunk(), CHUNK_CONFIG)
+
+    assert report.status == status
+    assert report.service_id is None
+    assert report.retryable is retryable
+
+
+def test_a_chunk_started_out_of_quota_is_retried_later():
+    service = _get_service_for_process_data()
+    service._batch_recognize = MagicMock(side_effect=ResourceExhausted('quota'))
+
+    with patch(f'{SERVICE_MODULE}.require_google_service_quota'), pytest.raises(
+        GoogleQuotaExceededError
+    ):
+        service.start_chunk(_get_chunk(), CHUNK_CONFIG)
+
+
+def test_a_chunk_is_checked_where_its_job_runs():
+    service = _get_service_for_process_data()
+    service._check_batch_operation = MagicMock()
+    chunk = _get_chunk(retry_count=1)
+
+    assert service.check_chunk(chunk) is service._check_batch_operation.return_value
+    service._check_batch_operation.assert_called_once_with(
+        chunk.service_id, 'us', 'asr/speech-v2/chunks/version-1/001/1'
+    )
