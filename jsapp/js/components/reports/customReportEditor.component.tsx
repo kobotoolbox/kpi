@@ -1,12 +1,11 @@
-import { cloneDeep } from 'lodash-es'
-import React from 'react'
+import { Group, Stack, Text } from '@mantine/core'
+import { omit } from 'lodash-es'
+import { useEffect, useState } from 'react'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
-import bem from '#/bem'
+import ButtonNew from '#/components/common/ButtonNew'
 import TextInput from '#/components/common/TextInput'
-import Button from '#/components/common/button'
-import Checkbox from '#/components/common/checkbox'
-import Modal from '#/components/common/modal'
+import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import type { CustomReportSettings, ReportsResponse } from '#/components/reports/reportsConstants'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
 import { getReportRowTranslatedLabel } from './reports.utils'
@@ -17,134 +16,68 @@ interface CustomReportEditorProps {
   asset: AssetResponse
 }
 
-interface CustomReportEditorState {
-  customReport: CustomReportSettings
-  isPending: boolean
-}
-
 /**
  * This component is being used to create or modify custom report.
  */
-export default class CustomReportEditor extends React.Component<CustomReportEditorProps, CustomReportEditorState> {
-  private unlisteners: Function[] = []
+export default function CustomReportEditor(props: CustomReportEditorProps) {
+  const [customReport, setCustomReport] = useState<CustomReportSettings>(props.customReport)
+  const [isPending, setIsPending] = useState(false)
 
-  constructor(props: CustomReportEditorProps) {
-    super(props)
+  useEffect(() => {
+    const unlisteners = [
+      actions.reports.setCustom.completed.listen(() => setIsPending(false)),
+      actions.reports.setCustom.failed.listen((response: FailResponse) => {
+        handleApiFail(response)
+        setIsPending(false)
+      }),
+    ]
+    return () => unlisteners.forEach((clb) => clb())
+  }, [])
 
-    this.state = {
-      customReport: props.customReport,
-      isPending: false,
-    }
-  }
+  const questionItems: MultiCheckboxItem[] = props.reportData.map((item) => ({
+    name: item.name,
+    label: getReportRowTranslatedLabel(item, props.asset.content?.survey, 0),
+    checked: customReport.questions.includes(item.name),
+  }))
 
-  componentDidMount() {
-    this.unlisteners.push(
-      actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
-      actions.reports.setCustom.failed.listen(this.onSetCustomFailed.bind(this)),
-    )
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => clb())
-  }
-
-  onSetCustomCompleted(_response: AssetResponse) {
-    this.setState({ isPending: false })
-  }
-
-  onSetCustomFailed(response: FailResponse) {
-    handleApiFail(response)
-    this.setState({ isPending: false })
-  }
-
-  onCustomReportNameChange(newName: string) {
-    const newReport = cloneDeep(this.state.customReport)
-    newReport.name = newName
-    this.setState({ customReport: newReport })
-  }
-
-  customReportQuestionChange(name: string, isChecked: boolean) {
-    const newReport = cloneDeep(this.state.customReport)
-
-    if (isChecked) {
-      newReport.questions.push(name)
-    } else {
-      newReport.questions.splice(newReport.questions.indexOf(name), 1)
-    }
-    this.setState({ customReport: newReport })
+  function onQuestionsChange(items: MultiCheckboxItem[]) {
+    setCustomReport({ ...customReport, questions: items.filter((item) => item.checked).map((item) => item.name) })
   }
 
   /** Pass `null` to delete report */
-  updateAssetCustomReports(crid: string, newReport: CustomReportSettings | null) {
-    const assetCustomReports = cloneDeep(this.props.asset.report_custom || {})
-    if (newReport === null) {
-      delete assetCustomReports[crid]
-    } else {
-      assetCustomReports[crid] = newReport
-    }
-    actions.reports.setCustom(this.props.asset.uid, assetCustomReports, crid)
-    this.setState({ isPending: true })
+  function updateAssetCustomReports(newReport: CustomReportSettings | null) {
+    const { crid } = customReport
+    const assetCustomReports =
+      newReport === null ? omit(props.asset.report_custom, crid) : { ...props.asset.report_custom, [crid]: newReport }
+    actions.reports.setCustom(props.asset.uid, assetCustomReports, crid)
+    setIsPending(true)
   }
 
-  render() {
-    const crid = this.state.customReport.crid
+  return (
+    <Stack>
+      <TextInput
+        // Modal focuses this on open
+        data-autofocus
+        value={customReport.name}
+        placeholder={t('Untitled Report')}
+        onChange={(evt) => setCustomReport({ ...customReport, name: evt.currentTarget.value })}
+      />
 
-    return (
-      <bem.GraphSettings>
-        <Modal.Body>
-          <div className='custom-report-form'>
-            <div className='custom-report--title'>
-              <TextInput
-                value={this.state.customReport.name}
-                placeholder={t('Untitled Report')}
-                onChange={(evt) => this.onCustomReportNameChange(evt.currentTarget.value)}
-              />
-            </div>
+      <Text fw='bold'>{t('Include the following questions:')}</Text>
 
-            <strong>{t('Include the following questions:')}</strong>
+      <MultiCheckbox type='bare' items={questionItems} onChange={onQuestionsChange} />
 
-            <div className='custom-report--questions'>
-              {this.props.reportData.map((item, index) => {
-                const label = getReportRowTranslatedLabel(item, this.props.asset.content?.survey, 0)
+      <Group justify='flex-end'>
+        {props.asset.report_custom?.[customReport.crid] && (
+          <ButtonNew variant='danger' size='lg' onClick={() => updateAssetCustomReports(null)} loading={isPending}>
+            {t('Delete')}
+          </ButtonNew>
+        )}
 
-                return (
-                  <div className='graph-settings__question' key={index}>
-                    <Checkbox
-                      checked={this.state.customReport.questions.includes(item.name)}
-                      onChange={this.customReportQuestionChange.bind(this, item.name)}
-                      label={label}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-
-            <bem.Modal__footer>
-              {this.props.asset.report_custom?.[crid] && (
-                <Button
-                  type='danger'
-                  size='l'
-                  onClick={() => {
-                    this.updateAssetCustomReports(this.state.customReport.crid, null)
-                  }}
-                  label={t('Delete')}
-                  isPending={this.state.isPending}
-                />
-              )}
-
-              <Button
-                type='primary'
-                size='l'
-                onClick={() => {
-                  this.updateAssetCustomReports(this.state.customReport.crid, this.state.customReport)
-                }}
-                label={t('Save')}
-                isPending={this.state.isPending}
-              />
-            </bem.Modal__footer>
-          </div>
-        </Modal.Body>
-      </bem.GraphSettings>
-    )
-  }
+        <ButtonNew size='lg' onClick={() => updateAssetCustomReports(customReport)} loading={isPending}>
+          {t('Save')}
+        </ButtonNew>
+      </Group>
+    </Stack>
+  )
 }
