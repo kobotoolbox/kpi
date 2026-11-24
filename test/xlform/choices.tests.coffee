@@ -161,6 +161,18 @@ module.exports = do ->
 
 
     describe 'Choicelist', ->
+      describe 'finalize method', ->
+        it 'does not give an auto name that a later choice already uses', ->
+          # Only the last choice was named by hand
+          choiceList = new $choices.ChoiceList(name: 'abab', options: [
+            {label: 'a'}
+            {label: 'b'}
+            {label: 'a'}
+            {label: 'b', name: 'b'}
+          ])
+          choiceList.finalize()
+          expect(choiceList.options.map((o) -> o.get('name'))).toEqual ['a', 'b_1', 'a_1', 'b']
+
       describe 'Clone method', ->
         it 'Clones itself and all of its options', ->
           yesnoClone = @yesno.clone()
