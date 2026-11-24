@@ -51,6 +51,7 @@ export default function TranscriptTab({
         asset={asset}
         questionXpath={questionXpath}
         submission={submission}
+        supplement={supplement}
         activeBulkActions={activeBulkActions}
       />
     )
