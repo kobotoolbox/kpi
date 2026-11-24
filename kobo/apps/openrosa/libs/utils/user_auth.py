@@ -70,16 +70,11 @@ def set_profile_data(data, content_user):
     )
 
 
-def has_permission(xform, owner, request, shared=False):
+def has_permission(xform, owner, request):
     # PERM_VIEW_ASSET covers holders of PERM_CHANGE_ASSET too: the asset model
     # declares change_asset → view_asset in its IMPLIED_PERMISSIONS mapping.
     user = request.user
-    return (
-        shared
-        or xform.shared_data
-        or owner == user
-        or user.has_perm(PERM_VIEW_ASSET, xform.asset)
-    )
+    return owner == user or user.has_perm(PERM_VIEW_ASSET, xform.asset)
 
 
 def has_delete_data_permission(xform, owner, request):
@@ -99,11 +94,7 @@ def has_view_data_permission(xform, owner, request):
     """
 
     user = request.user
-    return (
-        xform.shared_data
-        or owner == user
-        or user.has_perm(PERM_VIEW_SUBMISSIONS, xform.asset)
-    )
+    return owner == user or user.has_perm(PERM_VIEW_SUBMISSIONS, xform.asset)
 
 
 def check_and_set_user_and_form(username, id_string, request):

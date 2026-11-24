@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import os
 import tempfile
@@ -171,7 +170,7 @@ def download_xlsform(request, username, id_string):
     )
     owner = User.objects.get(username__iexact=username)
 
-    if not has_permission(xform, owner, request, xform.shared):
+    if not has_permission(xform, owner, request):
         return HttpResponseForbidden('Not shared.')
 
     file_path = xform.xls.name
@@ -224,7 +223,7 @@ def download_jsonform(request, username, id_string):
         add_cors_headers(response)
         return response
 
-    if not has_permission(xform, owner, request, xform.shared):
+    if not has_permission(xform, owner, request):
         response = HttpResponseForbidden(t('Not shared.'))
         add_cors_headers(response)
         return response

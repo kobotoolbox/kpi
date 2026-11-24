@@ -2,6 +2,7 @@ from ddt import data, ddt
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.export import Export
@@ -111,6 +112,16 @@ class TestExportPermissions(TestBase):
     def test_export_views_deny_users_without_submission_permissions(self, perm):
         self.asset.assign_perm(self.alice, perm)
         self._assert_export_views_denied(self.alice_client)
+
+    def test_export_views_ignore_stale_sharing_flags(self):
+        XForm.objects.filter(pk=self.xform.pk).update(shared=True, shared_data=True)
+
+        self._assert_export_views_denied(self.alice_client)
+        responses = self._get_read_responses(self.anon)
+
+        assert responses['list'].status_code == 403
+        assert responses['progress'].status_code == 403
+        assert responses['download'].status_code == 403
 
     def _assert_export_views_denied(self, client):
         responses = self._get_read_responses(client)
