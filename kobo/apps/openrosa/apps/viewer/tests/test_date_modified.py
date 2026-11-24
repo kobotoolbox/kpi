@@ -3,6 +3,7 @@ from django.conf import settings
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.utils.instance import (
     add_validation_status_to_instance,
+    remove_validation_status_from_instance,
     set_instance_validation_statuses,
 )
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
@@ -68,6 +69,22 @@ class TestDateModified(TestBase):
             MONGO_STRFTIME
         )
 
+    def test_remove_validation_status_updates_date_modified(self):
+        instance = Instance.objects.order_by('pk').first()
+        assert add_validation_status_to_instance(
+            self.user.username, 'validation_status_approved', instance
+        )
+        instance.refresh_from_db()
+        date_modified_before = instance.date_modified
+
+        assert remove_validation_status_from_instance(instance)
+        instance.refresh_from_db()
+        assert instance.date_modified > date_modified_before
+        document = self._mongo_doc(instance.pk)
+        assert document[DATE_MODIFIED] == instance.date_modified.strftime(
+            MONGO_STRFTIME
+        )
+
     def test_bulk_validation_statuses_update_date_modified(self):
         instance_ids = list(Instance.objects.values_list('pk', flat=True))
         date_modified_before = max(
@@ -79,6 +96,35 @@ class TestDateModified(TestBase):
         }
         updated_count = set_instance_validation_statuses(
             self.xform, request_data, self.user.username
+        )
+        assert updated_count == len(instance_ids)
+        for instance in Instance.objects.filter(pk__in=instance_ids):
+            assert instance.date_modified > date_modified_before
+            document = self._mongo_doc(instance.pk)
+            assert document[DATE_MODIFIED] == instance.date_modified.strftime(
+                MONGO_STRFTIME
+            )
+
+    def test_bulk_remove_validation_statuses_update_date_modified(self):
+        instance_ids = list(Instance.objects.values_list('pk', flat=True))
+        set_instance_validation_statuses(
+            self.xform,
+            {
+                'submission_ids': instance_ids,
+                'validation_status.uid': 'validation_status_approved',
+            },
+            self.user.username,
+        )
+        date_modified_before = max(
+            Instance.objects.values_list('date_modified', flat=True)
+        )
+        updated_count = set_instance_validation_statuses(
+            self.xform,
+            {
+                'submission_ids': instance_ids,
+                'validation_status.uid': '',
+            },
+            self.user.username,
         )
         assert updated_count == len(instance_ids)
         for instance in Instance.objects.filter(pk__in=instance_ids):
