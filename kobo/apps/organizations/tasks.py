@@ -79,7 +79,24 @@ def transfer_organization_ownership(transfer_id: int):
         # Phase 1: Atomically swap OrganizationOwner and update outgoing
         # owner role to Admin in its own transaction so row locks are released
         # quickly and do not block concurrent requests.
+        # Resolve the organization before locking so we can lock in strict order:
+        # OrganizationOwner -> OrgOwnershipTransferInvite -> OrganizationUser.
+        org = (
+            OrgOwnershipTransferInvite.objects.select_related('sender')
+            .get(pk=transfer_id)
+            .organization
+        )
+
         with transaction.atomic():
+            org_owner = (
+                OrganizationOwner.objects.select_for_update()
+                .select_related('organization_user')
+                .filter(organization=org)
+                .first()
+                if org
+                else None
+            )
+
             transfer = (
                 OrgOwnershipTransferInvite.objects.select_for_update()
                 .select_related('sender', 'recipient')
@@ -99,18 +116,12 @@ def transfer_organization_ownership(transfer_id: int):
                 )
                 return
 
-            org = transfer.organization
-            if not org:
+            if not org or not org_owner:
                 logging.error(f'Organization not found for transfer {transfer_id}')
                 transfer.status = InviteStatusChoices.FAILED
                 transfer.save(update_fields=['status', 'date_modified'])
                 return
 
-            org_owner = (
-                OrganizationOwner.objects.select_for_update()
-                .select_related('organization_user')
-                .get(organization=org)
-            )
             new_org_user = (
                 OrganizationUser.objects.select_for_update()
                 .select_related('user')

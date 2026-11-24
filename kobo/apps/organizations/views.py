@@ -835,8 +835,14 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         with transaction.atomic():
-            # Lock transfers before OrganizationUser to match the lock order in
-            # transfer_organization_ownership and avoid PostgreSQL deadlocks.
+            # Lock in strict order: OrganizationOwner -> OrgOwnershipTransferInvite
+            # -> OrganizationUser, matching transfer creation and the ownership
+            # transfer worker to serialize concurrent creation/removal and prevent
+            # PostgreSQL deadlocks.
+            OrganizationOwner.objects.select_for_update().filter(
+                organization_id=instance.organization_id
+            ).first()
+
             active_transfers = list(
                 OrgOwnershipTransferInvite.objects.select_for_update()
                 .filter(
