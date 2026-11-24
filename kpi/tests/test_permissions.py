@@ -927,6 +927,32 @@ class PermissionsTestCase(BasePermissionsTestCase):
             for expected_perm in expected_perms:
                 assert asset.has_perm(self.anotheruser, expected_perm)
 
+    def test_org_admin_loses_inherited_permissions_when_mmo_lapses(self):
+        """
+        Test that implicit admin access to org projects ends with the MMO plan,
+        while the admin keeps their role in the organization.
+        """
+        expected_perms = self.admin_asset.get_org_admin_inherited_perms()
+        organization = self.someuser.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        organization.add_user(self.anotheruser, is_admin=True)
+
+        assert self.someuser.assets.exists()
+        for asset in self.someuser.assets.all():
+            # Set permission assignments
+            asset.save()
+            assert asset.has_perm(self.anotheruser, PERM_MANAGE_ASSET)
+
+        organization.mmo_override = False
+        organization.save(update_fields=['mmo_override'])
+
+        assert organization.is_admin(self.anotheruser)
+        for asset in self.someuser.assets.all():
+            for expected_perm in expected_perms:
+                assert not asset.has_perm(self.anotheruser, expected_perm)
+            assert not expected_perms & set(asset.get_perms(self.anotheruser))
+
     def test_perms_map_is_not_mutated_on_inherance(self):
         django_perm_class = DjangoObjectPermissions()
         assert django_perm_class.perms_map['PATCH'] == [
