@@ -1788,17 +1788,26 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         recent_transfer.refresh_from_db()
         self.assertEqual(recent_transfer.status, InviteStatusChoices.PENDING)
 
+    @data(
+        InviteStatusChoices.ACCEPTED,
+        InviteStatusChoices.IN_PROGRESS,
+        InviteStatusChoices.COMPLETE,
+        InviteStatusChoices.CANCELLED,
+        InviteStatusChoices.DECLINED,
+        InviteStatusChoices.FAILED,
+    )
     @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
     def test_mark_organization_invite_as_expired_ignores_non_pending(
-        self,
+        self, non_pending_status
     ):
         """
-        Transfers in terminal statuses (COMPLETE, CANCELLED, DECLINED, FAILED)
-        are never changed to EXPIRED even if older than the threshold.
+        Transfers in non-pending statuses (active: ACCEPTED, IN_PROGRESS;
+        terminal: COMPLETE, CANCELLED, DECLINED, FAILED) are never changed to
+        EXPIRED even if older than the threshold.
         """
         self._create_transfer(self.owner_user, self.admin_user.username)
         transfer = OrgOwnershipTransferInvite.objects.first()
-        transfer.status = InviteStatusChoices.DECLINED
+        transfer.status = non_pending_status
         transfer.save(update_fields=['status'])
 
         eight_days_ago = timezone.now() - timedelta(days=8)
@@ -1809,7 +1818,20 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         mark_organization_invite_as_expired()
 
         transfer.refresh_from_db()
-        self.assertEqual(transfer.status, InviteStatusChoices.DECLINED)
+        self.assertEqual(transfer.status, non_pending_status)
+
+        # For active in-flight transfers (ACCEPTED, IN_PROGRESS), the team remains
+        # locked and another transfer cannot be initiated.
+        if non_pending_status in (
+            InviteStatusChoices.ACCEPTED,
+            InviteStatusChoices.IN_PROGRESS,
+        ):
+            res = self._create_transfer(self.owner_user, self.admin_user.username)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(
+                str(res.data['detail'][0]),
+                str(OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR),
+            )
 
     @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
     def test_expired_transfer_releases_single_transfer_lock(self):
