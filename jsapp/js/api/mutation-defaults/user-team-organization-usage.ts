@@ -12,6 +12,7 @@ import {
   getOrganizationsMembersListQueryKey,
   getOrganizationsMembersPartialUpdateMutationOptions,
   getOrganizationsMembersRetrieveQueryKey,
+  getOrganizationsOwnershipTransfersCreateMutationOptions,
   getOrganizationsPartialUpdateMutationOptions,
   getOrganizationsRetrieveQueryKey,
   type organizationsInvitesRetrieveResponse,
@@ -70,6 +71,18 @@ export function applyUserTeamOrganizationMutationDefaults(client: QueryClient): 
       },
     }),
   )
+
+  client.setMutationDefaults(
+    getOrganizationsOwnershipTransfersCreateMutationOptions().mutationKey!,
+    getOrganizationsOwnershipTransfersCreateMutationOptions({
+      mutation: {
+        onSuccess: (_data, { uidOrganization }) => {
+          invalidatePaginatedList(getOrganizationsMembersListQueryKey(uidOrganization), client)
+        },
+      },
+    }),
+  )
+
   client.setMutationDefaults(
     getOrganizationsInvitesDestroyMutationOptions().mutationKey!,
     getOrganizationsInvitesDestroyMutationOptions({

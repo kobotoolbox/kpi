@@ -194,7 +194,6 @@ function MembersRoute() {
       key: 'invite',
       label: renderSortableHeader('status', t('Status')),
       size: 120,
-      // TODO: replace with MemberListResponse after backend is ready
       cellFormatter: (obj: MemberListResponse) => {
         const { invite } = getMemberOrInviteDetails(obj)
         if (invite) {
@@ -219,7 +218,6 @@ function MembersRoute() {
       key: 'role',
       label: renderSortableHeader('role', t('Role')),
       size: 140,
-      // TODO: replace with MemberListResponse after backend is ready
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         if (member?.role === MemberRoleEnum.owner || !isUserAdminOrOwner) {
@@ -285,7 +283,6 @@ function MembersRoute() {
       label: '',
       size: 64,
       isPinned: 'right',
-      // TODO: replace with MemberListResponse after backend is ready
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         // There is no action that can be done on an owner

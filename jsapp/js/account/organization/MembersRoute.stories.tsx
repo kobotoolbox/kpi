@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw'
 import { toast } from 'react-hot-toast'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { OrganizationOwnershipTransferStatusEnum } from '#/api/models/organizationOwnershipTransferStatusEnum'
 import { TOO_SHORT_SEARCH_WARNING } from '#/components/common/searchPhrase.constants'
 import organizationMock from '#/endpoints/organization.mocks'
 import organizationMembersMock, { buildMember } from '#/endpoints/organizationMembers.mocks'
@@ -208,7 +209,6 @@ export const SearchRejectedByBackend: Story = {
  * A member with a pending ownership transfer (always an admin, as the backend
  * requires) shows a different badge, a disabled role selector, and
  * "Resend invitation" / "Cancel invitation" in the actions menu.
- * The `pending_transfer` field is cast because it is not yet in the generated type.
  */
 export const PendingOwnerTransfer: Story = {
   parameters: {
@@ -216,8 +216,22 @@ export const PendingOwnerTransfer: Story = {
       handlers: [
         organizationMock(),
         organizationMembersMock([
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          buildMember('matt90', 'Matthew Sungur', { role: MemberRoleEnum.admin, pending_transfer: true } as any),
+          buildMember('matt90', 'Matthew Sungur', {
+            role: MemberRoleEnum.admin,
+            pending_transfer: {
+              uid: 'transfer-uid',
+              organization_id: 'org_id',
+              organization_name: 'Example organization',
+              sender: 'owner',
+              sender_name: 'Organization owner',
+              sender_email: 'owner@example.com',
+              recipient: 'matt90',
+              status: OrganizationOwnershipTransferStatusEnum.pending,
+              billing_review_requested: false,
+              created: '2025-01-15T10:00:00Z',
+              modified: '2025-01-15T10:00:00Z',
+            },
+          }),
           buildMember('alice', 'Alice Alvarez'),
         ]),
         helpBubbleMock,
