@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import os
 
@@ -22,7 +21,10 @@ from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.tasks import create_async_export
 from kobo.apps.openrosa.libs.authentication import digest_authentication
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
-from kobo.apps.openrosa.libs.utils.user_auth import has_permission, helper_auth_helper
+from kobo.apps.openrosa.libs.utils.user_auth import (
+    has_view_data_permission,
+    helper_auth_helper,
+)
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
 from kpi.constants import PERM_VIEW_SUBMISSIONS
 from kpi.deployment_backends.kc_access.storage import (
@@ -38,7 +40,7 @@ from kpi.views.v2.attachment import AttachmentViewSet
 def create_export(request, username, id_string, export_type):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
-    if not has_permission(xform, owner, request):
+    if not has_view_data_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
     query = request.POST.get('query')
@@ -91,7 +93,7 @@ def export_list(request, username, id_string, export_type):
 
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
-    if not has_permission(xform, owner, request):
+    if not has_view_data_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
     data = {
@@ -110,7 +112,7 @@ def export_list(request, username, id_string, export_type):
 def export_progress(request, username, id_string, export_type):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
-    if not has_permission(xform, owner, request):
+    if not has_view_data_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
     # find the export entry in the db
@@ -151,7 +153,7 @@ def export_download(request, username, id_string, export_type, filename):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
 
-    if not has_permission(xform, owner, request):
+    if not has_view_data_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
     # find the export entry in the db
@@ -179,13 +181,13 @@ def export_download(request, username, id_string, export_type, filename):
 def delete_export(request, username, id_string, export_type):
     owner = get_object_or_404(User, username__iexact=username)
     xform = get_object_or_404(XForm, id_string__exact=id_string, user=owner)
-    if not has_permission(xform, owner, request):
+    if not has_view_data_permission(xform, owner, request):
         return HttpResponseForbidden(t('Not shared.'))
 
     export_id = request.POST.get('export_id')
 
     # find the export entry in the db
-    export = get_object_or_404(Export, id=export_id)
+    export = get_object_or_404(Export, id=export_id, xform=xform)
     export.delete()
 
     return HttpResponseRedirect(
