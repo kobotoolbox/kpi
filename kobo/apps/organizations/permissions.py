@@ -64,6 +64,20 @@ class OrganizationNestedHasOrgRolePermission(HasOrgRolePermission):
         return True
 
 
+class OrgAssetAccessPermission(IsOrgAdminPermission):
+    """
+    Same as `IsOrgAdminPermission` for the owner, but non-owner admins
+    qualify only while the organization is MMO: implicit admin access to
+    org projects ends when the plan lapses (DEV-3169).
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if not super().has_object_permission(request, view, obj):
+            return False
+        user = get_database_user(request.user)
+        return obj.is_owner(user) or obj.is_mmo
+
+
 class OrgMembershipInvitePermission(ValidationPasswordPermissionMixin, IsAuthenticated):
 
     ALLOWED_ROLES = (
