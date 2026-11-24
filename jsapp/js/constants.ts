@@ -74,7 +74,6 @@ export const MODAL_TYPES = {
   NEW_FORM: 'new-form',
   LIBRARY_UPLOAD: 'library-upload',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
-  MFA_MODALS: 'mfa-modals',
 }
 
 export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({

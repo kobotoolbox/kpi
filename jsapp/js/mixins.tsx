@@ -8,31 +8,10 @@ import type { AssetStoreData } from '#/assetStore'
 import type { AssetResponse } from '#/dataInterface'
 import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
-import {
-  getCurrentPath,
-  getRouteAssetUid,
-  isAnyFormsRoute,
-  isAnyLibraryRoute,
-  isMyLibraryRoute,
-  isNewLibraryItemRoute,
-  isPublicCollectionsRoute,
-} from '#/router/routerUtils'
+import { getRouteAssetUid } from '#/router/routerUtils'
 import { recordKeys } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES } from './constants'
-
-interface ContextRouterMixin extends Mixin<any, any> {
-  isFormList: () => boolean
-  isLibrary: () => boolean
-  isMyLibrary: () => boolean
-  isPublicCollections: () => boolean
-  isLibrarySingle: () => boolean
-  isFormSingle: () => boolean
-  currentAssetID: () => string | undefined
-  currentAsset: () => AssetResponse | undefined
-  isActiveRoute: (path: string) => boolean
-  isFormBuilder: () => boolean
-}
 
 interface DmixProps {
   params?: {
@@ -76,7 +55,6 @@ interface DmixMixin extends Mixin<DmixProps, DmixState> {
 }
 
 interface MixinsObject {
-  contextRouter: ContextRouterMixin
   dmix: DmixMixin
 }
 
@@ -236,55 +214,6 @@ const mixins: MixinsObject = {
       if (uid) {
         removeAssetSharing(uid)
       }
-    },
-  },
-  /**
-   * @deprecated Use `routerUtils.ts` instead.
-   */
-  contextRouter: {
-    isFormList() {
-      return isAnyFormsRoute() && this.currentAssetID() === undefined
-    },
-    isLibrary() {
-      return isAnyLibraryRoute()
-    },
-    isMyLibrary() {
-      return isMyLibraryRoute()
-    },
-    isPublicCollections() {
-      return isPublicCollectionsRoute()
-    },
-    isLibrarySingle() {
-      return isAnyLibraryRoute() && this.currentAssetID() !== undefined
-    },
-    isFormSingle() {
-      return isAnyFormsRoute() && this.currentAssetID() !== undefined
-    },
-    currentAssetID() {
-      return getRouteAssetUid() ?? undefined
-    },
-    currentAsset() {
-      const assetId = this.currentAssetID()
-      return assetId ? assetStore.data[assetId] : undefined
-    },
-    isActiveRoute(path: string) {
-      return getCurrentPath().startsWith(path)
-    },
-    isFormBuilder() {
-      if (isNewLibraryItemRoute()) {
-        return true
-      }
-
-      const uid = this.currentAssetID()
-      if (uid === undefined) {
-        return false
-      }
-
-      return (
-        getCurrentPath().startsWith(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
-        getCurrentPath().startsWith(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
-        getCurrentPath().startsWith(ROUTES.FORM_EDIT.replace(':uid', uid))
-      )
     },
   },
 }

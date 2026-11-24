@@ -13,4 +13,7 @@
 export type LanguageListTranslationServicesItem = {
   code?: string
   name?: string
+  priority?: number
+  /** @nullable */
+  action_id?: string | null
 }

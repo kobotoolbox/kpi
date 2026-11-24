@@ -1,7 +1,8 @@
-import private_storage.urls
 from django.conf import settings
 from django.urls import include, path, re_path
+from django.views.decorators.cache import never_cache
 from django.views.i18n import JavaScriptCatalog
+from private_storage.views import PrivateStorageView
 
 from hub.models import ConfigurationFile
 from kobo.apps.accounts.email_previews import (
@@ -32,7 +33,6 @@ urlpatterns = [
         'delete': 'destroy',
     }), name='currentuser-detail'),
     path('api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
-    path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
@@ -49,7 +49,13 @@ urlpatterns = [
     path('token/', TokenView.as_view(), name='token'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
-    path('private-media/', include(private_storage.urls)),
+    # Exports are served from here. The library's own headers force
+    # revalidation but still allow storing the file on disk.
+    re_path(
+        r'^private-media/(?P<path>.*)$',
+        never_cache(PrivateStorageView.as_view()),
+        name='serve_private_file',
+    ),
     # Statistics for superusers
     path(
         'superuser_stats/',

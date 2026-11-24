@@ -1,21 +1,26 @@
 # coding: utf-8
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
 from django.db import models
 from rest_framework import serializers
 
+from kobo.apps.subsequences.actions import (
+    TRANSCRIPTION_ACTION_IDS_BY_SERVICE_CODE,
+)
 from ..models.transcription import (
     TranscriptionService,
     TranscriptionServiceLanguageM2M,
 )
 from .base import (
-    BaseServiceSerializer,
     BaseServiceLanguageM2MListSerializer,
     BaseServiceLanguageM2MSerializer,
+    BaseServiceSerializer,
 )
 
 
 class TranscriptionServiceSerializer(BaseServiceSerializer):
+
+    ACTION_IDS_BY_SERVICE_CODE = TRANSCRIPTION_ACTION_IDS_BY_SERVICE_CODE
 
     class Meta(BaseServiceSerializer.Meta):
         model = TranscriptionService

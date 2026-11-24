@@ -137,8 +137,7 @@ $z-modal-x: 10;
 
   // Some modals have light background for the header, so we need some other
   // color than white
-  .modal--media-preview &,
-  .modal--mfa-setup & {
+  .modal--media-preview & {
     color: colors.$kobo-gray-600;
   }
 }
@@ -194,54 +193,6 @@ $z-modal-x: 10;
 // -----------------------------------------------------------------------------
 
 $modal-custom-header-height: 60px;
-
-// TODO: Make a better generic modal component
-// Refactor common CSS for modals with custom headers
-// See: https://github.com/kobotoolbox/kpi/issues/3643
-.modal.modal--custom-header {
-  border-radius: 6px;
-
-  .modal__content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .modal__header {
-    color: colors.$kobo-gray-800;
-    height: $modal-custom-header-height;
-
-    .modal__x {
-      padding: 0;
-      margin: 2px 0 0;
-    }
-  }
-
-  .modal__body {
-    padding: 0;
-    margin: 0;
-    overflow: auto;
-    flex: 1;
-  }
-}
-
-.modal.modal--mfa-setup {
-  // Height follows the step; a step taller than the screen scrolls in `.modal__body`
-  width: 570px;
-  // Overwrite regular modal % based sizes
-  min-width: 0;
-  min-height: 0;
-
-  .modal__header {
-    background-color: colors.$kobo-gray-100;
-    font-size: 24px;
-    padding: 32px 32px 48px;
-
-    .modal__x {
-      font-size: 12px;
-      color: rgba(colors.$kobo-gray-800, 0.4);
-    }
-  }
-}
 
 .modal.modal--media-preview {
   min-width: 25%;

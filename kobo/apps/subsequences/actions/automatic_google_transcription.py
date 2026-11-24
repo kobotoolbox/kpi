@@ -11,6 +11,7 @@ class AutomaticGoogleTranscriptionAction(
 ):
 
     ID = 'automatic_google_transcription'
+    SERVICE_CODE = GoogleTranscriptionService.SERVICE_CODE
     allowed_source_types = TRANSCRIBABLE_SOURCE_TYPES
     action_class_config = ActionClassConfig(
         allow_multiple=False,

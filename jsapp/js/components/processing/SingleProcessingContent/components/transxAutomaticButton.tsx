@@ -8,6 +8,8 @@ import envStore from '#/envStore'
 interface TransxAutomaticButtonProps {
   onClick: () => void
   selectedLanguage: LanguageCode | null
+  /** The language a text response is translated from, which the service must support too. */
+  sourceLanguage?: LanguageCode | null
   /** Which type of service the button should check availability for. */
   type: 'transcript' | 'translation'
   disabled?: boolean
@@ -39,13 +41,17 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   componentDidUpdate(prevProps: TransxAutomaticButtonProps) {
-    if (prevProps.selectedLanguage !== this.props.selectedLanguage) {
+    if (
+      prevProps.selectedLanguage !== this.props.selectedLanguage ||
+      prevProps.sourceLanguage !== this.props.sourceLanguage
+    ) {
       this.checkAvailability()
     }
   }
 
   async checkAvailability() {
     const languageCode = this.props.selectedLanguage
+    const sourceLanguage = this.props.sourceLanguage
 
     // If there is no language selected, we simply reset properties and stop.
     if (!languageCode) {
@@ -67,13 +73,20 @@ export default class TransxAutomaticButton extends React.Component<
         hasServicesAvailable = await hasTranscriptServicesAvailable(languageCode)
       }
       if (this.props.type === 'translation') {
-        hasServicesAvailable = await hasTranslationServicesAvailable(languageCode)
+        const languagesToCheck = sourceLanguage ? [languageCode, sourceLanguage] : [languageCode]
+        const results = await Promise.all(languagesToCheck.map((code) => hasTranslationServicesAvailable(code)))
+        hasServicesAvailable = results.every(Boolean)
       }
     } catch (error) {
-      console.error(`Language ${languageCode} not found 3`)
+      // TODO: Add proper error handling or at least clean up the logged errors
+      console.error(
+        sourceLanguage
+          ? `Language ${languageCode} or ${sourceLanguage} not found 3`
+          : `Language ${languageCode} not found 3`,
+      )
     } finally {
       // Safety check if props didn't change during the wait.
-      if (languageCode === this.props.selectedLanguage) {
+      if (languageCode === this.props.selectedLanguage && sourceLanguage === this.props.sourceLanguage) {
         this.setState({
           isLoading: false,
           isAvailable: hasServicesAvailable,
