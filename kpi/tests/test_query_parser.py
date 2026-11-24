@@ -209,6 +209,13 @@ def _parse(query):
     return parse(query, default_field_lookups=['name__icontains'], model=Asset)
 
 
+def test_quoted_values_stay_strings():
+    assert _parse('created_by__iexact:"null"') == Q(created_by__iexact='null')
+    assert _parse('created_by__icontains:"00123"') == Q(created_by__icontains='00123')
+    # Unquoted values are still converted
+    assert _parse('parent:null') == Q(parent=None)
+
+
 def _leaf_keys(q):
     """
     Flatten a `Q` tree into its leaves: the lookup key for a leaf tuple,

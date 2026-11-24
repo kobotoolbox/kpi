@@ -36,6 +36,8 @@ DENY_ALL = frozenset({'*'})  # Deny all fields in the table
 # }
 # ```
 
+# Stops black from reflowing every `frozenset` below
+# fmt: off
 ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
     'audit_log.accesslog': frozenset({
         'action',
@@ -148,6 +150,7 @@ ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
         'name',
     }),
 }
+# fmt: on
 # The denylist is kept purely as documentation and does not participate in runtime
 # authorization. It records what is explicitly banned and why.
 DENIED_LOOKUP_FIELDS: LookupFieldsMap = {

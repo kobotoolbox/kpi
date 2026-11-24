@@ -39,7 +39,12 @@ Syntax examples:
 Special notes:
     * The value `null` in a query is translated to `None`, e.g. `parent:null`
         effectively becomes the ORM `filter(parent=None)`
+    * Quoted values are kept as strings, e.g. `created_by:"null"`
 """
+
+
+class QuotedString(str):
+    pass
 
 
 class QueryParseActions:
@@ -97,6 +102,10 @@ class QueryParseActions:
 
         # TODO: Use Django or DRF machinery (or JSON parsing?) to handle types
         # that need special treatment, like dates
+
+        # Quoted means string, e.g. "null" or "00123" can be a username
+        if isinstance(value, QuotedString):
+            return str(value)
 
         # Handle None value
         if value == 'null':
@@ -300,7 +309,7 @@ class QueryParseActions:
 
     @staticmethod
     def string(text, a, b, elements):
-        return text[a+1:b-1]
+        return QuotedString(text[a + 1 : b - 1])
 
     @staticmethod
     def name(text, a, b, elements):
