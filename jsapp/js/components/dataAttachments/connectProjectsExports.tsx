@@ -48,7 +48,13 @@ export default function ConnectProjectsExports({
               {isLoading && <LoadingSpinner message={t('Updating shared questions')} />}
             </span>
 
-            <MultiCheckbox type='frame' items={columnsToDisplay} disabled={isLoading} onChange={onColumnSelected} />
+            <MultiCheckbox
+              type='frame'
+              className='connect-projects__export-columns'
+              items={columnsToDisplay}
+              disabled={isLoading}
+              onChange={onColumnSelected}
+            />
           </div>
         )}
       </div>

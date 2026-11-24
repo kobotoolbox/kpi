@@ -1,13 +1,4 @@
-import './multiCheckbox.scss'
-
-import React from 'react'
-
-import { Stack, Text } from '@mantine/core'
-import bem, { makeBem } from '#/bem'
-import Checkbox from '#/components/common/checkbox'
-
-bem.MultiCheckbox = makeBem(null, 'multi-checkbox', 'ul')
-bem.MultiCheckbox__item = makeBem(bem.MultiCheckbox, 'item', 'li')
+import { Box, Checkbox, Stack } from '@mantine/core'
 
 export type MultiCheckboxType = 'bare' | 'frame'
 
@@ -34,7 +25,6 @@ interface MultiCheckboxProps {
 
 /**
  * A MultiCheckbox generic component.
- * Use optional `bem.MultiCheckbox__wrapper` to display a frame around it.
  */
 export default function MultiCheckbox(props: MultiCheckboxProps) {
   function onChange(itemIndex: number, isChecked: boolean) {
@@ -52,31 +42,37 @@ export default function MultiCheckbox(props: MultiCheckboxProps) {
     props.onChange(updatedList)
   }
 
-  return (
-    <bem.MultiCheckbox m={`type-${props.type}`} className={props.className} dir='auto'>
-      {props.items.map((item, itemIndex) => {
-        return (
-          <bem.MultiCheckbox__item key={itemIndex}>
-            <Stack gap='0'>
-              <Checkbox
-                checked={item.checked}
-                disabled={props.disabled || item.disabled}
-                onChange={(isChecked: boolean) => {
-                  onChange(itemIndex, isChecked)
-                }}
-                // When there's a hint displayed, the label needs to be more prominent
-                label={item.hint ? <strong>{item.label}</strong> : item.label}
-              />
+  const isFrame = props.type === 'frame'
 
-              {item.hint && (
-                <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
-                  {item.hint}
-                </Text>
-              )}
-            </Stack>
-          </bem.MultiCheckbox__item>
-        )
-      })}
-    </bem.MultiCheckbox>
+  return (
+    <Stack
+      component='ul'
+      gap='sm'
+      m={0}
+      w='100%'
+      ta='start'
+      // Bare still needs some padding, so focus rings don't get cut off
+      p={isFrame ? 'sm' : 4}
+      bd={isFrame ? '1px solid var(--mantine-color-gray-6)' : undefined}
+      bdrs={isFrame ? 'xs' : undefined}
+      className={props.className}
+      dir='auto'
+      style={{ listStyle: 'none', overflowX: 'hidden', overflowY: 'auto' }}
+    >
+      {props.items.map((item, itemIndex) => (
+        <Box component='li' key={itemIndex}>
+          <Checkbox
+            checked={item.checked}
+            disabled={props.disabled || item.disabled}
+            onChange={(evt) => onChange(itemIndex, evt.currentTarget.checked)}
+            // When there's a hint displayed, the label needs to be more prominent
+            label={item.hint ? <strong>{item.label}</strong> : item.label}
+            description={item.hint}
+            // Theme's dimmed color is too faint for hints
+            styles={{ description: { color: 'var(--mantine-color-gray-2)' } }}
+          />
+        </Box>
+      ))}
+    </Stack>
   )
 }
