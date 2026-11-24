@@ -11,7 +11,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_pre
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
-from .actions import ACTION_IDS_TO_CLASSES
+from .actions import ACTION_IDS_TO_CLASSES, AUTOMATIC_TRANSCRIPTION_ACTION_IDS
 from .constants import (
     DELETED_FIELD,
     QUESTION_TYPE_TAGS,
@@ -718,7 +718,7 @@ class SubsequenceBulkAction(AbstractTimeStampedModel):
         return {key: value or 0 for key, value in counts.items()}
 
     def get_bulk_action_type(self) -> str:
-        if self.action_id == Action.AUTOMATIC_GOOGLE_TRANSCRIPTION:
+        if self.action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS:
             return BULK_ACTION_TYPE_TRANSCRIPTION
         if self.action_id == Action.AUTOMATIC_GOOGLE_TRANSLATION:
             return BULK_ACTION_TYPE_TRANSLATION
