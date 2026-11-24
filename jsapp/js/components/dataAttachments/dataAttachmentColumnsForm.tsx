@@ -1,4 +1,4 @@
-import { Box, Flex, Group, ScrollArea, Stack, Text } from '@mantine/core'
+import { Box, Flex, Stack, Text } from '@mantine/core'
 import { type MouseEvent, useCallback, useEffect, useState } from 'react'
 import type { ServerError } from '#/api/ServerError'
 import { useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
@@ -78,16 +78,6 @@ export function DataAttachmentColumnsForm({
     // Empty `fields` implies all source questions are exposed.
     setColumnsToDisplay(dataAttachmentsUtils.generateColumnFilters(fields, payload.content?.survey ?? []))
   }, [fields, sourceAssetResponse])
-
-  const onBulkSelect = useCallback((evt: MouseEvent<HTMLButtonElement>) => {
-    evt.preventDefault()
-    setColumnsToDisplay((current) => current.map((item) => ({ label: item.label, checked: true })))
-  }, [])
-
-  const onBulkDeselect = useCallback((evt: MouseEvent<HTMLButtonElement>) => {
-    evt.preventDefault()
-    setColumnsToDisplay((current) => current.map((item) => ({ label: item.label, checked: false })))
-  }, [])
 
   const onColumnSelected = useCallback((newList: ColumnFilter[]) => {
     setColumnsToDisplay(newList)
@@ -194,37 +184,23 @@ export function DataAttachmentColumnsForm({
         ).replace('##SOURCE_NAME##', source.name)}
       </Text>
 
-      <Flex mt={14} gap={10} align='center' justify='space-between' wrap='wrap'>
-        <Text fw='bold'>{t('Select below the questions you want to import')}</Text>
-
-        <Group gap={0} wrap='nowrap'>
-          <ButtonNew variant='light' size='sm' onClick={onBulkSelect}>
-            {t('Select all')}
-          </ButtonNew>
-
-          <Text mx={12}>{t('|')}</Text>
-
-          <ButtonNew variant='light' size='sm' onClick={onBulkDeselect}>
-            {t('Deselect all')}
-          </ButtonNew>
-        </Group>
-      </Flex>
+      <Box mt={14}>
+        <MultiCheckbox
+          type='frame'
+          label={<Text fw='bold'>{t('Select below the questions you want to import')}</Text>}
+          hasBulkSelect
+          listHeight={200}
+          items={columnsToDisplay}
+          onChange={onColumnSelected}
+          disabled={isLoading || isFetchingSourceAsset}
+        />
+      </Box>
 
       {!isInitialised && (
         <Box mt={12}>
           <LoadingSpinner message={t('Loading imported questions')} />
         </Box>
       )}
-
-      {/* The 200px tall bordered frame the `multi-checkbox--type-frame` styles used to provide */}
-      <ScrollArea h={200} mt={12} p={12} bd='1px solid var(--mantine-color-gray-6)' bdrs='xs'>
-        <MultiCheckbox
-          type='bare'
-          items={columnsToDisplay}
-          onChange={onColumnSelected}
-          disabled={isLoading || isFetchingSourceAsset}
-        />
-      </ScrollArea>
 
       {isLoading && (
         <Box mt={12}>
