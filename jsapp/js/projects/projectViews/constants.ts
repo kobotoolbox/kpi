@@ -135,6 +135,7 @@ export type ProjectFieldName =
   | 'description'
   | 'languages'
   | 'lastModifiedBy'
+  | 'lastSubmission'
   | 'name'
   | 'ownerEmail'
   | 'ownerFullName'
@@ -308,6 +309,13 @@ export const PROJECT_FIELDS: ProjectFields = {
     label: t('Submissions'),
     apiFilteringName: 'deployment__submission_count',
     apiOrderingName: 'deployment__submission_count',
+    availableConditions: [],
+  },
+  lastSubmission: {
+    name: 'lastSubmission',
+    label: t('Last submission'),
+    apiFilteringName: 'deployment__last_submission_time',
+    apiOrderingName: 'deployment__last_submission_time',
     availableConditions: [],
   },
 }

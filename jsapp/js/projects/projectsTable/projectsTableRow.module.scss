@@ -104,7 +104,8 @@ $projects-table-row-height: 36px;
 }
 
 .cell[data-field='dateModified'],
-.cell[data-field='dateDeployed'] {
+.cell[data-field='dateDeployed'],
+.cell[data-field='lastSubmission'] {
   width: 14%;
 }
 
