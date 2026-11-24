@@ -85,7 +85,9 @@ class ChunkedTranscriptionRun:
         Return where this run stands, or `None` when it has no chunks yet
         """
 
-        if not self._chunks().exists():
+        # A run without a version has no rows to look for: `start()` never
+        # saves any for it
+        if not self.version_uuid or not self._chunks().exists():
             return None
         # Sending the chunks (DEV-2917) and merging their transcripts
         # (DEV-2918) report from here

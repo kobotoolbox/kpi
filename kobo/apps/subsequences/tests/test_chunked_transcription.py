@@ -254,6 +254,10 @@ class ChunkedTranscriptionRunTestCase(TestCase):
     def test_a_run_without_chunks_has_no_status(self):
         assert self.run.get_status() is None
 
+    def test_a_run_without_a_version_has_no_status_and_runs_no_query(self):
+        with self.assertNumQueries(0):
+            assert self._get_run(None).get_status() is None
+
     def test_a_run_with_chunks_is_in_progress(self):
         self._create_chunk()
 

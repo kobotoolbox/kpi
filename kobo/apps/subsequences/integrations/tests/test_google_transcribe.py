@@ -387,7 +387,6 @@ def test_process_data_raises_quota_error_when_start_quota_is_exhausted(
         ('_get_attachment', AttachmentNotFoundException, 'Attachment not found'),
         ('_get_attachment', InvalidXPathException, 'Invalid question name XPath'),
         ('_get_attachment', XPathNotFoundException, 'Invalid question name XPath'),
-        ('get_converted_audio', NotSupportedFormatException, 'Unsupported format'),
     ],
 )
 @patch(
@@ -531,17 +530,24 @@ def test_polling_a_whole_file_job_does_not_look_for_chunks(starting_service, chu
     starting_service._get_attachment.assert_not_called()
 
 
-@pytest.mark.parametrize('duration', [60.0, HARD_LIMIT + 1])
-def test_a_file_that_is_not_audio_fails_the_same_way_on_both_paths(
-    starting_service, chunking, duration
+@pytest.mark.parametrize('run', [LAUNCH, POLL])
+def test_a_file_that_is_not_audio_is_refused_before_anything_reads_it(
+    starting_service, chunking, run
 ):
-    chunking.get_audio_duration.return_value = duration
-    starting_service._start_operation.side_effect = NotSupportedFormatException
-    chunking.run.start.side_effect = NotSupportedFormatException
+    """
+    Refused for both paths at once: no duration probe, no usage check, no
+    conversion
+    """
+    attachment = starting_service._get_attachment.return_value
+    attachment.validate_transcodable.side_effect = NotSupportedFormatException
 
-    result = starting_service.process_data('audio', {'language': 'en'}, **POLL)
+    result = starting_service.process_data('audio', {'language': 'en'}, **run)
 
     assert result == {'status': 'failed', 'error': 'Unsupported format'}
+    chunking.get_audio_duration.assert_not_called()
+    starting_service._before_new_operation.assert_not_called()
+    chunking.run.start.assert_not_called()
+    starting_service._start_operation.assert_not_called()
 
 
 @override_settings(GS_BUCKET_NAME='kobo-bucket')

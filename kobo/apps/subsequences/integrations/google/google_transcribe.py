@@ -293,15 +293,19 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         if (status := chunked_run.get_status()) is not None:
             return status
 
-        # Otherwise nothing is running for this run yet: start it
+        # Otherwise nothing is running for this run yet: start it. A file that
+        # is not audio is refused here, before anything reads it
         try:
             attachment = self._get_attachment(xpath)
+            attachment.validate_transcodable()
         except SubmissionNotFoundException:
             return {'status': 'failed', 'error': 'Submission not found'}
         except AttachmentNotFoundException:
             return {'status': 'failed', 'error': 'Attachment not found'}
         except (InvalidXPathException, XPathNotFoundException):
             return {'status': 'failed', 'error': 'Invalid question name XPath'}
+        except NotSupportedFormatException:
+            return {'status': 'failed', 'error': 'Unsupported format'}
 
         # An unknown duration takes the whole-file path, as every file did
         # before chunking
@@ -316,19 +320,16 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         if is_launch or not is_long:
             self._before_new_operation()
 
-        try:
-            if is_long:
-                return chunked_run.start(self, attachment, is_launch=is_launch)
-            return self._start_operation(
-                xpath,
-                attachment,
-                source_language=source_language,
-                model_code=language_config.model_code,
-                speech_location=speech_location,
-                bulk_action_uid=bulk_action_uid,
-            )
-        except NotSupportedFormatException:
-            return {'status': 'failed', 'error': 'Unsupported format'}
+        if is_long:
+            return chunked_run.start(self, attachment, is_launch=is_launch)
+        return self._start_operation(
+            xpath,
+            attachment,
+            source_language=source_language,
+            model_code=language_config.model_code,
+            speech_location=speech_location,
+            bulk_action_uid=bulk_action_uid,
+        )
 
     def _start_operation(
         self,
@@ -344,9 +345,6 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         Convert the whole file, launch its Google batch job and wait for it up
         to `ASR_MT_GOOGLE_REQUEST_TIMEOUT`, so a short clip can come back
         complete within the request
-
-        A file that is not audio raises `NotSupportedFormatException`, which
-        `process_data()` reports for both paths
         """
         converted_audio = self.get_converted_audio(attachment)
 
