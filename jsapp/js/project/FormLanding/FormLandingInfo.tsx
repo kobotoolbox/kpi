@@ -7,6 +7,8 @@ interface FormLandingInfoProps {
   asset: AssetResponse
   canEdit: boolean
   isCurrentVersionDeployed: boolean
+  /** Prevents redeploying with an outdated version while the asset refreshes. */
+  isRedeployDisabled: boolean
   onDeploy: () => void
   onUnarchive: () => void
 }
@@ -15,6 +17,7 @@ export default function FormLandingInfo({
   asset,
   canEdit,
   isCurrentVersionDeployed,
+  isRedeployDisabled,
   onDeploy,
   onUnarchive,
 }: FormLandingInfoProps) {
@@ -47,7 +50,7 @@ export default function FormLandingInfo({
       </Box>
       <Box className='form-view__cell form-view__cell--buttons'>
         {canEdit && asset.deployment_status === 'deployed' && (
-          <ButtonNew variant='filled' size='lg' tt='uppercase' onClick={onDeploy}>
+          <ButtonNew variant='filled' size='lg' tt='uppercase' disabled={isRedeployDisabled} onClick={onDeploy}>
             {t('redeploy')}
           </ButtonNew>
         )}
