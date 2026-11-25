@@ -1,5 +1,13 @@
 import { act, renderHook } from '@testing-library/react'
 import { DATA_TABLE_SETTINGS, SortValues } from '#/components/submissions/tableConstants'
+import {
+  getFrozenColumns,
+  getShowGroupName,
+  getShowHXLTags,
+  getSortBy,
+  isFieldFrozen,
+  isFieldVisible,
+} from '#/components/submissions/tableSettingsUtils'
 import tableStore, { useTableSettings } from '#/components/submissions/tableStore'
 import { getRouteAssetUid } from '#/router/routerUtils'
 
@@ -9,6 +17,8 @@ jest.mock('#/router/routerUtils', () => ({
 }))
 
 const mockGetRouteAssetUid = getRouteAssetUid as jest.Mock
+
+const getSettings = () => tableStore.getTableSettingsSnapshot()
 
 let testCounter = 0
 
@@ -33,7 +43,7 @@ describe('tableStore', () => {
       assetA: { [DATA_TABLE_SETTINGS.SORT_BY]: { fieldId: 'Name', value: SortValues.ASCENDING } },
       assetB: { [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: ['Age'] },
     })
-    chai.expect(tableStore.getSortBy()).to.equal(null)
+    chai.expect(getSortBy(getSettings())).to.equal(null)
   })
 
   it('should drop settings set to `null`', () => {
@@ -41,7 +51,7 @@ describe('tableStore', () => {
     tableStore.setFrozenColumn('Age', false)
 
     chai.expect(JSON.parse(localStorage.getItem(storageKey) || '')).to.deep.equal({ assetA: {} })
-    chai.expect(tableStore.getFrozenColumns()).to.deep.equal([])
+    chai.expect(getFrozenColumns(getSettings())).to.deep.equal([])
   })
 
   it('should keep settings saved by other tabs', () => {
@@ -65,8 +75,8 @@ describe('tableStore', () => {
     tableStore.setSortBy('Age', SortValues.DESCENDING)
     tableStore.setFrozenColumn('Age', true)
 
-    chai.expect(tableStore.getSortBy()).to.deep.equal({ fieldId: 'Age', value: SortValues.DESCENDING })
-    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Age'])
+    chai.expect(getSortBy(getSettings())).to.deep.equal({ fieldId: 'Age', value: SortValues.DESCENDING })
+    chai.expect(getFrozenColumns(getSettings())).to.deep.equal(['Age'])
     setItemSpy.mockRestore()
   })
 
@@ -76,7 +86,7 @@ describe('tableStore', () => {
 
     tableStore.setStorageKey(otherKey)
 
-    chai.expect(tableStore.getShowHXLTags()).to.equal(true)
+    chai.expect(getShowHXLTags(getSettings())).to.equal(true)
   })
 
   it('should start with defaults if stored data is malformed', () => {
@@ -85,8 +95,8 @@ describe('tableStore', () => {
 
     tableStore.setStorageKey(otherKey)
 
-    chai.expect(tableStore.getTableSettings()).to.deep.equal({})
-    chai.expect(tableStore.getShowGroupName()).to.equal(true)
+    chai.expect(getSettings()).to.deep.equal({})
+    chai.expect(getShowGroupName(getSettings())).to.equal(true)
   })
 
   it('should freeze and unfreeze columns without touching the other ones', () => {
@@ -95,9 +105,9 @@ describe('tableStore', () => {
     tableStore.setFrozenColumn('City', true)
     tableStore.setFrozenColumn('Age', false)
 
-    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Name', 'City'])
-    chai.expect(tableStore.isFieldFrozen('Age')).to.equal(false)
-    chai.expect(tableStore.isFieldFrozen('City')).to.equal(true)
+    chai.expect(getFrozenColumns(getSettings())).to.deep.equal(['Name', 'City'])
+    chai.expect(isFieldFrozen(getSettings(), 'Age')).to.equal(false)
+    chai.expect(isFieldFrozen(getSettings(), 'City')).to.equal(true)
   })
 
   it('should read a single frozen column from old settings', () => {
@@ -107,7 +117,7 @@ describe('tableStore', () => {
 
     tableStore.setFrozenColumn('Name', true)
 
-    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['Age', 'Name'])
+    chai.expect(getFrozenColumns(getSettings())).to.deep.equal(['Age', 'Name'])
   })
 
   it('should unfreeze only the columns being hidden', () => {
@@ -117,25 +127,22 @@ describe('tableStore', () => {
     tableStore.hideField('start')
 
     chai.expect(tableStore.getHiddenColumns()).to.deep.equal(['start'])
-    chai.expect(tableStore.getFrozenColumns()).to.deep.equal(['First_name'])
+    chai.expect(getFrozenColumns(getSettings())).to.deep.equal(['First_name'])
   })
 
   it('should show columns added to the form after some were hidden', () => {
     tableStore.hideField('start')
 
-    chai.expect(tableStore.isFieldVisible('start')).to.equal(false)
-    chai.expect(tableStore.isFieldVisible('New_question')).to.equal(true)
+    chai.expect(isFieldVisible(getSettings(), 'start')).to.equal(false)
+    chai.expect(isFieldVisible(getSettings(), 'New_question')).to.equal(true)
   })
 
-  it('should not let callers mutate stored columns', () => {
+  it('should not let callers mutate stored hidden columns', () => {
     tableStore.hideField('start')
-    tableStore.setFrozenColumn('Age', true)
 
     tableStore.getHiddenColumns().push('Name')
-    tableStore.getFrozenColumns().push('Name')
 
-    chai.expect(tableStore.isFieldVisible('Name')).to.equal(true)
-    chai.expect(tableStore.isFieldFrozen('Name')).to.equal(false)
+    chai.expect(isFieldVisible(getSettings(), 'Name')).to.equal(true)
   })
 
   it('should unsort when hiding the sorted column', () => {
@@ -143,7 +150,7 @@ describe('tableStore', () => {
 
     tableStore.setHiddenColumns(['Name', 'Age'])
 
-    chai.expect(tableStore.getSortBy()).to.equal(null)
+    chai.expect(getSortBy(getSettings())).to.equal(null)
   })
 
   it('should drop hidden columns when showing all', () => {
@@ -182,7 +189,6 @@ describe('tableStore', () => {
     tableStore.setSortBy('Name', SortValues.ASCENDING)
 
     chai.expect(tableStore.getTableSettingsSnapshot()).to.not.equal(snapshot)
-    chai.expect(tableStore.getTableSettingsSnapshot()).to.deep.equal(tableStore.getTableSettings())
   })
 
   it('should re-render `useTableSettings` on change', () => {

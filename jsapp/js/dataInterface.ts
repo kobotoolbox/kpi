@@ -599,7 +599,7 @@ export interface TableSortBySetting {
  */
 export interface AssetTableSettings {
   'hidden-columns'?: string[] | null
-  /** Old settings keep a single column id as a string, see `tableStore.getFrozenColumns`. */
+  /** Old settings keep a single column id as a string, see `getFrozenColumns`. */
   'frozen-column'?: string[] | string | null
   'show-group-name'?: boolean | null
   'translation-index'?: number | null
