@@ -562,6 +562,7 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
               dataInterface
                 .getAsset({ id: data.uid })
                 .done((finalAsset: AssetResponse) => {
+                  // Matches the behaviour of the file-upload path
                   actions.resources.loadAsset.completed(finalAsset)
 
                   if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
