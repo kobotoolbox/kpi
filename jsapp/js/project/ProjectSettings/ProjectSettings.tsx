@@ -562,6 +562,8 @@ class ProjectSettings extends React.Component<ProjectSettingsProps, ProjectSetti
               dataInterface
                 .getAsset({ id: data.uid })
                 .done((finalAsset: AssetResponse) => {
+                  actions.resources.loadAsset.completed(finalAsset)
+
                   if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
                     // when replacing, we omit PROJECT_DETAILS step
                     this.goToFormLanding()
