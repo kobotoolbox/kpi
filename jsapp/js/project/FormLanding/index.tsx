@@ -68,6 +68,10 @@ export default function FormLanding() {
     const unlistenUpdate = actions.resources.updateAsset.completed.listen((updatedAsset) => {
       invalidateCurrentAsset(updatedAsset.uid)
     })
+    // Same as the above for uploading forms, excet that emits loadAsset.completed so we must listen for it.
+    const unlistenLoadAsset = actions.resources.loadAsset.completed.listen((loadedAsset) => {
+      invalidateCurrentAsset(loadedAsset.uid)
+    })
 
     // publicShareSettings.component and userPermissionRow.component still go through these legacy actions and don't
     // invalidate the query. Same situation as above until those are migrated.
@@ -76,6 +80,7 @@ export default function FormLanding() {
 
     return () => {
       unlistenUpdate()
+      unlistenLoadAsset()
       unlistenAssign()
       unlistenRemove()
     }
@@ -257,6 +262,7 @@ export default function FormLanding() {
                 asset={asset}
                 canEdit={userCanEdit}
                 isCurrentVersionDeployed={isCurrentVersionDeployed(asset)}
+                isRedeployDisabled={assetQuery.isFetching}
                 onDeploy={() => deployAsset(asset)}
                 onUnarchive={callUnarchiveAsset}
               />
