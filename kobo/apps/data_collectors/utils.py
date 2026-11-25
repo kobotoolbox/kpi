@@ -8,6 +8,7 @@ from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollectorGroup
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.utils.viewer_tools import EnketoError
 from kpi.deployment_backends.openrosa_utils import (
     fetch_enketo_links,
@@ -55,11 +56,23 @@ def toggle_internal_external_open_rosa_server_for_all_data_collectors():
         asset_uids=ArrayAgg('assets__uid', distinct=True),
         dc_tokens=ArrayAgg('data_collectors__token', distinct=True),
     )
+    all_asset_uids = itertools.chain(
+        *[obj.get('asset_uids') for obj in data_collector_groups]
+    )
+    xforms = XForm.objects.filter(kpi_asset_uid__in=all_asset_uids).values(
+        'id_string', 'kpi_asset_uid'
+    )
+    asset_uid_to_xform_id = {
+        xform['kpi_asset_uid']: xform['id_string'] for xform in xforms
+    }
     all_dcs_and_assets = []
     for dcg in data_collector_groups:
-        all_dcs_and_assets.extend(
-            itertools.product(dcg['dc_tokens'], dcg['asset_uids'])
-        )
+        dcg_xforms = [
+            asset_uid_to_xform_id.get(uid)
+            for uid in dcg['asset_uids']
+            if uid in asset_uid_to_xform_id
+        ]
+        all_dcs_and_assets.extend(itertools.product(dcg['dc_tokens'], dcg_xforms))
     # should be one redis entry per data collector per asset
     all_enketo_keys = [
         get_redis_key_for_token_and_xform(product[0], product[1])

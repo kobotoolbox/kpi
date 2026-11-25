@@ -196,4 +196,3 @@ class TestDataCollectorUtils(TestCase):
                     expected_asset.uid,
                     f'https://external:80/collector/{expected_token}',
                 )
-        assert False
