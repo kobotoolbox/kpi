@@ -14,7 +14,7 @@ from kpi.models import ObjectPermission
 
 
 @receiver(post_save, sender=DataCollector)
-def update_enketo_links(sender, instance, **kwargs):
+def update_enketo_links(sender, instance, created, **kwargs):
     group_changed = instance._initial_group_id != instance.group_id
     token_changed = (
         bool(instance._initial_token) and instance._initial_token != instance.token
@@ -25,7 +25,7 @@ def update_enketo_links(sender, instance, **kwargs):
         # use _initial_token just in case both the token and the group changed
         token = instance._initial_token
         remove_data_collector_enketo_links(token)
-    if add_new_links:
+    if add_new_links or created:
         asset_uids = list(instance.group.assets.values_list('uid', flat=True))
         set_data_collector_enketo_links(instance.token, asset_uids)
     if token_changed and not group_changed:

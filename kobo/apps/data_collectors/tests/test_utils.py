@@ -7,7 +7,7 @@ from constance.test import override_config
 from django.test import TestCase, override_settings
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
-from kobo.apps.data_collectors.models import DataCollectorGroup
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.data_collectors.utils import (
     get_all_redis_entries_for_token,
     get_redis_key_for_enketo_id,
@@ -17,7 +17,9 @@ from kobo.apps.data_collectors.utils import (
     set_data_collector_enketo_links,
     toggle_internal_external_open_rosa_server_for_all_data_collectors,
 )
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
+from kpi.models.asset import Asset
 from kpi.utils.log import logging
 
 
@@ -147,42 +149,50 @@ class TestDataCollectorUtils(TestCase):
     )
     def test_toggle_internal_external_open_rosa_server_for_all_data_collectors(self):
         with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=False):
-            set_data_collector_enketo_links('1', ['a12345', 'b12345'])
-            set_data_collector_enketo_links('2', ['a12345'])
+            u = User.objects.create(username='u')
+            second_dcg = DataCollectorGroup.objects.create(name='second_dcg', owner=u)
+            assets = []
+            for i in range(3):
+                group_to_assign = self.data_collector_group if i < 2 else second_dcg
+                a = Asset.objects.create(
+                    name=f'a_{i}', data_collector_group=group_to_assign, owner=u
+                )
+                a.save()
+                a.deploy(backend='mock')
+                assets.append(a)
+            DataCollector.objects.create(
+                group=self.data_collector_group, token='1', name='dc1'
+            )
+            DataCollector.objects.create(group=second_dcg, token='2', name='dc2')
 
-            # check URLs are external to start with
-            self._check_expected_redis_entries(
-                '1', 'a12345', expected_url='https://external:80/collector/1'
-            )
-            self._check_expected_redis_entries(
-                '1', 'b12345', expected_url='https://external:80/collector/1'
-            )
-            self._check_expected_redis_entries(
-                '2', 'a12345', expected_url='https://external:80/collector/2'
-            )
+            expected_dc_asset_pairs = [
+                ('1', assets[0]),
+                ('1', assets[1]),
+                ('2', assets[2]),
+            ]
+            for expected_token, expected_asset in expected_dc_asset_pairs:
+                self._check_expected_redis_entries(
+                    expected_token,
+                    expected_asset.uid,
+                    f'https://external:80/collector/{expected_token}',
+                )
 
         with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=True):
             # switch to internal
             toggle_internal_external_open_rosa_server_for_all_data_collectors()
-            self._check_expected_redis_entries(
-                '1', 'a12345', expected_url='http://internal:80/collector/1'
-            )
-            self._check_expected_redis_entries(
-                '1', 'b12345', expected_url='http://internal:80/collector/1'
-            )
-            self._check_expected_redis_entries(
-                '2', 'a12345', expected_url='http://internal:80/collector/2'
-            )
+            for expected_token, expected_asset in expected_dc_asset_pairs:
+                self._check_expected_redis_entries(
+                    expected_token,
+                    expected_asset.uid,
+                    f'http://internal:80/collector/{expected_token}',
+                )
 
         with override_config(ENKETO_USE_INTERNAL_OPENROSA_URL=False):
             # back to external
             toggle_internal_external_open_rosa_server_for_all_data_collectors()
-            self._check_expected_redis_entries(
-                '1', 'a12345', expected_url='https://external:80/collector/1'
-            )
-            self._check_expected_redis_entries(
-                '1', 'b12345', expected_url='https://external:80/collector/1'
-            )
-            self._check_expected_redis_entries(
-                '2', 'a12345', expected_url='https://external:80/collector/2'
-            )
+            for expected_token, expected_asset in expected_dc_asset_pairs:
+                self._check_expected_redis_entries(
+                    expected_token,
+                    expected_asset.uid,
+                    f'https://external:80/collector/{expected_token}',
+                )

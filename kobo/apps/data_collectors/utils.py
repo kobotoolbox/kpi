@@ -1,10 +1,13 @@
+import itertools
 import re
 
 import redis.exceptions
+from django.contrib.postgres.aggregates import ArrayAgg
 from django_redis import get_redis_connection
 from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
+from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.openrosa.libs.utils.viewer_tools import EnketoError
 from kpi.deployment_backends.openrosa_utils import (
     fetch_enketo_links,
@@ -45,25 +48,30 @@ def get_all_redis_entries_for_token(redis_client, token):
 
 def toggle_internal_external_open_rosa_server_for_all_data_collectors():
     redis_client = get_redis_connection('enketo_redis_main')
+    # scanning redis for all keys in the data collector format is an O(n)
+    # operation on at minimum all xforms currently accepting submissions,
+    # so construct the redis keys that are *supposed* to be there from the DB objects
+    data_collector_groups = DataCollectorGroup.objects.values('uid').annotate(
+        asset_uids=ArrayAgg('assets__uid', distinct=True),
+        dc_tokens=ArrayAgg('data_collectors__token', distinct=True),
+    )
+    all_dcs_and_assets = []
+    for dcg in data_collector_groups:
+        all_dcs_and_assets.extend(
+            itertools.product(dcg['dc_tokens'], dcg['asset_uids'])
+        )
+    # should be one redis entry per data collector per asset
+    all_enketo_keys = [
+        get_redis_key_for_token_and_xform(product[0], product[1])
+        for product in all_dcs_and_assets
+    ]
 
-    # All data collector keys use the '/collector' url prefix
-    base_url = get_url_for_enketo_key(DC_ENKETO_URL_TEMPLATE.format(''))
-    pattern = f'or:{base_url}*'
-    cursor, all_or_keys = redis_client.scan(cursor=0, match=pattern)
-    while cursor > 0:
-        cursor, more_keys = redis_client.scan(cursor=cursor, match=pattern)
-        all_or_keys.extend(more_keys)
-
-    if not all_or_keys:
-        return
-
-    all_or_keys = [key.decode('utf-8') for key in all_or_keys]
-    enketo_id_values = redis_client.mget(*all_or_keys)
+    enketo_id_values = redis_client.mget(*all_enketo_keys)
 
     # Reconstruct the server URL from each or-key to avoid a separate hget
     # pipeline: the key format is or:<host>/collector/<token>,<xform_id>.
     pipeline = redis_client.pipeline()
-    for or_key, enketo_id_bytes in zip(all_or_keys, enketo_id_values):
+    for or_key, enketo_id_bytes in zip(all_enketo_keys, enketo_id_values):
         if enketo_id_bytes is None:
             continue
         enketo_id = enketo_id_bytes.decode('utf-8')
