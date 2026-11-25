@@ -65,7 +65,8 @@ def toggle_internal_external_open_rosa_server_for_all_data_collectors():
         get_redis_key_for_token_and_xform(product[0], product[1])
         for product in all_dcs_and_assets
     ]
-
+    if not all_enketo_keys:
+        return
     enketo_id_values = redis_client.mget(*all_enketo_keys)
 
     # Reconstruct the server URL from each or-key to avoid a separate hget
