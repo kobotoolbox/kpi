@@ -185,7 +185,13 @@ def convert_and_detect_silences(
         timeout,
     )
     if (duration := probe_duration(output_path)) is None:
-        # ffmpeg reported success, so the file it wrote should be readable
+        # ffmpeg reported success, so the file it wrote should be readable.
+        # Named by its local path only: `path_or_url` may be a presigned URL
+        logging.error(
+            'ffprobe could not read the duration of %s, which ffmpeg wrote '
+            'without error',
+            output_path,
+        )
         raise FFMpegException
     return parse_silences(stderr, duration), duration
 

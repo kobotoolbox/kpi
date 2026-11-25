@@ -152,11 +152,10 @@ def convert_and_plan_chunks(
     accepts, which the caller reads off its transcription service
     (e.g. `GoogleTranscriptionService.CHUNK_HARD_LIMIT_SECONDS`). It is an
     argument rather than a setting read here because engines disagree about
-    it, and only the caller knows which one is about to be used.
+    it, and only the caller knows which one is about to be used. The caller
+    has already refused a file that is not audio
+    (`AudioTranscodingMixin.validate_transcodable()`).
     """
-
-    # Refused before anything is downloaded, as `get_transcoded_audio()` does
-    attachment.validate_transcodable()
 
     thresholds = settings.TRANSCRIPTION_SILENCE_THRESHOLDS_DB
     if not thresholds:

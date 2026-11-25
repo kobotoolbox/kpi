@@ -17,24 +17,11 @@ export const actions = {
   submissions: submissionsActions,
 }
 
-actions.navigation = Reflux.createActions(['transitionStart', 'transitionEnd', 'routeUpdate', 'documentTitleUpdate'])
-
-actions.auth = Reflux.createActions({
-  verifyLogin: { children: ['loggedin', 'anonymous', 'failed'] },
-  changePassword: { children: ['completed', 'failed'] },
-  getApiToken: { children: ['completed', 'failed'] },
-})
-
-actions.survey = Reflux.createActions({
-  addExternalItemAtPosition: { children: ['completed', 'failed'] },
-})
-
 actions.resources = Reflux.createActions({
   createImport: { children: ['completed', 'failed'] },
   loadAsset: { children: ['completed', 'failed'] },
   deployAsset: { children: ['completed', 'failed'] },
   setDeploymentActive: { children: ['completed', 'failed'] },
-  createSnapshot: { children: ['completed', 'failed'] },
   cloneAsset: { children: ['completed', 'failed'] },
   deleteAsset: { children: ['completed', 'failed'] },
   createResource: { asyncResult: true },
@@ -104,13 +91,6 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
         onFailed(response)
       }
     })
-})
-
-actions.resources.createSnapshot.listen((details) => {
-  dataInterface
-    .createAssetSnapshot(details)
-    .done(actions.resources.createSnapshot.completed)
-    .fail(actions.resources.createSnapshot.failed)
 })
 
 actions.resources.updateAsset.listen((uid, values, params = {}) => {
@@ -295,47 +275,6 @@ actions.resources.cloneAsset.listen((details, params = {}) => {
 })
 actions.resources.cloneAsset.failed.listen(() => {
   notify(t('Could not create project!'), 'error')
-})
-
-actions.auth.verifyLogin.listen(() => {
-  dataInterface
-    .selfProfile()
-    .done((data /*, msg, req*/) => {
-      if (data.username) {
-        actions.auth.verifyLogin.loggedin(data)
-      } else {
-        actions.auth.verifyLogin.anonymous(data)
-      }
-    })
-    .fail(actions.auth.verifyLogin.failed)
-})
-
-actions.auth.changePassword.listen((currentPassword, newPassword) => {
-  dataInterface
-    .patchProfile({
-      current_password: currentPassword,
-      new_password: newPassword,
-    })
-    .done(actions.auth.changePassword.completed)
-    .fail(actions.auth.changePassword.failed)
-})
-actions.auth.changePassword.completed.listen(() => {
-  notify(t('changed password successfully'))
-})
-actions.auth.changePassword.failed.listen(() => {
-  notify(t('failed to change password'), 'error')
-})
-
-actions.auth.getApiToken.listen(() => {
-  dataInterface
-    .apiToken()
-    .done((response) => {
-      actions.auth.getApiToken.completed(response.token)
-    })
-    .fail(actions.auth.getApiToken.failed)
-})
-actions.auth.getApiToken.failed.listen(() => {
-  notify(t('failed to load API token'), 'error')
 })
 
 const assetCache = {}

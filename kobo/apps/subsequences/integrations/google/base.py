@@ -37,6 +37,9 @@ class GoogleService(ABC):
     API_RESOURCE = None
     USAGE_TYPE = None
 
+    # `code` of the matching `TranscriptionService` / `TranslationService`
+    SERVICE_CODE = 'goog'
+
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         super().__init__()
         self.submission = submission

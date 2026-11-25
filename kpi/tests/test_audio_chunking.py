@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import SimpleTestCase, override_settings
 
-from kpi.exceptions import AudioDurationUnknownError, NotSupportedFormatException
+from kpi.exceptions import AudioDurationUnknownError
 from kpi.utils.audio_chunking import (
     MIN_LAST_CHUNK_SECONDS,
     ChunkRange,
@@ -418,20 +418,6 @@ class ConvertAndPlanChunksTestCase(SimpleTestCase):
         with patch(
             'kpi.utils.audio_chunking.convert_and_detect_silences'
         ) as convert, pytest.raises(ValueError):
-            convert_and_plan_chunks(self.attachment, self.FLAC, HARD_LIMIT)
-
-        convert.assert_not_called()
-
-    def test_a_file_that_is_not_audio_is_refused_before_converting(self):
-        """
-        The same check `get_transcoded_audio()` makes for a short file
-        """
-
-        self.attachment.validate_transcodable.side_effect = NotSupportedFormatException
-
-        with patch(
-            'kpi.utils.audio_chunking.convert_and_detect_silences'
-        ) as convert, pytest.raises(NotSupportedFormatException):
             convert_and_plan_chunks(self.attachment, self.FLAC, HARD_LIMIT)
 
         convert.assert_not_called()

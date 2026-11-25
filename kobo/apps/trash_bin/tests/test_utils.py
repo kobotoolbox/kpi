@@ -13,7 +13,6 @@ from django.db.models.signals import pre_delete
 from django.http import Http404
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from django_celery_beat.models import PeriodicTask
 from freezegun import freeze_time
 
 from kobo.apps.audit_log.models import (
@@ -30,7 +29,6 @@ from kobo.apps.openrosa.apps.logger.signals import pre_delete_attachment
 from kpi.exceptions import MissingXFormException
 from kpi.models import Asset
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
-from ..constants import DELETE_PROJECT_STR_PREFIX, DELETE_USER_STR_PREFIX
 from ..exceptions import TrashIntegrityError, TrashTaskInProgressError
 from ..models import TrashStatus
 from ..models.account import AccountTrash
@@ -40,7 +38,6 @@ from ..tasks import (
     empty_account,
     empty_attachment,
     empty_project,
-    garbage_collector,
     task_restarter,
 )
 from ..utils import (
@@ -102,34 +99,28 @@ class AccountTrashTestCase(TestCase):
         assert audit_log.user is None
         assert audit_log.user_uid == someuser_uid
 
-    def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
+    def test_delete_user_starts_deletion_right_away(self):
         """
-        After empty_account completes, the PeriodicTask is intentionally left
-        orphaned to avoid Celery Beat schedule reload storms.
-        Verify that garbage_collector cleans it up in batch.
+        "Delete selected users" uses a grace period of 0: the deletion must be
+        sent as soon as the transaction commits, without waiting for
+        `task_restarter`
         """
         someuser = get_user_model().objects.get(username='someuser')
+        someuser_id = someuser.pk
         admin = get_user_model().objects.get(username='adminuser')
 
-        move_to_trash(
-            request_author=admin,
-            objects_list=[{'pk': someuser.pk, 'username': someuser.username}],
-            grace_period=0,
-            trash_type='user',
-            retain_placeholder=False,
-        )
-        account_trash = AccountTrash.objects.get(user=someuser)
-        periodic_task_id = account_trash.periodic_task_id
+        with self.captureOnCommitCallbacks(execute=True) as callbacks:
+            move_to_trash(
+                request_author=admin,
+                objects_list=[{'pk': someuser.pk, 'username': someuser.username}],
+                grace_period=0,
+                trash_type='user',
+                retain_placeholder=False,
+            )
 
-        empty_account.apply([account_trash.pk])
-
-        # PeriodicTask is intentionally left orphaned after task completion
-        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
-
-        garbage_collector()
-
-        # garbage_collector cleans it up in batch with signals suppressed
-        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
+        assert len(callbacks) == 1
+        assert not get_user_model().objects.filter(pk=someuser_id).exists()
+        assert not AccountTrash.objects.filter(user_id=someuser_id).exists()
 
     def test_move_to_trash(self):
         someuser = get_user_model().objects.get(username='someuser')
@@ -155,14 +146,12 @@ class AccountTrashTestCase(TestCase):
         assert not someuser.is_active
         assert before <= someuser.extra_details.date_removal_requested <= after
 
-        # Ensure someuser is in trash and a periodic task exists and is ready to run
+        # Ensure someuser is in trash, due once the Constance retention has passed
         account_trash = AccountTrash.objects.get(user=someuser)
-        assert (
-            before + timedelta(days=grace_period)
-            <= account_trash.periodic_task.clocked.clocked_time
-            <= after + timedelta(days=grace_period)
+        assert account_trash.periodic_task_id is None
+        assert account_trash.scheduled_time == account_trash.date_created + timedelta(
+            days=config.ACCOUNT_TRASH_RETENTION
         )
-        assert account_trash.periodic_task.name.startswith(DELETE_USER_STR_PREFIX)
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
@@ -179,9 +168,6 @@ class AccountTrashTestCase(TestCase):
         someuser = get_user_model().objects.get(username='someuser')
         admin = get_user_model().objects.get(username='adminuser')
         assert not someuser.is_active
-        account_trash = AccountTrash.objects.get(user=someuser)
-        periodic_task_id = account_trash.periodic_task_id
-
         put_back(
             request_author=admin,
             objects_list=[
@@ -198,7 +184,6 @@ class AccountTrashTestCase(TestCase):
 
         # Ensure someuser is not in trash anymore
         assert not AccountTrash.objects.filter(user=someuser).exists()
-        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
@@ -395,7 +380,6 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         assert not asset.pending_delete
         assert not asset.deployment.xform.pending_delete
 
-        before = timezone.now() + timedelta(days=grace_period)
         move_to_trash(
             request_author=asset.owner,
             objects_list=[
@@ -408,18 +392,17 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
             grace_period=grace_period,
             trash_type='asset',
         )
-        after = timezone.now() + timedelta(days=grace_period)
 
         asset.refresh_from_db()
         asset.deployment.xform.refresh_from_db()
         assert asset.pending_delete
         assert asset.deployment.xform.pending_delete
 
-        # Ensure project is in trash and a periodic task exists and is ready to run
+        # Ensure project is in trash, due once the Constance retention has passed
         project_trash = ProjectTrash.objects.get(asset=asset)
-        assert before <= project_trash.periodic_task.clocked.clocked_time <= after
-        assert project_trash.periodic_task.name.startswith(
-            DELETE_PROJECT_STR_PREFIX
+        assert project_trash.periodic_task_id is None
+        assert project_trash.scheduled_time == project_trash.date_created + timedelta(
+            days=config.PROJECT_TRASH_RETENTION
         )
 
         # Ensure action is logged
@@ -439,9 +422,6 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         asset = Asset.all_objects.get(pk=1)
         assert asset.pending_delete
         assert asset.deployment.xform.pending_delete
-        project_trash = ProjectTrash.objects.get(asset=asset)
-        periodic_task_id = project_trash.periodic_task_id
-
         put_back(
             request_author=asset.owner,
             objects_list=[
@@ -461,7 +441,6 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
         # Ensure the project is not in trash anymore
         assert not ProjectTrash.objects.filter(asset=asset).exists()
-        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
         # Ensure action is logged
         assert AuditLog.objects.filter(
@@ -536,25 +515,6 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         # projects must keep accepting them
         assert mock_delete.called
         assert captured.get('accepted') is True
-
-    def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
-        """
-        After empty_project completes, the PeriodicTask is intentionally left
-        orphaned to avoid Celery Beat schedule reload storms.
-        Verify that garbage_collector cleans it up in batch.
-        """
-        project_trash = self.test_move_to_trash()
-        periodic_task_id = project_trash.periodic_task_id
-
-        empty_project(project_trash.pk)
-
-        # PeriodicTask is intentionally left orphaned after task completion
-        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
-
-        garbage_collector()
-
-        # garbage_collector cleans it up in batch with signals suppressed
-        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
     @data(
         # Format: (task status, within grace period, is stuck, expected restart count)
@@ -839,9 +799,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         ).exists()
 
     def test_put_back(self):
-        trash_obj = self._move_attachment_to_trash(
-            self.asset, self.attachment, self.user
-        )
+        self._move_attachment_to_trash(self.asset, self.attachment, self.user)
         self._put_back_attachment_from_trash(self.attachment, self.user)
 
         assert not self.attachment.delete_status
@@ -849,9 +807,6 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         assert self._get_user_storage(self.user) > 0
         assert not AttachmentTrash.objects.filter(
             attachment_id=self.attachment.id
-        ).exists()
-        assert not PeriodicTask.objects.filter(
-            pk=trash_obj.periodic_task_id
         ).exists()
 
         assert AuditLog.objects.filter(
@@ -879,7 +834,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         with patch.object(
             AttachmentTrash, 'toggle_statuses', wraps=AttachmentTrash.toggle_statuses
         ) as toggle_statuses, patch.object(
-            PeriodicTask.objects, 'bulk_create', side_effect=IntegrityError
+            AttachmentTrash.objects, 'bulk_create', side_effect=IntegrityError
         ):
             with pytest.raises(TrashIntegrityError):
                 self._move_attachment_to_trash(self.asset, self.attachment, self.user)
@@ -1013,18 +968,13 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
 
                 assert patched_spawned_task.call_count == restart_count
 
-    def test_deleting_submission_deletes_attachment_trash_but_not_task(self):
+    def test_deleting_submission_deletes_attachment_trash(self):
         """
         Test that if a submission is deleted, the attachment trash entry is
-        deleted but the associated periodic task is left orphaned for the
-        garbage_collector to clean up in batch — avoiding Celery Beat schedule
-        reload storms.
+        deleted too
         """
         # Move the attachment to trash
-        trash_obj = self._move_attachment_to_trash(
-            self.asset, self.attachment, self.user
-        )
-        periodic_task_id = trash_obj.periodic_task_id
+        self._move_attachment_to_trash(self.asset, self.attachment, self.user)
 
         # Delete the submission
         self.instance.delete()
@@ -1033,45 +983,17 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
         assert not AttachmentTrash.objects.filter(
             attachment_id=self.attachment.id
         ).exists()
-        # The PeriodicTask is intentionally left orphaned
-        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
-
-        # garbage_collector cleans it up in batch with signals suppressed
-        garbage_collector()
-        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
-
-    def test_garbage_collector_cleans_orphaned_periodic_task_after_deletion(self):
-        """
-        After empty_attachment completes, the PeriodicTask is intentionally
-        left orphaned to avoid Celery Beat schedule reload storms.
-        Verify that garbage_collector cleans it up in batch.
-        """
-        trash_obj = self._move_attachment_to_trash(
-            self.asset, self.attachment, self.user
-        )
-        periodic_task_id = trash_obj.periodic_task_id
-
-        empty_attachment(trash_obj.pk)
-
-        # PeriodicTask is intentionally left orphaned after task completion
-        assert PeriodicTask.objects.filter(pk=periodic_task_id).exists()
-
-        garbage_collector()
-
-        # garbage_collector cleans it up in batch with signals suppressed
-        assert not PeriodicTask.objects.filter(pk=periodic_task_id).exists()
 
     def test_management_command_cleans_up_orphaned_attachment_trash(self):
         """
         Test that the management command `cleanup_orphan_attachment_trash`
         cleans up orphaned (whose Attachment object is already deleted)
-        AttachmentTrash entries and their associated periodic tasks.
+        AttachmentTrash entries.
         """
         # Move the attachment to trash
         trash_obj = self._move_attachment_to_trash(
             self.asset, self.attachment, self.user
         )
-        periodic_task_id = trash_obj.periodic_task_id
 
         # Temporarily disconnect the pre_delete signal handler so it does not run
         pre_delete.disconnect(receiver=pre_delete_attachment, sender=Attachment)
@@ -1080,20 +1002,18 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
             self.attachment.delete()
 
             # Verify that the Attachment object is deleted but the AttachmentTrash
-            # entry and periodic task still exist
+            # entry still exists
             self.assertFalse(Attachment.all_objects.filter(pk=self.attachment.pk).exists())
             self.assertTrue(AttachmentTrash.objects.filter(pk=trash_obj.pk).exists())
-            self.assertTrue(PeriodicTask.objects.filter(pk=periodic_task_id).exists())
 
             call_command('cleanup_orphan_attachment_trash')
         finally:
             pre_delete.connect(pre_delete_attachment, sender=Attachment)
 
-        # Verify that the orphaned AttachmentTrash entry and periodic task are deleted
+        # Verify that the orphaned AttachmentTrash entry is deleted
         self.assertFalse(
             AttachmentTrash.objects.filter(attachment_id=self.attachment.id).exists()
         )
-        self.assertFalse(PeriodicTask.objects.filter(pk=periodic_task_id).exists())
 
     def test_deleting_attachment_directly_without_attachment_trash_does_not_fail(self):
         """
@@ -1202,16 +1122,14 @@ class TaskRestarterTestCase(TestCase):
         )
         assert self._run_restarter() == 0
 
-    def test_restart_is_not_delayed_by_the_clocked_time(self):
+    def test_restart_is_not_delayed_by_the_retention(self):
         """
-        A deletion which has already started has passed its scheduled time.
-        Checking the clocked time again would hold its restart back by a whole
-        retention period
+        A deletion which has already started has passed its scheduled time,
+        so its restart must not wait for the retention again
         """
         account_trash = self._move_account_to_trash(freeze=False)
         assert not account_trash.empty_manually
-        # Its scheduled time has not been reached, let alone the grace period
-        assert account_trash.periodic_task.clocked.clocked_time > timezone.now()
+        assert account_trash.scheduled_time > timezone.now()
 
         self._fail(account_trash, 'deadlock detected')
         assert account_trash.status == TrashStatus.IN_PROGRESS
@@ -1223,7 +1141,7 @@ class TaskRestarterTestCase(TestCase):
         """
         account_trash = self._move_account_to_trash(freeze=False)
         self._make_stuck(account_trash, TrashStatus.PENDING)
-        assert account_trash.periodic_task.clocked.clocked_time > timezone.now()
+        assert account_trash.scheduled_time > timezone.now()
 
         assert self._run_restarter() == 0
 
@@ -1325,12 +1243,12 @@ class TaskRestarterTestCase(TestCase):
     @override_config(ACCOUNT_TRASH_RETENTION=-1)
     def test_no_restart_when_trash_must_be_emptied_manually(self):
         """
-        Objects waiting for a superuser to empty them manually are scheduled in
-        the past, but they must never be started automatically
+        Objects waiting for a superuser to empty them manually must never be
+        started automatically
         """
         account_trash = self._move_account_to_trash(grace_period=-1, freeze=False)
         assert account_trash.empty_manually
-        assert account_trash.periodic_task.clocked.clocked_time < timezone.now()
+        assert account_trash.scheduled_time is None
         self._make_stuck(account_trash, TrashStatus.PENDING)
 
         assert self._run_restarter() == 0

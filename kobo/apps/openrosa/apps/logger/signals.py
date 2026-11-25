@@ -57,10 +57,11 @@ def pre_delete_attachment(instance, **kwargs):
     if only_update_counters or not (media_file_name := str(attachment.media_file)):
         return
 
-    # Clean-up AttachmentTrash only. The related PeriodicTask is intentionally
-    # left orphaned to avoid triggering `PeriodicTasks.changed()` signals that
-    # cause Celery Beat schedule reload storms on high-volume servers.
-    # The garbage_collector task cleans up orphaned PeriodicTasks in batch.
+    # Clean-up AttachmentTrash only. A legacy PeriodicTask that is still
+    # attached to it is left in place, to avoid triggering
+    # `PeriodicTasks.changed()` signals that cause Celery Beat schedule reload
+    # storms on high-volume servers. The long-running migration that removes
+    # trash PeriodicTasks deletes it.
     AttachmentTrash = apps.get_model('trash_bin', 'AttachmentTrash')
     try:
         att_trash = AttachmentTrash.objects.get(attachment_id=attachment.pk)

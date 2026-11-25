@@ -155,6 +155,10 @@ class ChunkedTranscriptionRun:
         `TRANSCRIPTION_CHUNK_MAX_RETRIES` times. `config` is passed on to
         `engine.start_chunk()`
         """
+        # A run without a version has no rows to look for: `start()` never
+        # saves any for it
+        if not self.version_uuid:
+            return None
         if not celery_app.current_worker_task:
             # Only the poll moves the run forward or ends it. A repeated web
             # request doing so too would race it for the same chunks

@@ -313,6 +313,12 @@ class ChunkedTranscriptionRunTestCase(ChunkRowsTestCase):
             with self.subTest(in_worker=in_worker):
                 assert self._get_status(FakeEngine(), in_worker=in_worker) is None
 
+    def test_a_run_without_a_version_has_no_status_and_runs_no_query(self):
+        self.run = self._get_run(None)
+        for in_worker in [True, False]:
+            with self.subTest(in_worker=in_worker), self.assertNumQueries(0):
+                assert self._get_status(FakeEngine(), in_worker=in_worker) is None
+
     def test_a_web_request_only_reports_on_the_chunks(self):
         self._create_chunk()
         engine = FakeEngine()

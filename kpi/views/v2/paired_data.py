@@ -1,4 +1,3 @@
-# coding: utf-8
 from azure.core.exceptions import ResourceNotFoundError
 from django.conf import settings
 from django.core.cache import cache
@@ -11,6 +10,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.models import Asset, AssetFile, PairedData
+from kpi.models.paired_data import ASSET_PERMISSION_FIELDS
 from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
 from kpi.schema_extensions.v2.paired_data.serializers import (
@@ -159,6 +159,14 @@ class PairedDataViewset(
      - docs/api/v2/paired_data/update.md
     """
 
+    # Fields of the destination asset that each read action uses
+    ASSET_FIELDS_BY_ACTION = {
+        'external': (*ASSET_PERMISSION_FIELDS, 'paired_data', '_deployment_data'),
+        'list': (*ASSET_PERMISSION_FIELDS, 'paired_data'),
+        'retrieve': (*ASSET_PERMISSION_FIELDS, 'paired_data'),
+    }
+    WRITE_ACTIONS = ('create', 'destroy', 'partial_update', 'update')
+
     parent_model = Asset
     lookup_field = 'paired_data_uid'
     lookup_url_kwarg = 'uid_paired_data'
@@ -250,6 +258,25 @@ class PairedDataViewset(
             self.asset, asset_file, paired_data, source_asset, old_hash=old_hash
         )
         return self._xml_response(request, xml_, asset_file.md5_hash)
+
+    def get_asset_queryset(self):
+        """
+        Return the queryset that `asset` is fetched from, with only the fields
+        that the current action reads.
+
+        Write actions load the whole row because `Asset.save()` reads most
+        fields, `content` included.
+        """
+
+        if self.action in self.WRITE_ACTIONS:
+            return Asset.objects.all()
+
+        try:
+            fields = self.ASSET_FIELDS_BY_ACTION[self.action]
+        except KeyError:
+            return super().get_asset_queryset()
+
+        return Asset.objects.only(*fields)
 
     def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(

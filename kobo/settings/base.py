@@ -15,11 +15,7 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kpi.constants import (
-    AUTH_SERVER_TAG_CHOICES,
-    PERM_DELETE_ASSET,
-    PERM_MANAGE_ASSET,
-)
+from kpi.constants import AUTH_SERVER_TAG_CHOICES, PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 from .utils import constance_env, dj_stripe_request_callback_method, get_git_rev
 
@@ -169,6 +165,7 @@ MIDDLEWARE = [
     'django_dont_vary_on.middleware.RemoveUnneededVaryHeadersMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'hub.middleware.NeverCacheJSONMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'hub.middleware.LocaleMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -1656,19 +1653,10 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
-    # Schedule every 30 minutes
-    'trash-bin-garbage-collector': {
-        'task': 'kobo.apps.trash_bin.tasks.garbage_collector',
-        'schedule': crontab(minute='*/30'),
-        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
-        # the long deletions and transfers running there, and must not end up
-        # stuck behind the very backlog it exists to clear
-        'options': {'queue': 'kpi_queue'},
-    },
-    # Schedule every 30 minutes
+    # Schedule every 15 minutes
     'trash-bin-task-restarter': {
         'task': 'kobo.apps.trash_bin.tasks.task_restarter',
-        'schedule': crontab(minute='*/30'),
+        'schedule': crontab(minute='*/15'),
         # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
         # the long deletions and transfers running there, and must not end up
         # stuck behind the very backlog it exists to clear
@@ -2575,10 +2563,11 @@ USAGE_QUERY_USER_ID_BATCH_SIZE = 20000
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
-# Number of stuck trash bin deletions `task_restarter` re-enqueues per run per type
+# Number of trash bin deletions, due or stuck, that `task_restarter` sends per
+# run and per type. It runs every 15 minutes.
 MAX_RESTARTED_ACCOUNT_DELETIONS = env.int('MAX_RESTARTED_ACCOUNT_DELETIONS', 50)
 MAX_RESTARTED_PROJECT_DELETIONS = env.int('MAX_RESTARTED_PROJECT_DELETIONS', 100)
-MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 300)
+MAX_RESTARTED_ATTACHMENT_DELETIONS = env.int('MAX_RESTARTED_ATTACHMENT_DELETIONS', 1000)
 
 # Number of attachments `auto_delete_excess_attachments` moves to trash per user
 # and per run. A user still over their limit gets the next ones on a later run
@@ -2587,9 +2576,6 @@ AUTO_DELETE_ATTACHMENTS_MAX_PER_USER = env.int(
 )
 # Number of users `schedule_auto_attachment_cleanup_for_users` queues per run.
 # Users take turns, the next run continues with the following ones.
-# Each trashed attachment keeps its own PeriodicTask until it is hard-deleted
-# (`ATTACHMENT_TRASH_RETENTION` days later), and Celery Beat scans all of them
-# on every schedule reload, so raising this grows Beat's work too.
 AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN = env.int(
     'AUTO_DELETE_ATTACHMENTS_USERS_PER_RUN', 5
 )
@@ -2608,6 +2594,11 @@ PROJECT_OWNERSHIP_MAX_DISPLAYED_LOGS = 100
 # Maximum timeout (in minutes) for hook processing
 HOOK_STALLED_PENDING_TIMEOUT = 120
 HOOK_STALLED_RETRY_TIMEOUT = 1440
+
+# Exponential backoff (in seconds) between automatic hook retries.
+# Retries wait 5, 10, 20, 20, ... minutes.
+HOOK_RETRY_BACKOFF = 300
+HOOK_RETRY_BACKOFF_MAX = 1200
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400

@@ -2,10 +2,7 @@ from copy import deepcopy
 
 from django.core.cache import cache
 
-from kobo.apps.subsequences.utils.survey import (
-    get_form_language,
-    get_survey_question_type,
-)
+from kobo.apps.subsequences.utils.survey import get_survey_question_type
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -20,20 +17,9 @@ class SurveyMetadataTestCase(BaseTestCase):
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
 
-    def test_reads_question_type_and_form_language(self):
+    def test_reads_question_type(self):
         assert get_survey_question_type(self.asset, 'settings_fixture_q1') == 'text'
         assert get_survey_question_type(self.asset, 'nonexistent') is None
-        assert get_form_language(self.asset) is None
-
-    def test_form_language_falls_back_to_the_default_translation(self):
-        content = deepcopy(self.asset.content)
-        content['settings'] = {}
-        content['translations'] = ['Deutsch (de)']
-        self.asset.content = content
-        self.asset.save()
-        self.asset.deploy(backend='mock', active=True)
-
-        assert get_form_language(Asset.objects.get(pk=self.asset.pk)) == 'Deutsch (de)'
 
     def test_undeployed_draft_edits_do_not_affect_a_deployed_form(self):
         # Submissions belong to the deployed version, so editing the draft must
@@ -65,8 +51,7 @@ class SurveyMetadataTestCase(BaseTestCase):
         deferred_asset = Asset.objects.only('pk', 'uid').get(pk=self.asset.pk)
         with self.assertNumQueries(1):
             # Only the first call queries anything, to resolve the deployed
-            # version for the cache key. Every later call, whichever helper it
-            # goes through, reads the metadata memoized on the asset
+            # version for the cache key. Every later call reads the metadata
+            # memoized on the asset
             assert get_survey_question_type(deferred_asset, xpath) == 'text'
             assert get_survey_question_type(deferred_asset, xpath) == 'text'
-            get_form_language(deferred_asset)
