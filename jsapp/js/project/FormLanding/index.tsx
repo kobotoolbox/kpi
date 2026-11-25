@@ -27,6 +27,7 @@ import profileStore from '#/stores/profile'
 import { notify } from '#/utils'
 import FormLandingRedeploymentAlert from '../FormLandingRedeploymentAlert'
 import FormLandingActions from './FormLandingActions'
+import FormLandingArchivedAlert from './FormLandingArchivedAlert'
 import FormLandingClonePrompt from './FormLandingClonePrompt'
 import FormLandingCollectData from './FormLandingCollectData'
 import FormLandingHistory from './FormLandingHistory'
@@ -251,7 +252,9 @@ export default function FormLanding() {
               </Box>
             </Box>
             <Box className='form-view__cell form-view__cell--box'>
-              {isFormRedeploymentNeeded(asset) && <FormLandingRedeploymentAlert />}
+              {asset.deployment_status === 'archived'
+                ? userCanEdit && <FormLandingArchivedAlert />
+                : isFormRedeploymentNeeded(asset) && <FormLandingRedeploymentAlert />}
 
               <FormLandingInfo
                 asset={asset}
