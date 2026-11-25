@@ -69,12 +69,12 @@ export function useAudioDurations(attachmentUids: string[], assetUid: string): U
       const isError = results.some((r) => r.isError)
       const firstError = results.find((r) => r.isError)?.error
 
+      // react-query keeps the last successful data through a background refetch
+      // and an attachment's duration doesn't change, so clearing it would only make the UI flicker
       const durationsByUid = new Map<string, number | null>()
-      if (!isLoading && !isError) {
-        for (const result of results) {
-          for (const attachment of result.data?.data.attachments ?? []) {
-            durationsByUid.set(attachment.uid, attachment.seconds)
-          }
+      for (const result of results) {
+        for (const attachment of result.data?.data.attachments ?? []) {
+          durationsByUid.set(attachment.uid, attachment.seconds)
         }
       }
 
