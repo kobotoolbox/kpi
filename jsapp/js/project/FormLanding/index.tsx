@@ -68,7 +68,7 @@ export default function FormLanding() {
     const unlistenUpdate = actions.resources.updateAsset.completed.listen((updatedAsset) => {
       invalidateCurrentAsset(updatedAsset.uid)
     })
-    // Same as the above for uploading forms, excet that emits loadAsset.completed so we must listen for it.
+    // Same as the above for uploading forms, except the file upload path emits loadAsset.completed
     const unlistenLoadAsset = actions.resources.loadAsset.completed.listen((loadedAsset) => {
       invalidateCurrentAsset(loadedAsset.uid)
     })
