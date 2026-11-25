@@ -1,13 +1,18 @@
 from collections import defaultdict
 
+from allauth.account.adapter import get_adapter as get_account_adapter
+from allauth.headless.internal.restkit.response import APIResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp
 from django.conf import settings
 from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
 from django.db import transaction
 from django.db.models import CharField, Count, F, Func, Q, Value
 from django.db.models.functions import Lower
+from django.forms.utils import ErrorList
+from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.translation import gettext_noop as t
+from rest_framework import status
 
 from kobo.apps.accounts.constants import MAX_DISPLAYED_SSO_PROVIDERS
 from kobo.apps.accounts.models import SocialAppManagedDomain, get_normalized_domain
@@ -213,3 +218,26 @@ def users_needing_update(social_app: 'socialaccount.SocialApp', domain: str):
         )
     )
     return users
+
+
+def throttled_json_response(request: HttpRequest, field: str | None = None):
+    # HACK: recreate the error response allauth creates for rate-limiting
+    # (400 with an validation error in the 'code' field)
+    # TODO: return 429
+    validation_error = get_account_adapter().validation_error('too_many_login_attempts')
+    error_data_list = ErrorList([validation_error]).get_json_data()
+    if field:
+        for error_data in error_data_list:
+            error_data['param'] = field
+    return APIResponse(
+        status=status.HTTP_400_BAD_REQUEST, request=request, errors=error_data_list
+    )
+
+
+def throttled_template_response(view, form, field: str):
+    # HACK: recreate the response allauth creates for rate-limiting (rate limiting
+    # error returned as an error in the 'code' field)
+    # TODO: apply error to __all__ instead of code
+    exception = get_account_adapter().validation_error('too_many_login_attempts')
+    form._errors = {field: ErrorList([exception])}
+    return view.form_invalid(form)
