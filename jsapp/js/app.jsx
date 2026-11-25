@@ -123,7 +123,13 @@ function AppPageWrapper({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibr
  *
  * Observes the stores it asks, because the answers change as the session and `/environment` land.
  */
-const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, isFormSingle, isLibrarySingle }) {
+const AppGuard = observer(function AppGuard({
+  shouldDisplayMain,
+  inFormBuilder,
+  isFormSingle,
+  isLibrarySingle,
+  assetUid,
+}) {
   // Before the early returns, so the hook order stays the same on every render.
   const profileDetails = useProfileDetailsBlockerState()
 
@@ -166,7 +172,7 @@ const AppGuard = observer(function AppGuard({ shouldDisplayMain, inFormBuilder, 
         inFormBuilder={inFormBuilder}
         isFormSingle={isFormSingle}
         isLibrarySingle={isLibrarySingle}
-        assetUid={getRouteAssetUid()}
+        assetUid={assetUid}
       />
     </RootContextProvider>
   )
@@ -209,6 +215,8 @@ class App extends React.Component {
                 inFormBuilder={this.isFormBuilder()}
                 isFormSingle={this.isFormSingle()}
                 isLibrarySingle={this.isLibrarySingle()}
+                // Passed as a prop, as `AppGuard` is memoized and wouldn't re-render when switching projects
+                assetUid={getRouteAssetUid()}
               />
             </ModalsProvider>
           </MantineProvider>
