@@ -1,17 +1,18 @@
-# coding: utf-8
 import os
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.urls import reverse
 
 from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.views import (
-    download_xlsform,
     download_jsonform,
+    download_xlsform,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_xml_form
 from kobo.apps.openrosa.libs.utils.user_auth import http_auth_string
+from kpi.constants import PERM_VIEW_ASSET
 from .test_base import TestBase
 
 
@@ -30,8 +31,8 @@ class TestFormShow(TestBase):
         }))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response['Content-Disposition'],
-            "attachment; filename=exp_one.xlsx")
+            response['Content-Disposition'], 'attachment; filename=exp_one.xlsx'
+        )
 
     def test_dl_xls_redirect_to_login_to_anon_if_public(self):
         self.xform.shared = True
@@ -57,8 +58,7 @@ class TestFormShow(TestBase):
         self.assertEqual(response.status_code, 200)
 
     def test_dl_json_to_anon_if_public(self):
-        self.xform.shared = True
-        self.xform.save()
+        self.xform.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         response = self.anon.get(reverse(download_jsonform, kwargs={
             'username': self.user.username,
             'id_string': self.xform.id_string
@@ -66,8 +66,7 @@ class TestFormShow(TestBase):
         self.assertEqual(response.status_code, 200)
 
     def test_dl_jsonp_to_anon_if_public(self):
-        self.xform.shared = True
-        self.xform.save()
+        self.xform.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         callback = 'jsonpCallback'
         response = self.anon.get(reverse(download_jsonform, kwargs={
             'username': self.user.username,

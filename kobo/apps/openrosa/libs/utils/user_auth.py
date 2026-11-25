@@ -1,4 +1,3 @@
-# coding: utf-8
 import re
 
 from django.conf import settings
@@ -12,7 +11,12 @@ from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settin
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.openrosa.libs.utils.string import base64_encodestring
-from kpi.constants import PERM_CHANGE_ASSET, PERM_DELETE_SUBMISSIONS, PERM_VIEW_ASSET
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 
 
 class HttpResponseNotAuthorized(HttpResponse):
@@ -66,16 +70,11 @@ def set_profile_data(data, content_user):
     )
 
 
-def has_permission(xform, owner, request, shared=False):
+def has_permission(xform, owner, request):
     # PERM_VIEW_ASSET covers holders of PERM_CHANGE_ASSET too: the asset model
     # declares change_asset → view_asset in its IMPLIED_PERMISSIONS mapping.
     user = request.user
-    return (
-        shared
-        or xform.shared_data
-        or owner == user
-        or user.has_perm(PERM_VIEW_ASSET, xform.asset)
-    )
+    return owner == user or user.has_perm(PERM_VIEW_ASSET, xform.asset)
 
 
 def has_delete_data_permission(xform, owner, request):
@@ -86,6 +85,16 @@ def has_delete_data_permission(xform, owner, request):
 def has_edit_permission(xform, owner, request):
     user = request.user
     return owner == user or user.has_perm(PERM_CHANGE_ASSET, xform.asset)
+
+
+def has_view_data_permission(xform, owner, request):
+    """
+    Return whether the requesting user can view all the submissions of
+    `xform`.
+    """
+
+    user = request.user
+    return owner == user or user.has_perm(PERM_VIEW_SUBMISSIONS, xform.asset)
 
 
 def check_and_set_user_and_form(username, id_string, request):
