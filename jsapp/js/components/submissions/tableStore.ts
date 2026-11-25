@@ -1,14 +1,10 @@
-import { cloneDeep } from 'lodash-es'
 import { useSyncExternalStore } from 'react'
 import type { BulkActionResponse } from '#/api/models/bulkActionResponse'
-import {
-  DATA_TABLE_SETTINGS,
-  SUBMISSION_ACTIONS_ID,
-  VALIDATION_STATUS_ID_PROP,
-} from '#/components/submissions/tableConstants'
+import { DATA_TABLE_SETTINGS, VALIDATION_STATUS_ID_PROP } from '#/components/submissions/tableConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
+import { getFrozenColumns, getHiddenColumns, getSortBy } from '#/components/submissions/tableSettingsUtils'
 import { getAllDataColumns } from '#/components/submissions/tableUtils'
-import type { AssetResponse, AssetTableSettings, SubmissionResponse, TableSortBySetting } from '#/dataInterface'
+import type { AssetResponse, AssetTableSettings, SubmissionResponse } from '#/dataInterface'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { recordEntries } from '#/utils'
 
@@ -75,17 +71,10 @@ class TableStore {
     this.emit()
   }
 
-  /** Like `getTableSettings`, but not a clone: same object until settings change. Don't mutate it. */
+  /** Same object until settings change. Don't mutate it. */
   getTableSettingsSnapshot = (): Readonly<AssetTableSettings> => {
     const assetUid = getRouteAssetUid()
     return (assetUid && this.settingsByAsset[assetUid]) || EMPTY_SETTINGS
-  }
-
-  /** Returns settings or empty object if no settings exist */
-  getTableSettings(): AssetTableSettings {
-    // Clone, as consumers mutate these arrays/objects in place (e.g. `table.tsx`
-    // prepends the frozen columns to the selected columns).
-    return cloneDeep(this.getTableSettingsSnapshot())
   }
 
   /**
@@ -137,94 +126,21 @@ class TableStore {
     return columns
   }
 
-  /** No copy, as Data Table checks it for every column. Don't mutate it. */
-  private readHiddenColumns(): readonly string[] {
-    const hiddenColumns = this.getTableSettingsSnapshot()[DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]
-    return Array.isArray(hiddenColumns) ? hiddenColumns : []
-  }
-
-  /** No copy, as Data Table checks it for every column. Don't mutate it. */
-  private readFrozenColumns(): readonly string[] {
-    const frozenColumns = this.getTableSettingsSnapshot()[DATA_TABLE_SETTINGS.FROZEN_COLUMN]
-    // Old settings keep a single column id as a string.
-    if (typeof frozenColumns === 'string') {
-      return [frozenColumns]
-    }
-    return Array.isArray(frozenColumns) ? frozenColumns : []
-  }
-
-  /** We store hidden columns, not visible ones, so new form questions show up by default. */
+  /** A copy, so callers can edit it. */
   getHiddenColumns(): string[] {
-    return [...this.readHiddenColumns()]
-  }
-
-  /** Returns ids of frozen columns, in the order they were frozen. */
-  getFrozenColumns(): string[] {
-    return [...this.readFrozenColumns()]
-  }
-
-  isFieldVisible(fieldId: string) {
-    // frozen column is never hidden
-    if (this.isFieldFrozen(fieldId)) {
-      return true
-    }
-
-    // submission actions is never hidden
-    if (fieldId === SUBMISSION_ACTIONS_ID) {
-      return true
-    }
-
-    return !this.readHiddenColumns().includes(fieldId)
-  }
-
-  isFieldFrozen(fieldId: string) {
-    return this.readFrozenColumns().includes(fieldId)
+    return [...getHiddenColumns(this.getTableSettingsSnapshot())]
   }
 
   /** Freezes or unfreezes given column, leaving other frozen columns as they are. */
   setFrozenColumn(fieldId: string, isFrozen: boolean) {
-    const otherColumns = this.getFrozenColumns().filter((id) => id !== fieldId)
+    const otherColumns = getFrozenColumns(this.getTableSettingsSnapshot()).filter((id) => id !== fieldId)
     const newFrozenColumns = isFrozen ? [...otherColumns, fieldId] : otherColumns
     this.saveTableSettings({ [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: newFrozenColumns })
   }
 
-  /**
-   * Returns `null` for no option, or one of SortValues
-   */
-  getFieldSortValue(fieldId: string): SortValues | null {
-    const sortBy = this.getSortBy()
-    if (sortBy === null) {
-      return null
-    }
-
-    if (sortBy?.fieldId === fieldId) {
-      return sortBy.value
-    }
-
-    return null
-  }
-
   setSortBy(fieldId: string, sortValue: SortValues | null) {
-    let newSortBy = null
-    if (sortValue !== null) {
-      newSortBy = {
-        fieldId: fieldId,
-        value: sortValue,
-      }
-    }
-
-    const settingsObj: AssetTableSettings = {}
-    settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = newSortBy
-    this.saveTableSettings(settingsObj)
-  }
-
-  getSortBy(): TableSortBySetting | null {
-    let sortBy = null
-    const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
-      sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY]
-    }
-    return sortBy || null
+    const newSortBy = sortValue === null ? null : { fieldId, value: sortValue }
+    this.saveTableSettings({ [DATA_TABLE_SETTINGS.SORT_BY]: newSortBy })
   }
 
   showAllFields() {
@@ -236,50 +152,20 @@ class TableStore {
   }
 
   setHiddenColumns(hiddenColumns: string[]) {
+    const tableSettings = this.getTableSettingsSnapshot()
     const settingsObj: AssetTableSettings = {
       [DATA_TABLE_SETTINGS.HIDDEN_COLUMNS]: hiddenColumns,
       // Hidden columns can't stay frozen, so we unfreeze them.
-      [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: this.getFrozenColumns().filter((id) => !hiddenColumns.includes(id)),
+      [DATA_TABLE_SETTINGS.FROZEN_COLUMN]: getFrozenColumns(tableSettings).filter((id) => !hiddenColumns.includes(id)),
     }
 
     // Data can't stay sorted by a hidden column.
-    const sortBy = this.getSortBy()
+    const sortBy = getSortBy(tableSettings)
     if (sortBy && hiddenColumns.includes(sortBy.fieldId)) {
       settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = null
     }
 
     this.saveTableSettings(settingsObj)
-  }
-
-  getShowGroupName() {
-    let showGroupName
-    const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-      showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP]
-    } else {
-      showGroupName = true
-    }
-    return showGroupName
-  }
-
-  getTranslationIndex() {
-    let translationIndex = 0
-    const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
-      translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] || 0
-    }
-    return translationIndex
-  }
-
-  getShowHXLTags() {
-    let showHXLTags
-    const tableSettings = this.getTableSettings()
-    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-      showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL]
-    } else {
-      showHXLTags = false
-    }
-    return showHXLTags
   }
 }
 

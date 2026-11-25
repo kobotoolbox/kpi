@@ -54,6 +54,16 @@ import {
   type SortValues,
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
+import {
+  getFieldSortValue,
+  getFrozenColumns,
+  getShowGroupName,
+  getShowHXLTags,
+  getSortBy,
+  getTranslationIndex,
+  isFieldFrozen,
+  isFieldVisible,
+} from '#/components/submissions/tableSettingsUtils'
 import tableStore from '#/components/submissions/tableStore'
 import {
   buildColumnRowFinder,
@@ -374,7 +384,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     const filter = instance.state.filtered
     let filterQueryString = ''
     // sort comes from outside react-table
-    const sort = getTableSort(tableStore.getSortBy())
+    const sort = getTableSort(getSortBy(this.props.tableSettings))
     const list: DisplayedList = { start: page, sort }
 
     if (filter.length && this.props.asset.content?.survey) {
@@ -725,7 +735,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    */
   _getColumnValidation(): TableColumn {
     const elClassNames = ['rt-status']
-    if (tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP) !== null) {
+    if (getFieldSortValue(this.props.tableSettings, VALIDATION_STATUS_ID_PROP) !== null) {
       elClassNames.push('is-sorted')
     }
 
@@ -734,10 +744,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         <div className='column-header-wrapper'>
           <TableColumnSortDropdown
             fieldId={VALIDATION_STATUS_ID_PROP}
-            sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
+            sortValue={getFieldSortValue(this.props.tableSettings, VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange.bind(this)}
             onHide={this.onHideField.bind(this)}
-            isFieldFrozen={tableStore.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
+            isFieldFrozen={isFieldFrozen(this.props.tableSettings, VALIDATION_STATUS_ID_PROP)}
             onFrozenChange={this.onFieldFrozenChange.bind(this)}
             additionalTriggerContent={<span className='column-header-title'>{t('Validation')}</span>}
           />
@@ -793,10 +803,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     )
 
     // Getters fall back to defaults, so a reset setting is undone here too.
-    const translationIndex = tableStore.getTranslationIndex()
+    const translationIndex = getTranslationIndex(this.props.tableSettings)
     const showLabels = translationIndex > -1
-    const showGroupName = Boolean(tableStore.getShowGroupName())
-    const showHXLTags = Boolean(tableStore.getShowHXLTags())
+    const showGroupName = getShowGroupName(this.props.tableSettings)
+    const showHXLTags = getShowHXLTags(this.props.tableSettings)
     const maxPageRes = Math.min(this.state.pageSize, this.state.submissions.length)
 
     // Define the columns array.
@@ -833,7 +843,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
       const elClassNames = []
 
-      if (tableStore.getFieldSortValue(key) !== null) {
+      if (getFieldSortValue(this.props.tableSettings, key) !== null) {
         elClassNames.push('is-sorted')
       }
 
@@ -862,10 +872,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 isAudioQuestionColumn={q?.type === QUESTION_TYPES.audio.id}
                 isTranscriptColumn={getSupplementalPathParts(key).type === 'transcript'}
                 isTranslationColumn={getSupplementalPathParts(key).type === 'translation'}
-                sortValue={tableStore.getFieldSortValue(key)}
+                sortValue={getFieldSortValue(this.props.tableSettings, key)}
                 onSortChange={this.onFieldSortChange.bind(this)}
                 onHide={this.onHideField.bind(this)}
-                isFieldFrozen={tableStore.isFieldFrozen(key)}
+                isFieldFrozen={isFieldFrozen(this.props.tableSettings, key)}
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
                 onTranscribeSelectedAudioFiles={this.onTranscribeSelectedAudioFiles.bind(this)}
                 onTranslateSelectedTranscriptions={this.onTranslateSelectedTranscriptions.bind(this)}
@@ -933,7 +943,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     // NOTE: frozen columns stay where they are on the list, they are being
     // moved to the beginning of table using CSS styling.
-    const frozenColumns = tableStore.getFrozenColumns()
+    const frozenColumns = getFrozenColumns(this.props.tableSettings)
 
     columnsToRender.forEach((col: TableColumn) => {
       const columnQuestion = col.question
@@ -966,7 +976,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
 
     // Frozen and checkbox columns always stay, see `isFieldVisible`.
-    columnsToRender = columnsToRender.filter((el) => !el.id || tableStore.isFieldVisible(el.id))
+    columnsToRender = columnsToRender.filter((el) => !el.id || isFieldVisible(this.props.tableSettings, el.id))
 
     // Only the last frozen column (the checkbox one if none) gets the border and
     // shadow. CSS `order` keeps list order, so last here is last on screen.

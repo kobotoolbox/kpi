@@ -1,8 +1,9 @@
 import { Box, Checkbox, Group, Radio, Stack } from '@mantine/core'
-import React from 'react'
+import React, { useState, useMemo } from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
 import { DATA_TABLE_SETTINGS } from '#/components/submissions/tableConstants'
-import tableStore from '#/components/submissions/tableStore'
+import { getShowGroupName, getShowHXLTags, getTranslationIndex } from '#/components/submissions/tableSettingsUtils'
+import tableStore, { useTableSettings } from '#/components/submissions/tableStore'
 import type { AssetResponse, AssetTableSettings } from '#/dataInterface'
 
 interface TableSettingsProps {
@@ -20,11 +21,13 @@ interface TableSettingsOption {
  * This is a modal form that handles changing some of the table settings.
  */
 export default function TableSettings(props: TableSettingsProps) {
-  const [showGroupName, setShowGroupName] = React.useState(() => Boolean(tableStore.getShowGroupName()))
-  const [showHXLTags, setShowHXLTags] = React.useState(() => Boolean(tableStore.getShowHXLTags()))
-  const [translationIndex, setTranslationIndex] = React.useState(() => tableStore.getTranslationIndex())
+  // Initial values only, the form doesn't follow later changes.
+  const tableSettings = useTableSettings()
+  const [showGroupName, setShowGroupName] = useState(() => getShowGroupName(tableSettings))
+  const [showHXLTags, setShowHXLTags] = useState(() => getShowHXLTags(tableSettings))
+  const [translationIndex, setTranslationIndex] = useState(() => getTranslationIndex(tableSettings))
 
-  const displayedLabelOptions = React.useMemo<TableSettingsOption[]>(() => {
+  const displayedLabelOptions = useMemo<TableSettingsOption[]>(() => {
     const options: TableSettingsOption[] = [
       {
         value: '-1',
