@@ -57,12 +57,15 @@ def transfer_member_data_ownership_to_org(user_id: int):
         )
 
 
+MAX_OWNERSHIP_TRANSFER_RESTARTS = 5
+
+
 @celery_app.task(
     autoretry_for=(
         SoftTimeLimitExceeded,
         TimeLimitExceeded,
     ),
-    max_retries=5,
+    max_retries=MAX_OWNERSHIP_TRANSFER_RESTARTS,
     retry_backoff=60,
     retry_jitter=False,
     queue='kpi_low_priority_queue',
@@ -209,6 +212,11 @@ def transfer_organization_ownership(transfer_id: int):
                 assets=asset_batch,
                 invite_class_name='OrgMembershipAutoInvite',
             )
+            # Heartbeat so the periodic restarter knows this transfer is still
+            # actively progressing through a large project collection.
+            OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).update(
+                date_modified=timezone.now()
+            )
 
         # Phase 3: Check batch results, then mark transfer as complete or failed.
         has_failed_transfers = Transfer.objects.filter(
@@ -274,6 +282,67 @@ def transfer_organization_ownership_failure(sender=None, **kwargs):
         logging.error(
             f'Failed to mark transfer {transfer_id} as failed in task_failure: {e}'
         )
+
+
+@celery_app.task
+def restart_stuck_org_ownership_transfers():
+    """
+    Re-queue organization ownership transfers stuck in ACCEPTED or IN_PROGRESS
+    (e.g. due to a lost Celery message or OOM-killed worker), and mark them
+    FAILED once restart attempts are exhausted so teams are never blocked
+    indefinitely.
+    """
+    OrgOwnershipTransferInvite = apps.get_model(
+        'project_ownership', 'OrgOwnershipTransferInvite'
+    )
+    stuck_threshold = timezone.now() - timedelta(
+        seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+    )
+
+    stuck_pks = list(
+        OrgOwnershipTransferInvite.objects.filter(
+            status__in=(
+                InviteStatusChoices.ACCEPTED,
+                InviteStatusChoices.IN_PROGRESS,
+            ),
+            date_modified__lte=stuck_threshold,
+        )
+        .order_by('date_modified')
+        .values_list('pk', flat=True)[: settings.MAX_RESTARTED_TRANSFERS]
+    )
+
+    for transfer_pk in stuck_pks:
+        with transaction.atomic():
+            transfer = (
+                OrgOwnershipTransferInvite.objects.select_for_update(skip_locked=True)
+                .filter(
+                    pk=transfer_pk,
+                    status__in=(
+                        InviteStatusChoices.ACCEPTED,
+                        InviteStatusChoices.IN_PROGRESS,
+                    ),
+                    date_modified__lte=stuck_threshold,
+                )
+                .first()
+            )
+            if not transfer:
+                continue
+
+            restart_count = transfer.metadata.get('restart_count', 0)
+            if restart_count >= MAX_OWNERSHIP_TRANSFER_RESTARTS:
+                logging.error(
+                    f'Organization ownership transfer {transfer.pk} stuck after '
+                    f'{restart_count} restarts; marking as failed.'
+                )
+                transfer.status = InviteStatusChoices.FAILED
+                transfer.save(update_fields=['status', 'date_modified'])
+                continue
+
+            transfer.metadata['restart_count'] = restart_count + 1
+            transfer.save(update_fields=['metadata', 'date_modified'])
+            transaction.on_commit(
+                lambda pk=transfer.pk: transfer_organization_ownership.delay(pk)
+            )
 
 
 @celery_app.task

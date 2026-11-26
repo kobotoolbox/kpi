@@ -37,7 +37,9 @@ from kobo.apps.organizations.serializers import (
     OrganizationUserSerializer,
 )
 from kobo.apps.organizations.tasks import (
+    MAX_OWNERSHIP_TRANSFER_RESTARTS,
     mark_organization_invite_as_expired,
+    restart_stuck_org_ownership_transfers,
     transfer_organization_ownership,
 )
 from kobo.apps.organizations.tests.test_organizations_api import (
@@ -1772,3 +1774,59 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(transfer.status, InviteStatusChoices.FAILED)
         self.organization.refresh_from_db()
         self.assertEqual(self.organization.owner_user_object, self.owner_user)
+
+    def test_restart_stuck_org_ownership_transfers(self):
+        """
+        Stuck ACCEPTED/IN_PROGRESS transfers past
+        CELERY_LONG_RUNNING_TASK_TIME_LIMIT are re-queued with incremented
+        restart_count, recent ones are skipped, and transfers at
+        MAX_OWNERSHIP_TRANSFER_RESTARTS are marked FAILED.
+        """
+        stale_time = timezone.now() - timedelta(
+            seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 10
+        )
+        stuck_transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.IN_PROGRESS,
+        )
+        fresh_transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.ACCEPTED,
+        )
+        exhausted_transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.IN_PROGRESS,
+            metadata={
+                'billing_review_requested': False,
+                'organization_id': str(self.organization.id),
+                'restart_count': MAX_OWNERSHIP_TRANSFER_RESTARTS,
+            },
+        )
+        OrgOwnershipTransferInvite.objects.filter(
+            pk__in=[stuck_transfer.pk, exhausted_transfer.pk]
+        ).update(date_modified=stale_time)
+
+        with (
+            immediate_on_commit(),
+            patch(
+                'kobo.apps.organizations.tasks.transfer_organization_ownership.delay'
+            ) as mock_delay,
+        ):
+            restart_stuck_org_ownership_transfers()
+
+        mock_delay.assert_called_once_with(stuck_transfer.pk)
+        stuck_transfer.refresh_from_db()
+        self.assertEqual(stuck_transfer.metadata['restart_count'], 1)
+        self.assertGreater(stuck_transfer.date_modified, stale_time)
+
+        fresh_transfer.refresh_from_db()
+        self.assertEqual(fresh_transfer.metadata.get('restart_count', 0), 0)
+
+        exhausted_transfer.refresh_from_db()
+        self.assertEqual(exhausted_transfer.status, InviteStatusChoices.FAILED)
