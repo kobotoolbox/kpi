@@ -1,0 +1,32 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'admin/css/query_parser_filter.css' %}"/>
+
+<h3>Advanced query search</h3>
+
+<ul>
+  <li>You can use django <a
+    class="hub-queryparser--d-inline"
+    href="https://docs.djangoproject.com/en/5.2/ref/models/querysets/#field-lookups">
+    field lookups</a> to perform advanced searches
+  </li>
+  <li>A search without a field looks for an exact match on:
+    {% for field in spec.default_fields %}
+      <pre class="hub-queryparser--pre-inline">{{ field }}</pre>{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  </li>
+  <li>Use the Status filter below to filter on status</li>
+  <li><b>Some examples:</b></li>
+  {% for description, lines in spec.examples %}
+    <li>{{ description }}:
+      {% for line in lines %}
+        <pre>{{ line }}</pre>
+      {% endfor %}
+    </li>
+  {% endfor %}
+  <li><b>Fields:</b></li>
+  <li>
+    {% for field in spec.fields %}
+      <pre class="hub-queryparser--pre-inline">{{ field }}</pre>{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  </li>
+</ul>

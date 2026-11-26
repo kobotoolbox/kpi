@@ -25,6 +25,11 @@ class AttachmentTrash(BaseTrash):
 
     class Meta(BaseTrash.Meta):
         verbose_name = 'attachment'
+        indexes = [
+            # Serves the admin order and `task_restarter`, which reads the due
+            # records oldest first
+            models.Index(fields=['date_created'], name='attachmenttrash_created_idx'),
+        ]
 
     retention_setting = 'ATTACHMENT_TRASH_RETENTION'
 

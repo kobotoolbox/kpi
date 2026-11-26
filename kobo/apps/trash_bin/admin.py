@@ -1,7 +1,8 @@
 from django.contrib import admin, messages
 from django.db.models import F
 
-from kobo.apps.kobo_auth.shortcuts import User
+from hub.admin.filters import BaseAdvancedSearchFilter
+from hub.admin.mixins import AdvancedSearchMixin
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kpi.models import Asset
@@ -15,47 +16,88 @@ from .tasks import empty_account, empty_attachment, empty_project
 from .utils import put_back
 
 
-class AttachmentOwnerListFilter(admin.SimpleListFilter):
-    # Human-readable title which will be displayed in the
-    # right admin sidebar just above the filter options.
-    title = 'Attachment Owner'
+class TrashAdvancedSearchFilter(BaseAdvancedSearchFilter):
+    """
+    Display, in the sidebar, how to search the trash with the query parser.
 
-    # Parameter for the filter that will be used in the URL query.
-    parameter_name = 'attachment_owner'
+    Subclasses list the searchable fields and some examples. The fields that a
+    search without a field uses come from `search_default_field_lookups` on the
+    model admin.
+    """
 
-    def lookups(self, request, model_admin):
-        attachment_ids = (
-            model_admin.model.objects.values_list('attachment_id', flat=True)
-        )
-        attachment_owners = (
-            Attachment.all_objects.filter(pk__in=list(attachment_ids))
-            .select_related('user')
-            .values_list('user__pk', 'user__username')
-            .distinct()
-        )
-        return list(attachment_owners)
+    template = 'admin/trash_bin_advanced_search_filter.html'
 
-    def queryset(self, request, queryset):
-        if self.value():
-            attachment_ids = Attachment.all_objects.filter(
-                user__pk=self.value()
-            ).values_list('pk', flat=True)
-            return queryset.filter(attachment_id__in=list(attachment_ids))
-        return queryset
+    # Pairs of (description, query lines)
+    examples: list[tuple[str, list[str]]] = []
+    fields: list[str] = []
+
+    def __init__(self, request, params, model, model_admin):
+        super().__init__(request, params, model, model_admin)
+        self.default_fields = model_admin.search_default_field_lookups
 
 
-class ProjectOwnerListFilter(admin.SimpleListFilter):
-    title = 'Project Owner'
-    parameter_name = 'project_owner'
+class AccountTrashAdvancedSearchFilter(TrashAdvancedSearchFilter):
 
-    def lookups(self, request, model_admin):
-        users = User.objects.filter(assets__trash__isnull=False).distinct()
-        return [(user.pk, user.username) for user in users]
+    examples = [
+        ('Account of a user', ['user__username:bob']),
+        ('Accounts trashed by a user', ['request_author__username:bob']),
+        (
+            'Accounts to delete entirely, trashed before January 1, 2027',
+            ['retain_placeholder:False', 'AND date_created__lt:2027-01-01'],
+        ),
+    ]
+    fields = [
+        'uid',
+        'user__username',
+        'request_author__username',
+        'retain_placeholder',
+        'empty_manually',
+        'date_created',
+        'date_modified',
+    ]
 
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(asset__owner__pk=self.value())
-        return queryset
+
+class AttachmentTrashAdvancedSearchFilter(TrashAdvancedSearchFilter):
+
+    examples = [
+        ('Attachments of a project', ['metadata__asset_uid:aXXXXXXXXXXXXXXXXXXXXX']),
+        ('Attachments of an owner', ['request_author__username:bob']),
+        (
+            'Attachments of an owner trashed before January 1, 2027',
+            ['request_author__username:bob', 'AND date_created__lt:2027-01-01'],
+        ),
+        ('Attachment by its ID in KoboCAT', ['attachment_id:123']),
+    ]
+    fields = [
+        'uid',
+        'attachment_id',
+        'metadata__attachment_uid',
+        'metadata__attachment_basename',
+        'metadata__asset_uid',
+        'request_author__username',
+        'date_created',
+        'date_modified',
+    ]
+
+
+class ProjectTrashAdvancedSearchFilter(TrashAdvancedSearchFilter):
+
+    examples = [
+        ('Project by its uid', ['asset__uid:aXXXXXXXXXXXXXXXXXXXXX']),
+        ('Projects of an owner', ['asset__owner__username:bob']),
+        ('Projects trashed by a user', ['request_author__username:bob']),
+        ('Projects whose name contains "survey"', ['asset__name__icontains:survey']),
+    ]
+    fields = [
+        'uid',
+        'asset__uid',
+        'asset__name',
+        'asset__owner__username',
+        'request_author__username',
+        'empty_manually',
+        'date_created',
+        'date_modified',
+    ]
 
 
 class StatusListFilter(admin.SimpleListFilter):
@@ -80,7 +122,7 @@ class StatusListFilter(admin.SimpleListFilter):
 
 
 @admin.register(AccountTrash)
-class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
+class AccountTrashAdmin(AdvancedSearchMixin, TrashMixin, admin.ModelAdmin):
 
     list_display = [
         'user',
@@ -91,8 +133,18 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_failure_error',
         'get_auto_restarts',
     ]
-    list_filter = [StatusListFilter]
-    search_fields = ['user__username', 'request_author__username']
+    list_filter = [AccountTrashAdvancedSearchFilter, StatusListFilter]
+    search_default_field_lookups = [
+        'uid',
+        'user__username',
+        'request_author__username',
+    ]
+    # Shows the search box. `AdvancedSearchMixin` runs the search
+    search_fields = search_default_field_lookups
+    # Trash searches follow foreign keys and one-to-one relations only, so
+    # results cannot hold duplicates: skip the de-duplication, which reads the
+    # whole table (see `AdvancedSearchMixin.skip_distinct`)
+    skip_distinct = True
     ordering = ['-date_created', 'user__username']
     actions = ['empty_trash', 'put_back']
     task = empty_account
@@ -128,7 +180,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
 
 
 @admin.register(ProjectTrash)
-class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
+class ProjectTrashAdmin(AdvancedSearchMixin, TrashMixin, admin.ModelAdmin):
 
     list_display = [
         'get_project_name',
@@ -138,8 +190,19 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_failure_error',
         'get_auto_restarts',
     ]
-    list_filter = [ProjectOwnerListFilter, StatusListFilter]
-    search_fields = ['asset__name', 'asset__uid', 'request_author__username']
+    list_filter = [ProjectTrashAdvancedSearchFilter, StatusListFilter]
+    search_default_field_lookups = [
+        'uid',
+        'asset__uid',
+        'asset__owner__username',
+        'request_author__username',
+    ]
+    # Shows the search box. `AdvancedSearchMixin` runs the search
+    search_fields = search_default_field_lookups
+    # Trash searches follow foreign keys and one-to-one relations only, so
+    # results cannot hold duplicates: skip the de-duplication, which reads the
+    # whole table (see `AdvancedSearchMixin.skip_distinct`)
+    skip_distinct = True
     ordering = ['-date_created', 'asset__name']
     actions = ['empty_trash', 'put_back']
     task = empty_project
@@ -197,7 +260,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
 
 
 @admin.register(AttachmentTrash)
-class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
+class AttachmentTrashAdmin(AdvancedSearchMixin, TrashMixin, admin.ModelAdmin):
     list_display = [
         'get_attachment_name',
         'request_author',
@@ -206,8 +269,22 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
         'get_failure_error',
         'get_auto_restarts',
     ]
-    list_filter = [AttachmentOwnerListFilter, StatusListFilter]
-    search_fields = ['attachment_id', 'request_author__username']
+    list_filter = [AttachmentTrashAdvancedSearchFilter, StatusListFilter]
+    # `request_author` is the owner: only the automatic cleanup of the
+    # attachments over the storage limit trashes attachments, on behalf of
+    # their owner
+    search_default_field_lookups = [
+        'uid',
+        'metadata__attachment_uid',
+        'metadata__asset_uid',
+        'request_author__username',
+    ]
+    # Shows the search box. `AdvancedSearchMixin` runs the search
+    search_fields = search_default_field_lookups
+    # Trash searches follow foreign keys and one-to-one relations only, so
+    # results cannot hold duplicates: skip the de-duplication, which reads the
+    # whole table (see `AdvancedSearchMixin.skip_distinct`)
+    skip_distinct = True
     ordering = ['-date_created']
     actions = ['empty_trash', 'put_back']
     task = empty_attachment
