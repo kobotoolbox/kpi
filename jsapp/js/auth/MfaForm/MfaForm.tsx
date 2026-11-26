@@ -6,6 +6,7 @@ import { useAllauthBrowserV1Auth2faAuthenticatePost } from '#/api/react-query/au
 import InjectedHtml from '#/auth/AuthContainer/InjectedHtml'
 import { useAuthEnvironment } from '#/auth/AuthContainer/useAuthEnvironment'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import GoBackButton from '#/auth/GoBackButton'
 import MfaCodeInput from '#/auth/MfaCodeInput'
 import { getGenericAllauthErrorMessage, getPendingFlowIds, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateRequiredField } from '#/auth/authValidation'
@@ -75,6 +76,8 @@ function VerificationIssuesPanel({ helpText, supportEmail, onGoBack }: Verificat
 
 export interface MfaFormProps {
   onOutcome: (outcome: MfaOutcome) => void
+  /** Back to the password step. Without it "Go back" links to the login screen. */
+  onGoBack?: () => void
 }
 
 /**
@@ -84,7 +87,7 @@ export interface MfaFormProps {
  * Takes the place of the credentials form rather than living on a route of its own, because the pending flow
  * is in the allauth session and not in the URL - there is no address that could be opened to get here.
  */
-export default function MfaForm({ onOutcome }: MfaFormProps) {
+export default function MfaForm({ onOutcome, onGoBack }: MfaFormProps) {
   const { data: environment } = useAuthEnvironment()
   const [isShowingIssues, setIsShowingIssues] = useState(false)
 
@@ -176,6 +179,7 @@ export default function MfaForm({ onOutcome }: MfaFormProps) {
             <ButtonNew type='button' variant='transparent' size='lg' fullWidth onClick={() => setIsShowingIssues(true)}>
               {t('Problem with token?')}
             </ButtonNew>
+            <GoBackButton onClick={onGoBack} />
           </Stack>
         </Stack>
       </form>

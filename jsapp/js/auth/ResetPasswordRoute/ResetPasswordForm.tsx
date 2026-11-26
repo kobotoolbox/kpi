@@ -3,6 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useAllauthBrowserV1AuthPasswordRequestPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import GoBackButton from '#/auth/GoBackButton'
 import { getGenericAllauthErrorMessage, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateEmailFormat } from '#/auth/authValidation'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -88,9 +89,12 @@ export default function ResetPasswordForm({ onRequested }: ResetPasswordFormProp
             required
           />
 
-          <ButtonNew type='submit' size='lg' fullWidth loading={requestReset.isPending}>
-            {t('Reset password')}
-          </ButtonNew>
+          <Stack gap='xs'>
+            <ButtonNew type='submit' size='lg' fullWidth loading={requestReset.isPending}>
+              {t('Reset password')}
+            </ButtonNew>
+            <GoBackButton />
+          </Stack>
         </Stack>
       </form>
     </Stack>

@@ -148,7 +148,7 @@ export default function LoginRoute({ onAuthenticated }: LoginRouteProps) {
     if (outcome?.kind === 'mfaRequired') {
       return (
         <AuthCard aside={aside} brand={brand}>
-          <MfaForm onOutcome={handleOutcome} />
+          <MfaForm onOutcome={handleOutcome} onGoBack={() => setOutcome(null)} />
         </AuthCard>
       )
     }

@@ -61,7 +61,14 @@ type Story = StoryObj<typeof AuthContainer>
 
 const submit = (canvas: Canvas) => userEvent.click(canvas.getByRole('button', { name: 'Reset password' }))
 
-export const Default: Story = {}
+/** The form, with a way back to the login screen */
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    expect(await canvas.findByRole('link', { name: 'Go back' })).toHaveAttribute('href', AUTH_ROUTES.LOGIN)
+  },
+}
 
 /** A taken request. The panel never names the address, so this form cannot be used to find who has an account. */
 export const EmailSent: Story = {
