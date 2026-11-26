@@ -1830,3 +1830,37 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
 
         exhausted_transfer.refresh_from_db()
         self.assertEqual(exhausted_transfer.status, InviteStatusChoices.FAILED)
+
+    def test_retry_resumes_pending_transfers_from_interrupted_batch(self):
+        """
+        If an earlier attempt created a batch of Transfer rows and timed out
+        before moving all of them, retrying executes the remaining PENDING
+        Transfer rows instead of skipping them.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        self.owner_user.assets.all().delete()
+        asset = Asset.objects.create(
+            name='Pending Batch Project', owner=self.owner_user
+        )
+
+        # Simulate create_invite() having created a PENDING Transfer row before timeout
+        batch_invite = Invite.objects.create(
+            sender=self.owner_user, recipient=self.admin_user
+        )
+        pending_proj_transfer = Transfer.objects.create(
+            invite=batch_invite, asset=asset
+        )
+
+        with (
+            immediate_on_commit(),
+            patch.object(Transfer, 'transfer_project') as mock_transfer_project,
+            patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
+        ):
+            transfer_organization_ownership(transfer.pk)
+
+        mock_transfer_project.assert_called_once()
+        mock_create_invite.assert_not_called()
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.COMPLETE)
+        self.assertIsNotNone(pending_proj_transfer.pk)

@@ -13,10 +13,12 @@ from more_itertools import chunked
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import OrganizationInviteStatusChoices
+from kobo.apps.project_ownership.exceptions import TransferAlreadyProcessedException
 from kobo.apps.project_ownership.models import (
     InviteStatusChoices,
     Transfer,
     TransferStatusChoices,
+    TransferStatusTypeChoices,
 )
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.celery import celery_app
@@ -179,20 +181,58 @@ def transfer_organization_ownership(transfer_id: int):
                     outgoing_org_user.is_admin = True
                     outgoing_org_user.save(update_fields=['is_admin'])
 
-        # Phase 2: Batch project transfers using keyset pagination so memory
-        # stays bounded for large collections and no server-side cursor is held
+        # Phase 2: First resume any PENDING project transfers left behind by a
+        # previous attempt that timed out mid-batch after create_invite()
+        # committed the batch's Transfer rows.
+        sender = transfer.sender
+        recipient = transfer.recipient
+        batch_size = settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
+
+        last_pending_pk = 0
+        while True:
+            pending_batch = list(
+                Transfer.objects.filter(
+                    pk__gt=last_pending_pk,
+                    invite__sender=sender,
+                    invite__recipient=recipient,
+                    date_created__gte=transfer.date_created,
+                    statuses__status_type=TransferStatusTypeChoices.GLOBAL,
+                    statuses__status=TransferStatusChoices.PENDING,
+                )
+                .select_related(
+                    'invite', 'invite__sender', 'invite__recipient', 'asset'
+                )
+                .defer('asset__content')
+                .order_by('pk')[:batch_size]
+            )
+            if not pending_batch:
+                break
+
+            last_pending_pk = pending_batch[-1].pk
+            for pending_transfer in pending_batch:
+                try:
+                    pending_transfer.transfer_project()
+                except TransferAlreadyProcessedException:
+                    logging.info(
+                        f'Project transfer {pending_transfer.pk} for '
+                        f'organization transfer {transfer_id} was already '
+                        'processed; skipping.'
+                    )
+            OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).update(
+                date_modified=timezone.now()
+            )
+
+        # Then batch remaining assets using keyset pagination so memory stays
+        # bounded for large collections and no server-side cursor is held
         # across create_invite() commits. NOT EXISTS scoped to this transfer's
         # creation timestamp ensures retries pick up only remaining assets
         # without skipping assets from prior transfer cycles.
-        sender = transfer.sender
-        recipient = transfer.recipient
         already_attempted = Transfer.objects.filter(
             asset_id=OuterRef('pk'),
             invite__sender=sender,
             invite__recipient=recipient,
             date_created__gte=transfer.date_created,
         )
-        batch_size = settings.USER_ASSET_ORG_TRANSFER_BATCH_SIZE
         last_pk = 0
 
         while True:
