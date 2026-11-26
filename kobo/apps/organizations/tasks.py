@@ -5,6 +5,7 @@ from celery.signals import task_failure
 from constance import config
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
@@ -80,6 +81,15 @@ def transfer_organization_ownership(transfer_id: int):
     )
     OrganizationOwner = apps.get_model('organizations', 'OrganizationOwner')
     OrganizationUser = apps.get_model('organizations', 'OrganizationUser')
+
+    lock_key = f'org_ownership_transfer:{transfer_id}'
+    lock_ttl = settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
+    if not cache.add(lock_key, True, timeout=lock_ttl):
+        logging.warning(
+            f'Organization ownership transfer {transfer_id} is already running; '
+            'skipping duplicate execution.'
+        )
+        return
 
     try:
         # Phase 1: Atomically swap OrganizationOwner and update outgoing
@@ -319,6 +329,8 @@ def transfer_organization_ownership(transfer_id: int):
                 f'Could not set status to failed for transfer {transfer_id}: {inner_e}'
             )
         raise
+    finally:
+        cache.delete(lock_key)
 
 
 @task_failure.connect(sender=transfer_organization_ownership)
