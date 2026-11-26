@@ -121,6 +121,21 @@ export function getAssetUidFromDeploymentPath(pathname: string): string | undefi
   return undefined
 }
 
+/** Matches `/api/v2/assets/:uid/permission-assignments/` and its nested paths. */
+export function getAssetUidFromPermissionAssignmentPath(pathname: string): string | undefined {
+  const parts = getPathParts(pathname)
+  if (
+    parts.length >= 5 &&
+    parts[0] === 'api' &&
+    parts[1] === 'v2' &&
+    parts[2] === 'assets' &&
+    parts[4] === 'permission-assignments'
+  ) {
+    return parts[3]
+  }
+  return undefined
+}
+
 export function toPathname(url: string): string {
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return new URL(url).pathname
@@ -205,7 +220,7 @@ export function buildBridgeRequestContext(
     method,
     pathname,
     requestBody: parseJsonBody(config.body),
-    assetUid: getAssetUidFromAssetPath(pathname),
+    assetUid: getAssetUidFromAssetPath(pathname) ?? getAssetUidFromPermissionAssignmentPath(pathname),
     deploymentAssetUid: getAssetUidFromDeploymentPath(pathname),
   }
 }

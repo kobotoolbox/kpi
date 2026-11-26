@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { AssetContent } from '#/dataInterface'
 import { discardAssetLanguages, getFormLanguages, resolveImportLanguages } from './importLanguages'
 

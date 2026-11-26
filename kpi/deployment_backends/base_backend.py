@@ -28,6 +28,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.common_tags import (
+    DATE_MODIFIED,
     META_INSTANCE_ID,
     META_ROOT_UUID,
     SUBMISSION_TIME,
@@ -884,6 +885,7 @@ class BaseDeploymentBackend(abc.ABC):
         self,
         submission: dict,
         all_attachment_xpaths: list[str],
+        inject_date_modified: bool = True,
     ) -> dict:
         submission = self._rewrite_json_attachment_urls(
             submission, all_attachment_xpaths
@@ -905,8 +907,25 @@ class BaseDeploymentBackend(abc.ABC):
                 submission[SUBMISSION_TIME] = as_date.astimezone(
                     datetime.timezone.utc
                 ).isoformat()
+        # Must come after `_submission_time` is normalized above, it is the
+        # fallback value for `_date_modified`
+        if inject_date_modified:
+            submission = self._inject_date_modified(submission)
         submission.pop('_tags', None)
         submission.pop('_notes', None)
+        return submission
+
+    def _inject_date_modified(self, submission: dict) -> dict:
+
+        if submission.get(DATE_MODIFIED):
+            return submission
+
+        # Documents written before `_date_modified` was introduced do not
+        # carry the key; fall back to the creation time so consumers always
+        # see a value
+        if submission_time := submission.get(SUBMISSION_TIME):
+            submission[DATE_MODIFIED] = submission_time
+
         return submission
 
     def _inject_root_uuid(self, submission: dict) -> dict:

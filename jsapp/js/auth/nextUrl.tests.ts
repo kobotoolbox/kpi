@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import { getLoginRouteWithNext, getUrlForNextRoute, goToPage, readNextParam, resolveNextRoute } from './nextUrl'

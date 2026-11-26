@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { ServerError } from './ServerError'
 
 /** `ServerError.new()` only reads `status`, `statusText` and `text()` off the response. */

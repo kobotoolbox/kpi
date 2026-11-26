@@ -5,10 +5,20 @@ import type { SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterfac
 export interface TableColumn extends Column<SubmissionResponse> {
   id: string
   question?: SurveyRow
+  /** Older paths this column's files can sit under, see `DataColumns`. */
+  legacyAttachmentPaths?: string[]
   /** For dropdown filters - attached to column to maintain stable filter references */
   choices?: SurveyChoice[]
   selectFromListName?: string
   translationIndex?: number
+}
+
+/** Attachment xpaths of the visible columns that may show audio, see `getVisibleAudioXpaths`. */
+export interface VisibleAudioXpaths {
+  /** Audio question paths. The cell plays every file here, whatever its mimetype. */
+  audioQuestion: string[]
+  /** Paths of columns with no question. The cell plays only files with an audio mimetype. */
+  noQuestion: string[]
 }
 
 /**

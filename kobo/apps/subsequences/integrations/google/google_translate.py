@@ -30,18 +30,15 @@ from ...constants import (
     GOOGLE_CACHE_TIMEOUT,
 )
 from ...exceptions import (
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
     SubsequenceTimeoutError,
     TranslationResultNotFound,
 )
+from ..rate_limit import ServiceRateLimitExceeded, require_service_quota
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 from .locations import get_translate_endpoint, get_translate_location
-from .rate_limit import (
-    GoogleServiceRateLimitExceeded,
-    get_google_retry_after_seconds,
-    require_google_service_quota,
-)
+from .rate_limit import get_google_retry_after_seconds
 
 
 class GoogleTranslationService(GoogleService):
@@ -114,7 +111,7 @@ class GoogleTranslationService(GoogleService):
             f'{target_lang=}'
         )
         # Check Redis bucket and halt locally if we are exceeding allowed requests
-        require_google_service_quota('translate_v3_batch_translate_text')
+        require_service_quota('translate_v3_batch_translate_text')
         self._cleanup_batch_files(xpath, source_lang, target_lang)
 
         destination = self.bucket.blob(source_path)
@@ -258,7 +255,7 @@ class GoogleTranslationService(GoogleService):
         )
         try:
             # Check Redis bucket and halt locally if we are exceeding allowed requests
-            require_google_service_quota('translate_v3_translate_text')
+            require_service_quota('translate_v3_translate_text')
             request = {
                 'contents': [content],
                 'target_language_code': target_language_code,
@@ -268,7 +265,7 @@ class GoogleTranslationService(GoogleService):
                 'source_language_code': source_language_code,
             }
             response = self.translate_client.translate_text(request=request)
-        except GoogleServiceRateLimitExceeded as err:
+        except ServiceRateLimitExceeded as err:
             logging.info(
                 'Deferred Google sync translation because project quota is '
                 'exhausted for '
@@ -281,7 +278,7 @@ class GoogleTranslationService(GoogleService):
                 'Google sync translation quota was exhausted for '
                 f'{self.submission_root_uuid=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except InvalidArgument as err:
             logging.exception('Error when processing translation')
             return {
@@ -329,7 +326,7 @@ class GoogleTranslationService(GoogleService):
                 target_lang=target_language_code,
                 content=content,
             )
-        except GoogleServiceRateLimitExceeded as err:
+        except ServiceRateLimitExceeded as err:
             logging.info(
                 'Deferred Google async translation because project quota is '
                 f'exhausted for {xpath=}, retry_after={err.retry_after}'
@@ -341,7 +338,7 @@ class GoogleTranslationService(GoogleService):
                 'Google async translation quota was exhausted for '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except InvalidArgument as err:
             logging.exception('Error when starting translation')
             return {
@@ -404,7 +401,7 @@ class GoogleTranslationService(GoogleService):
                 'Google async translation quota was exhausted while waiting for '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check on the operation, but the batch
             # job itself may still be running. Report 'in_progress' so
@@ -478,7 +475,7 @@ class GoogleTranslationService(GoogleService):
                 'Google async translation quota was exhausted while polling '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Keep the operation reference so a later polling attempt can
             # resume instead of recreating the Google job

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useMemo } from 'react'
-import type { SubmissionResponse } from '#/dataInterface'
-import envStore from '#/envStore'
+import { QuestionTypeName } from '#/constants'
+import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import { inferAttachmentQuestionType } from './submissionMediaUtils'
+import type { VisibleAudioXpaths } from './table.types'
 import { useAudioDurations } from './useCalculateAudioDuration.hook'
 
 interface AudioDurationsContextValue {
@@ -17,13 +19,8 @@ const AudioDurationsContext = createContext<AudioDurationsContextValue>({
 interface AudioDurationsProviderProps {
   assetUid: string
   submissions: SubmissionResponse[]
-  /**
-   * XPaths of the audio question columns that are currently visible in the
-   * table. Attachments belonging to hidden columns are skipped so we don't pay
-   * the (potentially expensive, ffprobe-backed) duration lookup for durations
-   * the user cannot see.
-   */
-  visibleAudioXpaths: string[]
+  /** Hidden columns are left out, so we don't pay for ffprobe-backed lookups the user cannot see. */
+  visibleAudioXpaths: VisibleAudioXpaths
   children: React.ReactNode
 }
 
@@ -33,12 +30,9 @@ interface AudioDurationsProviderProps {
  * context so each audio cell can render a duration that matches the bulk
  * processing feature exactly.
  *
- * Two guards keep this from adding load where it brings no benefit:
- * - It only runs when ASR/MT features are enabled for the account. When they
- *   are off there is no processing view or bulk modal to compare against, so
- *   there's nothing for the table to be consistent with, and the browser's own
- *   decoded duration is good enough.
- * - It only fetches durations for visible audio columns.
+ * It runs for every user, not only ASR/MT ones: the mini player doesn't
+ * preload, so without this the length stays unknown until playback.
+ * It only fetches durations for visible audio columns.
  */
 export function AudioDurationsProvider({
   assetUid,
@@ -46,26 +40,21 @@ export function AudioDurationsProvider({
   visibleAudioXpaths,
   children,
 }: AudioDurationsProviderProps) {
-  const isAsrMtEnabled = envStore.data.asr_mt_features_enabled
-
   const attachmentUids = useMemo(() => {
-    // Bail out early (no query fired) when the feature is off or no audio
-    // columns are visible.
-    if (!isAsrMtEnabled || visibleAudioXpaths.length === 0) {
-      return []
-    }
+    const audioQuestionXpaths = new Set(visibleAudioXpaths.audioQuestion)
+    const noQuestionXpaths = new Set(visibleAudioXpaths.noQuestion)
 
-    const visibleXpaths = new Set(visibleAudioXpaths)
+    // Mirrors the cell: the question type decides, and the mimetype only when there's no question.
+    const isPlayedAsAudio = (attachment: SubmissionAttachment) =>
+      audioQuestionXpaths.has(attachment.question_xpath) ||
+      (noQuestionXpaths.has(attachment.question_xpath) &&
+        inferAttachmentQuestionType(attachment) === QuestionTypeName.audio)
+
     return submissions
       .flatMap((submission) => submission._attachments || [])
-      .filter(
-        (attachment) =>
-          !attachment.is_deleted &&
-          attachment.mimetype?.startsWith('audio/') &&
-          visibleXpaths.has(attachment.question_xpath),
-      )
+      .filter((attachment) => !attachment.is_deleted && isPlayedAsAudio(attachment))
       .map((attachment) => attachment.uid)
-  }, [isAsrMtEnabled, submissions, visibleAudioXpaths])
+  }, [submissions, visibleAudioXpaths])
 
   const { durationsByUid, isLoading } = useAudioDurations(attachmentUids, assetUid)
 

@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { type SupplementalPathParts, buildSupplementalPath, getSupplementalPathParts } from './processingUtils'
 
 describe('getSupplementalPathParts', () => {

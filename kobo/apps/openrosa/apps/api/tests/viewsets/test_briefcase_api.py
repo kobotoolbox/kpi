@@ -1,6 +1,8 @@
 # coding: utf-8
 import os
 
+from ddt import data, ddt, unpack
+from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -15,6 +17,11 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.tests.utils import publish_xml_form
 from kobo.apps.openrosa.libs.utils.storage import rmdir
+from kpi.constants import (
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.fields import KpiUidField
 from kpi.utils.hash import calculate_hash
 
@@ -25,6 +32,7 @@ def ordered_instances(xform):
     return Instance.objects.filter(xform=xform).order_by('id')
 
 
+@ddt
 class TestBriefcaseAPI(TestAbstractViewSet):
 
     def setUp(self):
@@ -349,6 +357,58 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         response = view(request)
         self.assertEqual(response.status_code, 404)
 
+    @data(
+        # (permission assigned to alice, expected status code)
+        (None, 404),
+        (PERM_VIEW_ASSET, 404),
+        (PERM_PARTIAL_SUBMISSIONS, 404),
+        (PERM_VIEW_SUBMISSIONS, 200),
+    )
+    @unpack
+    def test_submissions_require_view_submissions_permission(self, perm, status_code):
+        self._publish_xml_form()
+        self._make_submissions()
+        alice = self._create_alice()
+        if perm == PERM_PARTIAL_SUBMISSIONS:
+            self.xform.asset.assign_perm(
+                alice,
+                perm,
+                partial_perms={
+                    PERM_VIEW_SUBMISSIONS: [{'_submitted_by': alice.username}]
+                },
+            )
+        elif perm:
+            self.xform.asset.assign_perm(alice, perm)
+
+        for method in ['get', 'head']:
+            response = self._request_as_alice('list', method)
+            assert response.status_code == status_code
+            response = self._request_as_alice('retrieve', method)
+            assert response.status_code == status_code
+
+    def test_submissions_of_public_form_are_not_shared(self):
+        self._publish_xml_form()
+        self._make_submissions()
+        self._create_alice()
+        self.xform.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
+
+        for method in ['get', 'head']:
+            response = self._request_as_alice('list', method)
+            assert response.status_code == 404
+            response = self._request_as_alice('retrieve', method)
+            assert response.status_code == 404
+
+    def _create_alice(self):
+        profile = self._create_user_profile(
+            {
+                'username': 'alice',
+                'password1': 'alicealice',
+                'password2': 'alicealice',
+                'email': 'alice@localhost.com',
+            }
+        )
+        return profile.user
+
     def _publish_xml_form(self, auth=None):
         with open(self.form_def_path, 'rb') as f:
             self.xform = publish_xml_form(f, self.user)
@@ -373,6 +433,33 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         asset.save()
         self.xform.kpi_asset_uid = asset.uid
         self.xform.save(update_fields=['kpi_asset_uid'])
+
+    def _request_as_alice(self, action, method):
+        """
+        Send an authenticated Briefcase request as alice.
+
+        `action` is either `list` (submission list) or `retrieve` (one
+        submission).
+        """
+        if action == 'list':
+            url = self._submission_list_url
+            form_id = self.xform.id_string
+        else:
+            url = self._download_submission_url
+            instance = ordered_instances(self.xform).first()
+            form_id = (
+                f'{self.xform.id_string}[@version=null and @uiVersion=null]/'
+                f'{self.xform.id_string}[@key=uuid:{instance.uuid}]'
+            )
+
+        view = BriefcaseApi.as_view({method: action})
+        send = getattr(self.factory, method)
+        request = send(url, data={'formId': form_id})
+        response = view(request)
+        assert response.status_code == 401
+        auth = DigestAuth('alice', 'alicealice')
+        request = send(url, data={'formId': form_id}, **auth(request.META, response))
+        return view(request)
 
     def test_submission_with_instance_id_on_root_node(self):
         view = XFormSubmissionApi.as_view({'post': 'create'})
