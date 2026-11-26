@@ -3,6 +3,7 @@ import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { useAllauthBrowserV1AuthProviderSignupPost } from '#/api/react-query/authentication-allauth-headless'
 import { withAuthFieldError } from '#/auth/AuthFieldError'
+import GoBackButton from '#/auth/GoBackButton'
 import { validateRequiredCheckbox, validateUsername } from '#/auth/RegisterRoute/registerValidation'
 import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauthErrors } from '#/auth/allauthErrors'
 import { validateEmailFormat } from '#/auth/authValidation'
@@ -196,15 +197,18 @@ export default function ProviderSignupForm({
             {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
           />
 
-          <ButtonNew
-            type='submit'
-            size='lg'
-            fullWidth
-            rightIcon='arrow-right'
-            loading={isConfigurationPending || signup.isPending}
-          >
-            {t('Continue')}
-          </ButtonNew>
+          <Stack gap='xs'>
+            <ButtonNew
+              type='submit'
+              size='lg'
+              fullWidth
+              rightIcon='arrow-right'
+              loading={isConfigurationPending || signup.isPending}
+            >
+              {t('Continue')}
+            </ButtonNew>
+            <GoBackButton />
+          </Stack>
         </Stack>
       </form>
     </Stack>

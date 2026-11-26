@@ -176,6 +176,18 @@ export const ServerErrors: Story = {
   },
 }
 
+/** Changed their mind: back to the password step, not out of the login screen. */
+export const GoBack: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await reachCodeForm(canvas)
+
+    await userEvent.click(canvas.getByRole('button', { name: 'Go back' }))
+
+    expect(await findField(canvas, 'Username')).toBeInTheDocument()
+  },
+}
+
 /** What to do without the authenticator app, in the admin's words. Reached from the form's button. */
 export const VerificationIssues: Story = {
   play: async ({ canvasElement }) => {

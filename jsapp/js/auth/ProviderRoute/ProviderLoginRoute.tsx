@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ServerError } from '#/api/ServerError'
 import { getSocialAppsRetrieveQueryKey, useSocialAppsRetrieve } from '#/api/react-query/configuration'
 import AuthCard from '#/auth/AuthContainer/AuthCard'
+import GoBackButton from '#/auth/GoBackButton'
 import ButtonNew from '#/components/common/ButtonNew'
 import { AUTH_ROUTES } from '#/router/routerConstants'
 import ProviderRedirectButton from './ProviderRedirectButton'
@@ -85,9 +86,7 @@ function ConfirmPanel({ providerId, providerName }: ConfirmPanelProps) {
         <ProviderRedirectButton providerId={providerId} size='lg' fullWidth>
           {t('Log in')}
         </ProviderRedirectButton>
-        <ButtonNew component={Link} to={AUTH_ROUTES.LOGIN} variant='transparent' size='lg' fullWidth>
-          {t('Go back')}
-        </ButtonNew>
+        <GoBackButton />
       </Stack>
     </Stack>
   )
