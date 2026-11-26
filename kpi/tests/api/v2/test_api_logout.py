@@ -87,7 +87,6 @@ class TestLogoutView(BaseTestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'test-id-token'},
         )
 
         self.client.force_login(self.user)
@@ -103,7 +102,7 @@ class TestLogoutView(BaseTestCase):
         self.assertEqual(parsed.path, '/protocol/openid-connect/logout')
 
         params = parse_qs(parsed.query)
-        self.assertEqual(params.get('id_token_hint'), ['test-id-token'])
+        self.assertNotIn('id_token_hint', params)
         self.assertEqual(params.get('client_id'), ['kpi-client'])
         self.assertEqual(
             params.get('post_logout_redirect_uri'), ['https://kpi.example.com/login/']

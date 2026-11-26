@@ -266,13 +266,10 @@ class AccountAdapter(DefaultAccountAdapter):
         parsed = urlparse(end_session_endpoint)
         query_params = dict(parse_qsl(parsed.query))
 
-        id_token = (
-            social_account.extra_data.get('id_token')
-            if isinstance(social_account.extra_data, dict)
-            else None
-        ) or (hasattr(request, 'session') and request.session.get('oidc_id_token'))
-        if isinstance(id_token, str) and id_token.strip():
-            query_params['id_token_hint'] = id_token
+        if hasattr(request, 'session'):
+            id_token = request.session.get('oidc_id_token')
+            if isinstance(id_token, str) and id_token.strip():
+                query_params['id_token_hint'] = id_token
 
         post_logout_redirect_uri = (
             custom_data.post_logout_redirect_uri
@@ -419,20 +416,13 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                         HttpResponseRedirect(resolve_url('socialaccount_provisioning'))
                     )
 
-            # Stash login metadata and id_token in session for deterministic logout
-            # handling. Account connection flows (process=CONNECT) stash this metadata
+            # Stash login metadata in session for deterministic logout handling.
+            # Account connection flows (process=CONNECT) stash this metadata
             # in social_account_added once linking completes successfully.
             account = getattr(sociallogin, 'account', None)
-            extra_data = getattr(account, 'extra_data', None)
-            id_token = (
-                extra_data.get('id_token') if isinstance(extra_data, dict) else None
-            )
-            if hasattr(request, 'session'):
-                if isinstance(id_token, str) and id_token.strip():
-                    request.session['oidc_id_token'] = id_token
-                if account:
-                    request.session['socialaccount_provider'] = account.provider
-                    request.session['socialaccount_uid'] = account.uid
+            if hasattr(request, 'session') and account:
+                request.session['socialaccount_provider'] = account.provider
+                request.session['socialaccount_uid'] = account.uid
             return
 
         # Only the connect flow links a new provider; login/signup are exempt.

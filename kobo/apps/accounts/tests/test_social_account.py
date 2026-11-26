@@ -382,7 +382,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -397,7 +396,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -414,7 +412,7 @@ class SocialAccountLogoutTestCase(TestCase):
         self.assertEqual(parsed.path, '/protocol/openid-connect/logout')
 
         query = parse_qs(parsed.query)
-        self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
+        self.assertNotIn('id_token_hint', query)
         self.assertEqual(
             query.get('post_logout_redirect_uri'),
             ['https://kpi.example.com/login/'],
@@ -430,7 +428,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'discovered-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -453,7 +450,7 @@ class SocialAccountLogoutTestCase(TestCase):
         parsed = urlparse(url)
         self.assertEqual(parsed.path, '/auth/realms/kobo/logout')
         query = parse_qs(parsed.query)
-        self.assertEqual(query.get('id_token_hint'), ['discovered-id-token'])
+        self.assertNotIn('id_token_hint', query)
         self.assertEqual(query.get('client_id'), ['kpi-client-id'])
 
     def test_prompt_login_applies_auth_params_at_runtime(self):
@@ -478,7 +475,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='kc-uid-1',
-            extra_data={'id_token': 'kc-token'},
         )
         azure_app = SocialApp.objects.create(
             provider='openid_connect',
@@ -491,7 +487,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='azure',
             uid='azure-uid-2',
-            extra_data={'id_token': 'azure-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -512,7 +507,7 @@ class SocialAccountLogoutTestCase(TestCase):
         parsed = urlparse(url)
         self.assertEqual(parsed.netloc, 'keycloak.example.com')
         query = parse_qs(parsed.query)
-        self.assertEqual(query.get('id_token_hint'), ['kc-token'])
+        self.assertNotIn('id_token_hint', query)
         self.assertEqual(query.get('client_id'), ['kpi-client-id'])
 
     def test_multiple_social_accounts_without_session_context_returns_default_url(self):
@@ -520,13 +515,11 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='kc-uid-1',
-            extra_data={'id_token': 'kc-token'},
         )
         SocialAccount.objects.create(
             user=self.user,
             provider='azure',
             uid='azure-uid-2',
-            extra_data={'id_token': 'azure-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -550,7 +543,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -573,7 +565,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -596,7 +587,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -628,7 +618,7 @@ class SocialAccountLogoutTestCase(TestCase):
             f'{parsed.scheme}://{parsed.netloc}{parsed.path}',
             'https://idp.com/protocol/openid-connect/logout',
         )
-        self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
+        self.assertNotIn('id_token_hint', query)
         self.assertEqual(
             query.get('post_logout_redirect_uri'),
             ['https://kpi.example.com/login/'],
@@ -641,7 +631,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -663,14 +652,12 @@ class SocialAccountLogoutTestCase(TestCase):
         account = SocialAccount(
             provider='keycloak',
             uid='kc-uid-1',
-            extra_data={'id_token': 'stashed-id-token'},
         )
         sociallogin = SocialLogin(user=self.user, account=account)
         request = self._get_authenticated_request()
 
         adapter.pre_social_login(request, sociallogin)
 
-        self.assertEqual(request.session.get('oidc_id_token'), 'stashed-id-token')
         self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
         self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')
 
@@ -679,7 +666,6 @@ class SocialAccountLogoutTestCase(TestCase):
         account = SocialAccount(
             provider='keycloak',
             uid='kc-uid-1',
-            extra_data={'id_token': 'stashed-id-token'},
         )
         sociallogin = SocialLogin(user=self.user, account=account)
         sociallogin.state = {'process': AuthProcess.CONNECT}
@@ -687,7 +673,6 @@ class SocialAccountLogoutTestCase(TestCase):
 
         adapter.pre_social_login(request, sociallogin)
 
-        self.assertNotIn('oidc_id_token', request.session)
         self.assertNotIn('socialaccount_provider', request.session)
         self.assertNotIn('socialaccount_uid', request.session)
 
@@ -709,7 +694,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': 'my-id-token'},
         )
         sociallogin = SocialLogin(user=self.user, account=account)
         sociallogin.state = {'process': AuthProcess.CONNECT}
@@ -719,7 +703,6 @@ class SocialAccountLogoutTestCase(TestCase):
 
         # pre_social_login does not stash metadata during connect flow
         self.assertNotIn('socialaccount_provider', request.session)
-        self.assertNotIn('oidc_id_token', request.session)
 
         # Account connection completes and fires social_account_added
         account.save()
@@ -729,7 +712,6 @@ class SocialAccountLogoutTestCase(TestCase):
 
         self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
         self.assertEqual(request.session.get('socialaccount_uid'), '12345')
-        self.assertEqual(request.session.get('oidc_id_token'), 'my-id-token')
 
         url = self.adapter.get_logout_redirect_url(request)
         parsed = urlparse(url)
@@ -739,48 +721,6 @@ class SocialAccountLogoutTestCase(TestCase):
             f'{parsed.scheme}://{parsed.netloc}{parsed.path}',
             'https://idp.com/protocol/openid-connect/logout',
         )
-        self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
-        self.assertEqual(
-            query.get('post_logout_redirect_uri'),
-            ['https://kpi.example.com/login/'],
-        )
-        self.assertEqual(query.get('client_id'), ['kpi-client-id'])
-
-    def test_pre_social_login_ignores_non_string_id_token(self):
-        adapter = SocialAccountAdapter()
-        account = SocialAccount(
-            provider='keycloak',
-            uid='kc-uid-1',
-            extra_data={'id_token': {'sub': 'kc-uid-1', 'email': 'user@example.com'}},
-        )
-        sociallogin = SocialLogin(user=self.user, account=account)
-        request = self._get_authenticated_request()
-
-        adapter.pre_social_login(request, sociallogin)
-
-        self.assertNotIn('oidc_id_token', request.session)
-        self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
-        self.assertEqual(request.session.get('socialaccount_uid'), 'kc-uid-1')
-
-    def test_rp_initiated_omits_id_token_hint_when_not_string(self):
-        SocialAccount.objects.create(
-            user=self.user,
-            provider='keycloak',
-            uid='12345',
-            extra_data={'id_token': {'sub': '12345', 'email': 'user@example.com'}},
-        )
-        SocialAppCustomData.objects.create(
-            social_app=self.social_app,
-            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
-            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
-            post_logout_redirect_uri='https://kpi.example.com/login/',
-        )
-
-        request = self._get_authenticated_request()
-        url = self.adapter.get_logout_redirect_url(request)
-
-        parsed = urlparse(url)
-        query = parse_qs(parsed.query)
         self.assertNotIn('id_token_hint', query)
         self.assertEqual(
             query.get('post_logout_redirect_uri'),
@@ -788,7 +728,7 @@ class SocialAccountLogoutTestCase(TestCase):
         )
         self.assertEqual(query.get('client_id'), ['kpi-client-id'])
 
-    def test_rp_initiated_preserves_compact_jwt_characters(self):
+    def test_rp_initiated_includes_id_token_hint_when_present_in_session(self):
         jwt_token = (
             'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.'
             'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.'
@@ -798,7 +738,6 @@ class SocialAccountLogoutTestCase(TestCase):
             user=self.user,
             provider='keycloak',
             uid='12345',
-            extra_data={'id_token': jwt_token},
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
@@ -807,6 +746,7 @@ class SocialAccountLogoutTestCase(TestCase):
         )
 
         request = self._get_authenticated_request()
+        request.session['oidc_id_token'] = jwt_token
         url = self.adapter.get_logout_redirect_url(request)
 
         parsed = urlparse(url)

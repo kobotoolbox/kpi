@@ -189,13 +189,6 @@ def stash_social_session_on_connect(sender=None, **kwargs):
     request.session['socialaccount_provider'] = account.provider
     request.session['socialaccount_uid'] = account.uid
 
-    extra_data = getattr(account, 'extra_data', None)
-    id_token = extra_data.get('id_token') if isinstance(extra_data, dict) else None
-    if isinstance(id_token, str) and id_token.strip():
-        request.session['oidc_id_token'] = id_token
-    else:
-        request.session.pop('oidc_id_token', None)
-
 
 @receiver(social_account_removed)
 def clear_social_session_on_disconnect(sender=None, **kwargs):
