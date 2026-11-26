@@ -100,8 +100,8 @@ export const Default: Story = {
 }
 
 /**
- * Only `name` is required, but every configured field is on offer: somebody sent here for one thing can
- * fill in the rest while they are at it.
+ * Only `name` is required. Of the optional fields only the whitelisted ones are on offer, the rest wait for
+ * the account settings page. No newsletter either, signup asks for it already.
  */
 export const EveryConfiguredField: Story = {
   args: { fieldsConfig: configFor(EVERY_FIELD) },
@@ -109,10 +109,13 @@ export const EveryConfiguredField: Story = {
     const canvas = within(canvasElement)
     await waitForForm(canvas)
 
-    for (const label of ['Full name', 'Gender', 'Country', 'City', 'Sector', 'Organization type', 'Bio']) {
+    for (const label of ['Full name', 'Country', 'Sector', 'Organization type']) {
       expect(field(canvas, label)).toBeInTheDocument()
     }
-    expect(canvas.getByRole('checkbox', { name: /occasional updates/ })).toBeInTheDocument()
+    for (const label of ['Gender', 'City', 'Bio']) {
+      expect(canvas.queryByLabelText(new RegExp(`^${label}`))).not.toBeInTheDocument()
+    }
+    expect(canvas.queryByRole('checkbox', { name: /occasional updates/ })).not.toBeInTheDocument()
   },
 }
 

@@ -6,6 +6,12 @@ $field-label-spacing: 5px;
 
 .root {
   container-type: inline-size;
+  --fields-y-gap: 15px;
+
+  // Same as the auth forms' `Stack gap='sm'`
+  &[data-size='md'] {
+    --fields-y-gap: var(--mantine-spacing-sm);
+  }
 }
 
 .row {
@@ -18,7 +24,7 @@ $field-label-spacing: 5px;
   width: 100%;
 
   &:not(:last-child) {
-    margin-bottom: 15px;
+    margin-bottom: var(--fields-y-gap);
   }
 
   // This handles the issue of grouping the possibly not displayed items in
@@ -35,8 +41,8 @@ $field-label-spacing: 5px;
   flex-flow: row wrap;
   justify-content: space-between;
   align-items: flex-start; // better alignment when there's error feedback
-  gap: 15px $fields-x-gap;
-  margin-bottom: 15px;
+  gap: var(--fields-y-gap) $fields-x-gap;
+  margin-bottom: var(--fields-y-gap);
 
   .field {
     flex: 1;

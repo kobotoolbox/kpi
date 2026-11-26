@@ -8,6 +8,7 @@ import {
   doBlankFieldsDependOnMmoStatus,
   getBlankRequiredProfileFieldNames,
   getBlankRequiredProfileFieldNamesForAccount,
+  getProfileDetailsFieldNames,
   getProfileFieldsContext,
   getRequiredProfileFieldErrors,
   splitProfileUpdateErrors,
@@ -134,6 +135,63 @@ describe('getProfileFieldsContext', () => {
       requiredFieldNames: [],
       isMmoMember: false,
     })
+  })
+})
+
+describe('getProfileDetailsFieldNames', () => {
+  const EVERY_FIELD: UserFieldName[] = [
+    'name',
+    'gender',
+    'country',
+    'city',
+    'sector',
+    'organization_type',
+    'organization',
+    'organization_website',
+    'bio',
+    'newsletter_subscription',
+  ]
+
+  it('shows the required fields and the whitelisted optional ones, in configured order', () => {
+    const result = getProfileDetailsFieldNames({
+      configuredFieldNames: EVERY_FIELD,
+      requiredFieldNames: ['name', 'city'],
+      isMmoMember: false,
+    })
+
+    chai
+      .expect(result)
+      .to.deep.equal(['name', 'country', 'city', 'sector', 'organization_type', 'organization', 'organization_website'])
+  })
+
+  it('shows the newsletter only when it is required, so nobody is blocked on a field they cannot see', () => {
+    const result = getProfileDetailsFieldNames({
+      configuredFieldNames: ['name', 'newsletter_subscription'],
+      requiredFieldNames: ['newsletter_subscription'],
+      isMmoMember: false,
+    })
+
+    chai.expect(result).to.deep.equal(['newsletter_subscription'])
+  })
+
+  it('leaves out a whitelisted field the instance does not configure', () => {
+    const result = getProfileDetailsFieldNames({
+      configuredFieldNames: ['name', 'country'],
+      requiredFieldNames: ['name'],
+      isMmoMember: false,
+    })
+
+    chai.expect(result).to.deep.equal(['name', 'country'])
+  })
+
+  it('leaves out the organization fields for a member of a multi-member organization', () => {
+    const result = getProfileDetailsFieldNames({
+      configuredFieldNames: ORG_FIELDS,
+      requiredFieldNames: ORG_FIELDS,
+      isMmoMember: true,
+    })
+
+    chai.expect(result).to.deep.equal(['name'])
   })
 })
 
