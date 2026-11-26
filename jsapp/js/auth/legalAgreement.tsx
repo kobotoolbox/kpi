@@ -1,4 +1,5 @@
-import { Anchor, Checkbox, type CheckboxProps } from '@mantine/core'
+import { Anchor } from '@mantine/core'
+import CheckboxNew, { type CheckboxProps } from '#/components/common/CheckboxNew'
 
 /**
  * Turns every `[...]` marker into a link, taking the URLs in the order they are given. A marker with no URL
@@ -59,5 +60,5 @@ export function TermsOfServiceCheckbox({
   if (!isRequired) {
     return null
   }
-  return <Checkbox label={legalSentence(termsOfServiceUrl, privacyPolicyUrl)} {...checkboxProps} />
+  return <CheckboxNew label={legalSentence(termsOfServiceUrl, privacyPolicyUrl)} required {...checkboxProps} />
 }

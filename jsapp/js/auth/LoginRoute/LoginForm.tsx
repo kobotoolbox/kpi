@@ -41,11 +41,8 @@ export interface LoginFormProps {
   onOutcome: (outcome: LoginOutcome) => void
 }
 
-/** The single sign-on providers, then the credentials. Password recovery etc. live elsewhere */
+/** The credentials, then the single sign-on providers. Password recovery etc. live elsewhere */
 export default function LoginForm({ socialApps, isRegistrationClosed = false, onOutcome }: LoginFormProps) {
-  // SSO buttons take the primary look when there are any
-  const hasProviders = Boolean(socialApps?.length)
-
   const form = useForm<LoginFormValues>({
     // The uncontrolled mode is recommended by Mantine Corp
     mode: 'uncontrolled',
@@ -111,65 +108,67 @@ export default function LoginForm({ socialApps, isRegistrationClosed = false, on
 
   return (
     <Stack gap='xl'>
-      <SsoProviderButtonList socialApps={socialApps} variant='filled' />
-
       <Title order={1} size='h3' ta='center'>
         {t('Log in or create an account')}
       </Title>
 
-      {formErrors.length > 0 && (
-        <Alert type='error' iconName='alert'>
-          <Stack gap='xxs'>
-            {formErrors.map((message) => (
-              <Text key={message} inherit>
-                {message}
-              </Text>
-            ))}
-          </Stack>
-        </Alert>
-      )}
+      {/* `lg` matches the gaps around the SSO list's divider */}
+      <Stack gap='lg'>
+        {formErrors.length > 0 && (
+          <Alert type='error' iconName='alert'>
+            <Stack gap='xxs'>
+              {formErrors.map((message) => (
+                <Text key={message} inherit>
+                  {message}
+                </Text>
+              ))}
+            </Stack>
+          </Alert>
+        )}
 
-      {/* Shows our field errors instead of the browser's popups */}
-      <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
-        <Stack gap='xl'>
-          <Stack gap='sm'>
-            <TextInput
-              label={t('Username')}
-              autoComplete='username'
-              key={form.key('username')}
-              {...withAuthFieldError(form.getInputProps('username'))}
-              required
-            />
-
-            {/* The recovery link belongs on the label's line, but outside the label */}
-            <div className={styles.passwordField}>
-              <PasswordInput
-                label={t('Password')}
-                autoComplete='current-password'
-                key={form.key('password')}
-                {...withAuthFieldError(form.getInputProps('password'))}
+        {/* Shows our field errors instead of the browser's popups */}
+        <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
+          <Stack gap='xl'>
+            <Stack gap='sm'>
+              <TextInput
+                label={t('Username')}
+                autoComplete='username'
+                key={form.key('username')}
+                {...withAuthFieldError(form.getInputProps('username'))}
                 required
               />
-              <Anchor className={styles.forgotPasswordLink} component={Link} to={AUTH_ROUTES.RESET_PASSWORD} size='sm'>
-                {t('Forgot password?')}
-              </Anchor>
-            </div>
-          </Stack>
 
-          <ButtonNew
-            variant={hasProviders ? 'light' : 'filled'}
-            type='submit'
-            size='lg'
-            fullWidth
-            loading={login.isPending}
-          >
-            {t('Log in')}
-          </ButtonNew>
-        </Stack>
-      </form>
+              {/* The recovery link belongs on the label's line, but outside the label */}
+              <div className={styles.passwordField}>
+                <PasswordInput
+                  label={t('Password')}
+                  autoComplete='current-password'
+                  key={form.key('password')}
+                  {...withAuthFieldError(form.getInputProps('password'))}
+                  required
+                />
+                <Anchor
+                  className={styles.forgotPasswordLink}
+                  component={Link}
+                  to={AUTH_ROUTES.RESET_PASSWORD}
+                  size='sm'
+                >
+                  {t('Forgot password?')}
+                </Anchor>
+              </div>
+            </Stack>
+
+            <ButtonNew type='submit' size='lg' fullWidth loading={login.isPending}>
+              {t('Log in')}
+            </ButtonNew>
+          </Stack>
+        </form>
+
+        <SsoProviderButtonList socialApps={socialApps} dividerPosition='top' />
+      </Stack>
 
       {!isRegistrationClosed && (
-        <Text size='sm' ta='center'>
+        <Text ta='center'>
           {t('New user?')}&nbsp;
           <Anchor component={Link} to={AUTH_ROUTES.SIGNUP} inherit>
             {t('Create an account')}

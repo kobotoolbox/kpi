@@ -209,6 +209,11 @@ const tsConfig = {
           },
           {
             name: '@mantine/core',
+            importNames: ['Checkbox'],
+            message: "Use CheckboxNew from 'jsapp/js/components/common' instead.",
+          },
+          {
+            name: '@mantine/core',
             importNames: ['Menu'],
             message: "Use Menu from 'jsapp/js/components/common' instead.",
           },
