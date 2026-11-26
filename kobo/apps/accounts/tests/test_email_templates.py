@@ -74,6 +74,17 @@ class ConfirmationEmailTemplateTestCase(TestCase):
         assert 'KoboToolbox-CleanLogo.png' in html
         assert 'kobotoolbox.org/privacy/' in html
 
+    @data(
+        (SIGNUP, 'Activate my account'),
+        (RESEND, 'Activate my account'),
+        (EMAIL_CHANGE, 'Confirm my email address'),
+    )
+    @unpack
+    def test_button_label_is_sentence_case(self, template_prefix, label):
+        html = html_body(render_email(template_prefix, self.user))
+
+        assert '>%s</a>' % label in html
+
     @data(*CONFIRMATION_EMAILS)
     @unpack
     def test_default_expiry_reads_24_hours(self, template_prefix, _phrase):
@@ -167,7 +178,7 @@ class SignupEmailAdminOverrideTestCase(TestCase):
         assert 'Written for kobo_user' in html
         # The designed defaults step aside entirely; the wording is the admin's
         assert 'Welcome to KoboToolbox, kobo_user!' not in html
-        assert 'Activate My Account' not in html
+        assert 'Activate my account' not in html
         assert 'Help Center' not in html
 
     def test_placeholders_become_links_and_paragraphs_survive(self):
@@ -214,7 +225,7 @@ class SignupEmailAdminOverrideTestCase(TestCase):
         html = html_body(render_email(self.template_prefix, self.user))
 
         assert 'Welcome to KoboToolbox, kobo_user!' not in html
-        assert 'Activate My Account' not in html
+        assert 'Activate my account' not in html
         assert 'Help Center' not in html
         # Still a complete document, just without those two sections
         assert '<!doctype html>' in html
