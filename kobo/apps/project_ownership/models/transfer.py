@@ -362,7 +362,7 @@ class Transfer(AbstractTimeStampedModel):
         `My Projects` list of both the sender and recipient.
         """
         is_excluded = (
-            isinstance(self.invite, OrgMembershipAutoInvite)
+            self.invite.invite_type == InviteType.ORG_MEMBERSHIP
             and get_real_owner(self.invite.sender) != self.invite.sender
         )
 
