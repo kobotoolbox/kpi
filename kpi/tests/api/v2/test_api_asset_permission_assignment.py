@@ -7,6 +7,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
@@ -1103,3 +1104,43 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
         assert not self.asset.has_perm(someuser, PERM_CHANGE_ASSET)
         assert self.asset.has_perm(someuser, PERM_VIEW_ASSET)
+
+    def test_removing_anonymous_permissions_resets_xform_sharing_flags(self):
+        xform = self._deploy_asset_shared_with_anonymous()
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
+            kwargs={'uid_asset': self.asset.uid},
+        )
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            [{'user': 'someuser', 'permission': PERM_VIEW_ASSET}]
+        )
+
+        response = self.client.post(bulk_endpoint, assignments, format='json')
+
+        assert response.status_code == status.HTTP_200_OK
+        xform.refresh_from_db()
+        assert not xform.shared
+        assert not xform.shared_data
+
+    def test_removing_anonymous_view_asset_resets_xform_sharing_flags(self):
+        xform = self._deploy_asset_shared_with_anonymous()
+
+        self.asset.remove_perm(get_anonymous_user(), PERM_VIEW_ASSET)
+
+        xform.refresh_from_db()
+        assert not xform.shared
+        assert not xform.shared_data
+
+    def _deploy_asset_shared_with_anonymous(self):
+        self.asset.asset_type = ASSET_TYPE_SURVEY
+        self.asset.content = {
+            'survey': [{'type': 'text', 'name': 'q1', 'label': ['q1']}]
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.assign_perm(get_anonymous_user(), PERM_VIEW_SUBMISSIONS)
+        xform = self.asset.deployment.xform
+        xform.refresh_from_db()
+        assert xform.shared
+        assert xform.shared_data
+        return xform
