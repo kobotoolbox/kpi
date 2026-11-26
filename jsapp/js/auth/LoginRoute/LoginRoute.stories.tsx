@@ -127,7 +127,7 @@ export const LoggedIn: Story = {
   },
 }
 
-/** A server with single sign-on configured: up to three provider buttons, above the credentials. */
+/** A server with single sign-on configured: up to three provider buttons, below the credentials. */
 export const SingleSignOnProviders: Story = {
   parameters: {
     msw: { handlers: storyHandlers({ environment: makeEnvironmentMock({ social_apps: socialAppsMock }) }) },
@@ -137,14 +137,14 @@ export const SingleSignOnProviders: Story = {
 
     const gitlabButton = await findProviderButtons(canvas)
 
-    // Buttons, then the divider, then the form
+    // The form, then the divider, then the buttons
+    const loginButton = canvas.getByRole('button', { name: 'Log in' })
     const divider = canvas.getByText('or')
-    const heading = canvas.getByRole('heading', { level: 1, name: 'Log in or create an account' })
-    expect(gitlabButton.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(divider.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    // SSO is primary here, so the form's button steps down
-    expect(gitlabButton).toHaveAttribute('data-variant', 'filled')
-    expect(canvas.getByRole('button', { name: 'Log in' })).toHaveAttribute('data-variant', 'light')
+    expect(loginButton.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(divider.compareDocumentPosition(gitlabButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // The form keeps the primary look, SSO is secondary
+    expect(loginButton).toHaveAttribute('data-variant', 'filled')
+    expect(gitlabButton).toHaveAttribute('data-variant', 'light')
 
     // Where the click goes, which shows nowhere on screen: a real POST to allauth under the provider's
     // `provider_id`, not its `provider` kind.

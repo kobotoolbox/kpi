@@ -1,0 +1,16 @@
+/* Boxes one step below Mantine's (16, 20, 24, 30, 36). Label line heights follow, as Mantine uses them to centre the
+   label on the box. */
+.root {
+  --checkbox-size-xs: 14px;
+  --checkbox-size-sm: 16px;
+  --checkbox-size-md: 20px;
+  --checkbox-size-lg: 24px;
+  --checkbox-size-xl: 30px;
+  --label-lh-xs: 14px;
+  --label-lh-sm: 16px;
+  --label-lh-md: 20px;
+  --label-lh-lg: 24px;
+  --label-lh-xl: 30px;
+  /* A fixed radius makes small boxes look like radios. A `radius` prop still wins. */
+  --checkbox-radius: calc(var(--checkbox-size) / 4);
+}

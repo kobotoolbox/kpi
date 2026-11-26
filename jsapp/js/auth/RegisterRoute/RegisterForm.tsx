@@ -1,4 +1,4 @@
-import { Anchor, Checkbox, Stack, Text, Title } from '@mantine/core'
+import { Anchor, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -12,6 +12,7 @@ import { getGenericAllauthErrorMessage, isPendingEmailVerification, splitAllauth
 import { validatePassword, validatePasswordConfirm } from '#/auth/authValidation'
 import { TermsOfServiceCheckbox } from '#/auth/legalAgreement'
 import ButtonNew from '#/components/common/ButtonNew'
+import CheckboxNew from '#/components/common/CheckboxNew'
 import PasswordInput from '#/components/common/PasswordInput'
 import TextInput from '#/components/common/TextInput'
 import Alert from '#/components/common/alert'
@@ -149,79 +150,83 @@ export default function RegisterForm({
         {t('Create your account')}
       </Title>
 
-      <SsoProviderButtonList socialApps={socialApps} variant='light' />
+      {/* `lg` matches the gaps around the SSO list's divider */}
+      <Stack gap='lg'>
+        <SsoProviderButtonList socialApps={socialApps} dividerPosition='bottom' />
 
-      {formErrors.length > 0 && (
-        <Alert type='error' iconName='alert'>
-          <Stack gap='xxs'>
-            {formErrors.map((message) => (
-              <Text key={message} inherit>
-                {message}
-              </Text>
-            ))}
-          </Stack>
-        </Alert>
-      )}
+        {formErrors.length > 0 && (
+          <Alert type='error' iconName='alert'>
+            <Stack gap='xxs'>
+              {formErrors.map((message) => (
+                <Text key={message} inherit>
+                  {message}
+                </Text>
+              ))}
+            </Stack>
+          </Alert>
+        )}
 
-      {/* `noValidate` because we want to validate email ourselves */}
-      <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
-        <Stack gap='xl'>
-          <Stack gap='sm'>
-            <TextInput
-              label={t('Email')}
-              type='email'
-              autoComplete='email'
-              key={form.key('email')}
-              {...withAuthFieldError(form.getInputProps('email'))}
-              required
-            />
-            <TextInput
-              label={t('Username')}
-              autoComplete='username'
-              key={form.key('username')}
-              {...withAuthFieldError(form.getInputProps('username'))}
-              required
-            />
-            <PasswordInput
-              label={t('Password')}
-              autoComplete='new-password'
-              key={form.key('password')}
-              {...withAuthFieldError(form.getInputProps('password'))}
-              required
-            />
-            <PasswordInput
-              label={t('Confirm password')}
-              autoComplete='new-password'
-              key={form.key('passwordConfirm')}
-              {...withAuthFieldError(form.getInputProps('passwordConfirm'))}
-              required
-            />
-          </Stack>
-
-          <Stack gap='sm'>
-            {newsletterField && (
-              <Checkbox
-                label={newsletterField.label}
-                key={form.key('newsletterSubscription')}
-                {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
+        {/* `noValidate` because we want to validate email ourselves */}
+        <form onSubmit={form.onSubmit(handleSubmit)} noValidate>
+          <Stack gap='xl'>
+            <Stack gap='sm'>
+              <TextInput
+                label={t('Email')}
+                type='email'
+                autoComplete='email'
+                key={form.key('email')}
+                {...withAuthFieldError(form.getInputProps('email'))}
+                required
               />
-            )}
-            <TermsOfServiceCheckbox
-              isRequired={isTermsOfServiceRequired}
-              termsOfServiceUrl={termsOfServiceUrl}
-              privacyPolicyUrl={privacyPolicyUrl}
-              key={form.key('termsOfService')}
-              {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
-            />
+              <TextInput
+                label={t('Username')}
+                autoComplete='username'
+                key={form.key('username')}
+                {...withAuthFieldError(form.getInputProps('username'))}
+                required
+              />
+              <PasswordInput
+                label={t('Password')}
+                autoComplete='new-password'
+                key={form.key('password')}
+                {...withAuthFieldError(form.getInputProps('password'))}
+                required
+              />
+              <PasswordInput
+                label={t('Confirm password')}
+                autoComplete='new-password'
+                key={form.key('passwordConfirm')}
+                {...withAuthFieldError(form.getInputProps('passwordConfirm'))}
+                required
+              />
+            </Stack>
+
+            <Stack gap='sm'>
+              {newsletterField && (
+                <CheckboxNew
+                  label={newsletterField.label}
+                  required={newsletterField.required}
+                  key={form.key('newsletterSubscription')}
+                  {...withAuthFieldError(form.getInputProps('newsletterSubscription', { type: 'checkbox' }))}
+                />
+              )}
+              <TermsOfServiceCheckbox
+                isRequired={isTermsOfServiceRequired}
+                termsOfServiceUrl={termsOfServiceUrl}
+                privacyPolicyUrl={privacyPolicyUrl}
+                key={form.key('termsOfService')}
+                {...withAuthFieldError(form.getInputProps('termsOfService', { type: 'checkbox' }))}
+              />
+            </Stack>
+
+            <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || signup.isPending}>
+              {t('Continue')}
+            </ButtonNew>
           </Stack>
+        </form>
+      </Stack>
 
-          <ButtonNew type='submit' size='lg' fullWidth loading={isConfigurationPending || signup.isPending}>
-            {t('Continue')}
-          </ButtonNew>
-        </Stack>
-      </form>
-
-      <Text size='sm' ta='center'>
+      <Text ta='center'>
         {t('Already have an account?')}&nbsp;
         <Anchor component={Link} to={AUTH_ROUTES.LOGIN} inherit>
           {t('Log in')}
