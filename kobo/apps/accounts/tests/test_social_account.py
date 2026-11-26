@@ -8,6 +8,7 @@ from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
+from allauth.socialaccount.signals import social_account_added
 from ddt import data, ddt
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -588,32 +589,6 @@ class SocialAccountLogoutTestCase(TestCase):
         url = self.adapter.get_logout_redirect_url(request)
         self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
 
-    def test_password_session_with_stale_session_provider_returns_default_url(
-        self,
-    ):
-        SocialAccount.objects.create(
-            user=self.user,
-            provider='keycloak',
-            uid='12345',
-            extra_data={'id_token': 'my-id-token'},
-        )
-        SocialAppCustomData.objects.create(
-            social_app=self.social_app,
-            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
-            end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
-        )
-
-        request = self._get_authenticated_request()
-        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
-            {'method': 'password', 'at': 1700000000}
-        ]
-        request.session['socialaccount_provider'] = 'keycloak'
-        request.session['socialaccount_uid'] = '12345'
-        request.session['oidc_id_token'] = 'stale-token'
-
-        url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
-
     def test_sso_session_with_password_reauthentication_still_triggers_rp_logout(
         self,
     ):
@@ -716,13 +691,14 @@ class SocialAccountLogoutTestCase(TestCase):
         self.assertNotIn('socialaccount_provider', request.session)
         self.assertNotIn('socialaccount_uid', request.session)
 
-    def test_password_user_connects_sso_account_and_logs_out_returns_default_url(
+    def test_password_user_connects_sso_account_triggers_rp_initiated_logout(
         self,
     ):
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
             end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+            post_logout_redirect_uri='https://kpi.example.com/login/',
         )
         request = self._get_authenticated_request()
         request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
@@ -740,13 +716,35 @@ class SocialAccountLogoutTestCase(TestCase):
 
         social_adapter = SocialAccountAdapter()
         social_adapter.pre_social_login(request, sociallogin)
-        account.save()
 
+        # pre_social_login does not stash metadata during connect flow
         self.assertNotIn('socialaccount_provider', request.session)
         self.assertNotIn('oidc_id_token', request.session)
 
+        # Account connection completes and fires social_account_added
+        account.save()
+        social_account_added.send(
+            sender=SocialLogin, request=request, sociallogin=sociallogin
+        )
+
+        self.assertEqual(request.session.get('socialaccount_provider'), 'keycloak')
+        self.assertEqual(request.session.get('socialaccount_uid'), '12345')
+        self.assertEqual(request.session.get('oidc_id_token'), 'my-id-token')
+
         url = self.adapter.get_logout_redirect_url(request)
-        self.assertEqual(url, resolve_url(settings.LOGOUT_REDIRECT_URL))
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+
+        self.assertEqual(
+            f'{parsed.scheme}://{parsed.netloc}{parsed.path}',
+            'https://idp.com/protocol/openid-connect/logout',
+        )
+        self.assertEqual(query.get('id_token_hint'), ['my-id-token'])
+        self.assertEqual(
+            query.get('post_logout_redirect_uri'),
+            ['https://kpi.example.com/login/'],
+        )
+        self.assertEqual(query.get('client_id'), ['kpi-client-id'])
 
     def test_pre_social_login_ignores_non_string_id_token(self):
         adapter = SocialAccountAdapter()

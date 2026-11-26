@@ -8,7 +8,11 @@ from allauth.account.utils import cleanup_email_addresses
 from allauth.mfa.models import Authenticator
 from allauth.mfa.signals import authenticator_added
 from allauth.socialaccount.models import SocialAccount, SocialApp
-from allauth.socialaccount.signals import social_account_added
+from allauth.socialaccount.signals import (
+    social_account_added,
+    social_account_removed,
+    social_account_updated,
+)
 from django.contrib.auth import update_session_auth_hash
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -168,6 +172,44 @@ def enforce_managed_sso(sender=None, **kwargs):
         user.set_unusable_password()
         user.save()
         update_session_auth_hash(request, user)
+
+
+@receiver(social_account_added)
+@receiver(social_account_updated)
+def stash_social_session_on_connect(sender=None, **kwargs):
+    request = kwargs.get('request')
+    sociallogin = kwargs.get('sociallogin')
+    if not request or not hasattr(request, 'session') or not sociallogin:
+        return
+
+    account = getattr(sociallogin, 'account', None)
+    if not account:
+        return
+
+    request.session['socialaccount_provider'] = account.provider
+    request.session['socialaccount_uid'] = account.uid
+
+    extra_data = getattr(account, 'extra_data', None)
+    id_token = extra_data.get('id_token') if isinstance(extra_data, dict) else None
+    if isinstance(id_token, str) and id_token.strip():
+        request.session['oidc_id_token'] = id_token
+    else:
+        request.session.pop('oidc_id_token', None)
+
+
+@receiver(social_account_removed)
+def clear_social_session_on_disconnect(sender=None, **kwargs):
+    request = kwargs.get('request')
+    socialaccount = kwargs.get('socialaccount')
+    if not request or not hasattr(request, 'session') or not socialaccount:
+        return
+
+    if request.session.get('socialaccount_provider') == socialaccount.provider:
+        active_uid = request.session.get('socialaccount_uid')
+        if not active_uid or active_uid == socialaccount.uid:
+            request.session.pop('socialaccount_provider', None)
+            request.session.pop('socialaccount_uid', None)
+            request.session.pop('oidc_id_token', None)
 
 
 @receiver(post_save, sender=ExtraUserDetail)

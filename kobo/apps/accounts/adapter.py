@@ -172,7 +172,8 @@ class AccountAdapter(DefaultAccountAdapter):
         """
         Identify the SocialAccount associated with the user's active session.
         Returns None if authenticated via a non-social method (e.g. password)
-        or if the active account cannot be uniquely resolved.
+        without linking an SSO account during the session, or if the active
+        account cannot be uniquely resolved.
         """
         if not hasattr(request, 'session'):
             return None
@@ -190,17 +191,21 @@ class AccountAdapter(DefaultAccountAdapter):
                 ),
                 None,
             )
-            if not social_record:
-                # Session started via password or other non-social method;
-                # do not trigger RP-initiated logout.
-                return None
-
-            active_provider = social_record.get('provider') or request.session.get(
-                'socialaccount_provider'
-            )
-            active_uid = social_record.get('uid') or request.session.get(
-                'socialaccount_uid'
-            )
+            if social_record:
+                active_provider = social_record.get('provider') or request.session.get(
+                    'socialaccount_provider'
+                )
+                active_uid = social_record.get('uid') or request.session.get(
+                    'socialaccount_uid'
+                )
+            else:
+                active_provider = request.session.get('socialaccount_provider')
+                active_uid = request.session.get('socialaccount_uid')
+                if not active_provider:
+                    # Session started via password or other non-social method
+                    # without linking an SSO account during this session;
+                    # do not trigger RP-initiated logout.
+                    return None
         else:
             active_provider = request.session.get('socialaccount_provider')
             active_uid = request.session.get('socialaccount_uid')
@@ -415,8 +420,8 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     )
 
             # Stash login metadata and id_token in session for deterministic logout
-            # handling. Only login/signup flows establish an active social session;
-            # account connection does not.
+            # handling. Account connection flows (process=CONNECT) stash this metadata
+            # in social_account_added once linking completes successfully.
             account = getattr(sociallogin, 'account', None)
             extra_data = getattr(account, 'extra_data', None)
             id_token = (
