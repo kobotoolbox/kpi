@@ -89,7 +89,7 @@ class SocialAppCustomData(models.Model):
     class LogoutBehavior(models.TextChoices):
         LOCAL_ONLY = 'local_only', _('Local logout only')
         RP_INITIATED = 'rp_initiated', _('RP-initiated logout (IdP end session)')
-        PROMPT_LOGIN = 'prompt_login', _('Prompt login on next sign-in')
+        PROMPT_LOGIN = 'prompt_login', _('Prompt login on every sign-in')
 
     social_app = models.OneToOneField(
         'socialaccount.SocialApp',

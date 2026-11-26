@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 choices=[
                     ('local_only', 'Local logout only'),
                     ('rp_initiated', 'RP-initiated logout (IdP end session)'),
-                    ('prompt_login', 'Prompt login on next sign-in'),
+                    ('prompt_login', 'Prompt login on every sign-in'),
                 ],
                 default='local_only',
                 help_text='Logout behavior for this SSO provider',
