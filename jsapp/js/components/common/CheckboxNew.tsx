@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- This file is the Kobo wrapper for the component
 import { Checkbox as CheckboxMantine, Text } from '@mantine/core'
 import type { CheckboxProps as CheckboxPropsMantine } from '@mantine/core'
 import cx from 'classnames'
