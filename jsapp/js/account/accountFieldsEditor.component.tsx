@@ -56,6 +56,8 @@ interface AccountFieldsEditorProps {
    */
   values: AccountFieldsValues
   onFieldChange: (fieldName: UserFieldName, value: UserFieldValue) => void
+  /** `md` matches the auth forms, including their tighter gap between fields. */
+  size?: 'sm' | 'md'
 }
 
 /**
@@ -64,6 +66,7 @@ interface AccountFieldsEditorProps {
  */
 export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   const { userMetadataFields } = props.fieldsConfig
+  const size = props.size ?? 'sm'
   const metadata = getUserMetadataFieldsByName(userMetadataFields)
 
   /** Get label for a given user metadata fieldname */
@@ -174,7 +177,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
 
   const select = (name: TextFieldName, data: ComboboxData<string>, extra?: Pick<SelectProps, 'searchable'>) => (
     <Select
-      size='sm'
+      size={size}
       {...labelProps(name)}
       name={name}
       clearable={!isRequired(name)}
@@ -190,7 +193,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   // The label goes in the placeholder, as the "Social" heading labels the group.
   const socialInput = (name: TextFieldName, icon: Icon) => (
     <TextInput
-      size='sm'
+      size={size}
       leftSection={<KoboIcon icon={icon} size='sm' />}
       placeholder={getLabelWithRequired(name)}
       {...textProps(name)}
@@ -204,7 +207,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
       section: 'main',
       render: () => (
         <TextInput
-          size='sm'
+          size={size}
           {...labelProps('name')}
           {...textProps('name')}
           placeholder={t('Use this to display your real name to other users')}
@@ -214,7 +217,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     },
     gender: { section: 'main', render: () => select('gender', GENDER_SELECT_OPTIONS, { searchable: false }) },
     country: { section: 'main', render: () => select('country', props.fieldsConfig.countryChoices) },
-    city: { section: 'main', render: () => <TextInput size='sm' {...labelProps('city')} {...textProps('city')} /> },
+    city: { section: 'main', render: () => <TextInput size={size} {...labelProps('city')} {...textProps('city')} /> },
     sector: { section: 'main', render: () => select('sector', props.fieldsConfig.sectorChoices) },
     organization_type: {
       section: 'main',
@@ -222,13 +225,13 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     },
     organization: {
       section: 'main',
-      render: () => <TextInput size='sm' {...labelProps('organization')} {...textProps('organization')} />,
+      render: () => <TextInput size={size} {...labelProps('organization')} {...textProps('organization')} />,
     },
     organization_website: {
       section: 'main',
       render: () => (
         <TextInput
-          size='sm'
+          size={size}
           type='url'
           {...labelProps('organization_website')}
           {...textProps('organization_website')}
@@ -239,7 +242,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
     },
     bio: {
       section: 'bio',
-      render: () => <Textarea autosize size='sm' minRows={2} {...labelProps('bio')} {...textProps('bio')} />,
+      render: () => <Textarea autosize size={size} minRows={2} {...labelProps('bio')} {...textProps('bio')} />,
     },
     twitter: { section: 'social', render: () => socialInput('twitter', IconBrandTwitterFilled) },
     linkedin: { section: 'social', render: () => socialInput('linkedin', IconBrandLinkedinFilled) },
@@ -285,7 +288,7 @@ export default function AccountFieldsEditor(props: AccountFieldsEditorProps) {
   const socialNames = namesIn('social').filter(isShown)
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-size={size}>
       <div className={styles.flexFields}>{mainItems}</div>
       <div className={styles.row}>{namesIn('bio').filter(isShown).map(renderField)}</div>
       <div className={cx(styles.row, styles.rowSocial)}>

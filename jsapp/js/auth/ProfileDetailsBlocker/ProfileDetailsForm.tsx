@@ -7,7 +7,7 @@ import type {
   AccountFieldsValues,
   UserFieldName,
 } from '#/account/account.constants'
-import { getEditableProfileFieldNames, getUserMetadataFieldLabel } from '#/account/account.utils'
+import { getUserMetadataFieldLabel } from '#/account/account.utils'
 import AccountFieldsEditor from '#/account/accountFieldsEditor.component'
 import { ServerError } from '#/api/ServerError'
 import type { OrvalFetchError } from '#/api/onErrorDefaultHandler'
@@ -17,6 +17,7 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
 import {
   getBlankRequiredProfileFieldNames,
+  getProfileDetailsFieldNames,
   getProfileFieldsContext,
   getRequiredProfileFieldErrors,
   splitProfileUpdateErrors,
@@ -37,8 +38,8 @@ export interface ProfileDetailsFormProps {
 }
 
 /**
- * The form behind the profile details blocker: every field the instance configures, with the required
- * ones as the price of getting into the app.
+ * The form behind the profile details blocker: the required fields as the price of getting into the app, and a
+ * few optional ones - see {@link getProfileDetailsFieldNames}.
  *
  * Field errors and general ones are both possible from the same response, so both are catered for - see
  * {@link splitProfileUpdateErrors}.
@@ -62,7 +63,7 @@ export default function ProfileDetailsForm({
   const logout = useLogoutAndReload()
 
   const fieldsContext = getProfileFieldsContext(fieldsConfig.userMetadataFields, isMmoMember)
-  const displayedFieldNames = getEditableProfileFieldNames(fieldsContext)
+  const displayedFieldNames = getProfileDetailsFieldNames(fieldsContext)
 
   /** The instance's own label for a field, for a message that cannot sit under the input. */
   const labelFor = (fieldName: UserFieldName) => getUserMetadataFieldLabel(fieldsConfig.userMetadataFields, fieldName)
@@ -164,6 +165,7 @@ export default function ProfileDetailsForm({
           <AccountFieldsEditor
             fieldsConfig={fieldsConfig}
             displayedFields={displayedFieldNames}
+            size='md'
             errors={fieldErrors}
             values={values}
             onFieldChange={onFieldChange}

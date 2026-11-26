@@ -5,7 +5,12 @@ import type {
   UserMetadataField,
 } from '#/account/account.constants'
 import { MMO_MANAGED_FIELD_NAMES, ORGANIZATION_DEPENDENT_FIELD_NAMES } from '#/account/account.constants'
-import { getProfileFieldsValues, hasNoOrganizationAffiliation, isUserFieldName } from '#/account/account.utils'
+import {
+  getEditableProfileFieldNames,
+  getProfileFieldsValues,
+  hasNoOrganizationAffiliation,
+  isUserFieldName,
+} from '#/account/account.utils'
 import type { AccountResponse } from '#/dataInterface'
 
 /**
@@ -33,6 +38,22 @@ export function getProfileFieldsContext(
     requiredFieldNames: userMetadataFields.filter((field) => field.required).map((field) => field.name),
     isMmoMember,
   }
+}
+
+/** The optional fields worth asking for on the profile details screen. Required ones are always on it. */
+const PROFILE_DETAILS_OPTIONAL_FIELD_NAMES: readonly UserFieldName[] = [
+  'country',
+  'sector',
+  'organization_type',
+  'organization',
+  'organization_website',
+]
+
+/** Required fields plus the optional ones above. The rest wait for the account settings page. */
+export function getProfileDetailsFieldNames(context: ProfileFieldsContext): UserFieldName[] {
+  return getEditableProfileFieldNames(context).filter(
+    (name) => context.requiredFieldNames.includes(name) || PROFILE_DETAILS_OPTIONAL_FIELD_NAMES.includes(name),
+  )
 }
 
 /**
