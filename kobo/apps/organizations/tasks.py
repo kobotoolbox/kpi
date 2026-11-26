@@ -113,7 +113,6 @@ def transfer_organization_ownership(transfer_id: int):
                 InviteStatusChoices.CANCELLED,
                 InviteStatusChoices.DECLINED,
                 InviteStatusChoices.EXPIRED,
-                InviteStatusChoices.FAILED,
             ):
                 logging.warning(
                     f'Transfer {transfer_id} is in status {transfer.status}; '
@@ -136,7 +135,20 @@ def transfer_organization_ownership(transfer_id: int):
                 )
             )
 
-            is_retry = transfer.status == InviteStatusChoices.IN_PROGRESS
+            if (
+                transfer.status == InviteStatusChoices.FAILED
+                and org_owner.organization_user_id != new_org_user.id
+            ):
+                logging.warning(
+                    f'Transfer {transfer_id} is in status {transfer.status} '
+                    'and owner was not swapped; skipping reassignment.'
+                )
+                return
+
+            is_retry = transfer.status in (
+                InviteStatusChoices.IN_PROGRESS,
+                InviteStatusChoices.FAILED,
+            )
             if (
                 not is_retry
                 and org_owner.organization_user.user_id != transfer.sender_id
@@ -165,7 +177,7 @@ def transfer_organization_ownership(transfer_id: int):
                 transfer.save(update_fields=['status', 'date_modified'])
                 return
 
-            if not is_retry:
+            if transfer.status != InviteStatusChoices.IN_PROGRESS:
                 transfer.status = InviteStatusChoices.IN_PROGRESS
                 transfer.save(update_fields=['status', 'date_modified'])
 
@@ -232,6 +244,9 @@ def transfer_organization_ownership(transfer_id: int):
             invite__sender=sender,
             invite__recipient=recipient,
             date_created__gte=transfer.date_created,
+        ).exclude(
+            statuses__status_type=TransferStatusTypeChoices.GLOBAL,
+            statuses__status=TransferStatusChoices.FAILED,
         )
         last_pk = 0
 
@@ -260,6 +275,7 @@ def transfer_organization_ownership(transfer_id: int):
 
         # Phase 3: Check batch results, then mark transfer as complete or failed.
         has_failed_transfers = Transfer.objects.filter(
+            asset__owner=sender,
             invite__sender=sender,
             invite__recipient=recipient,
             date_created__gte=transfer.date_created,
