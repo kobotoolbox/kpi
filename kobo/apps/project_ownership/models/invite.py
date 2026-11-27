@@ -268,6 +268,7 @@ class OrgOwnershipTransferInvite(Invite):
         'properties': {
             'billing_review_requested': {'type': 'boolean'},
             'organization_id': {'type': 'string'},
+            'restart_count': {'type': 'integer', 'minimum': 0},
         },
         'required': ['billing_review_requested'],
         'additionalProperties': False,

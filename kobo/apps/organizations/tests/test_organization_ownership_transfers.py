@@ -37,7 +37,9 @@ from kobo.apps.organizations.serializers import (
     OrganizationUserSerializer,
 )
 from kobo.apps.organizations.tasks import (
+    MAX_OWNERSHIP_TRANSFER_RESTARTS,
     mark_organization_invite_as_expired,
+    restart_stuck_org_ownership_transfers,
     transfer_organization_ownership,
 )
 from kobo.apps.organizations.tests.test_organizations_api import (
@@ -1772,6 +1774,96 @@ class OrganizationOwnershipTransferTestCase(BaseOrganizationOwnershipTransferTes
         self.assertEqual(transfer.status, InviteStatusChoices.FAILED)
         self.organization.refresh_from_db()
         self.assertEqual(self.organization.owner_user_object, self.owner_user)
+
+    def test_restart_stuck_org_ownership_transfers(self):
+        """
+        Stuck ACCEPTED/IN_PROGRESS transfers past
+        CELERY_LONG_RUNNING_TASK_TIME_LIMIT are re-queued with incremented
+        restart_count, recent ones are skipped, and transfers at
+        MAX_OWNERSHIP_TRANSFER_RESTARTS are marked FAILED.
+        """
+        stale_time = timezone.now() - timedelta(
+            seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 10
+        )
+        stuck_transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.IN_PROGRESS,
+        )
+        fresh_transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.ACCEPTED,
+        )
+        exhausted_transfer = OrgOwnershipTransferInvite.objects.create(
+            sender=self.owner_user,
+            recipient=self.admin_user,
+            organization=self.organization,
+            status=InviteStatusChoices.IN_PROGRESS,
+            metadata={
+                'billing_review_requested': False,
+                'organization_id': str(self.organization.id),
+                'restart_count': MAX_OWNERSHIP_TRANSFER_RESTARTS,
+            },
+        )
+        OrgOwnershipTransferInvite.objects.filter(
+            pk__in=[stuck_transfer.pk, exhausted_transfer.pk]
+        ).update(date_modified=stale_time)
+
+        with (
+            immediate_on_commit(),
+            patch(
+                'kobo.apps.organizations.tasks.transfer_organization_ownership.delay'
+            ) as mock_delay,
+        ):
+            restart_stuck_org_ownership_transfers()
+
+        mock_delay.assert_called_once_with(stuck_transfer.pk)
+        stuck_transfer.refresh_from_db()
+        self.assertEqual(stuck_transfer.metadata['restart_count'], 1)
+        self.assertGreater(stuck_transfer.date_modified, stale_time)
+
+        fresh_transfer.refresh_from_db()
+        self.assertEqual(fresh_transfer.metadata.get('restart_count', 0), 0)
+
+        exhausted_transfer.refresh_from_db()
+        self.assertEqual(exhausted_transfer.status, InviteStatusChoices.FAILED)
+
+    def test_retry_resumes_pending_transfers_from_interrupted_batch(self):
+        """
+        If an earlier attempt created a batch of Transfer rows and timed out
+        before moving all of them, retrying executes the remaining PENDING
+        Transfer rows instead of skipping them.
+        """
+        self._create_transfer(self.owner_user, self.admin_user.username)
+        transfer = OrgOwnershipTransferInvite.objects.first()
+        self.owner_user.assets.all().delete()
+        asset = Asset.objects.create(
+            name='Pending Batch Project', owner=self.owner_user
+        )
+
+        # Simulate create_invite() having created a PENDING Transfer row before timeout
+        batch_invite = Invite.objects.create(
+            sender=self.owner_user, recipient=self.admin_user
+        )
+        pending_proj_transfer = Transfer.objects.create(
+            invite=batch_invite, asset=asset
+        )
+
+        with (
+            immediate_on_commit(),
+            patch.object(Transfer, 'transfer_project') as mock_transfer_project,
+            patch('kobo.apps.organizations.tasks.create_invite') as mock_create_invite,
+        ):
+            transfer_organization_ownership(transfer.pk)
+
+        mock_transfer_project.assert_called_once()
+        mock_create_invite.assert_not_called()
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.status, InviteStatusChoices.COMPLETE)
+        self.assertIsNotNone(pending_proj_transfer.pk)
 
     @override_config(PROJECT_OWNERSHIP_INVITE_EXPIRY=7)
     def test_mark_organization_invite_as_expired_leaves_recent_transfers_pending(
