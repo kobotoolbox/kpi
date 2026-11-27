@@ -121,6 +121,11 @@ class InProgressUpfrontTestCase(TestCase):
 
         poll.assert_called_once()
         assert self._statuses() == ['in_progress']
+        # Told the run it checks on, so it can never end a later one
+        assert (
+            poll.call_args.kwargs['kwargs']['version_uuid']
+            == self._stored()['_versions'][0]['_uuid']
+        )
 
     def test_get_returns_the_in_progress_version_of_a_new_supplement(self):
         with patch(POLL_PATH):

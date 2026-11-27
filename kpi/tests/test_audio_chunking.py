@@ -7,7 +7,7 @@ from kpi.exceptions import AudioDurationUnknownError
 from kpi.utils.audio_chunking import (
     MIN_LAST_CHUNK_SECONDS,
     ChunkRange,
-    get_chunk_ranges,
+    convert_and_plan_chunks,
     plan_chunk_ranges,
 )
 from kpi.utils.ffmpeg import Silence
@@ -271,53 +271,71 @@ class PlanChunkRangesTestCase(SimpleTestCase):
 @override_settings(
     TRANSCRIPTION_SILENCE_MIN_DURATION=0.5,
     TRANSCRIPTION_SILENCE_THRESHOLDS_DB=(-30, -25, -20),
+    TRANSCRIPTION_SILENCE_DETECT_TIMEOUT=300,
 )
-class GetChunkRangesTestCase(SimpleTestCase):
+class ConvertAndPlanChunksTestCase(SimpleTestCase):
+
+    SOURCE = 'https://storage.example/recording.mp3?signature=secret'
+    FLAC = '/tmp/work/source.flac'
 
     def setUp(self):
         self.attachment = MagicMock(
             pk=1,
-            absolute_path='/tmp/recording.mp3',
+            absolute_path=self.SOURCE,
             media_file_basename='recording.mp3',
         )
 
-    def test_pauses_found_at_the_first_threshold(self):
+    def _plan(self, converted, louder=None, hard_limit=HARD_LIMIT):
+        """
+        Plan with the conversion pass returning `converted`, a
+        `(silences, duration)` pair, and the louder passes returning `louder`
+        in turn, or no pause when it is not given. Returns the plan and both
+        mocks
+        """
+
+        louder_passes = {'side_effect': louder} if louder else {'return_value': []}
         with patch(
-            'kpi.utils.audio_chunking.detect_silences',
-            return_value=[pause_at(minutes(50))],
-        ) as detect_silences:
-            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
+            'kpi.utils.audio_chunking.convert_and_detect_silences',
+            return_value=converted,
+        ) as convert, patch(
+            'kpi.utils.audio_chunking.detect_silences', **louder_passes
+        ) as detect:
+            ranges = convert_and_plan_chunks(self.attachment, self.FLAC, hard_limit)
+
+        return ranges, convert, detect
+
+    def test_pauses_found_while_converting(self):
+        """
+        A quiet recording is planned on the pauses heard during the conversion,
+        so it is read once and nothing else
+        """
+
+        ranges, convert, detect = self._plan(([pause_at(minutes(50))], minutes(90)))
 
         assert ranges[0].end == minutes(50)
-        detect_silences.assert_called_once_with(
-            '/tmp/recording.mp3', minutes(90), -30, 0.5, 300
-        )
+        convert.assert_called_once_with(self.SOURCE, self.FLAC, -30, 0.5, 300)
+        detect.assert_not_called()
 
     def test_nothing_is_warned_about_when_the_pauses_are_found(self):
-        with patch(
-            'kpi.utils.audio_chunking.detect_silences',
-            return_value=[pause_at(minutes(50))],
-        ), patch('kpi.utils.audio_chunking.logging') as logger:
-            get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
+        with patch('kpi.utils.audio_chunking.logging') as logger:
+            self._plan(([pause_at(minutes(50))], minutes(90)))
 
         logger.warning.assert_not_called()
 
-    def test_threshold_is_raised_until_every_cut_has_a_pause(self):
+    def test_louder_thresholds_listen_to_the_local_copy(self):
         """
         A loud recording has nothing below -30 dB, so detection runs again at
-        each higher threshold until the pauses appear
+        each louder threshold until the pauses appear, on the FLAC already
+        written rather than the original, which would be downloaded again
         """
 
-        with patch(
-            'kpi.utils.audio_chunking.detect_silences',
-            side_effect=[[], [], [pause_at(minutes(50))]],
-        ) as detect_silences:
-            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
+        ranges, _, detect = self._plan(
+            ([], minutes(90)), louder=[[], [pause_at(minutes(50))]]
+        )
 
-        assert [call.args[2] for call in detect_silences.call_args_list] == [
-            -30,
-            -25,
-            -20,
+        assert [call.args for call in detect.call_args_list] == [
+            (self.FLAC, minutes(90), -25, 0.5, 300),
+            (self.FLAC, minutes(90), -20, 0.5, 300),
         ]
         assert ranges[0].end == minutes(50)
 
@@ -327,12 +345,9 @@ class GetChunkRangesTestCase(SimpleTestCase):
         cut blind at the hard limit
         """
 
-        with patch(
-            'kpi.utils.audio_chunking.detect_silences', return_value=[]
-        ) as detect_silences:
-            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
+        ranges, _, detect = self._plan(([], minutes(90)), louder=[[], []])
 
-        assert detect_silences.call_count == 3
+        assert detect.call_count == 2
         assert ranges[0].end == HARD_LIMIT
 
     def test_a_file_cut_blind_at_every_threshold_is_logged_as_a_warning(self):
@@ -341,27 +356,27 @@ class GetChunkRangesTestCase(SimpleTestCase):
         nothing else in the logs distinguishes it
         """
 
-        with patch('kpi.utils.audio_chunking.detect_silences', return_value=[]), patch(
-            'kpi.utils.audio_chunking.logging'
-        ) as logger:
-            get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
+        with patch('kpi.utils.audio_chunking.logging') as logger:
+            self._plan(([], minutes(90)), louder=[[], []])
 
         assert logger.warning.call_count == 1
         message, *args = logger.warning.call_args.args
         assert 'no pause to land in' in message
         assert args[-1] == -20
 
-    def test_duration_is_read_from_the_attachment_when_not_given(self):
-        with patch(
-            'kpi.utils.audio_chunking.get_audio_duration', return_value=minutes(90)
-        ) as get_audio_duration, patch(
-            'kpi.utils.audio_chunking.detect_silences',
-            return_value=[pause_at(minutes(50))],
-        ):
-            ranges = get_chunk_ranges(self.attachment, HARD_LIMIT)
+    def test_cuts_are_planned_on_the_length_of_the_converted_file(self):
+        """
+        The duration stored for the attachment comes from the original's
+        header, which can be a little off. The plan follows the audio that
+        will actually be cut, so its last chunk ends where that audio ends
+        """
 
-        get_audio_duration.assert_called_once_with(self.attachment)
+        self.attachment.audio_length = minutes(90) + 0.5
+
+        ranges, _, _ = self._plan(([pause_at(minutes(50))], minutes(90)))
+
         assert ranges[-1].end == minutes(90)
+        assert_ranges_cover_the_file(ranges, minutes(90), HARD_LIMIT)
 
     def test_the_hard_limit_comes_from_the_caller(self):
         """
@@ -370,12 +385,13 @@ class GetChunkRangesTestCase(SimpleTestCase):
         the caller passes the limit of whichever engine is about to transcribe
         """
 
-        with patch(
-            'kpi.utils.audio_chunking.detect_silences',
-            return_value=[pause_at(minutes(14)), pause_at(minutes(50))],
-        ):
-            roomy = get_chunk_ranges(self.attachment, HARD_LIMIT, minutes(90))
-            tighter = get_chunk_ranges(self.attachment, minutes(15), minutes(90))
+        pauses = [pause_at(minutes(14)), pause_at(minutes(50))]
+        roomy, _, _ = self._plan((pauses, minutes(90)))
+        # The tighter limit leaves a cut with no pause in reach, so the louder
+        # passes run too, and hear the same pauses
+        tighter, _, _ = self._plan(
+            (pauses, minutes(90)), louder=[pauses, pauses], hard_limit=minutes(15)
+        )
 
         assert [chunk.duration for chunk in roomy] == [minutes(50), minutes(40)]
         assert tighter[0].end == minutes(14)
@@ -383,36 +399,25 @@ class GetChunkRangesTestCase(SimpleTestCase):
         for chunk in tighter:
             assert chunk.duration <= minutes(15)
 
-    def test_an_unusable_duration_is_refused_like_a_missing_one(self):
+    def test_an_unusable_duration_is_refused(self):
         """
-        `audio_length` is an unvalidated float column, so a duration can reach
-        us unusable rather than absent
+        A converted file with no usable length leaves nothing to plan on
         """
 
         for duration in (0.0, -1.0, float('nan'), float('inf')):
-            with patch(
-                'kpi.utils.audio_chunking.get_audio_duration',
-                return_value=duration,
-            ), patch('kpi.utils.audio_chunking.detect_silences') as detect_silences:
-                with pytest.raises(AudioDurationUnknownError):
-                    get_chunk_ranges(self.attachment, HARD_LIMIT)
-
-                detect_silences.assert_not_called()
-
-    def test_unknown_duration_is_refused(self):
-        with patch(
-            'kpi.utils.audio_chunking.get_audio_duration', return_value=None
-        ), patch('kpi.utils.audio_chunking.detect_silences') as detect_silences:
             with pytest.raises(AudioDurationUnknownError):
-                get_chunk_ranges(self.attachment, HARD_LIMIT)
-
-        detect_silences.assert_not_called()
+                self._plan(([], duration))
 
     @override_settings(TRANSCRIPTION_SILENCE_THRESHOLDS_DB=())
-    def test_an_empty_threshold_ladder_is_refused(self):
+    def test_an_empty_threshold_ladder_is_refused_before_converting(self):
         """
-        An empty ladder would otherwise leave the file with no plan at all
+        An empty ladder would otherwise leave the file with no plan at all, so
+        it is refused before the recording is downloaded
         """
 
-        with pytest.raises(ValueError):
-            get_chunk_ranges(self.attachment, HARD_LIMIT, duration=minutes(90))
+        with patch(
+            'kpi.utils.audio_chunking.convert_and_detect_silences'
+        ) as convert, pytest.raises(ValueError):
+            convert_and_plan_chunks(self.attachment, self.FLAC, HARD_LIMIT)
+
+        convert.assert_not_called()

@@ -146,10 +146,21 @@ class GoogleService(ABC):
     def process_data(
         self,
         xpath: str,
-        options: dict,
+        params: dict,
         bulk_action_uid: str | None = None,
+        *,
+        version_uuid: str | None,
+        is_launch: bool,
     ) -> dict:
-        pass
+        """
+        Start the external process, or check on the one already running
+
+        `version_uuid` is the `_uuid` of the version this run belongs to, and
+        `is_launch` tells a new launch (its `in_progress` version was just
+        saved) from a later call on the same run (a poll or a repeated
+        request). Both are required so that no caller can leave them out by
+        mistake
+        """
 
     def update_counters(self, amount) -> None:
         update_nlp_counter(

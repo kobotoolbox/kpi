@@ -25,6 +25,7 @@ from .constants import (
     SCHEMA_VERSIONS,
     SORT_BY_DATE_FIELD,
     SUBMISSION_UUID_FIELD,
+    UNIQUE_TRANSCRIPTION_CHUNK_PER_VERSION,
     Action,
 )
 from .exceptions import InvalidAction, InvalidXPath
@@ -309,8 +310,88 @@ class SubmissionSupplement(AbstractTimeStampedModel):
         )
 
     @staticmethod
+    def fail_in_progress_action(
+        asset: 'kpi.Asset',
+        submission_uuid: str,
+        question_xpath: str,
+        action_id: str,
+        action_data: dict,
+        error: str,
+        version_uuid: str | None,
+    ) -> bool:
+        """
+        End the run `version_uuid` with a `failed` version carrying `error`,
+        and tell whether it was saved
+
+        For a run nothing else will end, such as a poll that crashed or ran
+        out of retries. Saved only while that run is still the latest version
+        and still `in_progress`: a result or a deletion that landed meanwhile
+        is kept, and so is a later run launched after it, which an old poll
+        must never end. `version_uuid` is `None` for a poll that does not know
+        its run (scheduled before its `in_progress` version was saved), which
+        then ends whichever run is in progress
+        """
+        supplemental_data = SubmissionSupplement.retrieve_data(
+            asset, submission_root_uuid=submission_uuid
+        )
+        question_supplemental_data = supplemental_data.get(question_xpath, {})
+        if not (action_supplemental_data := question_supplemental_data.get(action_id)):
+            return False
+
+        action = asset.advanced_features_set.get(
+            question_xpath=question_xpath, action=action_id
+        ).to_action(
+            prefetched_dependencies={
+                'question_supplemental_data': question_supplemental_data
+            }
+        )
+        action_path, running_data = SubmissionSupplement._locate_action(
+            action, question_xpath, action_data, action_supplemental_data
+        )
+        versions = running_data.get(action.VERSION_FIELD) or []
+        if (
+            not versions
+            or versions[0][action.VERSION_DATA_FIELD].get('status') != 'in_progress'
+            or (version_uuid and versions[0][action.UUID_FIELD] != version_uuid)
+        ):
+            return False
+
+        failed_data = {
+            key: value
+            for key, value in action_data.items()
+            # Request-only, forbidden in a saved version by the result schema
+            if key != 'auto_accept'
+        }
+        failed_data.update(status='failed', error=error)
+        _, failed_action_data = SubmissionSupplement._locate_action(
+            action,
+            question_xpath,
+            action_data,
+            action.get_new_action_supplemental_data(
+                action_supplemental_data,
+                failed_data,
+                versions[0].get(action.DEPENDENCY_FIELD),
+            ),
+        )
+        # Checked again in the update itself: a result or a new run can still
+        # land between the read above and this write
+        return SubmissionSupplement._update_while_in_progress(
+            asset,
+            submission_uuid,
+            action_path,
+            UpdateJSONFieldAttributes(
+                'content', path=action_path, updates=failed_action_data
+            ),
+            version_uuid=version_uuid,
+        )
+
+    @staticmethod
     def _update_while_in_progress(
-        asset: 'kpi.Asset', submission_uuid: str, action_path: list[str], content
+        asset: 'kpi.Asset',
+        submission_uuid: str,
+        action_path: list[str],
+        content,
+        version_uuid: str | None = None,
     ) -> bool:
         """
         Apply the `content` expression while the action's latest version is
@@ -318,14 +399,27 @@ class SubmissionSupplement(AbstractTimeStampedModel):
 
         A targeted JSON update, never a rewrite of `content`: it cannot erase an
         edit made on the same submission meanwhile. The condition on the status
-        leaves a result or a deletion landing in between untouched
+        leaves a result or a deletion landing in between untouched.
+        `version_uuid` narrows it to that one run, so a later run that is
+        `in_progress` too is left untouched as well
         """
-        latest_version_data = 'content'
-        for key in [*action_path, '_versions', '0', '_data']:
-            latest_version_data = KeyTransform(key, latest_version_data)
+        latest_version = 'content'
+        for key in [*action_path, '_versions', '0']:
+            latest_version = KeyTransform(key, latest_version)
+
+        conditions = [
+            Exact(
+                KeyTextTransform('status', KeyTransform('_data', latest_version)),
+                'in_progress',
+            )
+        ]
+        if version_uuid:
+            conditions.append(
+                Exact(KeyTextTransform('_uuid', latest_version), version_uuid)
+            )
 
         updated = SubmissionSupplement.objects.filter(
-            Exact(KeyTextTransform('status', latest_version_data), 'in_progress'),
+            *conditions,
             asset=asset,
             submission_uuid=submission_uuid,
         ).update(content=content)
@@ -1073,7 +1167,7 @@ class TranscriptionChunk(AbstractTimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=['version_uuid', 'index'],
-                name='unique_transcription_chunk_per_version',
+                name=UNIQUE_TRANSCRIPTION_CHUNK_PER_VERSION,
             ),
         ]
         indexes = [

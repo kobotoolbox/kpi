@@ -5,8 +5,7 @@ from django.conf import settings
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kpi.exceptions import AudioDurationUnknownError
-from kpi.utils.audio_duration import get_audio_duration
-from kpi.utils.ffmpeg import Silence, detect_silences
+from kpi.utils.ffmpeg import Silence, convert_and_detect_silences, detect_silences
 from kpi.utils.log import logging
 
 # Think of this as asking: "Of the pauses we found, which do we cut at?"
@@ -127,48 +126,36 @@ def plan_chunk_ranges(
     return ranges, blind_cuts
 
 
-def get_chunk_ranges(
-    attachment: Attachment,
-    hard_limit: float,
-    duration: float | None = None,
+def convert_and_plan_chunks(
+    attachment: Attachment, flac_path: str, hard_limit: float
 ) -> list[ChunkRange]:
     """
-    Return where `attachment` should be cut for transcription
+    Convert `attachment` to a mono FLAC file at `flac_path`, and return where
+    that file should be cut for transcription
 
-    Only the start and end of each chunk are worked out: no audio is cut and
-    no file is written. The web request that asks for this returns long before
-    the chunks are transcribed, and anything it wrote to disk would be gone by
-    the time a Celery worker, running on another machine, came looking for it.
+    This runs in a Celery worker, never in a web request: it reads the whole
+    recording, and a long one takes minutes, not seconds.
 
-    It can cause one database write. Called without `duration`, it asks
-    `get_audio_duration()`, which saves what it measures to
-    `attachment.audio_length` when that column is still empty so that the next
-    call is instant. Passing `duration` keeps this read-only.
+    The original is downloaded and decoded once. ffmpeg listens for pauses
+    while it writes the FLAC, and `plan_chunk_ranges` picks the cuts out of
+    that one list of pauses. Only when a cut has no pause to land in is the
+    audio read again, at a louder threshold, at most once per entry in the
+    ladder and usually not at all. Those passes read the local FLAC, so the
+    recording is never downloaded twice.
 
-    ffmpeg reads the audio through once, front to back, and reports every pause
-    it hears along the way. `plan_chunk_ranges` then picks the cuts out of that
-    one list, so ffmpeg is never run per chunk and nothing ever seeks back
-    through the file. The audio is only read again when a cut had no pause to
-    land in: detection then starts over at a louder threshold, at most once per
-    entry in the ladder, and usually not at all.
+    The cuts are planned on the length of the FLAC just written, not on the
+    duration stored for the attachment: that one comes from the original's
+    header, which may be missing or a little off, and a plan that ran past the
+    real end of the audio could end in an empty chunk.
 
     `hard_limit` is the longest chunk the engine about to transcribe this file
-    accepts, which the caller reads off its action
-    (`BaseAutomaticNLPAction.chunk_hard_limit_seconds`). It is an argument
-    rather than a setting read here because engines disagree about it, and only
-    the caller knows which one is about to be used.
+    accepts, which the caller reads off its transcription service
+    (e.g. `GoogleTranscriptionService.CHUNK_HARD_LIMIT_SECONDS`). It is an
+    argument rather than a setting read here because engines disagree about
+    it, and only the caller knows which one is about to be used. The caller
+    has already refused a file that is not audio
+    (`AudioTranscodingMixin.validate_transcodable()`).
     """
-
-    if duration is None:
-        duration = get_audio_duration(attachment)
-
-    # `audio_length` is an unvalidated float column and ffprobe parses whatever
-    # the container claims, so a duration can arrive unusable rather than absent
-    if duration is None or not isfinite(duration) or duration <= 0:
-        raise AudioDurationUnknownError(
-            f'Cannot determine a usable duration for '
-            f'{attachment.media_file_basename}: {duration!r}'
-        )
 
     thresholds = settings.TRANSCRIPTION_SILENCE_THRESHOLDS_DB
     if not thresholds:
@@ -176,16 +163,28 @@ def get_chunk_ranges(
             '`TRANSCRIPTION_SILENCE_THRESHOLDS_DB` must hold at least one threshold'
         )
 
+    min_duration = settings.TRANSCRIPTION_SILENCE_MIN_DURATION
+    timeout = settings.TRANSCRIPTION_SILENCE_DETECT_TIMEOUT
+
+    silences, duration = convert_and_detect_silences(
+        attachment.absolute_path, flac_path, thresholds[0], min_duration, timeout
+    )
+
+    # A zero or non-finite length would leave nothing to cut, or a walk that
+    # never reaches the end of the file
+    if not isfinite(duration) or duration <= 0:
+        raise AudioDurationUnknownError(
+            f'Cannot determine a usable duration for '
+            f'{attachment.media_file_basename}: {duration!r}'
+        )
+
     # A quiet recording is planned on the first pass. A loud one has nothing
     # below -30 dB, so we listen again for anything below -25, then -20
-    for threshold_db in thresholds:
-        silences = detect_silences(
-            attachment.absolute_path,
-            duration,
-            threshold_db,
-            settings.TRANSCRIPTION_SILENCE_MIN_DURATION,
-            settings.TRANSCRIPTION_SILENCE_DETECT_TIMEOUT,
-        )
+    for index, threshold_db in enumerate(thresholds):
+        if index:
+            silences = detect_silences(
+                flac_path, duration, threshold_db, min_duration, timeout
+            )
         ranges, blind_cuts = plan_chunk_ranges(duration, silences, hard_limit)
         logging.info(
             'Planned %d transcription chunk(s) for attachment %s at %d dB: '

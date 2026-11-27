@@ -106,7 +106,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
         self.attachment1.audio_length = 30.7
         self.attachment1.save(update_fields=['audio_length'])
 
-        with patch('kpi.utils.audio_duration.subprocess.run') as mock_run:
+        with patch('kpi.utils.ffmpeg.subprocess.run') as mock_run:
             response = self.client.post(
                 self.url,
                 {'attachment_uids': [self.attachment1.uid]},
@@ -127,7 +127,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
         assert self.attachment1.audio_length is None
 
         with patch(
-            'kpi.utils.audio_duration.subprocess.run',
+            'kpi.utils.ffmpeg.subprocess.run',
             return_value=_ffprobe_ok(45.9),
         ):
             response = self.client.post(
@@ -151,7 +151,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
         After the first ffprobe call, a second request must not call ffprobe
         """
         with patch(
-            'kpi.utils.audio_duration.subprocess.run',
+            'kpi.utils.ffmpeg.subprocess.run',
             return_value=_ffprobe_ok(60.0),
         ):
             self.client.post(
@@ -160,7 +160,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
                 format='json',
             )
 
-        with patch('kpi.utils.audio_duration.subprocess.run') as mock_run:
+        with patch('kpi.utils.ffmpeg.subprocess.run') as mock_run:
             response = self.client.post(
                 self.url,
                 {'attachment_uids': [self.attachment1.uid]},
@@ -194,7 +194,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
         A failed ffprobe call should yield seconds=null for that attachment
         """
         with patch(
-            'kpi.utils.audio_duration.subprocess.run',
+            'kpi.utils.ffmpeg.subprocess.run',
             return_value=_ffprobe_fail(),
         ):
             response = self.client.post(
@@ -338,7 +338,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
                 new_callable=lambda: property(lambda self: fake_path),
             ),
             patch(
-                'kpi.utils.audio_duration.subprocess.run',
+                'kpi.utils.ffmpeg.subprocess.run',
                 return_value=_ffprobe_ok(10.0),
             ) as mock_run,
         ):
@@ -369,7 +369,7 @@ class AttachmentAudioDurationApiTests(BaseAssetTestCase):
                 new_callable=lambda: property(lambda self: fake_url),
             ),
             patch(
-                'kpi.utils.audio_duration.subprocess.run',
+                'kpi.utils.ffmpeg.subprocess.run',
                 return_value=_ffprobe_ok(25.0),
             ) as mock_run,
         ):

@@ -29,6 +29,10 @@ SUBSEQUENCES_ASYNC_CACHE_KEY = 'subsequences'
 # Processing time is not audio length, but it's an estimate
 GOOGLE_CACHE_TIMEOUT = 28800  # 8 hours
 
+# Name of the unique constraint on `TranscriptionChunk`, also how a worker
+# recognises that another one saved the same run's chunks first
+UNIQUE_TRANSCRIPTION_CHUNK_PER_VERSION = 'unique_transcription_chunk_per_version'
+
 SCHEMA_VERSIONS = [
     '20250820',
     None,
