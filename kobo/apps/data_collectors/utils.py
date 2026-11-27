@@ -34,18 +34,6 @@ def get_redis_key_for_enketo_id(enketo_id):
     return f'id:{enketo_id}'
 
 
-def get_all_redis_entries_for_token(redis_client, token):
-    initial_url = DC_ENKETO_URL_TEMPLATE.format(token)
-    url_for_key = get_url_for_enketo_key(initial_url)
-    (cursor, keys) = redis_client.scan(cursor=0, match=f'or:{url_for_key},*')
-    while cursor > 0:
-        (cursor, more_keys) = redis_client.scan(
-            cursor=cursor, match=f'or:{url_for_key},*'
-        )
-        keys.extend(more_keys)
-    return [key.decode('utf-8') for key in keys]
-
-
 def get_xform_id_strings_by_asset_uid(asset_uids) -> dict[str, str]:
     """
     Map the UID of each deployed asset to the `id_string` of its XForm
@@ -57,8 +45,10 @@ def get_xform_id_strings_by_asset_uid(asset_uids) -> dict[str, str]:
     # XForm lives in the KoboCAT database. Evaluate `asset_uids` first so that
     # a KPI queryset never ends up as a subquery in a KoboCAT query.
     asset_uids = list(asset_uids)
+    # `all_objects` includes the XForms of projects in the trash: their Enketo
+    # links stay in Redis and must follow the token until they are restored.
     return dict(
-        XForm.objects.filter(kpi_asset_uid__in=asset_uids).values_list(
+        XForm.all_objects.filter(kpi_asset_uid__in=asset_uids).values_list(
             'kpi_asset_uid', 'id_string'
         )
     )
@@ -160,61 +150,64 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
         )
 
 
-def remove_data_collector_enketo_links(token: str, xform_id_strings: list[str] = None):
+def remove_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
     """
-    Remove enketo links from redis for the given token
+    Remove the Enketo links of the data collector token for the given XForms
+    """
 
-    If xform_id_strings is present, remove only the links for those forms,
-    otherwise, remove all
-    """
-    redis_client = get_redis_connection('enketo_redis_main')
-    if xform_id_strings == []:
+    if not xform_id_strings:
         return
-    if xform_id_strings is not None:
-        all_keys = [
-            get_redis_key_for_token_and_xform(token, xform_id_string)
-            for xform_id_string in xform_id_strings
-        ]
-    else:
-        # get all enketo redis entries for this token
-        all_keys = get_all_redis_entries_for_token(redis_client, token)
-        if not all_keys:
-            # no entries to remove, nothing to do
-            logging.warning(f'No redis entries found for data collector token {token}')
-            return
-    # get all enketo hashes for relevant xforms
-    enketo_ids = []
-    for key in all_keys:
-        enketo_id = redis_client.get(key)
-        if enketo_id:
-            enketo_ids.append(enketo_id.decode('utf-8'))
-        else:
-            logging.warning(f'No redis entry found for key {key}')
-    all_keys.extend(
-        [get_redis_key_for_enketo_id(enketo_id) for enketo_id in enketo_ids]
+
+    redis_client = get_redis_connection('enketo_redis_main')
+    or_keys = [
+        get_redis_key_for_token_and_xform(token, xform_id_string)
+        for xform_id_string in xform_id_strings
+    ]
+    id_keys = []
+    for or_key, enketo_id in zip(or_keys, redis_client.mget(or_keys)):
+        if enketo_id is None:
+            logging.warning(f'No redis entry found for key {or_key}')
+            continue
+        id_keys.append(get_redis_key_for_enketo_id(enketo_id.decode('utf-8')))
+    redis_client.delete(*or_keys, *id_keys)
+
+
+def rename_data_collector_enketo_links(
+    old_token: str, new_token: str, xform_id_strings: list[str]
+):
+    """
+    Move the Enketo links of the given XForms from the old data collector token
+    to the new one
+    """
+
+    if not xform_id_strings:
+        return
+
+    redis_client = get_redis_connection('enketo_redis_main')
+    old_keys = [
+        get_redis_key_for_token_and_xform(old_token, xform_id_string)
+        for xform_id_string in xform_id_strings
+    ]
+    new_server_url = to_internal_or_external_url(
+        DC_ENKETO_URL_TEMPLATE.format(new_token)
     )
-    redis_client.delete(*all_keys)
-
-
-def rename_data_collector_enketo_links(old_token: str, new_token: str):
-    redis_client = get_redis_connection('enketo_redis_main')
-    new_server_url = DC_ENKETO_URL_TEMPLATE.format(new_token)
-    # get all redis keys that use the old token
-    all_keys = get_all_redis_entries_for_token(redis_client, old_token)
-    if not all_keys:
-        logging.warning(f'No redis entries found for data collector token {old_token}')
-        return
-    for key in all_keys:
-        new_key = key.replace(old_token, new_token, 1)
-        try:
-            redis_client.rename(key, new_key)
-            enketo_id = redis_client.get(new_key).decode('utf-8')
-            enketo_key = get_redis_key_for_enketo_id(enketo_id)
-            # update the server urls to use the new token
-            redis_client.hset(
-                enketo_key,
-                'openRosaServer',
-                to_internal_or_external_url(new_server_url),
-            )
-        except redis.exceptions.ResponseError:
-            logging.warning(f'Attempt to rename non-existent key {key}')
+    pipeline = redis_client.pipeline()
+    for xform_id_string, old_key, enketo_id in zip(
+        xform_id_strings, old_keys, redis_client.mget(old_keys)
+    ):
+        if enketo_id is None:
+            logging.warning(f'Attempt to rename non-existent key {old_key}')
+            continue
+        pipeline.rename(
+            old_key, get_redis_key_for_token_and_xform(new_token, xform_id_string)
+        )
+        # update the server url to use the new token
+        pipeline.hset(
+            get_redis_key_for_enketo_id(enketo_id.decode('utf-8')),
+            'openRosaServer',
+            new_server_url,
+        )
+    # a key removed after the MGET makes its RENAME fail, not the whole pipeline
+    for result in pipeline.execute(raise_on_error=False):
+        if isinstance(result, redis.exceptions.ResponseError):
+            logging.warning(f'Could not rename data collector Enketo link: {result}')

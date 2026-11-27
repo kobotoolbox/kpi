@@ -52,23 +52,28 @@ class TestDataCollector(BaseTestCase):
 
     @patch('kobo.apps.data_collectors.signals.rename_data_collector_enketo_links')
     def test_rotate_token_updates_enketo_links(self, patched_rename):
+        xform_id_string = self._deploy(self.asset)
         initial_token = self.data_collector.token
         self.data_collector.rotate_token()
         new_token = self.data_collector.token
-        patched_rename.assert_called_once_with(initial_token, new_token)
+        patched_rename.assert_called_once_with(
+            initial_token, new_token, [xform_id_string]
+        )
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     def test_remove_group_removes_enketo_links(self, patched_remove):
+        xform_id_string = self._deploy(self.asset)
         self.data_collector.group = None
         self.data_collector.save()
         token = self.data_collector.token
-        patched_remove.assert_called_once_with(token)
+        patched_remove.assert_called_once_with(token, [xform_id_string])
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
     def test_change_group_removes_old_enketo_links_and_adds_new_ones(
         self, patched_set, patched_remove
     ):
+        old_xform_id_string = self._deploy(self.asset)
         someuser = User.objects.get(username='someuser')
         asset = Asset.objects.filter(owner=someuser).last()
         asset.save()
@@ -80,7 +85,9 @@ class TestDataCollector(BaseTestCase):
 
         self.data_collector.group = another_group
         self.data_collector.save()
-        patched_remove.assert_called_once_with(self.data_collector.token)
+        patched_remove.assert_called_once_with(
+            self.data_collector.token, [old_xform_id_string]
+        )
         patched_set.assert_called_once_with(
             self.data_collector.token, [asset.deployment.xform.id_string]
         )
@@ -90,6 +97,7 @@ class TestDataCollector(BaseTestCase):
     def test_change_group_and_token_removes_and_sets_correct_links(
         self, patched_set, patched_remove
     ):
+        old_xform_id_string = self._deploy(self.asset)
         someuser = User.objects.get(username='someuser')
         asset = Asset.objects.filter(owner=someuser).last()
         asset.save()
@@ -103,7 +111,7 @@ class TestDataCollector(BaseTestCase):
         self.data_collector.group = another_group
         self.data_collector.token = 'new_token'
         self.data_collector.save()
-        patched_remove.assert_called_once_with(old_token)
+        patched_remove.assert_called_once_with(old_token, [old_xform_id_string])
         patched_set.assert_called_once_with(
             'new_token', [asset.deployment.xform.id_string]
         )
@@ -168,8 +176,11 @@ class TestDataCollector(BaseTestCase):
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     def test_delete_data_collector_group_removes_enketo_links(self, patched_remove):
+        xform_id_string = self._deploy(self.asset)
         self.data_collector_group.delete()
-        patched_remove.assert_called_once_with(self.data_collector.token)
+        patched_remove.assert_called_once_with(
+            self.data_collector.token, [xform_id_string]
+        )
 
     @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
     def test_change_group_does_not_produce_new_version(self, *_):
@@ -182,3 +193,8 @@ class TestDataCollector(BaseTestCase):
         group.assets.add(asset)
         asset.refresh_from_db()
         assert asset.asset_versions.count() == initial_version_count
+
+    def _deploy(self, asset):
+        asset.save()
+        asset.deploy(backend='mock')
+        return asset.deployment.xform.id_string

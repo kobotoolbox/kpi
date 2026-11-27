@@ -9,7 +9,6 @@ from django.test import TestCase, override_settings
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.data_collectors.utils import (
-    get_all_redis_entries_for_token,
     get_redis_key_for_enketo_id,
     get_redis_key_for_token_and_xform,
     remove_data_collector_enketo_links,
@@ -18,6 +17,7 @@ from kobo.apps.data_collectors.utils import (
     toggle_internal_external_open_rosa_server_for_all_data_collectors,
 )
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.trash_bin.models.project import ProjectTrash
 from kpi.deployment_backends.openrosa_utils import to_internal_or_external_url
 from kpi.models.asset import Asset
 from kpi.utils.log import logging
@@ -104,7 +104,7 @@ class TestDataCollectorUtils(TestCase):
         enketo_id_key_a = get_redis_key_for_enketo_id(enketo_id_to_remove_a)
         enketo_id_key_b = get_redis_key_for_enketo_id(enketo_id_to_remove_b)
 
-        remove_data_collector_enketo_links('1')
+        remove_data_collector_enketo_links('1', ['a12345', 'b12345'])
         # make sure all data for this DC has been removed
         assert self.redis_client.get(enketo_url_key_a) is None
         assert self.redis_client.get(enketo_url_key_b) is None
@@ -122,8 +122,9 @@ class TestDataCollectorUtils(TestCase):
             assert log_message in log_context.output[0]
 
             # non-existent token
-            remove_data_collector_enketo_links('2')
-            log_message = f'No redis entries found for data collector token 2'
+            remove_data_collector_enketo_links('2', ['a12345'])
+            expected_key = get_redis_key_for_token_and_xform('2', 'a12345')
+            log_message = f'No redis entry found for key {expected_key}'
             assert log_message in log_context.output[1]
 
     def test_rename_data_collector_links(self):
@@ -132,17 +133,39 @@ class TestDataCollectorUtils(TestCase):
         self._check_expected_redis_entries('1', 'a12345')
         self._check_expected_redis_entries('1', 'b12345')
 
-        rename_data_collector_enketo_links('1', '2')
+        rename_data_collector_enketo_links('1', '2', ['a12345', 'b12345'])
         self._check_expected_redis_entries('2', 'a12345')
         self._check_expected_redis_entries('2', 'b12345')
-        assert get_all_redis_entries_for_token(self.redis_client, '1') == []
+        for xform_id_string in ('a12345', 'b12345'):
+            old_key = get_redis_key_for_token_and_xform('1', xform_id_string)
+            assert self.redis_client.get(old_key) is None
 
     def test_rename_non_existent_links(self):
-        rename_data_collector_enketo_links('1', '2')
         with self.assertLogs(logger=logging.name, level='WARNING') as log_context:
-            rename_data_collector_enketo_links('1', '2')
-            log_message = f'No redis entries found for data collector token 1'
+            rename_data_collector_enketo_links('1', '2', ['a12345'])
+            expected_key = get_redis_key_for_token_and_xform('1', 'a12345')
+            log_message = f'Attempt to rename non-existent key {expected_key}'
             assert log_message in log_context.output[0]
+
+    def test_rotate_token_moves_links_of_project_in_trash(self):
+        owner = User.objects.create(username='owner')
+        asset = Asset.objects.create(
+            name='a', data_collector_group=self.data_collector_group, owner=owner
+        )
+        asset.deploy(backend='mock')
+        xform_id_string = asset.deployment.xform.id_string
+        data_collector = DataCollector.objects.create(
+            group=self.data_collector_group, name='dc'
+        )
+        old_token = data_collector.token
+
+        ProjectTrash.toggle_statuses([asset.uid], active=False)
+        data_collector.rotate_token()
+        ProjectTrash.toggle_statuses([asset.uid], active=True)
+
+        self._check_expected_redis_entries(data_collector.token, xform_id_string)
+        old_key = get_redis_key_for_token_and_xform(old_token, xform_id_string)
+        assert self.redis_client.get(old_key) is None
 
     @override_settings(
         KOBOCAT_INTERNAL_URL='http://internal:80', KOBOCAT_URL='https://external:80'
