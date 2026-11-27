@@ -425,6 +425,20 @@ def restart_stuck_org_ownership_transfers():
 @celery_app.task
 def mark_organization_invite_as_expired():
     Invite = apps.get_model('organizations', 'OrganizationInvitation')
+    OrgOwnershipTransferInvite = apps.get_model(
+        'project_ownership', 'OrgOwnershipTransferInvite'
+    )
+
+    transfer_expiry_threshold = timezone.now() - timedelta(
+        days=config.PROJECT_OWNERSHIP_INVITE_EXPIRY
+    )
+    OrgOwnershipTransferInvite.objects.filter(
+        date_created__lte=transfer_expiry_threshold,
+        status=InviteStatusChoices.PENDING,
+    ).update(
+        status=InviteStatusChoices.EXPIRED,
+        date_modified=timezone.now(),
+    )
 
     expiry_threshold = timezone.now() - timedelta(
         days=config.ORGANIZATION_INVITE_EXPIRY
