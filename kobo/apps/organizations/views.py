@@ -84,6 +84,7 @@ from .constants import (
     INVITE_CANNOT_BE_RESENT_ERROR,
     INVITE_RESENT_TOO_QUICKLY_ERROR,
     OWNER_REMOVAL_ERROR,
+    OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR,
     TRANSFER_NO_LONGER_VALID_ERROR,
     TRANSFER_NOT_PENDING_ERROR,
 )
@@ -111,6 +112,7 @@ from .serializers import (
     OrganizationUserSerializer,
     OrgMembershipInviteSerializer,
 )
+from .tasks import transfer_organization_ownership
 from .utils import revoke_org_asset_perms
 
 ROLE_RANKS = {'member': 1, 'admin': 2, 'owner': 3}
@@ -832,6 +834,28 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         Revoke asset permissions before deleting the user from the organization
         """
         with transaction.atomic():
+            # Lock in strict order: OrganizationOwner -> OrgOwnershipTransferInvite
+            # -> OrganizationUser, matching transfer creation and the ownership
+            # transfer worker to serialize concurrent creation/removal and prevent
+            # PostgreSQL deadlocks.
+            OrganizationOwner.objects.select_for_update().filter(
+                organization_id=instance.organization_id
+            ).first()
+
+            active_transfers = list(
+                OrgOwnershipTransferInvite.objects.select_for_update()
+                .filter(
+                    Q(sender_id=instance.user_id) | Q(recipient_id=instance.user_id),
+                    metadata__organization_id=str(instance.organization_id),
+                    status__in=(
+                        InviteStatusChoices.PENDING,
+                        InviteStatusChoices.ACCEPTED,
+                        InviteStatusChoices.IN_PROGRESS,
+                    ),
+                )
+                .order_by('id')
+            )
+
             try:
                 member = (
                     OrganizationUser.objects.select_for_update()
@@ -844,13 +868,21 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
             if member.organization.is_owner(member.user):
                 raise InvalidMembershipRequest(OWNER_REMOVAL_ERROR)
 
-            pending_transfers = list(
-                OrgOwnershipTransferInvite.objects.select_for_update().filter(
-                    metadata__organization_id=str(member.organization_id),
-                    recipient_id=member.user_id,
-                    status=InviteStatusChoices.PENDING,
+            if any(
+                transfer.status
+                in (InviteStatusChoices.ACCEPTED, InviteStatusChoices.IN_PROGRESS)
+                for transfer in active_transfers
+            ):
+                raise InvalidMembershipRequest(
+                    OWNERSHIP_TRANSFER_IN_PROGRESS_MEMBER_REMOVAL_ERROR
                 )
-            )
+
+            pending_transfers = [
+                transfer
+                for transfer in active_transfers
+                if transfer.status == InviteStatusChoices.PENDING
+                and transfer.recipient_id == member.user_id
+            ]
             for transfer in pending_transfers:
                 transfer.status = InviteStatusChoices.CANCELLED
                 transfer.save(update_fields=['status', 'date_modified'])
@@ -1250,9 +1282,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 if locked_transfer.status == InviteStatusChoices.ACCEPTED:
@@ -1275,7 +1307,9 @@ class OrganizationOwnershipTransferViewSet(
 
             locked_transfer.status = InviteStatusChoices.ACCEPTED
             locked_transfer.save(update_fields=['status', 'date_modified'])
-            # Placeholder for async ownership and asset reassignment task (DEV-2896)
+            transaction.on_commit(
+                lambda: transfer_organization_ownership.delay(locked_transfer.pk)
+            )
 
         locked_transfer.send_acceptance_email()
         return Response(
@@ -1288,9 +1322,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
@@ -1311,9 +1345,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(
@@ -1334,9 +1368,9 @@ class OrganizationOwnershipTransferViewSet(
 
         with transaction.atomic():
             locked_transfer = (
-                OrgOwnershipTransferInvite.objects.select_for_update().get(
-                    pk=transfer.pk
-                )
+                OrgOwnershipTransferInvite.objects.select_for_update(of=('self',))
+                .select_related('sender__extra_details', 'recipient')
+                .get(pk=transfer.pk)
             )
             if locked_transfer.status != InviteStatusChoices.PENDING:
                 raise serializers.ValidationError(

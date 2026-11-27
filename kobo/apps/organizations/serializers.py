@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -17,6 +18,7 @@ from kobo.apps.organizations.models import (
     Organization,
     OrganizationInvitation,
     OrganizationInviteStatusChoices,
+    OrganizationOwner,
     OrganizationType,
     OrganizationUser,
     create_organization,
@@ -228,7 +230,10 @@ class OrganizationUserSerializer(serializers.ModelSerializer):
                 if OrgOwnershipTransferInvite.objects.filter(
                     metadata__organization_id=str(org_user.organization_id),
                     recipient=org_user.user,
-                    status=InviteStatusChoices.PENDING,
+                    status__in=(
+                        InviteStatusChoices.PENDING,
+                        InviteStatusChoices.ACCEPTED,
+                    ),
                 ).exists():
                     raise InvalidMembershipRequest(PENDING_TRANSFER_ROLE_LOCKED_ERROR)
 
@@ -805,13 +810,28 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
 
         raise serializers.ValidationError(RECIPIENT_MUST_BE_ADMIN_ERROR)
 
+    def _has_active_transfer(self, sender, organization) -> bool:
+        active_statuses = (
+            InviteStatusChoices.PENDING,
+            InviteStatusChoices.ACCEPTED,
+            InviteStatusChoices.IN_PROGRESS,
+        )
+        qs = OrgOwnershipTransferInvite.objects.filter(status__in=active_statuses)
+        if organization:
+            qs = qs.filter(
+                Q(sender=sender) | Q(metadata__organization_id=str(organization.id))
+            )
+        else:
+            qs = qs.filter(sender=sender)
+        return qs.exists()
+
     def validate(self, attrs):
         request_user = get_database_user(self.context['request'].user)
         organization = self._get_organization()
 
         # Enforces the business rule that only one ownership transfer can
-        # be pending per team
-        if organization and organization.has_pending_ownership_transfer:
+        # be active (pending, accepted, or in progress) per team
+        if self._has_active_transfer(request_user, organization):
             raise serializers.ValidationError(
                 {'detail': OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR}
             )
@@ -824,6 +844,11 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
         recipient_user = validated_data['recipient']
         try:
             with transaction.atomic():
+                if organization:
+                    OrganizationOwner.objects.select_for_update().filter(
+                        organization=organization
+                    ).first()
+
                 try:
                     org_user = (
                         OrganizationUser.objects.select_for_update()
@@ -840,7 +865,7 @@ class OrganizationOwnershipTransferSerializer(serializers.ModelSerializer):
                         {'recipient': [RECIPIENT_MUST_BE_ADMIN_ERROR]}
                     )
 
-                if organization and organization.has_pending_ownership_transfer:
+                if self._has_active_transfer(validated_data['sender'], organization):
                     raise serializers.ValidationError(
                         {'detail': [OWNERSHIP_TRANSFER_ALREADY_PENDING_ERROR]}
                     )

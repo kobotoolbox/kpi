@@ -109,7 +109,11 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
             )
             if OrgOwnershipTransferInvite.objects.filter(
                 Q(sender=user) | Q(recipient=user),
-                status=InviteStatusChoices.PENDING,
+                status__in=(
+                    InviteStatusChoices.PENDING,
+                    InviteStatusChoices.ACCEPTED,
+                    InviteStatusChoices.IN_PROGRESS,
+                ),
             ).exists():
                 raise PermissionDenied(PENDING_TRANSFER_ACCOUNT_DELETION_ERROR)
 

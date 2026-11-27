@@ -1,0 +1,10 @@
+{% load i18n %}
+{% autoescape off %}
+{% trans "Dear" %} {{ new_owner_username }},
+
+{% blocktrans trimmed %}You have declined the request to transfer ownership of {{ team_name }} to your account. The process was cancelled and no transfer of projects or data occurred.{% endblocktrans %}
+
+{% blocktrans trimmed %}If this was a mistake, please contact the owner {{ old_owner_username }} again to request a new transfer.{% endblocktrans %}
+
+- KoboToolbox
+{% endautoescape %}

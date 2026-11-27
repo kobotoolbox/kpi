@@ -1,0 +1,10 @@
+{% load i18n %}
+{% autoescape off %}
+{% trans "Dear" %} {{ current_owner_username }},
+
+{% blocktrans trimmed %}{{ desired_new_owner_username }} has declined your request to transfer ownership of {{ team_name }}.{% endblocktrans %}
+
+{% trans "You will remain the owner of this team. The submissions, data storage, and transcription and translation usage for the team have not been transferred." %}
+
+- KoboToolbox
+{% endautoescape %}

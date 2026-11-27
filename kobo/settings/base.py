@@ -1673,6 +1673,14 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    # Schedule every 30 minutes
+    'organization-ownership-transfer-task-restarter': {
+        'task': 'kobo.apps.organizations.tasks.restart_stuck_org_ownership_transfers',
+        'schedule': crontab(minute='*/30'),
+        # On `kpi_queue`, not `kpi_low_priority_queue`: this task orchestrates
+        # long-running transfers on that queue and must not get stuck behind them
+        'options': {'queue': 'kpi_queue'},
+    },
     # Schedule every 10 minutes
     'project-ownership-task-restarter': {
         'task': 'kobo.apps.project_ownership.tasks.task_restarter',
