@@ -90,8 +90,9 @@ class LanguageViewSet(BaseViewSet):
 
         return context
 
+    @staticmethod
     def _get_services_by_language(
-        self, through_model: type[Model]
+        through_model: type[Model],
     ) -> dict[int, list[Model]]:
         """
         Return the services of each language, ordered by priority
