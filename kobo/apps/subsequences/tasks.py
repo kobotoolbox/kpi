@@ -17,6 +17,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.subsequences.exceptions import (
+    PolledRunNotInProgressError,
     ServiceQuotaExceededError,
     SubsequenceTimeoutError,
 )
@@ -56,6 +57,13 @@ def poll_run_external_process(
     Check on the run `version_uuid` until it ends, and end it as failed if this
     poll gives up on it
 
+    A poll whose run is no longer in progress never treats it as a new launch,
+    which would transcribe (and charge) the audio again. It only reports the
+    run's result to its bulk item, if any, in case the poll that ended the run
+    stopped before doing so, or stops if a later run replaced it and has its
+    own poll.
+    Such polls are e.g. a second one scheduled by the bulk watchdog.
+
     `version_uuid` is `None` for a poll scheduled before its run's
     `in_progress` version was saved (a translation), or queued before it was
     passed, see `SubmissionSupplement.fail_in_progress_action()`
@@ -75,10 +83,22 @@ def poll_run_external_process(
             supplement_data = SubmissionSupplement.revise_data(
                 asset,
                 submission,
-                incoming_data
+                incoming_data,
+                poll_version_uuid=version_uuid,
             )
         except ServiceQuotaExceededError as err:
             raise self.retry(countdown=err.retry_after, exc=err)
+        except PolledRunNotInProgressError as err:
+            # Not a failure, whatever the reason
+            logging.info(
+                f'Background polling of run {version_uuid} for {action_id} on '
+                f'submission {submission.get(SUBMISSION_UUID_FIELD)} stops: {err}'
+            )
+            if not (err.run_ended and request_action_data.get('bulk_action_uid')):
+                return
+            # Read below, to report the result to the bulk item. Already done
+            # by the poll that ended the run, unless it was lost in between
+            supplement_data = None
         if supplement_data is None:
             supplement_data = _get_submission_supplement_data(
                 asset=asset,

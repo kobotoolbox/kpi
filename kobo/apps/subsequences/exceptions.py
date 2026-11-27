@@ -55,6 +55,22 @@ class ServiceQuotaExceededError(Exception):
         super().__init__(f'Service quota exceeded. Retry after {retry_after} seconds.')
 
 
+class PolledRunNotInProgressError(Exception):
+    """
+    Raised to a poll whose run is no longer the action's latest version still
+    `in_progress`
+
+    `run_ended` tells that the latest version is the run's own result, as
+    opposed to a later run or anything else that replaced it
+    """
+
+    def __init__(self, run_ended: bool):
+        self.run_ended = run_ended
+        super().__init__(
+            'The run has ended' if run_ended else 'The run is no longer the latest'
+        )
+
+
 class SubsequenceDeletionError(Exception):
     """Raised when attempting to delete a value that doesn't exist."""
 

@@ -60,3 +60,18 @@ class Action(models.TextChoices):
     AUTOMATIC_GOOGLE_TRANSCRIPTION = 'automatic_google_transcription'
     MANUAL_QUAL = 'manual_qual'
     AUTOMATIC_BEDROCK_QUAL = 'automatic_bedrock_qual'
+
+
+class TranscriptionChunkStatus(models.TextChoices):
+    """
+    Where one chunk of a long recording stands, see `TranscriptionChunk`
+
+    Here rather than in `models.py`, so that modules the models import back,
+    such as `utils.chunked_transcription`, can import it at module level
+    """
+
+    PENDING = 'pending'
+    IN_PROGRESS = 'in_progress'
+    COMPLETE = 'complete'
+    FAILED = 'failed'
+    CANCELLED = 'cancelled'

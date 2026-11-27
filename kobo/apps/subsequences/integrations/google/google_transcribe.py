@@ -4,6 +4,7 @@ import hashlib
 import json
 import posixpath
 from concurrent.futures import TimeoutError
+from dataclasses import dataclass
 from datetime import timedelta
 from typing import Any, Union
 
@@ -13,6 +14,7 @@ from django.conf import settings
 from django.core.cache import cache
 from google.api_core import client_options
 from google.api_core.exceptions import (
+    DeadlineExceeded,
     GoogleAPIError,
     InvalidArgument,
     PermissionDenied,
@@ -43,12 +45,13 @@ from ...exceptions import (
     ChunkStorageRefusedError,
     GoogleTranscriptionServiceNotConfigured,
     ServiceQuotaExceededError,
-    SubsequenceTimeoutError,
     TranscriptionResultNotFound,
 )
 from ...utils.chunked_transcription import (
+    CANCELLED_ERROR,
     ChunkedTranscriptionEngine,
     ChunkedTranscriptionRun,
+    JobReport,
 )
 from ..rate_limit import ServiceRateLimitExceeded, require_service_quota
 from .base import GoogleService
@@ -65,6 +68,22 @@ from .rate_limit import get_google_retry_after_seconds
 # multi-region endpoints, and it supports all recognition features
 # (e.g. enable_automatic_punctuation)
 DEFAULT_SPEECH_MODEL = 'chirp_3'
+
+# Name of the local rate limit checked before each batch job is submitted, see
+# `NLP_SERVICE_RATE_LIMITS`
+SPEECH_BATCH_RECOGNIZE_QUOTA = 'speech_v2_batch_recognize'
+
+
+@dataclass(frozen=True)
+class SpeechConfig:
+    """
+    How Google is asked to transcribe a recording: the same for each of its
+    batch jobs, whole file or chunks
+    """
+
+    language_code: str
+    model: str
+    location: str
 
 
 class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
@@ -134,55 +153,28 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         target_lang: str,
         content: Any,
         *,
-        model_code: str | None = None,
-        speech_location: str | None = None,
+        config: SpeechConfig,
     ) -> tuple[object, int]:
         """
-        Set up a batch transcription operation
+        Upload the whole file and submit its batch job, sent as `config` says
+
+        `source_lang` (`config.language_code`) places the file and the job's
+        results in storage
         """
         flac_content, duration = content
-        total_seconds = int(duration.total_seconds())
-
-        speech_model = model_code or DEFAULT_SPEECH_MODEL
-        if speech_location is None:
-            speech_location = get_speech_location_for_region()
-        speech_client = self._get_speech_client(speech_location)
         input_path, output_prefix = self._get_batch_paths(xpath, source_lang)
 
         logging.info(
             'Starting Google automatic transcription for '
-            f'{self.submission_root_uuid=}, {xpath=}, {source_lang=}, '
-            f'{speech_location=}, {speech_model=}'
+            f'{self.submission_root_uuid=}, {xpath=}, {config=}'
         )
         # Check Redis bucket and halt locally if we are exceeding allowed requests
-        require_service_quota('speech_v2_batch_recognize')
+        require_service_quota(SPEECH_BATCH_RECOGNIZE_QUOTA)
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
-        request = speech.BatchRecognizeRequest(
-            recognizer=self._get_recognizer_name(speech_location),
-            config=speech.RecognitionConfig(
-                auto_decoding_config=speech.AutoDetectDecodingConfig(),
-                language_codes=[source_lang],
-                model=speech_model,
-                features=speech.RecognitionFeatures(
-                    # chirp_3, chirp_2, and chirp support automatic punctuation
-                    # for all languages. 'long' does not support it for several
-                    # languages, including the 6 legacy African languages
-                    # (Kinyarwanda, Swati, Southern Sotho, Tswana, Tsonga, Venda),
-                    # and will return a 400 error if enabled
-                    enable_automatic_punctuation=(speech_model != 'long'),
-                ),
-            ),
-            files=[speech.BatchRecognizeFileMetadata(uri=gcs_input_uri)],
-            recognition_output_config=speech.RecognitionOutputConfig(
-                gcs_output_config=speech.GcsOutputConfig(
-                    uri=f'{self._get_gcs_uri(output_prefix)}/'
-                )
-            ),
-        )
-
-        return speech_client.batch_recognize(request=request), total_seconds
+        operation = self._batch_recognize(gcs_input_uri, output_prefix, config)
+        return operation, int(duration.total_seconds())
 
     @property
     def counter_name(self):
@@ -228,14 +220,14 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         3. FALLBACK: If a standard network error occurs, we return 'in_progress'
            to let Celery's standard exponential backoff try again safely.
 
-        NOTE: The current implementation intentionally submits one Google batch
-        job per submission. This allows us to track the progress of a batch
-        request on a per-file basis, which is the correct behavior for both
-        single and bulk transcriptions.
+        NOTE: Each submission has its own Google batch jobs, never shared with
+        another: one for the whole file, or one per chunk, sent one after
+        another. Progress is then tracked per file, which is the correct
+        behavior for both single and bulk transcriptions.
         """
         requested_language = params.get('locale') or params['language']
         try:
-            language_config = self._get_google_language_config(requested_language)
+            config = self._get_speech_config(requested_language)
         except GoogleTranscriptionServiceNotConfigured as err:
             return {'status': 'failed', 'error': str(err)}
         except LanguageNotSupported as err:
@@ -244,42 +236,15 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             )
             return {'status': 'failed', 'error': message}
 
-        source_language = language_config.language_code
-
-        # Apply any configured language-code override before sending the
-        # request to Google Speech-to-Text
-        #
-        # This allows temporary workarounds for Google side issues (for
-        # example, mapping 'sw' to 'auto') without changing Kobo's language
-        # definitions or requiring a code deployment
-        asr_overrides = get_asr_language_code_overrides()
-        if source_language in asr_overrides:
-            override_value = asr_overrides[source_language]
-            logging.info(
-                'Applying ASR language override: %s -> %s',
-                source_language,
-                override_value,
-            )
-            source_language = override_value
-
-        speech_location = (
-            get_speech_location_for_model(language_config.model_code)
-            or language_config.location_code
-            or get_speech_location_for_region()
-        )
+        # Read once, for every use below
+        bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
 
         # An existing operation reference means this submission/language pair
         # already has a Google batch job running: check on it
         if operation_name := self._get_operation_reference(
-            xpath, source_language, bulk_action_uid
+            xpath, config.language_code, bulk_action_item
         ):
-            return self._poll_operation(
-                xpath,
-                source_language=source_language,
-                speech_location=speech_location,
-                operation_name=operation_name,
-                bulk_action_uid=bulk_action_uid,
-            )
+            return self._poll_operation(xpath, operation_name, config, bulk_action_item)
 
         # Chunk rows mean this run's recording was long and is already split:
         # report on its chunks. Checked after the operation reference, so that
@@ -287,7 +252,22 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         chunked_run = ChunkedTranscriptionRun(
             self.asset, self.submission_root_uuid, xpath, version_uuid
         )
-        if (status := chunked_run.get_status()) is not None:
+
+        # Imported here, as in `_get_operation_reference()`: the models import
+        # this module
+        from ...models import BulkActionItemStatus
+
+        # A bulk action cancelled meanwhile: nothing more is sent. Checked
+        # after the whole file's job, so a transcript it finished before the
+        # cancel is still saved, as it is already charged
+        if (
+            bulk_action_item
+            and bulk_action_item.status == BulkActionItemStatus.CANCELLED
+        ):
+            chunked_run.cancel(lambda: self)
+            return {'status': 'failed', 'error': CANCELLED_ERROR}
+
+        if (status := chunked_run.get_status(self, config)) is not None:
             return status
 
         # Otherwise nothing is running for this run yet: start it. A file that
@@ -319,24 +299,14 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
 
         if is_long:
             return chunked_run.start(self, attachment, is_launch=is_launch)
-        return self._start_operation(
-            xpath,
-            attachment,
-            source_language=source_language,
-            model_code=language_config.model_code,
-            speech_location=speech_location,
-            bulk_action_uid=bulk_action_uid,
-        )
+        return self._start_operation(xpath, attachment, config, bulk_action_item)
 
     def _start_operation(
         self,
         xpath: str,
         attachment: Attachment,
-        *,
-        source_language: str,
-        model_code: str | None,
-        speech_location: str,
-        bulk_action_uid: str | None,
+        config: SpeechConfig,
+        bulk_action_item,
     ) -> dict:
         """
         Convert the whole file, launch its Google batch job and wait for it up
@@ -349,11 +319,10 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             # Launch a new batch job
             operation, amount = self.begin_google_operation(
                 xpath,
-                source_lang=source_language,
+                source_lang=config.language_code,
                 target_lang=None,
                 content=converted_audio,
-                model_code=model_code,
-                speech_location=speech_location,
+                config=config,
             )
         except InvalidArgument as err:
             logging.error(
@@ -386,7 +355,9 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             )
             return {'status': 'in_progress'}
         except Exception as err:
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            self._clear_operation_reference(
+                xpath, config.language_code, bulk_action_item
+            )
             return {
                 'status': 'failed',
                 'error': f'Transcription failed with error {str(err)}',
@@ -395,7 +366,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         operation_name = operation.operation.name
         self.update_counters(amount)
         self._save_operation_reference(
-            xpath, source_language, bulk_action_uid, operation_name
+            xpath, config.language_code, bulk_action_item, operation_name
         )
 
         try:
@@ -415,7 +386,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                     f'operation={operation_name}: {per_file_error}'
                 )
                 self._clear_operation_reference(
-                    xpath, source_language, bulk_action_uid
+                    xpath, config.language_code, bulk_action_item
                 )
                 return {
                     'status': 'failed',
@@ -424,8 +395,11 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
 
             # If Google finished within the request timeout, read the
             # output immediately and return a completed response
-            value = self._read_batch_result(xpath, source_language)
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            _, output_prefix = self._get_batch_paths(xpath, config.language_code)
+            value = self._read_batch_result(output_prefix)
+            self._clear_operation_reference(
+                xpath, config.language_code, bulk_action_item
+            )
             return {
                 'status': 'complete',
                 'value': value,
@@ -438,7 +412,9 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 f'{self.submission_root_uuid=}, operation={operation_name}: '
                 f'{err}'
             )
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            self._clear_operation_reference(
+                xpath, config.language_code, bulk_action_item
+            )
             return {
                 'status': 'failed',
                 'error': (
@@ -460,7 +436,9 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             logging.error(f'Google operation failed for {xpath=}: {err}')
             return {'status': 'in_progress'}
         except Exception as err:
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
+            self._clear_operation_reference(
+                xpath, config.language_code, bulk_action_item
+            )
             return {
                 'status': 'failed',
                 'error': f'Transcription failed with error {str(err)}',
@@ -469,37 +447,51 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
     def _poll_operation(
         self,
         xpath: str,
-        *,
-        source_language: str,
-        speech_location: str,
         operation_name: str,
-        bulk_action_uid: str | None,
+        config: SpeechConfig,
+        bulk_action_item,
     ) -> dict:
         """
-        Ask Google whether the batch job `operation_name` is done, and read its
-        transcript once it is
+        Check on the whole file's batch job `operation_name`, and forget the job
+        once it has ended
+        """
+        _, output_prefix = self._get_batch_paths(xpath, config.language_code)
+        report = self._check_batch_operation(
+            operation_name, config.location, output_prefix
+        )
+        if report.status == 'in_progress':
+            return {'status': 'in_progress'}
+
+        self._clear_operation_reference(xpath, config.language_code, bulk_action_item)
+        if report.status == 'failed':
+            return {'status': 'failed', 'error': report.error}
+        return {'status': 'complete', 'value': report.transcript}
+
+    def _check_batch_operation(
+        self, operation_name: str, location: str, output_prefix: str
+    ) -> JobReport:
+        """
+        Ask Google whether the batch job `operation_name`, run in `location`,
+        is done, and read its transcript from `output_prefix` once it is
+
+        Raises `ServiceQuotaExceededError` when Google is out of quota to answer
         """
         try:
-            # For existing operations, poll the long-running operation and only
-            # read the batch result after Google reports completion
-            operation_payload = self._get_operation_payload(
-                operation_name,
-                speech_location,
-            )
+            operation_payload = self._get_operation_payload(operation_name, location)
             if not operation_payload.get('done'):
-                raise SubsequenceTimeoutError
+                logging.info(
+                    'Google batch transcription still running for '
+                    f'{self.submission_root_uuid=}, {operation_name=}'
+                )
+                return JobReport('in_progress')
 
             if operation_payload.get('error'):
                 error = operation_payload['error'].get('message') or str(
                     operation_payload['error']
                 )
-                self._clear_operation_reference(
-                    xpath, source_language, bulk_action_uid
+                return JobReport(
+                    'failed', error=f'Transcription failed with error {error}'
                 )
-                return {
-                    'status': 'failed',
-                    'error': f'Transcription failed with error {error}',
-                }
 
             # Even when the long-running operation completes successfully
             # (`done=True` with no top-level error), individual input files may
@@ -512,57 +504,47 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             )
             if per_file_error:
                 logging.error(
-                    f'Google batch per-file error while polling transcription '
-                    f'for {xpath=}, {self.submission_root_uuid=}, '
-                    f'operation={operation_name}: {per_file_error}'
+                    'Google batch per-file error while polling transcription '
+                    f'for {self.submission_root_uuid=}, {operation_name=}: '
+                    f'{per_file_error}'
                 )
-                self._clear_operation_reference(
-                    xpath, source_language, bulk_action_uid
+                return JobReport(
+                    'failed', error=f'Transcription failed with error {per_file_error}'
                 )
-                return {
-                    'status': 'failed',
-                    'error': f'Transcription failed with error {per_file_error}',
-                }
 
-            value = self._read_batch_result(xpath, source_language)
-        except SubsequenceTimeoutError:
-            logging.info(
-                'Google batch transcription still running for '
-                f'{xpath=}, {self.submission_root_uuid=}'
-            )
-            return {'status': 'in_progress'}
+            transcript = self._read_batch_result(output_prefix)
         except TranscriptionResultNotFound as err:
             logging.error(
-                f'No transcription output written to GCS for {xpath=}, '
-                f'{self.submission_root_uuid=}, operation={operation_name}, '
+                'No transcription output written to GCS for '
+                f'{self.submission_root_uuid=}, {operation_name=}, '
                 f'payload={operation_payload}: {err}'
             )
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-            return {
-                'status': 'failed',
-                'error': (
+            return JobReport(
+                'failed',
+                error=(
                     f'Transcription failed with error {str(err)}. '
                     'It is possible Google was unable to transcribe the audio.'
                 ),
-            }
+            )
         except (PermissionDenied, Unauthenticated) as err:
             logging.error(
-                f'Google authentication or permission error while polling '
-                f'transcription for {xpath=}: {err}'
+                'Google authentication or permission error while polling '
+                f'transcription for {operation_name=}: {err}'
             )
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-            return {
-                'status': 'failed',
-                'error': (
+            return JobReport(
+                'failed',
+                error=(
                     'Transcription failed because Google credentials or '
                     f'permissions are invalid: {str(err)}'
                 ),
-            }
+                # Refused again until someone fixes them
+                retryable=False,
+            )
         except ResourceExhausted as err:
             retry_after = get_google_retry_after_seconds(err)
             logging.warning(
                 'Google transcription quota was exhausted while polling '
-                f'{xpath=}, retry_after={retry_after}: {err}'
+                f'{operation_name=}, retry_after={retry_after}: {err}'
             )
             raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
@@ -570,22 +552,16 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             # The transcription may still be running, so return 'in_progress'
             # to allow Celery to retry instead of marking the task as failed
             logging.error(
-                f'Google infrastructure error while polling transcription '
-                f'for {xpath=}: {err}'
+                'Google infrastructure error while polling transcription '
+                f'for {operation_name=}: {err}'
             )
-            return {'status': 'in_progress'}
+            return JobReport('in_progress')
         except Exception as err:
-            self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-            return {
-                'status': 'failed',
-                'error': f'Transcription failed with error {str(err)}',
-            }
+            return JobReport(
+                'failed', error=f'Transcription failed with error {str(err)}'
+            )
 
-        self._clear_operation_reference(xpath, source_language, bulk_action_uid)
-        return {
-            'status': 'complete',
-            'value': value,
-        }
+        return JobReport('complete', transcript=transcript)
 
     def store_file(self, content: bytes, destination_path: str) -> str:
         """
@@ -632,6 +608,90 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             raise ChunkStorageRefusedError(str(err)) from err
         return self._get_gcs_uri(destination_path)
 
+    def start_chunk(self, chunk, config: SpeechConfig) -> JobReport:
+        """
+        Submit the batch job of `chunk`, without waiting for it as the whole
+        file's does: a chunk is long, so the poll checks on it later
+
+        Never charged here: a chunked run is charged once it is transcribed
+        """
+        require_service_quota(SPEECH_BATCH_RECOGNIZE_QUOTA)
+        try:
+            operation = self._batch_recognize(
+                chunk.file_path, self._get_chunk_output_prefix(chunk), config
+            )
+        except (InvalidArgument, PermissionDenied, Unauthenticated) as err:
+            logging.error(
+                f'Google refused the transcription job of chunk {chunk.index} '
+                f'of version {chunk.version_uuid}: {err}'
+            )
+            # Refused again, until the request or the credentials are fixed
+            return JobReport(
+                'failed',
+                error=f'Transcription failed with error {err}',
+                retryable=False,
+            )
+        except ResourceExhausted as err:
+            retry_after = get_google_retry_after_seconds(err)
+            logging.warning(
+                'Google transcription quota was exhausted while starting chunk '
+                f'{chunk.index} of version {chunk.version_uuid}, '
+                f'retry_after={retry_after}: {err}'
+            )
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
+        except DeadlineExceeded as err:
+            # Google may have started the job anyway, without telling its
+            # name. Failed, so the next attempt writes to a folder of its own
+            # instead of next to that job's results
+            logging.error(
+                f'Google timed out while starting chunk {chunk.index} of '
+                f'version {chunk.version_uuid}: {err}'
+            )
+            return JobReport('failed', error=f'Transcription failed with error {err}')
+        except (GoogleAPIError, GoogleCloudError) as err:
+            # Google could not be reached: no job was started
+            logging.error(
+                f'Google infrastructure error while starting chunk {chunk.index} '
+                f'of version {chunk.version_uuid}: {err}'
+            )
+            return JobReport('in_progress')
+        except Exception as err:
+            # Failed as the check of a job does, so the chunk is retried and
+            # keeps the error
+            logging.exception(
+                f'Could not start the transcription job of chunk {chunk.index} '
+                f'of version {chunk.version_uuid}'
+            )
+            return JobReport('failed', error=f'Transcription failed with error {err}')
+        return JobReport('in_progress', service_id=operation.operation.name)
+
+    def check_chunk(self, chunk) -> JobReport:
+        """
+        Ask Google about the batch job of `chunk`, in the location it runs in
+        """
+        return self._check_batch_operation(
+            chunk.service_id,
+            self._get_operation_location(chunk.service_id),
+            self._get_chunk_output_prefix(chunk),
+        )
+
+    def cancel_chunk(self, service_id: str) -> None:
+        self.cancel_google_operation(service_id)
+
+    @staticmethod
+    def _get_chunk_output_prefix(chunk) -> str:
+        """
+        Where the batch job of the current attempt at `chunk` writes its
+        results: next to the chunk file, one folder per attempt, so a late
+        attempt is never read as another's
+
+        Taken from the file's path, not from
+        `ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX`, so that changing that prefix
+        mid-run still finds it. The bucket is always `GS_BUCKET_NAME`'s
+        """
+        _, _, file_name = chunk.file_path.removeprefix('gs://').partition('/')
+        return f'{posixpath.splitext(file_name)[0]}/{chunk.retry_count}'
+
     def _get_google_language_config(self, requested_language: str):
         """
         Resolve the speech configuration for the user request
@@ -645,6 +705,43 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 'Google transcription service is not configured.'
             )
         return transcription_lang_service.get_configuration(requested_language)
+
+    def _get_speech_config(self, requested_language: str) -> SpeechConfig:
+        """
+        Resolve how Google is asked to transcribe `requested_language`
+
+        Raises `GoogleTranscriptionServiceNotConfigured` or
+        `LanguageNotSupported`, which `process_data()` turns into a `failed`
+        result
+        """
+        language_config = self._get_google_language_config(requested_language)
+        language_code = language_config.language_code
+
+        # Apply any configured language-code override before sending the
+        # request to Google Speech-to-Text
+        #
+        # This allows temporary workarounds for Google side issues (for
+        # example, mapping 'sw' to 'auto') without changing Kobo's language
+        # definitions or requiring a code deployment
+        asr_overrides = get_asr_language_code_overrides()
+        if language_code in asr_overrides:
+            override_value = asr_overrides[language_code]
+            logging.info(
+                'Applying ASR language override: %s -> %s',
+                language_code,
+                override_value,
+            )
+            language_code = override_value
+
+        return SpeechConfig(
+            language_code=language_code,
+            model=language_config.model_code or DEFAULT_SPEECH_MODEL,
+            location=(
+                get_speech_location_for_model(language_config.model_code)
+                or language_config.location_code
+                or get_speech_location_for_region()
+            ),
+        )
 
     @staticmethod
     def _get_gcs_uri(path: str) -> str:
@@ -661,9 +758,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             self.submission_root_uuid, self.asset.owner, xpath=xpath
         )
 
-    def _get_batch_paths(
-        self, xpath: str, source_lang: str
-    ) -> tuple[str, str]:
+    def _get_batch_paths(self, xpath: str, source_lang: str) -> tuple[str, str]:
         """
         Build deterministic GCS paths for the input file and batch output
 
@@ -724,22 +819,62 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             f'locations/{location}/recognizers/_'
         )
 
+    def _batch_recognize(
+        self, input_uri: str, output_prefix: str, config: SpeechConfig
+    ):
+        """
+        Submit a batch job transcribing the file at `input_uri`, whose results
+        Google writes under `output_prefix`, and return its operation
+
+        Callers check `SPEECH_BATCH_RECOGNIZE_QUOTA` first, before anything
+        they do to prepare the job
+        """
+        request = speech.BatchRecognizeRequest(
+            recognizer=self._get_recognizer_name(config.location),
+            config=speech.RecognitionConfig(
+                auto_decoding_config=speech.AutoDetectDecodingConfig(),
+                language_codes=[config.language_code],
+                model=config.model,
+                features=speech.RecognitionFeatures(
+                    # chirp_3, chirp_2, and chirp support automatic punctuation
+                    # for all languages. 'long' does not support it for several
+                    # languages, including the 6 legacy African languages
+                    # (Kinyarwanda, Swati, Southern Sotho, Tswana, Tsonga, Venda),
+                    # and will return a 400 error if enabled
+                    enable_automatic_punctuation=(config.model != 'long'),
+                ),
+            ),
+            files=[speech.BatchRecognizeFileMetadata(uri=input_uri)],
+            recognition_output_config=speech.RecognitionOutputConfig(
+                gcs_output_config=speech.GcsOutputConfig(
+                    uri=f'{self._get_gcs_uri(output_prefix)}/'
+                )
+            ),
+        )
+        speech_client = self._get_speech_client(config.location)
+        return speech_client.batch_recognize(request=request)
+
     def cancel_google_operation(self, operation_name: str) -> None:
         """
-        Parse the GCP location from a long-running operation resource name and
-        cancel a previously started Google long-running operation
+        Cancel a previously started Google long-running operation
+        """
+        speech_client = self._get_speech_client(
+            self._get_operation_location(operation_name)
+        )
+        speech_client.transport.operations_client.cancel_operation(name=operation_name)
 
-        STT v2 operation names follow the pattern:
+    @staticmethod
+    def _get_operation_location(operation_name: str) -> str:
+        """
+        Return the location a long-running operation runs in, read from its
+        name, which for STT v2 follows the pattern:
             projects/{project}/locations/{location}/operations/{id}
         """
+        parts = operation_name.split('/')
         try:
-            parts = operation_name.split('/')
-            location = parts[parts.index('locations') + 1]
+            return parts[parts.index('locations') + 1]
         except (ValueError, IndexError):
-            location = get_speech_location_for_region()
-
-        speech_client = self._get_speech_client(location)
-        speech_client.transport.operations_client.cancel_operation(name=operation_name)
+            return get_speech_location_for_region()
 
     def _get_operation_payload(
         self,
@@ -798,15 +933,17 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             return str(error)
         return None
 
-    def _read_batch_result(self, xpath: str, source_lang: str) -> str:
+    def _read_batch_result(self, output_prefix: str) -> str:
         """
-        Read the completed transcript from the JSON files written to GCS
+        Read the completed transcript from the JSON files a batch job wrote
+        under `output_prefix` in GCS
         """
-        _, output_prefix = self._get_batch_paths(xpath, source_lang)
         transcript_parts = []
         found_json_result = False
         blobs = sorted(
-            self.bucket.list_blobs(prefix=output_prefix),
+            # Within the folder only, as `_batch_recognize()` names it: a bare
+            # prefix would also match its siblings sharing the same start
+            self.bucket.list_blobs(prefix=f'{output_prefix}/'),
             key=lambda blob: blob.name,
         )
         for blob in blobs:
@@ -864,14 +1001,13 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         self,
         xpath: str,
         source_lang: str,
-        bulk_action_uid: str | None,
+        bulk_action_item,
     ) -> str | None:
         """
         Fetch the persisted Google operation id from bulk storage or cache
         """
         from ...models import PENDING_OPERATION_MARKER
 
-        bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
         if (
             bulk_action_item
             and bulk_action_item.service_id
@@ -886,13 +1022,12 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         self,
         xpath: str,
         source_lang: str,
-        bulk_action_uid: str | None,
+        bulk_action_item,
         operation_name: str,
     ) -> None:
         """
         Persist the operation id so later polls can resume the same job
         """
-        bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
         if bulk_action_item:
             bulk_action_item.service_id = operation_name
             bulk_action_item.save(update_fields=['service_id', 'date_modified'])
@@ -905,12 +1040,11 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         self,
         xpath: str,
         source_lang: str,
-        bulk_action_uid: str | None,
+        bulk_action_item,
     ) -> None:
         """
         Remove the stored operation id after completion or terminal failure.
         """
-        bulk_action_item = self._get_bulk_action_item(bulk_action_uid)
         if bulk_action_item:
             bulk_action_item.service_id = ''
             bulk_action_item.save(update_fields=['service_id', 'date_modified'])

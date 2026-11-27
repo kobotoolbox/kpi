@@ -1,13 +1,19 @@
 import uuid
 from datetime import timedelta
-from unittest.mock import patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock, PropertyMock, patch
 
+import constance
+from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
+from kobo.apps.subsequences.integrations.google.google_transcribe import (
+    GoogleTranscriptionService,
+)
 from kobo.apps.subsequences.models import (
     PENDING_OPERATION_MARKER,
     BulkActionItemStatus,
@@ -15,6 +21,7 @@ from kobo.apps.subsequences.models import (
     QuestionAdvancedFeature,
     SubmissionSupplement,
     SubsequenceBulkAction,
+    TranscriptionChunk,
 )
 from kobo.apps.subsequences.tasks import (
     poll_run_external_process,
@@ -23,8 +30,10 @@ from kobo.apps.subsequences.tasks import (
     start_bulk_item_job,
     update_batch_status,
 )
+from kobo.celery import celery_app
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.audio_chunking import ChunkRange
 
 
 class TestPollRunExternalProcess(BaseTestCase):
@@ -171,7 +180,11 @@ class TestPollRunExternalProcess(BaseTestCase):
         self.assertEqual(latest_version['_data']['error'], error_msg)
 
 
-class TestPollRunExternalProcessFailure(BaseTestCase):
+class RunningTranscriptionTestCase(BaseTestCase):
+    """
+    A transcription whose run is `in_progress`, as its poll finds it
+    """
+
     fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def setUp(self):
@@ -227,6 +240,54 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
                 'action_data': {'language': 'en'},
             }
         }
+
+    def _versions(self, action_id=None, language=None) -> list[dict]:
+        content = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content
+        action_data = content[self.question_xpath][action_id or self.action_id]
+        return (action_data[language] if language else action_data)['_versions']
+
+    def _land_result(self):
+        """
+        Save a `complete` version on top of the running one, as the poll that
+        finishes a run does
+        """
+        with patch(
+            'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process'  # noqa: E501
+        ) as mock_run:
+            mock_run.return_value = {
+                'status': 'complete',
+                'value': 'Hello',
+                'language': 'en',
+            }
+            SubmissionSupplement.revise_data(
+                self.asset,
+                self.submission,
+                {
+                    '_version': '20250820',
+                    self.question_xpath: {self.action_id: {'language': 'en'}},
+                },
+            )
+
+    def _start_later_run(self) -> str:
+        """
+        Put a later run on top, `in_progress` too, as a relaunch after a
+        delete does, and return its `_uuid`
+        """
+        supplement = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        )
+        versions = supplement.content[self.question_xpath][self.action_id]['_versions']
+        later_run = {**versions[0], '_uuid': str(uuid.uuid4())}
+        versions.insert(0, later_run)
+        supplement.save(update_fields=['content'])
+        return later_run['_uuid']
+
+
+class TestPollRunExternalProcessFailure(RunningTranscriptionTestCase):
+
+    CHUNKED_RUN = 'kobo.apps.subsequences.models.ChunkedTranscriptionRun'
 
     def test_failure_handler_generic_error(self):
         """
@@ -303,35 +364,6 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         self.assertEqual(latest_version['_data']['status'], 'failed')
         self.assertNotIn('auto_accept', latest_version['_data'])
 
-    def _versions(self, action_id=None, language=None) -> list[dict]:
-        content = SubmissionSupplement.objects.get(
-            asset=self.asset, submission_uuid=self.submission_uuid
-        ).content
-        action_data = content[self.question_xpath][action_id or self.action_id]
-        return (action_data[language] if language else action_data)['_versions']
-
-    def _land_result(self):
-        """
-        Save a `complete` version on top of the running one, as the poll that
-        finishes a run does
-        """
-        with patch(
-            'kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process'  # noqa: E501
-        ) as mock_run:
-            mock_run.return_value = {
-                'status': 'complete',
-                'value': 'Hello',
-                'language': 'en',
-            }
-            SubmissionSupplement.revise_data(
-                self.asset,
-                self.submission,
-                {
-                    '_version': '20250820',
-                    self.question_xpath: {self.action_id: {'language': 'en'}},
-                },
-            )
-
     def test_a_poll_that_crashes_ends_the_run_as_failed(self):
         """
         An unexpected error stops the polling for good: without a `failed`
@@ -386,20 +418,6 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
 
         self.assertFalse(saved)
         self.assertEqual(self._versions()[0]['_data']['status'], 'complete')
-
-    def _start_later_run(self) -> str:
-        """
-        Put a later run on top, `in_progress` too, as a relaunch after a
-        delete does, and return its `_uuid`
-        """
-        supplement = SubmissionSupplement.objects.get(
-            asset=self.asset, submission_uuid=self.submission_uuid
-        )
-        versions = supplement.content[self.question_xpath][self.action_id]['_versions']
-        later_run = {**versions[0], '_uuid': str(uuid.uuid4())}
-        versions.insert(0, later_run)
-        supplement.save(update_fields=['content'])
-        return later_run['_uuid']
 
     def test_a_poll_ends_its_own_run(self):
         own_run = self._versions()[0]['_uuid']
@@ -464,6 +482,37 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         self.assertFalse(saved)
         self.assertEqual(self._versions()[0]['_uuid'], later_run)
 
+    def test_a_poll_giving_up_cancels_what_is_left_of_its_chunked_run(self):
+        """
+        Even a poll not told its run: the run it ended is the one cancelled
+        """
+        running = self._versions()[0]['_uuid']
+
+        with patch(self.CHUNKED_RUN) as run_class:
+            poll_run_external_process_failure(
+                sender=None, exception=Exception('boom'), **self.task_kwargs
+            )
+
+        self.assertEqual(self._versions()[0]['_data']['status'], 'failed')
+        run_class.assert_called_once_with(
+            self.asset, self.submission_uuid, self.question_xpath, running
+        )
+        run_class.return_value.cancel.assert_called_once()
+        # The engine, only built if a job needs stopping, is the action's
+        (get_engine,) = run_class.return_value.cancel.call_args.args
+        with patch.object(GoogleTranscriptionService, '__init__', return_value=None):
+            self.assertIsInstance(get_engine(), GoogleTranscriptionService)
+
+    def test_a_run_that_ended_first_keeps_its_chunks(self):
+        self._land_result()
+
+        with patch(self.CHUNKED_RUN) as run_class:
+            poll_run_external_process_failure(
+                sender=None, exception=Exception('boom'), **self.task_kwargs
+            )
+
+        run_class.assert_not_called()
+
     def test_a_translation_fails_only_in_its_own_language(self):
         """
         A translation keeps one block per language: the failure is written to
@@ -527,7 +576,114 @@ class TestPollRunExternalProcessFailure(BaseTestCase):
         self.assertEqual(self._versions(translation_id, 'es'), spanish['_versions'])
 
 
-class TestSubsequenceBulkActionExecution(BaseTestCase):
+class TestPollOfARunNoLongerInProgress(RunningTranscriptionTestCase):
+    """
+    A poll still going once its run is over (e.g. a second one, scheduled by
+    the bulk watchdog) is never taken for a new launch: it only reports the
+    run's result to the bulk item, or stops if a later run replaced it
+    """
+
+    RUN_EXTERNAL_PROCESS = (
+        'kobo.apps.subsequences.actions.base.'
+        'BaseAutomaticNLPAction.run_external_process'
+    )
+
+    def _poll(self, version_uuid: str, service_result: dict | None = None):
+        """
+        Run the bulk poll of `version_uuid`, and return the mocks of the
+        service and of the mirroring to the bulk item
+        """
+        kwargs = self.task_kwargs['kwargs']
+        with patch(
+            self.RUN_EXTERNAL_PROCESS, return_value=service_result
+        ) as run_service, patch(
+            'kobo.apps.subsequences.tasks._update_bulk_action_item_status'
+        ) as mirror_to_bulk_item:
+            poll_run_external_process(
+                **{
+                    **kwargs,
+                    'action_data': {
+                        **kwargs['action_data'],
+                        'bulk_action_uid': 'bulk-1',
+                    },
+                },
+                version_uuid=version_uuid,
+            )
+        return run_service, mirror_to_bulk_item
+
+    def _assert_poll_changes_nothing(self, version_uuid: str):
+        """
+        Poll `version_uuid`, check it neither called the service nor saved
+        anything, and return the mock of the mirroring to the bulk item
+        """
+        versions = self._versions()
+
+        run_service, mirror_to_bulk_item = self._poll(version_uuid)
+
+        run_service.assert_not_called()
+        self.assertEqual(self._versions(), versions)
+        return mirror_to_bulk_item
+
+    def _assert_poll_reports_result(self, version_uuid: str):
+        mirror_to_bulk_item = self._assert_poll_changes_nothing(version_uuid)
+        mirror_to_bulk_item.assert_called_once()
+        self.assertEqual(mirror_to_bulk_item.call_args.kwargs['status'], 'complete')
+
+    def _assert_poll_stops(self, version_uuid: str):
+        self._assert_poll_changes_nothing(version_uuid).assert_not_called()
+
+    def test_a_poll_on_an_ended_run_reports_it_without_launching_it_again(self):
+        """
+        E.g. the poll that ended the run was lost before reporting it
+        """
+        own_run = self._versions()[0]['_uuid']
+        self._land_result()
+
+        self._assert_poll_reports_result(own_run)
+
+    def test_a_poll_told_the_result_of_its_run_reports_it(self):
+        """
+        As the poll resumed by the bulk watchdog once the result was saved is
+        """
+        self._land_result()
+
+        self._assert_poll_reports_result(self._versions()[0]['_uuid'])
+
+    def test_a_poll_leaves_a_later_run_to_its_own_poll(self):
+        old_run = self._versions()[0]['_uuid']
+        self._start_later_run()
+
+        self._assert_poll_stops(old_run)
+
+    def test_a_poll_never_reports_the_result_of_a_later_run(self):
+        old_run = self._versions()[0]['_uuid']
+        self._land_result()
+        # Relaunched, and ended too
+        self._land_result()
+
+        self._assert_poll_stops(old_run)
+
+    def test_a_poll_still_ends_its_running_run(self):
+        """
+        The result saved by the poll itself is a new version on top: the poll
+        must still report it to the bulk item
+        """
+        own_run = self._versions()[0]['_uuid']
+
+        run_service, mirror_to_bulk_item = self._poll(
+            own_run, {'status': 'complete', 'value': 'Hello', 'language': 'en'}
+        )
+
+        run_service.assert_called_once()
+        self.assertEqual(self._versions()[0]['_data']['status'], 'complete')
+        self.assertEqual(mirror_to_bulk_item.call_args.kwargs['status'], 'complete')
+
+
+class BulkTranscriptionTestCase(BaseTestCase):
+    """
+    A bulk transcription of two submissions, not started yet
+    """
+
     fixtures = ['test_data']
 
     def setUp(self):
@@ -574,6 +730,9 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
                 self.second_submission_uuid,
             ],
         )
+
+
+class TestSubsequenceBulkActionExecution(BulkTranscriptionTestCase):
 
     @override_settings(
         BULK_ACTION_RATE_LIMITS={
@@ -1245,3 +1404,250 @@ class TestSubsequenceBulkActionExecution(BaseTestCase):
 
         self.assertEqual(enqueue_item_job.call_count, 2)
         enqueue_batch_poll.assert_called_once()
+
+
+@override_settings(GS_BUCKET_NAME='kobo-bucket')
+class TestBulkTranscriptionOfALongRecording(BulkTranscriptionTestCase):
+    """
+    A recording too long for one request stays one bulk item, from its launch
+    to its last chunk, through the real action, service and chunked run. Only
+    Google, the audio itself and ffmpeg are replaced
+    """
+
+    GOOGLE_MODULE = 'kobo.apps.subsequences.integrations.google'
+    SERVICE = f'{GOOGLE_MODULE}.google_transcribe.GoogleTranscriptionService'
+    CHUNKS_MODULE = 'kobo.apps.subsequences.utils.chunked_transcription'
+    # Two hours, cut once
+    RANGES = (
+        ChunkRange(index=0, start=0.0, end=3500.0),
+        ChunkRange(index=1, start=3500.0, end=7200.0),
+    )
+
+    def setUp(self):
+        super().setUp()
+        self.bulk_action.status = BulkActionStatus.IN_PROGRESS
+        self.bulk_action.save(update_fields=['status'])
+        self.item = self.bulk_action.items.get(
+            submission_root_uuid=self.submission_uuid
+        )
+
+        # Everything a bulk item does runs in a Celery worker
+        worker = patch.object(
+            type(celery_app),
+            'current_worker_task',
+            new_callable=PropertyMock,
+            return_value=MagicMock(),
+        )
+        self.addCleanup(worker.stop)
+        worker.start()
+
+        # Google
+        self._patch(
+            f'{self.GOOGLE_MODULE}.base.google_credentials_from_constance_config'
+        )
+        self._patch(f'{self.GOOGLE_MODULE}.base.storage')
+        self.check_usage = self._patch(
+            f'{self.GOOGLE_MODULE}.base.raise_if_usage_limit_exceeded'
+        )
+        self._patch(
+            f'{self.SERVICE}._get_google_language_config',
+            return_value=SimpleNamespace(
+                language_code='en-US', location_code='global', model_code=None
+            ),
+        )
+        self._patch(
+            f'{self.GOOGLE_MODULE}.google_transcribe.get_asr_language_code_overrides',
+            return_value={},
+        )
+        self._patch(f'{self.GOOGLE_MODULE}.google_transcribe.require_service_quota')
+        self.submit = self._patch(
+            f'{self.SERVICE}._batch_recognize',
+            side_effect=lambda input_uri, output_prefix, config: SimpleNamespace(
+                operation=SimpleNamespace(name=f'operations/{self.submit.call_count}')
+            ),
+        )
+        self.job_done = False
+        self._patch(
+            f'{self.SERVICE}._get_operation_payload',
+            side_effect=lambda name, location: {'done': self.job_done},
+        )
+        self._patch(
+            f'{self.SERVICE}._read_batch_result',
+            side_effect=lambda output_prefix: f'transcript of {output_prefix}',
+        )
+        self.cancel_job = self._patch(f'{self.SERVICE}.cancel_google_operation')
+        self.charge = self._patch(f'{self.SERVICE}.update_counters')
+
+        # The audio and ffmpeg
+        self._patch(f'{self.SERVICE}._get_attachment', return_value=MagicMock(pk=7))
+        self._patch(
+            f'{self.GOOGLE_MODULE}.google_transcribe.get_audio_duration',
+            return_value=self.RANGES[-1].end,
+        )
+        self.prepare = self._patch(
+            f'{self.CHUNKS_MODULE}.convert_and_plan_chunks',
+            side_effect=lambda attachment, source_path, hard_limit: (
+                self._write_file(source_path) or list(self.RANGES)
+            ),
+        )
+        self._patch(
+            f'{self.CHUNKS_MODULE}.cut_audio',
+            side_effect=lambda source, start, end, path, timeout: self._write_file(
+                path
+            ),
+        )
+
+    def _patch(self, target: str, **kwargs) -> MagicMock:
+        patcher = patch(target, **kwargs)
+        self.addCleanup(patcher.stop)
+        return patcher.start()
+
+    @staticmethod
+    def _write_file(path: str) -> None:
+        with open(path, 'wb') as file:
+            file.write(b'flac')
+
+    def _launch(self) -> dict:
+        """
+        Start the bulk item, and return the kwargs of the poll it schedules
+        """
+        with patch(
+            'kobo.apps.subsequences.tasks.poll_run_external_process.apply_async'
+        ) as schedule_poll:
+            start_bulk_item_job(self.item.pk)
+        schedule_poll.assert_called_once()
+        return schedule_poll.call_args.kwargs['kwargs']
+
+    def _poll(self, poll: dict) -> None:
+        """
+        Poll the run once, and check it is still going
+        """
+        with self.assertRaises(SubsequenceTimeoutError):
+            poll_run_external_process(**poll)
+
+    def _chunks(self) -> list[tuple]:
+        return list(
+            TranscriptionChunk.objects.order_by('index').values_list(
+                'status', 'service_id'
+            )
+        )
+
+    def _latest_version(self) -> dict:
+        content = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_uuid
+        ).content
+        return content[self.question_xpath][self.action_id]['_versions'][0]
+
+    def _assert_item(self, status: str) -> None:
+        items = self.bulk_action.items.filter(submission_root_uuid=self.submission_uuid)
+        self.assertEqual(
+            list(items.values_list('status', 'service_id')), [(status, '')]
+        )
+
+    def test_a_long_recording_is_transcribed_in_chunks_as_one_bulk_item(self):
+        # The launch checks the usage limit and leaves the work to its poll
+        poll = self._launch()
+        run = self._latest_version()
+        self.assertEqual(run['_data']['status'], 'in_progress')
+        self.assertEqual(poll['version_uuid'], run['_uuid'])
+        self.check_usage.assert_called_once()
+        self.prepare.assert_not_called()
+        self._assert_item(BulkActionItemStatus.IN_PROGRESS)
+
+        # Its first poll prepares the chunks, without sending any
+        self._poll(poll)
+        self.assertEqual(self._chunks(), [('pending', None), ('pending', None)])
+        self.submit.assert_not_called()
+
+        # The next one sends the first chunk only
+        self._poll(poll)
+        self.assertEqual(
+            self._chunks(), [('in_progress', 'operations/1'), ('pending', None)]
+        )
+
+        # Once Google is done with it, the second one goes
+        self.job_done = True
+        self._poll(poll)
+        self.assertEqual(
+            self._chunks(),
+            [('complete', 'operations/1'), ('in_progress', 'operations/2')],
+        )
+        # Read from where its own attempt wrote
+        self.assertEqual(
+            TranscriptionChunk.objects.get(index=0).transcript,
+            'transcript of '
+            f'{constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX}/speech-v2/'
+            f'chunks/{run["_uuid"]}/000/0',
+        )
+
+        # Both transcribed: what is left is the merge (DEV-2918)
+        self._poll(poll)
+        self.assertEqual(
+            self._chunks(),
+            [('complete', 'operations/1'), ('complete', 'operations/2')],
+        )
+
+        # One item all along, which never held a Google job of its own
+        self._assert_item(BulkActionItemStatus.IN_PROGRESS)
+        self.assertEqual(self._latest_version()['_uuid'], run['_uuid'])
+        self.assertEqual(self.submit.call_count, 2)
+        # Nothing charged yet, and no whole-file job to resume
+        self.charge.assert_not_called()
+        self.assertIsNone(
+            cache.get(
+                GoogleTranscriptionService._get_cache_key(
+                    SimpleNamespace(
+                        asset=self.asset, submission_root_uuid=self.submission_uuid
+                    ),
+                    self.question_xpath,
+                    'en-US',
+                    None,
+                )
+            )
+        )
+        # The other submission of the bulk action is left to its own job
+        self.assertEqual(
+            self.bulk_action.items.get(
+                submission_root_uuid=self.second_submission_uuid
+            ).status,
+            BulkActionItemStatus.IN_PROGRESS,
+        )
+
+    def test_a_bulk_cancel_stops_the_running_chunk_and_sends_no_other(self):
+        poll = self._launch()
+        self._poll(poll)
+        self._poll(poll)
+        self.assertEqual(
+            self._chunks(), [('in_progress', 'operations/1'), ('pending', None)]
+        )
+
+        self.bulk_action.cancel()
+
+        # The next poll stops the job and ends the run, leaving the item as
+        # the user cancelled it
+        poll_run_external_process(**poll)
+        self.cancel_job.assert_called_once_with('operations/1')
+        self.assertEqual(
+            self._chunks(), [('cancelled', 'operations/1'), ('cancelled', None)]
+        )
+        self.assertEqual(self.submit.call_count, 1)
+        latest_data = self._latest_version()['_data']
+        self.assertEqual(latest_data['status'], 'failed')
+        self.assertEqual(latest_data['error'], 'Transcription cancelled')
+        self._assert_item(BulkActionItemStatus.CANCELLED)
+        self.charge.assert_not_called()
+
+    def test_a_bulk_cancel_before_the_chunks_are_prepared_sends_none(self):
+        """
+        Preparing them takes minutes: a cancel landing in between must not
+        get the recording transcribed anyway
+        """
+        poll = self._launch()
+
+        self.bulk_action.cancel()
+        poll_run_external_process(**poll)
+
+        self.prepare.assert_not_called()
+        self.submit.assert_not_called()
+        self.assertEqual(self._latest_version()['_data']['status'], 'failed')
+        self._assert_item(BulkActionItemStatus.CANCELLED)
