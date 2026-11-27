@@ -52,12 +52,6 @@ updates:
       # Deps that require refactor and work before updating
       ##########################################################################
 
-      # https://linear.app/kobotoolbox/issue/DEV-864/choredeps-update-chai-to-5x
-      - dependency-name: "@types/chai"
-        versions: [ ">=5.0.0" ]
-      - dependency-name: "chai"
-        versions: [ ">=5.0.0" ]
-
       # https://linear.app/kobotoolbox/issue/DEV-865/choredeps-update-css-loader-to-7x
       - dependency-name: "css-loader"
         versions: [ ">=7.0.0" ]

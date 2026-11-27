@@ -12,6 +12,7 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import processingRoutes from '#/components/processing/routes'
 import projectsRoutes from '#/projects/routes'
 import PermProtectedRoute from '#/router/permProtectedRoute'
+import RouteErrorFallback from './RouteErrorFallback'
 import { injectRouter } from './legacy'
 import RequireAuth from './requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from './routerConstants'
@@ -30,7 +31,8 @@ const FormNotFound = React.lazy(() => import(/* webpackPrefetch: true */ '#/comp
 
 export const router = createHashRouter(
   createRoutesFromElements(
-    <>
+    // Pathless, so one error screen covers both the auth screens and the app
+    <Route errorElement={<RouteErrorFallback />}>
       {authRoutes()}
       <Route path={ROUTES.ROOT} element={<App />}>
         <Route path={ROUTES.ROOT} element={<Navigate to={ROUTES.FORMS} replace />} />
@@ -335,7 +337,7 @@ export const router = createHashRouter(
           }
         />
       </Route>
-    </>,
+    </Route>,
   ),
 )
 

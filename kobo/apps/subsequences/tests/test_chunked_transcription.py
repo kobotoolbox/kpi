@@ -15,7 +15,7 @@ from ..constants import TranscriptionChunkStatus
 from ..exceptions import (
     ChunkStorageError,
     ChunkStorageRefusedError,
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
 )
 from ..integrations.google.google_transcribe import GoogleTranscriptionService
 from ..models import TranscriptionChunk
@@ -419,11 +419,11 @@ class ChunkedTranscriptionProgressTestCase(ChunkRowsTestCase):
 
     def test_a_quota_error_leaves_the_chunk_as_it_was(self):
         def out_of_quota(chunk):
-            raise GoogleQuotaExceededError(retry_after=5)
+            raise ServiceQuotaExceededError(retry_after=5)
 
         self.engine.on_start = out_of_quota
 
-        with pytest.raises(GoogleQuotaExceededError):
+        with pytest.raises(ServiceQuotaExceededError):
             self._poll()
         assert self._statuses() == ['pending', 'pending', 'pending']
 
@@ -640,7 +640,7 @@ class GoogleChunkedTranscriptionTestCase(TestCase):
             f'{SERVICE_MODULE}.get_speech_location_for_model', return_value=None
         )
         self.mocks.require_quota = self._patch(
-            f'{SERVICE_MODULE}.require_google_service_quota'
+            f'{SERVICE_MODULE}.require_service_quota'
         )
         constance = self._patch(f'{SERVICE_MODULE}.constance')
         constance.config.ASR_MT_GOOGLE_STORAGE_BUCKET_PREFIX = 'asr'

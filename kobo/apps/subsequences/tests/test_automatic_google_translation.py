@@ -14,8 +14,8 @@ from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import (
-    GoogleQuotaExceededError,
     InvalidSourceLanguage,
+    ServiceQuotaExceededError,
     SourceLanguageNotFound,
     TranscriptionNotFound,
 )
@@ -742,7 +742,7 @@ def test_google_quota_error_schedules_background_polling_for_async_translation()
         'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
-        mock_service.process_data.side_effect = GoogleQuotaExceededError(
+        mock_service.process_data.side_effect = ServiceQuotaExceededError(
             retry_after=123
         )
         with patch(

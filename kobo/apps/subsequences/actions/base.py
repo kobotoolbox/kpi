@@ -12,7 +12,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.utils.limit_enforcement import raise_if_usage_limit_exceeded
 from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
 )
@@ -1051,7 +1051,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 # the version on top is its `in_progress` version
                 version_uuid=action_supplemental_data.get(self.UUID_FIELD),
             )
-        except (GoogleQuotaExceededError, APIException):
+        except (ServiceQuotaExceededError, APIException):
             # Not failures of the service, re-raised on purpose: Celery retries
             # the quota error later, and an `APIException` (e.g. the usage
             # limit) is the response the client must get. The caller then
@@ -1123,7 +1123,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 # calls (polls, repeated requests) find it already there
                 is_launch=in_progress_created_upfront,
             )
-        except GoogleQuotaExceededError as err:
+        except ServiceQuotaExceededError as err:
             if celery_app.current_worker_task:
                 raise
 

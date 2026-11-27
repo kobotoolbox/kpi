@@ -22,7 +22,7 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.exceptions import (
     ChunkStorageError,
     ChunkStorageRefusedError,
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
     TranscriptionResultNotFound,
 )
@@ -30,9 +30,7 @@ from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscriptionService,
     SpeechConfig,
 )
-from kobo.apps.subsequences.integrations.google.rate_limit import (
-    GoogleServiceRateLimitExceeded,
-)
+from kobo.apps.subsequences.integrations.rate_limit import ServiceRateLimitExceeded
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
@@ -373,13 +371,13 @@ def test_process_data_raises_quota_error_when_start_quota_is_exhausted(
     service._get_attachment = MagicMock()
     service.get_converted_audio = MagicMock(return_value=(b'audio', MagicMock()))
     service.begin_google_operation = MagicMock(
-        side_effect=GoogleServiceRateLimitExceeded(
+        side_effect=ServiceRateLimitExceeded(
             'speech_v2_batch_recognize',
             retry_after=1,
         )
     )
 
-    with pytest.raises(GoogleServiceRateLimitExceeded):
+    with pytest.raises(ServiceRateLimitExceeded):
         service.process_data('audio', {'language': 'en'}, **LAUNCH)
     service._clear_operation_reference.assert_not_called()
     # The attachment is fetched once and handed to the conversion as is
@@ -714,7 +712,7 @@ def test_starting_a_chunk_submits_its_job_without_waiting():
         return_value=MagicMock(operation=SimpleNamespace(name='operations/1'))
     )
 
-    with patch(f'{SERVICE_MODULE}.require_google_service_quota') as require_quota:
+    with patch(f'{SERVICE_MODULE}.require_service_quota') as require_quota:
         report = service.start_chunk(_get_chunk(retry_count=1), CHUNK_CONFIG)
 
     require_quota.assert_called_once_with('speech_v2_batch_recognize')
@@ -747,7 +745,7 @@ def test_a_chunk_google_does_not_take_is_reported(error, status, retryable):
     service = _get_service_for_process_data()
     service._batch_recognize = MagicMock(side_effect=error)
 
-    with patch(f'{SERVICE_MODULE}.require_google_service_quota'):
+    with patch(f'{SERVICE_MODULE}.require_service_quota'):
         report = service.start_chunk(_get_chunk(), CHUNK_CONFIG)
 
     assert report.status == status
@@ -759,8 +757,8 @@ def test_a_chunk_started_out_of_quota_is_retried_later():
     service = _get_service_for_process_data()
     service._batch_recognize = MagicMock(side_effect=ResourceExhausted('quota'))
 
-    with patch(f'{SERVICE_MODULE}.require_google_service_quota'), pytest.raises(
-        GoogleQuotaExceededError
+    with patch(f'{SERVICE_MODULE}.require_service_quota'), pytest.raises(
+        ServiceQuotaExceededError
     ):
         service.start_chunk(_get_chunk(), CHUNK_CONFIG)
 

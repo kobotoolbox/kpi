@@ -43,8 +43,8 @@ from ...constants import GOOGLE_CACHE_TIMEOUT
 from ...exceptions import (
     ChunkStorageError,
     ChunkStorageRefusedError,
-    GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
+    ServiceQuotaExceededError,
     TranscriptionResultNotFound,
 )
 from ...utils.chunked_transcription import (
@@ -53,17 +53,14 @@ from ...utils.chunked_transcription import (
     ChunkedTranscriptionRun,
     JobReport,
 )
+from ..rate_limit import ServiceRateLimitExceeded, require_service_quota
 from .base import GoogleService
 from .locations import (
     get_asr_language_code_overrides,
     get_speech_location_for_model,
     get_speech_location_for_region,
 )
-from .rate_limit import (
-    GoogleServiceRateLimitExceeded,
-    get_google_retry_after_seconds,
-    require_google_service_quota,
-)
+from .rate_limit import get_google_retry_after_seconds
 
 # Fallback STT model used when a language has no `model_code` set in the
 # `TranscriptionServiceLanguageM2M` database table. 'chirp_3' is chosen over
@@ -73,7 +70,7 @@ from .rate_limit import (
 DEFAULT_SPEECH_MODEL = 'chirp_3'
 
 # Name of the local rate limit checked before each batch job is submitted, see
-# `GOOGLE_SERVICE_RATE_LIMITS`
+# `NLP_SERVICE_RATE_LIMITS`
 SPEECH_BATCH_RECOGNIZE_QUOTA = 'speech_v2_batch_recognize'
 
 
@@ -172,7 +169,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
             f'{self.submission_root_uuid=}, {xpath=}, {config=}'
         )
         # Check Redis bucket and halt locally if we are exceeding allowed requests
-        require_google_service_quota(SPEECH_BATCH_RECOGNIZE_QUOTA)
+        require_service_quota(SPEECH_BATCH_RECOGNIZE_QUOTA)
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
@@ -214,9 +211,9 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         - `failed` with a user-facing error for expected failures
 
         Quota Management Flow:
-        1. INTERNAL CHECK: Before reaching out to Google, require_google_service_quota()
+        1. INTERNAL CHECK: Before reaching out to Google, require_service_quota()
            checks our Redis token bucket. If we are sending too many requests,
-           it raises GoogleServiceRateLimitExceeded and Celery is told to wait.
+           it raises ServiceRateLimitExceeded and Celery is told to wait.
         2. EXTERNAL CHECK: If Google's servers reject our request, we catch
            ResourceExhausted. We read Google's 'Retry-After' header and tell
            Celery to sleep for that exact amount of time.
@@ -335,7 +332,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 'status': 'failed',
                 'error': f'Transcription failed with error {str(err)}',
             }
-        except GoogleServiceRateLimitExceeded as err:
+        except ServiceRateLimitExceeded as err:
             logging.info(
                 'Deferred Google transcription start because project quota '
                 f'is exhausted for {xpath=}, '
@@ -348,7 +345,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 'Google transcription quota was exhausted while starting '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to start the transcription job,
             # return 'in_progress' to allow celery to retry
@@ -431,7 +428,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 'Google transcription quota was exhausted while waiting for '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check the operation status, but the
             # job may have still succeeded. Return 'in_progress' to allow Celery
@@ -477,7 +474,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
         Ask Google whether the batch job `operation_name`, run in `location`,
         is done, and read its transcript from `output_prefix` once it is
 
-        Raises `GoogleQuotaExceededError` when Google is out of quota to answer
+        Raises `ServiceQuotaExceededError` when Google is out of quota to answer
         """
         try:
             operation_payload = self._get_operation_payload(operation_name, location)
@@ -549,7 +546,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 'Google transcription quota was exhausted while polling '
                 f'{operation_name=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check the operation status.
             # The transcription may still be running, so return 'in_progress'
@@ -618,7 +615,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
 
         Never charged here: a chunked run is charged once it is transcribed
         """
-        require_google_service_quota(SPEECH_BATCH_RECOGNIZE_QUOTA)
+        require_service_quota(SPEECH_BATCH_RECOGNIZE_QUOTA)
         try:
             operation = self._batch_recognize(
                 chunk.file_path, self._get_chunk_output_prefix(chunk), config
@@ -641,7 +638,7 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 f'{chunk.index} of version {chunk.version_uuid}, '
                 f'retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except DeadlineExceeded as err:
             # Google may have started the job anyway, without telling its
             # name. Failed, so the next attempt writes to a folder of its own

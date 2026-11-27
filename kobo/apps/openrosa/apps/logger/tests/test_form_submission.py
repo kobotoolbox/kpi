@@ -5,6 +5,7 @@ import unicodedata
 import uuid
 from unittest.mock import patch
 
+from django.conf import settings
 from django.http import Http404
 from django_digest.test import Client as DigestClient
 from django_digest.test import DigestAuth
@@ -17,7 +18,12 @@ from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
 from kobo.apps.openrosa.libs.permissions import assign_perm
-from kobo.apps.openrosa.libs.utils.common_tags import GEOLOCATION
+from kobo.apps.openrosa.libs.utils.common_tags import (
+    ATTACHMENTS,
+    DATE_MODIFIED,
+    GEOLOCATION,
+    MONGO_STRFTIME,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import get_soft_deleted_attachments
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
 
@@ -299,6 +305,42 @@ class TestFormSubmission(TestBase):
         self.assertEqual(Instance.objects.count(), initial_instance_count + 1)
         self.assertEqual(
             Attachment.objects.filter(instance=initial_instance).count(), 1
+        )
+
+    def test_late_attachment_updates_date_modified(self):
+        """
+        Test that an attachment received after its submission (same XML
+        content posted again) refreshes `date_modified`, so that API consumers
+        can detect that `_attachments` has changed.
+        """
+        xml_submission_file_path = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+            'tutorial_2012-06-27_11-27-53_w_attachment.xml',
+        )
+        media_file_path = os.path.join(
+            os.path.dirname(__file__),
+            '../fixtures/tutorial/instances/tutorial_with_attachment',
+            '1335783522563.jpg',
+        )
+
+        self._make_submission(xml_submission_file_path)
+        assert self.response.status_code == status.HTTP_201_CREATED
+        instance = Instance.objects.last()
+        date_modified_before = instance.date_modified
+        document = settings.MONGO_DB.instances.find_one({'_id': instance.pk})
+        assert document[ATTACHMENTS] == []
+
+        with open(media_file_path, 'rb') as media_file:
+            self._make_submission(xml_submission_file_path, media_file=media_file)
+        assert self.response.status_code == status.HTTP_201_CREATED
+
+        instance.refresh_from_db()
+        assert instance.date_modified > date_modified_before
+        document = settings.MONGO_DB.instances.find_one({'_id': instance.pk})
+        assert len(document[ATTACHMENTS]) == 1
+        assert document[DATE_MODIFIED] == instance.date_modified.strftime(
+            MONGO_STRFTIME
         )
 
     def test_duplicate_submission_with_same_content_but_with_different_attachment(self):
