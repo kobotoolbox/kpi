@@ -242,10 +242,10 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         head={[
           t('Type'),
           t('Export name'),
-          t('Created'),
+          t('Date created'),
           t('Language'),
           <Box key='include-groups' ta='center'>
-            {t('Include Groups')}
+            {t('Groups')}
           </Box>,
           <Box key='multiple-versions' ta='center'>
             {t('Multiple Versions')}

@@ -812,7 +812,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                 clearSelectedDefinedExport()
                 mergeState({ customExportName: evt.currentTarget.value })
               }}
-              placeholder={t('Name your export settings')}
+              placeholder={t('Export settings name')}
               size='sm'
               w='100%'
             />

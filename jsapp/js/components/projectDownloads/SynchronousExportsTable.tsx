@@ -111,7 +111,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             t('Date modified'),
             t('Language'),
             <Box key='include-groups' ta='center'>
-              {t('Include Groups')}
+              {t('Groups')}
             </Box>,
             <Box key='multiple-versions' ta='center'>
               {t('Multiple Versions')}
