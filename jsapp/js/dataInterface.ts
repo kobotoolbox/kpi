@@ -834,6 +834,7 @@ export interface ProjectViewAsset {
   has_deployment: boolean
   deployment__active: boolean
   deployment__submission_count: number
+  deployment__last_submission_time: string | null
   deployment_status: 'archived' | 'deployed' | 'draft' | '-'
 }
 

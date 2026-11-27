@@ -12,7 +12,7 @@ import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
 import { ROUTES } from '#/router/routerConstants'
-import { formatTime, recordValues } from '#/utils'
+import { formatDate, formatTime, recordValues } from '#/utils'
 import styles from './projectsTableRow.module.scss'
 
 interface ProjectsTableRowProps {
@@ -81,6 +81,10 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
           return null
         }
         return <Badge color='light-storm' size='m' label={props.asset.deployment__submission_count} />
+      case 'lastSubmission':
+        return props.asset.deployment__last_submission_time
+          ? formatDate(props.asset.deployment__last_submission_time, true, 'LL')
+          : '-'
       default:
         return null
     }
