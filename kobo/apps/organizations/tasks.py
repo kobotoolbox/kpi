@@ -330,7 +330,13 @@ def transfer_organization_ownership(transfer_id: int):
             )
         raise
     finally:
-        cache.delete(lock_key)
+        try:
+            cache.delete(lock_key)
+        except Exception as e:
+            logging.warning(
+                f'Failed to release lock {lock_key} for organization ownership '
+                f'transfer {transfer_id}: {e}'
+            )
 
 
 @task_failure.connect(sender=transfer_organization_ownership)
@@ -341,7 +347,10 @@ def transfer_organization_ownership_failure(sender=None, **kwargs):
     transfer_id = kwargs['args'][0]
     try:
         OrgOwnershipTransferInvite.objects.filter(pk=transfer_id).exclude(
-            status=InviteStatusChoices.FAILED
+            status__in=(
+                InviteStatusChoices.COMPLETE,
+                InviteStatusChoices.FAILED,
+            )
         ).update(
             status=InviteStatusChoices.FAILED,
             date_modified=timezone.now(),
