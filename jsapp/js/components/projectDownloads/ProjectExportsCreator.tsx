@@ -801,7 +801,7 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                 size='sm'
                 variant='transparent'
                 tooltip={t(
-                  'Synchronous exports provide a link to current project data as a CSV or XLSX file that updates as new data is submitted.',
+                  'Saved export settings can be reused for future exports. They also generate a synchronous export link for a CSV or XLSX file that updates automatically as new data is submitted.',
                 )}
                 aria-label={t('About synchronous exports')}
               />

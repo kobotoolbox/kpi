@@ -75,7 +75,7 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             size='sm'
             variant='transparent'
             tooltip={t(
-              'Synchronous exports provide a link to current project data as a CSV or XLSX file that updates as new data is submitted. To generate a synchronous export, save export settings in Advanced options.',
+              'Synchronous exports provide a link to current project data as a CSV or XLSX file that updates as new data is submitted.',
             )}
             aria-label={t('About synchronous exports')}
           >
