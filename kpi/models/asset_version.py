@@ -1,13 +1,18 @@
-# coding: utf-8
+from itertools import chain
 
 from django.db import models
 from django.db.models.expressions import RawSQL
+from formpack.constants import MEDIA_COLUMN_NAMES
 from formpack.utils.expand_content import expand_content
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_content_hash
-from kpi.utils.kobo_to_xlsform import to_xlsform_structure
+from kpi.utils.kobo_to_xlsform import (
+    KOBO_CUSTOM_TYPE_HANDLERS,
+    replace_with_autofields,
+    to_xlsform_structure,
+)
 from kpi.utils.xlsform_preprocessors.kobomatrix_handler import KoboMatrixGroupHandler
 
 
@@ -32,6 +37,10 @@ class AssetVersion(AbstractTimeStampedModel):
     deployed = models.BooleanField(default=False)
     _content_hash = models.CharField(null=True, max_length=60)
 
+    # Set once converting this version to the XLSForm structure has changed
+    # `version_content` in place
+    _version_content_changed_in_place = False
+
     class Meta:
         ordering = ['-date_modified']
 
@@ -44,10 +53,11 @@ class AssetVersion(AbstractTimeStampedModel):
         )
 
     def _deployed_content(self, include_choices: bool = True) -> dict:
-        # The `deployed_content` field is deprecated. It used to cache the compiled
-        # form, and no code has written it since October 2016. Some versions from
-        # 2016 still hold a value, and this check keeps returning it for them. Every
-        # other version is compiled below from `version_content`
+        # The `deployed_content` field is deprecated. It used to cache the form
+        # converted to the XLSForm structure, and no code has written it since
+        # October 2016. Some versions from 2016 still hold a value, and this check
+        # keeps returning it for them. Every other version is converted below from
+        # `version_content`
         if self.deployed_content is not None:
             return self.deployed_content
 
@@ -56,6 +66,12 @@ class AssetVersion(AbstractTimeStampedModel):
             if include_choices
             else self._version_content_without_choices()
         )
+        # The conversion changes the content that it reads. That content is
+        # `version_content` itself, or shares its rows, unless the database
+        # stripped the choices of a deferred `version_content`
+        if 'version_content' not in self.get_deferred_fields():
+            self._version_content_changed_in_place = True
+
         legacy_names = self._reversion_version is not None
         if legacy_names:
             return to_xlsform_structure(version_content, deprecated_autoname=True)
@@ -68,6 +84,10 @@ class AssetVersion(AbstractTimeStampedModel):
 
         Choices can weigh far more than the rest of the content, and a caller
         that only reads the questions has no use for them.
+
+        Unless `version_content` is deferred and its choices are left out, building
+        the schema changes `version_content` in place, so afterwards `save()`
+        refuses this instance and `content_hash` refuses to compute a hash from it.
         """
 
         return {
@@ -75,6 +95,32 @@ class AssetVersion(AbstractTimeStampedModel):
             'version': self.uid,
             'version_id_key': '__version__',
         }
+
+    def to_formpack_schema_without_copying_choices(self) -> dict:
+        """
+        Return the same schema as `to_formpack_schema()`, with the choices of
+        `version_content` itself rather than a converted copy of them.
+
+        Converting the content to the XLSForm structure copies all of it several
+        times, which takes far longer on long choice lists than on the rest of the
+        form. When that conversion would only move the autovalue of each choice,
+        this method moves it in place and converts the rest of the content.
+
+        Like `to_formpack_schema()`, it changes `version_content` in place, so
+        afterwards `save()` refuses this instance and `content_hash` refuses to
+        compute a hash from it.
+        """
+
+        if not self._can_skip_choices_conversion():
+            return self.to_formpack_schema()
+
+        schema = self.to_formpack_schema(include_choices=False)
+        if 'choices' in self.version_content:
+            choices = self.version_content['choices']
+            replace_with_autofields({'choices': choices})
+            schema['content']['choices'] = choices
+
+        return schema
 
     @property
     def content_hash(self) -> str:
@@ -88,6 +134,11 @@ class AssetVersion(AbstractTimeStampedModel):
         migration 0020
         """
         if not self._content_hash:
+            if self._version_content_changed_in_place:
+                raise RuntimeError(
+                    f'Version {self.uid} cannot hash its content: it was changed '
+                    'in place while being converted to the XLSForm structure'
+                )
             self._content_hash = calculate_content_hash(self.version_content)
 
         return self._content_hash
@@ -101,11 +152,55 @@ class AssetVersion(AbstractTimeStampedModel):
             return _settings.get('id_string', 'Untitled')
 
     def save(self, *args, **kwargs):
+        if self._version_content_changed_in_place:
+            raise RuntimeError(
+                f'Version {self.uid} cannot be saved: its content was changed in '
+                'place while being converted to the XLSForm structure'
+            )
+
         _ = self.content_hash
         if 'update_fields' in kwargs and '_content_hash' not in kwargs['update_fields']:
             kwargs['update_fields'].append('_content_hash')
 
         super().save(*args, **kwargs)
+
+    def _can_skip_choices_conversion(self) -> bool:
+        """
+        Return whether converting this version to the XLSForm structure would only
+        move the autovalue of each choice.
+
+        A stored `deployed_content` and a legacy version convert differently, and
+        a custom group (matrix, rank, score) reads the choices. Formpack also
+        rewrites a choice that has a column it can expand, and such a column can
+        change the translations of the whole form.
+        """
+
+        if self.deployed_content is not None or self._reversion_version is not None:
+            return False
+
+        content = self.version_content
+        choices = content.get('choices', [])
+        survey = content.get('survey', [])
+        translated = content.get('translated') or []
+        if not all(isinstance(rows, list) for rows in (choices, survey, translated)):
+            return False
+        if not all(isinstance(row, dict) for row in chain(choices, survey)):
+            return False
+        if any(
+            isinstance(row.get('type'), str)
+            and row['type'] in KOBO_CUSTOM_TYPE_HANDLERS
+            for row in survey
+        ):
+            return False
+
+        return not any(
+            column in MEDIA_COLUMN_NAMES
+            or (
+                column not in translated
+                and (column in ('label', 'hint') or ':' in column)
+            )
+            for column in set().union(*choices)
+        )
 
     def _version_content_without_choices(self) -> dict:
         """

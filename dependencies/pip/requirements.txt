@@ -211,7 +211,7 @@ fido2==2.2.1
     # via django-allauth
 flower==2.2.0
     # via -r dependencies/pip/requirements.in
-formpack @ git+https://github.com/kobotoolbox/formpack.git@a53e4db75d527796d1e017d3146d84695bdad9f7#egg=formpack
+formpack @ git+https://github.com/kobotoolbox/formpack.git@8b899b276d33dfc8485c65ff48e8da1454de3128#egg=formpack
     # via -r dependencies/pip/requirements.in
 funcsigs==1.0.2
     # via begins

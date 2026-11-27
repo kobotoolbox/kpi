@@ -1,4 +1,3 @@
-# coding: utf-8
 from collections import OrderedDict
 
 from django.utils.translation import gettext as t
@@ -34,11 +33,11 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         # Use the newest version only if the asset was never deployed
         _versions = [asset.asset_versions.first()]
 
-    schemas = []
+    pack = FormPack(title=asset.name, id_string=asset.uid)
     versions_newest_first = []
     for v in _versions:
         try:
-            fp_schema = v.to_formpack_schema()
+            fp_schema = v.to_formpack_schema_without_copying_choices()
         # FIXME: should FormPack validation errors have their own
         # exception class?
         except TypeError as e:
@@ -49,7 +48,10 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
             )
         else:
             fp_schema['version_id_key'] = INFERRED_VERSION_ID_KEY
-            schemas.append(fp_schema)
+            pack.load_version(fp_schema)
+            # The pack keeps this schema, and its fields already hold the options
+            # that they need from these choices
+            fp_schema['content'].pop('choices', None)
             versions_newest_first.append(
                 {
                     'uid': v.uid,
@@ -58,11 +60,12 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
                 }
             )
 
-    if not schemas:
+    if not versions_newest_first:
         raise Exception('Cannot build formpack without any schemas')
 
-    # FormPack() expects the versions to be ordered from oldest to newest
-    pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
+    # FormPack treats its last version as the newest one, and that version decides
+    # the order of the columns and the labels of an export
+    pack.versions = OrderedDict(reversed(pack.versions.items()))
 
     # Every id that each version is known by, its uid, its aliases and its
     # deprecated reversion id, mapped to its uid

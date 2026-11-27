@@ -9,13 +9,19 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
-from formpack.constants import INFERRED_VERSION_ID_KEY
+from formpack import FormPack
+from formpack.constants import (
+    INFERRED_VERSION_ID_KEY,
+    UNSPECIFIED_TRANSLATION,
+    UNTRANSLATED,
+)
 from model_bakery import baker
 
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import ATTACHMENT_QUESTION_TYPES
 from kpi.models import Asset
 from kpi.models.asset_version import AssetVersion
+from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.sluggify import sluggify_label
 
 
@@ -854,6 +860,38 @@ def test_populates_xpath_correctly():
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
+def _analysis_form() -> list[dict]:
+    """
+    Return analysis questions on the two select questions of
+    `_content_with_list()`, in the format of `get_analysis_form_json()`.
+    """
+
+    return [
+        {
+            'type': 'qualSelectOne',
+            'name': 'colors/uuid_for_brightness',
+            'dtpath': 'colors/uuid_for_brightness',
+            'label': 'How bright is it?',
+            'source': 'colors',
+            'choices': [
+                {'uuid': 'uuid_for_bright', 'labels': {'_default': 'Bright'}},
+                {'uuid': 'uuid_for_dark', 'labels': {'_default': 'Dark'}},
+            ],
+        },
+        {
+            'type': 'qualSelectMultiple',
+            'name': 'tags/uuid_for_moods',
+            'dtpath': 'tags/uuid_for_moods',
+            'label': 'Which moods does it bring?',
+            'source': 'tags',
+            'choices': [
+                {'uuid': 'uuid_for_calm', 'labels': {'_default': 'Calm'}},
+                {'uuid': 'uuid_for_joy', 'labels': {'_default': 'Joy'}},
+            ],
+        },
+    ]
+
+
 def _content_with_choices() -> dict:
     return {
         'survey': [
@@ -869,6 +907,61 @@ def _content_with_choices() -> dict:
             {'list_name': 'yn', 'label': ['Yes'], 'name': 'yes'},
             {'list_name': 'yn', 'label': ['No'], 'name': 'no'},
         ],
+        'settings': {},
+    }
+
+
+def _content_with_autovalues() -> dict:
+    return {
+        'survey': [
+            {
+                'type': 'select_one',
+                'select_from_list_name': 'yn',
+                'label': ['Yes or no?'],
+                '$autoname': 'yes_no',
+                'name': 'old_name',
+                '$kuid': 'k1',
+            },
+        ],
+        'choices': [
+            {
+                'list_name': 'yn',
+                'label': ['Yes'],
+                '$autovalue': 'yes',
+                'name': 'old_yes',
+                '$kuid': 'k2',
+                'extra_column': 'x',
+            },
+            {'list_name': 'yn', 'label': ['No'], '$autovalue': '', 'name': 'no'},
+        ],
+        'translated': ['label'],
+        'translations': [None],
+        'settings': {},
+    }
+
+
+def _content_with_list(choices: list[tuple[str, str]]) -> dict:
+    return {
+        'survey': [
+            {
+                'type': type_,
+                'select_from_list_name': 'colors',
+                'label': [name],
+                '$autoname': name,
+            }
+            for type_, name in (('select_one', 'colors'), ('select_multiple', 'tags'))
+        ],
+        'choices': [
+            {
+                'list_name': 'colors',
+                'label': [label],
+                '$autovalue': name,
+                '$kuid': f'k{name}',
+            }
+            for name, label in choices
+        ],
+        'translated': ['label'],
+        'translations': [None],
         'settings': {},
     }
 
@@ -1241,6 +1334,334 @@ class TestAssetContent(TestCase):
 
         assert next(submission_stream)[INFERRED_VERSION_ID_KEY] == first_version.uid
 
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_exports_the_same_as_converted_schemas(self, _repair):
+        """
+        Skipping the conversion of the choices and loading the versions one at a
+        time must not change a single cell, nor the order of the columns.
+        """
+
+        pack, converted_pack, submissions = self._build_both_formpacks()
+
+        assert list(pack.versions) == list(converted_pack.versions)
+        assert list(pack.versions)[-1] == self.asset.deployed_versions.first().uid
+        self._assert_same_exports(pack, converted_pack, submissions)
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_exports_the_same_with_analysis_questions(self, _repair):
+        """
+        An export with analysis questions extends the pack after `build_formpack()`
+        has dropped the choices from the schema of each version. The analysis
+        questions bring their own choices, and the select questions that they
+        analyze keep their options.
+        """
+
+        pack, converted_pack, submissions = self._build_both_formpacks()
+        for submission in submissions:
+            submission['_supplementalDetails'] = {
+                'colors': {
+                    'qual': {
+                        'uuid_for_brightness': {
+                            'value': {
+                                'uuid': 'uuid_for_dark',
+                                'labels': {'_default': 'Dark'},
+                            }
+                        }
+                    }
+                },
+                'tags': {
+                    'qual': {
+                        'uuid_for_moods': {
+                            'value': [
+                                {
+                                    'uuid': 'uuid_for_calm',
+                                    'labels': {'_default': 'Calm'},
+                                }
+                            ]
+                        }
+                    }
+                },
+            }
+        for current_pack in (pack, converted_pack):
+            current_pack.extend_survey(_analysis_form())
+
+        self._assert_same_exports(pack, converted_pack, submissions)
+        export = pack.export(versions=pack.versions.keys(), lang=UNTRANSLATED).to_dict(
+            deepcopy(submissions)
+        )
+        (sheet,) = export.values()
+        first_row = dict(zip(sheet['fields'], sheet['data'][0]))
+        # The comparison above covers the analysis columns, and the select
+        # question keeps the label that the newest version gives to its option
+        assert first_row['colors'] == 'Red'
+        assert first_row['colors - How bright is it?'] == 'Dark'
+        assert first_row['tags - Which moods does it bring?'] == 'Calm'
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_keeps_no_raw_choices(self, _repair):
+        first_version = self._add_deployed_version(
+            _content_with_list([('red', 'Red'), ('blue', 'Blue')])
+        )
+        second_version = self._add_deployed_version(
+            _content_with_list([('red', 'Red'), ('blue', 'Blue')])
+        )
+
+        pack, _ = build_formpack(
+            Asset.objects.get(pk=self.asset.pk), submission_stream=[]
+        )
+
+        for version in pack.versions.values():
+            assert 'choices' not in version.schema['content']
+        first_field, second_field = (
+            pack.versions[version.uid].sections[self.asset.name].fields['colors']
+            for version in (first_version, second_version)
+        )
+        assert list(first_field.choice.options) == ['red', 'blue']
+        # The two versions hold the same options, so they share a single list
+        assert first_field.choice.options is second_field.choice.options
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_leaves_choices_out_of_the_conversion(self, _repair):
+        """
+        Converting the content to the XLSForm structure copies all of it, which
+        takes far longer on long choice lists than on the rest of the form.
+        """
+
+        self._add_deployed_version(_content_with_list([('red', 'Red')]))
+
+        with patch(
+            'kpi.models.asset_version.to_xlsform_structure',
+            wraps=to_xlsform_structure,
+        ) as convert_content:
+            build_formpack(Asset.objects.get(pk=self.asset.pk), submission_stream=[])
+
+        assert convert_content.call_count == 2
+        for call in convert_content.call_args_list:
+            assert 'choices' not in call.args[0]
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_skips_a_version_that_cannot_be_converted(self, _repair):
+        first_version = self.asset.latest_deployed_version
+        version = self._add_deployed_version(_content_with_choices())
+        AssetVersion.objects.filter(pk=version.pk).update(
+            version_content={'survey': None}
+        )
+
+        pack, submission_stream = build_formpack(
+            Asset.objects.get(pk=self.asset.pk),
+            submission_stream=[{'__version__': version.uid}],
+        )
+
+        assert list(pack.versions) == [first_version.uid]
+        assert next(submission_stream)[INFERRED_VERSION_ID_KEY] == first_version.uid
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_refuses_when_no_version_converts(self, _repair):
+        self.asset.asset_versions.update(version_content={'survey': None})
+
+        with self.assertRaisesMessage(Exception, 'Cannot build formpack'):
+            build_formpack(Asset.objects.get(pk=self.asset.pk), submission_stream=[])
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_infers_the_newest_version_of_a_submission(self, _repair):
+        first_version = self.asset.latest_deployed_version
+        second_version = self._add_deployed_version(_content_with_choices())
+        newest_version = self._add_deployed_version(_content_with_choices())
+        AssetVersion.objects.filter(pk=first_version.pk).update(uid_aliases=['old_uid'])
+
+        _, submission_stream = build_formpack(
+            Asset.objects.get(pk=self.asset.pk),
+            submission_stream=[
+                {'__version__': 'old_uid'},
+                {'__version__': first_version.uid, '_version_': second_version.uid},
+                {'__version__': 'unknown'},
+            ],
+        )
+
+        assert [
+            submission[INFERRED_VERSION_ID_KEY] for submission in submission_stream
+        ] == [first_version.uid, second_version.uid, newest_version.uid]
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_reads_the_newest_version_only_on_request(self, _repair):
+        self._add_deployed_version(_content_with_choices())
+        newest_version = self._add_deployed_version(_content_with_choices())
+
+        pack, submission_stream = build_formpack(
+            Asset.objects.get(pk=self.asset.pk),
+            submission_stream=[{'__version__': 'unknown'}],
+            use_all_form_versions=False,
+        )
+
+        assert list(pack.versions) == [newest_version.uid]
+        assert next(submission_stream)[INFERRED_VERSION_ID_KEY] == newest_version.uid
+
+    def test_schema_without_copying_choices_skips_their_conversion(self):
+        """
+        Converting a plain form only moves the autovalue of each choice, so the
+        result holds the choices of the version itself and stays the same.
+        """
+
+        media_content = _content_with_autovalues()
+        media_content['translated'].append('media::image')
+        media_content['choices'][0]['media::image'] = ['yes.png']
+        for content in (_content_with_autovalues(), media_content):
+            with self.subTest(content=content):
+                version = AssetVersion(uid='v1', version_content=deepcopy(content))
+
+                schema = version.to_formpack_schema_without_copying_choices()
+
+                assert (
+                    schema['content']['choices'] is version.version_content['choices']
+                )
+                assert schema == self._converted_schema(content)
+
+    def test_schema_without_copying_choices_handles_a_form_without_choices(self):
+        content = _content_with_autovalues()
+        del content['choices']
+        version = AssetVersion(uid='v1', version_content=deepcopy(content))
+
+        schema = version.to_formpack_schema_without_copying_choices()
+
+        assert 'choices' not in schema['content']
+        assert schema == self._converted_schema(content)
+
+    def test_schema_without_copying_choices_converts_them_when_it_must(self):
+        """
+        Converting these versions does more than move the autovalues, so the
+        choices of the result must come from the conversion.
+        """
+
+        def content_with_column(column: str, value) -> dict:
+            content = _content_with_autovalues()
+            content['choices'][0][column] = value
+            return content
+
+        def stored_content(content: dict) -> dict:
+            return deepcopy(self._deploy_content(content).version_content)
+
+        translated_column = _content_with_autovalues()
+        for choice in translated_column['choices']:
+            choice['label::French'] = choice.pop('label')[0]
+        untranslated_labels = _content_with_autovalues()
+        untranslated_labels['translated'] = []
+        media_named_in_translated = content_with_column('image', ['yes.png'])
+        media_named_in_translated['translated'].append('image')
+        cases = {
+            'translated column': (translated_column, {}),
+            'media column': (content_with_column('image', 'yes.png'), {}),
+            'media column in translated': (media_named_in_translated, {}),
+            'hint column': (content_with_column('hint', 'Hint'), {}),
+            'label not in translated': (untranslated_labels, {}),
+            'matrix': (stored_content(kobomatrix_content()), {}),
+            'rank': (stored_content(rank_asset_content()), {}),
+            'score': (stored_content(score_asset_content()), {}),
+            'legacy version': (_content_with_autovalues(), {'_reversion_version': 1}),
+            'stored deployed content': (
+                _content_with_autovalues(),
+                {'deployed_content': _content_with_choices()},
+            ),
+        }
+        for name, (content, fields) in cases.items():
+            with self.subTest(name):
+                version = AssetVersion(
+                    uid='v1', version_content=deepcopy(content), **fields
+                )
+
+                schema = version.to_formpack_schema_without_copying_choices()
+
+                assert (
+                    schema['content']['choices']
+                    is not version.version_content['choices']
+                )
+                assert schema == self._converted_schema(content, **fields)
+
+    def test_schema_without_copying_choices_raises_like_a_conversion(self):
+        """
+        `build_formpack()` skips a version on a `TypeError` only, so invalid content
+        must keep raising the same error as a conversion.
+        """
+
+        for content, error in (
+            ({'survey': None}, TypeError),
+            ({'survey': [], 'choices': None}, TypeError),
+            ({'survey': ['not a row']}, AttributeError),
+        ):
+            with self.subTest(content=content):
+                version = AssetVersion(uid='v1', version_content=deepcopy(content))
+
+                with self.assertRaises(error):
+                    version.to_formpack_schema_without_copying_choices()
+                with self.assertRaises(error):
+                    self._converted_schema(content)
+
+    def test_schema_without_copying_choices_refuses_saving_and_hashing(self):
+        """
+        Moving the autovalues in place changes `version_content`, so the version
+        must neither save that content nor compute a hash from it.
+        """
+
+        version = self._deploy_content(_content_with_autovalues())
+        version = AssetVersion.objects.get(pk=version.pk)
+        stored_hash = version.content_hash
+
+        version.to_formpack_schema_without_copying_choices()
+
+        assert '$autovalue' not in version.version_content['choices'][0]
+        # A hash read from the database still matches the stored content
+        assert version.content_hash == stored_hash
+        with self.assertRaisesMessage(RuntimeError, 'cannot be saved'):
+            version.save()
+        version._content_hash = None
+        with self.assertRaisesMessage(RuntimeError, 'cannot hash its content'):
+            _ = version.content_hash
+        stored_choices = AssetVersion.objects.get(pk=version.pk).version_content[
+            'choices'
+        ]
+        assert '$autovalue' in stored_choices[0]
+
+    def test_formpack_schema_refuses_saving_after_changing_the_content(self):
+        """
+        Converting a version to the XLSForm structure changes `version_content` in
+        place, so the version must not save that content afterwards.
+        """
+
+        plain_version = self._deploy_content(_content_with_autovalues())
+        matrix_version = self._deploy_content(kobomatrix_content())
+        cases = {
+            'whole content': (plain_version, False, True),
+            'loaded content without choices': (plain_version, False, False),
+            'deferred matrix without choices': (matrix_version, True, False),
+        }
+        for name, (stored_version, deferred, include_choices) in cases.items():
+            with self.subTest(name):
+                version = (
+                    self._deferred_version(stored_version)
+                    if deferred
+                    else AssetVersion.objects.get(pk=stored_version.pk)
+                )
+
+                version.to_formpack_schema(include_choices=include_choices)
+
+                assert version.version_content != self._stored_content(version)
+                with self.assertRaisesMessage(RuntimeError, 'cannot be saved'):
+                    version.save()
+
+    def test_formpack_schema_of_a_deferred_version_allows_saving(self):
+        """
+        The database strips the choices of a deferred `version_content`, so the
+        conversion reads a separate content and the version stays deferred.
+        """
+
+        version = self._deferred_version(
+            self._deploy_content(_content_with_autovalues())
+        )
+
+        version.to_formpack_schema(include_choices=False)
+
+        assert 'version_content' in version.get_deferred_fields()
+        version.save()
+
     @patch('kpi.models.asset.Asset.get_attachment_xpaths_from_version')
     def test_xpath_method_called_once_for_single_version(
         self, mock_get_xpaths_from_version
@@ -1285,10 +1706,71 @@ class TestAssetContent(TestCase):
         # Confirm it was called twice, once for each version
         self.assertEqual(mock_get_xpaths_from_version.call_count, 2)
 
+    def _add_deployed_version(self, content: dict) -> AssetVersion:
+        return self.asset.asset_versions.create(
+            name=self.asset.name,
+            version_content=content,
+            _deployment_data=self.asset.latest_deployed_version._deployment_data,
+            deployed=True,
+        )
+
     def _assert_content_stayed_deferred(self, mock_get_xpaths_from_version):
         assert mock_get_xpaths_from_version.call_count == 2
         for call in mock_get_xpaths_from_version.call_args_list:
             assert 'version_content' in call.args[0].get_deferred_fields()
+
+    def _assert_same_exports(
+        self, pack: FormPack, converted_pack: FormPack, submissions: list[dict]
+    ):
+        for lang in (UNSPECIFIED_TRANSLATION, UNTRANSLATED):
+            for multiple_select in ('both', 'summary', 'details'):
+                exports = [
+                    current_pack.export(
+                        versions=current_pack.versions.keys(),
+                        multiple_select=multiple_select,
+                        lang=lang,
+                    ).to_dict(deepcopy(submissions))
+                    for current_pack in (pack, converted_pack)
+                ]
+                # A JSON dump also compares the order of the columns
+                assert json.dumps(exports[0]) == json.dumps(exports[1])
+
+    def _build_both_formpacks(self) -> tuple[FormPack, FormPack, list[dict]]:
+        """
+        Return the pack of `build_formpack()`, the pack built from converted
+        schemas, and one submission per version, on versions whose choices and
+        labels change.
+        """
+
+        for choices in (
+            [('red', 'Red'), ('blue', 'Blue')],
+            [('red', 'Dark red'), ('blue', 'Blue')],
+            [('green', 'Green'), ('red', 'Dark red')],
+            [('green', 'Green'), ('red', 'Red')],
+        ):
+            self._add_deployed_version(_content_with_list(choices))
+        versions_newest_first = list(self.asset.deployed_versions)
+        schemas = [version.to_formpack_schema() for version in versions_newest_first]
+        for schema in schemas:
+            schema['version_id_key'] = INFERRED_VERSION_ID_KEY
+        converted_pack = FormPack(
+            versions=reversed(schemas), title=self.asset.name, id_string=self.asset.uid
+        )
+
+        pack, submission_stream = build_formpack(
+            Asset.objects.get(pk=self.asset.pk),
+            submission_stream=[
+                {'__version__': version.uid, 'colors': 'red', 'tags': 'red'}
+                for version in versions_newest_first
+            ],
+        )
+
+        return pack, converted_pack, list(submission_stream)
+
+    def _converted_schema(self, content: dict, **fields) -> dict:
+        return AssetVersion(
+            uid='v1', version_content=deepcopy(content), **fields
+        ).to_formpack_schema()
 
     def _deferred_version(self, version: AssetVersion) -> AssetVersion:
         return AssetVersion.objects.defer('version_content').get(pk=version.pk)
@@ -1298,3 +1780,8 @@ class TestAssetContent(TestCase):
         self.asset.save()
         self.asset.deploy(backend='mock')
         return self.asset.latest_deployed_version
+
+    def _stored_content(self, version: AssetVersion) -> dict:
+        return AssetVersion.objects.values_list('version_content', flat=True).get(
+            pk=version.pk
+        )
