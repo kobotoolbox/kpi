@@ -586,7 +586,7 @@ class BaseAction:
 
     @property
     def _limit_identifier(self):
-        # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
+        # See BaseAutomaticTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
 
 

@@ -1,6 +1,7 @@
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
+from kobo.apps.subsequences.actions import AUTOMATIC_TRANSCRIPTION_ACTION_IDS
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     AdvancedFeatureActionField,
@@ -73,7 +74,7 @@ class BulkActionActionIdField(serializers.ChoiceField):
     def __init__(self, *args, **kwargs):
         super().__init__(
             choices=[
-                'automatic_google_transcription',
+                *AUTOMATIC_TRANSCRIPTION_ACTION_IDS,
                 'automatic_google_translation',
             ],
             *args,

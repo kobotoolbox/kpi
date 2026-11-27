@@ -1,6 +1,7 @@
 from .automatic_bedrock_qual import AutomaticBedrockQual
 from .automatic_google_transcription import AutomaticGoogleTranscriptionAction
 from .automatic_google_translation import AutomaticGoogleTranslationAction
+from .automatic_transcription import BaseAutomaticTranscriptionAction
 from .manual_qual import ManualQualAction
 from .manual_transcription import ManualTranscriptionAction
 from .manual_translation import ManualTranslationAction
@@ -20,6 +21,10 @@ ACTIONS = (
 ACTION_IDS_TO_CLASSES = {a.ID: a for a in ACTIONS}
 
 ACTION_IDS = [a.ID for a in ACTIONS]
+
+AUTOMATIC_TRANSCRIPTION_ACTION_IDS = [
+    a.ID for a in ACTIONS if issubclass(a, BaseAutomaticTranscriptionAction)
+]
 
 # Service `code` (see `kobo.apps.languages`) → ID of the action that calls it,
 # e.g. `{'goog': 'automatic_google_transcription'}`
