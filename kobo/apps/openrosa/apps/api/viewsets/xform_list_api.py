@@ -74,13 +74,26 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
                 'user__username', 'kpi_asset_uid', 'id_string', 'pk'
             )
         else:
+            # Only the fields that `XFormListSerializer` reads: `xml` for the
+            # hash, `user__username` for the URLs. `json` is left out on purpose
+            # because it can be over 10 MB per form: the two keys that the
+            # serializer needs are extracted in SQL by the annotations below.
+            # Reading any field that is not listed triggers one extra query per
+            # form.
             queryset = (
                 queryset.select_related('user')
+                .only(
+                    'description',
+                    'id_string',
+                    'kpi_asset_uid',
+                    'title',
+                    'user__username',
+                    'xml',
+                )
                 .annotate(
                     version_extracted=RawSQL("(json::jsonb)->>'version'", []),
                     name_extracted=RawSQL("(json::jsonb)->>'name'", []),
                 )
-                .defer('json')
             )
 
         # remove order_by since order by is handled by the client
@@ -156,8 +169,11 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
                 )
             )
 
+            # Both conditions of the OR must target `logger_xform` columns, so that
+            # PostgreSQL can combine the `user_id` and `kpi_asset_uid` indexes.
+            # A condition on `auth_user` makes it scan every form instead.
             queryset = queryset.filter(
-                Q(user__username=username.lower()) | Q(kpi_asset_uid__in=asset_uids),
+                Q(user_id=openrosa_user.pk) | Q(kpi_asset_uid__in=asset_uids),
                 require_auth=False,
             )
 
@@ -308,13 +324,15 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
-        asset_uids = list(object_list.values_list('kpi_asset_uid', flat=True))
+        # Evaluate the queryset once and read the asset uids from the loaded
+        # forms, instead of running a second query with the same filters.
+        xforms = list(object_list)
         assets_by_uid, disclaimers_by_asset_pk = self._fetch_assets_and_disclaimers(
-            asset_uids
+            [xform.kpi_asset_uid for xform in xforms]
         )
 
         serializer = self.get_serializer(
-            self._enrich_xforms(object_list, assets_by_uid, disclaimers_by_asset_pk),
+            self._enrich_xforms(xforms, assets_by_uid, disclaimers_by_asset_pk),
             many=True,
             require_auth=not bool(kwargs.get('username')),
         )
