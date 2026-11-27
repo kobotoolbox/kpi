@@ -23,6 +23,7 @@ It covers how the payload is validated through the various schemas (`params_sche
    3. [external_data_schema](#external_data_schema)
    4. [result_schema](#result_schema)
    5. [result_schema with dependencies](#result_schema-with-dependencies)
+4. [Google credentials for local development](#google-credentials-for-local-development)
 
 ## Subsequence user flow
 
@@ -1103,3 +1104,26 @@ itself, and the language of the response is kept in `_data`.
   ]
 }
 ```
+
+---
+
+## Google credentials for local development
+
+Automatic transcription and translation call Google Cloud with the service
+account stored in the Constance setting `ASR_MT_GOOGLE_CREDENTIALS`.
+
+When that setting is empty, the Google clients fall back to
+[Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials).
+To work locally without a service account key:
+
+1. Log in with your own Google account, which must have access to the project:
+   ```
+   gcloud auth application-default login
+   ```
+2. Make the resulting credentials file available to the `kpi` and worker
+   containers, and point `GOOGLE_APPLICATION_CREDENTIALS` to it.
+3. Set `ASR_MT_GOOGLE_PROJECT_ID` in Constance to the project to bill, and leave
+   `ASR_MT_GOOGLE_CREDENTIALS` empty.
+
+The model used by Gemini transcription is the Django setting `GEMINI_MODEL`. It
+is not a Constance setting on purpose, so that it only changes with a release.

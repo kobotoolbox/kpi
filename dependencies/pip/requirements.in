@@ -64,6 +64,7 @@ google-api-python-client
 google-cloud-speech
 google-cloud-storage
 google-cloud-translate
+google-genai
 jsonfield
 jsonschema
 kombu
