@@ -201,6 +201,8 @@ SAFE_INLINE_MIMETYPES = {
 UNSUPPORTED_INLINE_MIMETYPES = [
     'image/heic',
     'image/heif',
+    'image/tiff',
+    'image/jp2',
 ]
 
 # Appearance of the sign-in and account creation screens. The customizable
