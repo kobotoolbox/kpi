@@ -80,28 +80,43 @@ def _restart_stuck_tasks(
     )
 
     # A deletion which has already started has, by definition, passed its
-    # retention
-    candidates = Q(status=TrashStatus.IN_PROGRESS)
+    # retention. Such objects are few: the least recently updated go first
+    stuck_objects = list(
+        model.objects.values_list('pk', 'date_modified')
+        .filter(status=TrashStatus.IN_PROGRESS, date_modified__lte=stuck_threshold)
+        .order_by('date_modified')[:max_restarts]
+    )
 
     # Objects which never started follow the same rules as `scheduled_time` on
     # the trash models. They must wait for their retention, read from Constance
     # on every run, and the ones waiting for a superuser to empty them manually,
     # or whose retention is -1, must never be started automatically
-    pending_objects = Q(empty_manually=False, status=TrashStatus.PENDING)
+    due_objects = Q()
     if retention >= 0:
         retention_threshold = timezone.now() - timedelta(days=retention)
-        candidates |= pending_objects & Q(date_created__lte=retention_threshold)
+        due_objects |= Q(date_created__lte=retention_threshold)
 
     # Accounts trashed without a placeholder are due right away: their deletion
     # is sent when they are trashed, and this only catches a lost message
     if model is AccountTrash:
-        candidates |= pending_objects & Q(retain_placeholder=False)
+        due_objects |= Q(retain_placeholder=False)
 
-    stuck_objects = (
-        model.objects.values_list('pk', 'date_modified')
-        .filter(candidates, date_modified__lte=stuck_threshold)
-        .order_by('date_modified')[:max_restarts]
-    )
+    remaining = max_restarts - len(stuck_objects)
+    if due_objects and remaining > 0:
+        # Oldest first: on a large table, the index on `date_created` reads
+        # nothing until objects are due, then about `remaining` rows. The
+        # filter on `date_modified` skips the objects whose deletion has
+        # already been sent (see the claim below)
+        stuck_objects += list(
+            model.objects.values_list('pk', 'date_modified')
+            .filter(
+                due_objects,
+                empty_manually=False,
+                status=TrashStatus.PENDING,
+                date_modified__lte=stuck_threshold,
+            )
+            .order_by('date_created')[:remaining]
+        )
 
     for stuck_id, date_modified in stuck_objects:
         # Claim the object, otherwise the next run would enqueue it again while

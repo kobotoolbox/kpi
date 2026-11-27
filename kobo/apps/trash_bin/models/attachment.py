@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.db import models
+from django.db.models.fields.json import KeyTransform
 from django.db.utils import IntegrityError
 
 from kobo.apps.openrosa.apps.logger.models.attachment import (
@@ -25,6 +26,19 @@ class AttachmentTrash(BaseTrash):
 
     class Meta(BaseTrash.Meta):
         verbose_name = 'attachment'
+        indexes = [
+            # Serves the admin order and `task_restarter`, which reads the due
+            # records oldest first
+            models.Index(fields=['date_created'], name='attachmenttrash_created_idx'),
+            # Serves the admin searches on a project (`metadata__asset_uid`),
+            # newest first, and their count. Without it, Postgres walks the
+            # index on `date_created` and filters the JSON key row by row
+            models.Index(
+                KeyTransform('asset_uid', 'metadata'),
+                'date_created',
+                name='attachmenttrash_asset_idx',
+            ),
+        ]
 
     retention_setting = 'ATTACHMENT_TRASH_RETENTION'
 
