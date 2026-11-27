@@ -751,6 +751,9 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
   const exportFormatOptions = getExportFormatOptions(props.asset)
 
+  const canManageExportSettings = userCan(PERMISSIONS_CODENAMES.manage_asset, props.asset)
+  const hasDefinedExports = state.definedExports.length >= 1
+
   return (
     <bem.FormView__cell m={['box', 'padding']}>
       <bem.FormView__form className={formClassNames.join(' ')}>
@@ -792,62 +795,67 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
 
         {state.isAdvancedViewVisible && renderAdvancedView()}
 
-        <Group mt={20} mb={20} align='flex-end' gap={20} wrap='nowrap'>
-          <Box w='33%'>
-            <Group gap={4} align='center' wrap='nowrap' mb={6}>
-              <Text>{t('Save settings and create synchronous export')}</Text>
-              <ActionIcon
-                icon={IconHelpCircleFilled}
-                size='sm'
-                variant='transparent'
-                tooltip={t(
-                  'Saved export settings can be reused for future exports. They also generate a synchronous export link for a CSV or XLSX file that updates automatically as new data is submitted.',
-                )}
-                aria-label={t('About synchronous exports')}
-              />
-            </Group>
-            <TextInput
-              value={state.customExportName}
-              onChange={(evt) => {
-                clearSelectedDefinedExport()
-                mergeState({ customExportName: evt.currentTarget.value })
-              }}
-              placeholder={t('Export settings name')}
-              size='sm'
-              w='100%'
-            />
-          </Box>
-
-          {state.definedExports.length >= 1 && (
-            <Group w='33%' align='flex-end' gap='xs' wrap='nowrap'>
-              <Box flex={1}>
-                <Select
-                  label={t('Apply saved export settings')}
-                  rightSection={state.isUpdatingDefinedExportsList ? <Loader size='xs' /> : undefined}
-                  value={state.selectedDefinedExport?.value ?? ''}
-                  data={getSelectedDefinedExportOptions()}
-                  onChange={onSelectedDefinedExportChange}
-                  placeholder={t('No export settings selected')}
-                  clearable={false}
+        {(canManageExportSettings || hasDefinedExports) && (
+          <Group mt={20} mb={20} align='flex-end' gap={20} wrap='nowrap'>
+            {/* Saving settings needs `manage_asset`, so others only get to apply them. */}
+            {canManageExportSettings && (
+              <Box w='33%'>
+                <Group gap={4} align='center' wrap='nowrap' mb={6}>
+                  <Text>{t('Save settings and create synchronous export')}</Text>
+                  <ActionIcon
+                    icon={IconHelpCircleFilled}
+                    size='sm'
+                    variant='transparent'
+                    tooltip={t(
+                      'Saved export settings can be reused for future exports. They also generate a synchronous export link for a CSV or XLSX file that updates automatically as new data is submitted.',
+                    )}
+                    aria-label={t('About synchronous exports')}
+                  />
+                </Group>
+                <TextInput
+                  value={state.customExportName}
+                  onChange={(evt) => {
+                    clearSelectedDefinedExport()
+                    mergeState({ customExportName: evt.currentTarget.value })
+                  }}
+                  placeholder={t('Export settings name')}
+                  size='sm'
                   w='100%'
                 />
               </Box>
-              {state.selectedDefinedExport && userCan(PERMISSIONS_CODENAMES.manage_asset, props.asset) && (
-                <ActionIcon
-                  variant='danger'
-                  size='lg'
-                  onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
-                    evt.preventDefault()
-                    if (state.selectedDefinedExport?.data.uid) {
-                      safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
-                    }
-                  }}
-                  icon={IconTrashFilled}
-                />
-              )}
-            </Group>
-          )}
-        </Group>
+            )}
+
+            {hasDefinedExports && (
+              <Group w='33%' align='flex-end' gap='xs' wrap='nowrap'>
+                <Box flex={1}>
+                  <Select
+                    label={t('Apply saved export settings')}
+                    rightSection={state.isUpdatingDefinedExportsList ? <Loader size='xs' /> : undefined}
+                    value={state.selectedDefinedExport?.value ?? ''}
+                    data={getSelectedDefinedExportOptions()}
+                    onChange={onSelectedDefinedExportChange}
+                    placeholder={t('No export settings selected')}
+                    clearable={false}
+                    w='100%'
+                  />
+                </Box>
+                {state.selectedDefinedExport && canManageExportSettings && (
+                  <ActionIcon
+                    variant='danger'
+                    size='lg'
+                    onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
+                      evt.preventDefault()
+                      if (state.selectedDefinedExport?.data.uid) {
+                        safeDeleteExportSetting(state.selectedDefinedExport.data.uid, state.selectedDefinedExport.label)
+                      }
+                    }}
+                    icon={IconTrashFilled}
+                  />
+                )}
+              </Group>
+            )}
+          </Group>
+        )}
 
         <hr />
 
