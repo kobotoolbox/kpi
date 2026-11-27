@@ -1,10 +1,12 @@
 import os
+from io import BytesIO
 from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.management import call_command
 from freezegun import freeze_time
+from PIL import ExifTags, Image
 
 from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models import Attachment, Instance
@@ -85,6 +87,32 @@ class TestAttachment(TestBase):
             filename = attachment.media_file.name.replace('.heic', '')
             thumbnail = f'{filename}-{size}.jpg'
             self.assertFalse(default_storage.exists(thumbnail))
+
+    def test_thumbnails_follow_exif_orientation(self):
+        # Landscape pixels with an EXIF orientation of 6 (rotate 90° clockwise),
+        # as some cameras save portrait photos. The red left half must end up
+        # at the top once rotated
+        image = Image.new('RGB', (1200, 600), 'blue')
+        image.paste('red', (0, 0, 600, 600))
+        exif = image.getexif()
+        exif[ExifTags.Base.Orientation] = 6
+        buffer = BytesIO()
+        image.save(buffer, format='JPEG', exif=exif)
+        attachment = Attachment.objects.create(
+            instance=self.instance,
+            media_file=ContentFile(buffer.getvalue(), name='rotated.jpg'),
+        )
+
+        image_url(attachment, 'small')
+        for size in ['small', 'medium', 'large']:
+            thumbnail = get_optimized_image_path(attachment.media_file.name, size)
+            with default_storage.open(thumbnail) as f, Image.open(f) as thumb:
+                width, height = thumb.size
+                top_r, _, top_b = thumb.getpixel((width // 2, height // 4))
+            assert height > width
+            assert top_r > 200 and top_b < 50
+
+        attachment.delete()
 
     def test_protected_path_serves_original_when_image_cannot_be_resized(self):
         attachment = Attachment.objects.create(
