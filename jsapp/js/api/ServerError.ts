@@ -28,7 +28,8 @@ export class ServerError extends Error implements ErrorDetail {
     public parsedResponse: any,
   ) {
     super(`${response.status} ${response.statusText}`)
-    Error.captureStackTrace(this, this.constructor) // Hide custom error implementation details from end-users
+    // captureStackTrace only works in V8 runtime environments, we need to skip this for Firefox/Safari
+    Error.captureStackTrace?.(this, this.constructor)
   }
 
   get name() {
