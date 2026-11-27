@@ -1,9 +1,8 @@
-import { Box, Flex } from '@mantine/core'
+import { Box, Flex, Text } from '@mantine/core'
 import { IconDownload, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
-import bem from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import SimpleTable from '#/components/common/SimpleTable'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -226,13 +225,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   if (!isComponentReady) {
-    return (
-      <bem.FormView__row>
-        <bem.FormView__cell>
-          <LoadingSpinner />
-        </bem.FormView__cell>
-      </bem.FormView__row>
-    )
+    return <LoadingSpinner />
   }
 
   if (rows.length === 0 || props.selectedExportType.isLegacy) {
@@ -241,7 +234,9 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
 
   return (
     <React.Fragment>
-      <bem.FormView__cell m={['page-subtitle']}>{t('Exports')}</bem.FormView__cell>
+      <Text fz={18} fw={500} mt={30} mb={15}>
+        {t('Exports')}
+      </Text>
 
       <SimpleTable
         head={[

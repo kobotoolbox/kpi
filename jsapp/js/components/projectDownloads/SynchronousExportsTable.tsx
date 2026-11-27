@@ -5,6 +5,7 @@ import ActionIcon from '#/components/common/ActionIcon'
 import KoboIcon from '#/components/common/KoboIcon'
 import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
+import LoadingSpinner from '#/components/common/loadingSpinner'
 import BooleanCell from '#/components/projectDownloads/BooleanCell'
 import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import {
@@ -95,7 +96,9 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
           </Anchor>
         )}
       </Flex>
-      {query.isLoading ? null : query.isError || query.data?.status !== 200 ? (
+      {query.isLoading ? (
+        <LoadingSpinner />
+      ) : query.isError || query.data?.status !== 200 ? (
         <Text>{t('Failed to load synchronous exports.')}</Text>
       ) : savedSettings.length === 0 ? (
         <Text>{t('Save export settings to generate a synchronous export.')}</Text>
