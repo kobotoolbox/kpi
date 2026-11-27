@@ -1459,9 +1459,7 @@ class TestBulkTranscriptionOfALongRecording(BulkTranscriptionTestCase):
             f'{self.GOOGLE_MODULE}.google_transcribe.get_asr_language_code_overrides',
             return_value={},
         )
-        self._patch(
-            f'{self.GOOGLE_MODULE}.google_transcribe.require_service_quota'
-        )
+        self._patch(f'{self.GOOGLE_MODULE}.google_transcribe.require_service_quota')
         self.submit = self._patch(
             f'{self.SERVICE}._batch_recognize',
             side_effect=lambda input_uri, output_prefix, config: SimpleNamespace(

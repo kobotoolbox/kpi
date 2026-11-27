@@ -22,8 +22,8 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.exceptions import (
     ChunkStorageError,
     ChunkStorageRefusedError,
-    ServiceQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
+    ServiceQuotaExceededError,
     TranscriptionResultNotFound,
 )
 from kobo.apps.subsequences.integrations.google.google_transcribe import (
