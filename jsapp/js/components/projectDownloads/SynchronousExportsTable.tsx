@@ -7,7 +7,12 @@ import Menu from '#/components/common/Menu'
 import SimpleTable from '#/components/common/SimpleTable'
 import BooleanCell from '#/components/projectDownloads/BooleanCell'
 import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
-import { EXPORT_FORMATS, type ExportTypeName } from '#/components/projectDownloads/exportsConstants'
+import {
+  EXPORTS_TABLE_COLUMN_WEIGHTS,
+  EXPORTS_TABLE_MIN_WIDTH,
+  EXPORT_FORMATS,
+  type ExportTypeName,
+} from '#/components/projectDownloads/exportsConstants'
 import envStore from '#/envStore'
 import { copyToClipboard, formatDate, getLangAsObject, notify } from '#/utils'
 
@@ -96,18 +101,18 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
         <Text>{t('Save export settings to generate a synchronous export.')}</Text>
       ) : (
         <SimpleTable
-          minWidth={700}
+          minWidth={EXPORTS_TABLE_MIN_WIDTH}
           head={[
             t('Type'),
             t('Export name'),
             t('Date modified'),
             t('Language'),
-            <Text key='include-groups' ta='center'>
+            <Box key='include-groups' ta='center'>
               {t('Include Groups')}
-            </Text>,
-            <Text key='multiple-versions' ta='center'>
+            </Box>,
+            <Box key='multiple-versions' ta='center'>
               {t('Multiple Versions')}
-            </Text>,
+            </Box>,
             '',
           ]}
           body={savedSettings.map((setting) => [
@@ -115,36 +120,38 @@ export default function SynchronousExportsTable(props: SynchronousExportsTablePr
             setting.name,
             formatDate(setting.date_modified, true, 'LL'),
             renderLanguage(setting.export_settings.lang || ''),
-            <Text key='include-groups' ta='center'>
+            <Box key='include-groups' ta='center'>
               <BooleanCell value={setting.export_settings.hierarchy_in_labels} />
-            </Text>,
-            <Text key='multiple-versions' ta='center'>
+            </Box>,
+            <Box key='multiple-versions' ta='center'>
               <BooleanCell value={setting.export_settings.fields_from_all_versions} />
-            </Text>,
-            <Menu key={setting.uid} closeOnItemClick position='bottom-end' offset={2}>
-              <Menu.Target>
-                <UnstyledButton aria-label={t('Copy synchronous export link')}>
-                  <Group gap={4} align='center' wrap='nowrap'>
-                    <ActionIcon
-                      component='span'
-                      icon={IconLink}
-                      size='md'
-                      variant='light'
-                      color='blue.4'
-                      aria-hidden
-                      tabIndex={-1}
-                    />
-                    <KoboIcon icon={IconChevronDown} size='xs' color='var(--mantine-color-blue-4)' aria-hidden />
-                  </Group>
-                </UnstyledButton>
-              </Menu.Target>
-              <Menu.Dropdown>
-                {renderCopyAction(setting.data_url_csv, 'CSV')}
-                {renderCopyAction(setting.data_url_xlsx, 'XLSX')}
-              </Menu.Dropdown>
-            </Menu>,
+            </Box>,
+            <Flex key={setting.uid} justify='flex-end'>
+              <Menu closeOnItemClick position='bottom-end' offset={2}>
+                <Menu.Target>
+                  <UnstyledButton aria-label={t('Copy synchronous export link')}>
+                    <Group gap={4} align='center' wrap='nowrap'>
+                      <ActionIcon
+                        component='span'
+                        icon={IconLink}
+                        size='md'
+                        variant='light'
+                        color='blue.4'
+                        aria-hidden
+                        tabIndex={-1}
+                      />
+                      <KoboIcon icon={IconChevronDown} size='xs' color='var(--mantine-color-blue-4)' aria-hidden />
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  {renderCopyAction(setting.data_url_csv, 'CSV')}
+                  {renderCopyAction(setting.data_url_xlsx, 'XLSX')}
+                </Menu.Dropdown>
+              </Menu>
+            </Flex>,
           ])}
-          fixedHeaderWidth
+          columnWeights={EXPORTS_TABLE_COLUMN_WEIGHTS}
         />
       )}
     </Box>

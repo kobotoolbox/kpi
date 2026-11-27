@@ -1,4 +1,4 @@
-import { Flex, Text } from '@mantine/core'
+import { Box, Flex } from '@mantine/core'
 import { IconDownload, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
@@ -13,6 +13,8 @@ import BooleanCell from '#/components/projectDownloads/BooleanCell'
 import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
+  EXPORTS_TABLE_COLUMN_WEIGHTS,
+  EXPORTS_TABLE_MIN_WIDTH,
   EXPORT_FORMATS,
   ExportStatusName,
   type ExportTypeDefinition,
@@ -177,12 +179,12 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         exportData.data.name || '–',
         formatTime(exportData.date_created),
         renderLanguage(exportData.data.lang),
-        <Text key='include-groups' ta='center'>
+        <Box key='include-groups' ta='center'>
           <BooleanCell value={exportData.data.hierarchy_in_labels} />
-        </Text>,
-        <Text key='multiple-versions' ta='center'>
+        </Box>,
+        <Box key='multiple-versions' ta='center'>
           <BooleanCell value={exportData.data.fields_from_all_versions} />
-        </Text>,
+        </Box>,
         <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
           {exportData.status === ExportStatusName.complete && (
             <ActionIcon
@@ -247,17 +249,17 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
           t('Export name'),
           t('Created'),
           t('Language'),
-          <Text key='include-groups' ta='center'>
+          <Box key='include-groups' ta='center'>
             {t('Include Groups')}
-          </Text>,
-          <Text key='multiple-versions' ta='center'>
+          </Box>,
+          <Box key='multiple-versions' ta='center'>
             {t('Multiple Versions')}
-          </Text>,
+          </Box>,
           '',
         ]}
         body={getRows()}
-        minWidth={600}
-        fixedHeaderWidth
+        minWidth={EXPORTS_TABLE_MIN_WIDTH}
+        columnWeights={EXPORTS_TABLE_COLUMN_WEIGHTS}
       />
     </React.Fragment>
   )
