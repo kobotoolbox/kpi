@@ -45,16 +45,14 @@ class GoogleTranscriptionServiceNotConfigured(Exception):
     pass
 
 
-class GoogleQuotaExceededError(Exception):
+class ServiceQuotaExceededError(Exception):
     """
-    Raised when Google rejects or would reject a request due to project quota
+    Raised when an NLP service rejects or would reject a request due to quota
     """
 
     def __init__(self, retry_after: int = 100):
         self.retry_after = retry_after
-        super().__init__(
-            f'Google project quota exceeded. Retry after {retry_after} seconds.'
-        )
+        super().__init__(f'Service quota exceeded. Retry after {retry_after} seconds.')
 
 
 class SubsequenceDeletionError(Exception):

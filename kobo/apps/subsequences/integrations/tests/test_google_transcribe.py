@@ -24,9 +24,7 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.integrations.google.google_transcribe import (
     GoogleTranscriptionService,
 )
-from kobo.apps.subsequences.integrations.google.rate_limit import (
-    GoogleServiceRateLimitExceeded,
-)
+from kobo.apps.subsequences.integrations.rate_limit import ServiceRateLimitExceeded
 from kpi.exceptions import (
     AttachmentNotFoundException,
     InvalidXPathException,
@@ -364,13 +362,13 @@ def test_process_data_raises_quota_error_when_start_quota_is_exhausted(
     service._get_attachment = MagicMock()
     service.get_converted_audio = MagicMock(return_value=(b'audio', MagicMock()))
     service.begin_google_operation = MagicMock(
-        side_effect=GoogleServiceRateLimitExceeded(
+        side_effect=ServiceRateLimitExceeded(
             'speech_v2_batch_recognize',
             retry_after=1,
         )
     )
 
-    with pytest.raises(GoogleServiceRateLimitExceeded):
+    with pytest.raises(ServiceRateLimitExceeded):
         service.process_data('audio', {'language': 'en'}, **LAUNCH)
     service._clear_operation_reference.assert_not_called()
     # The attachment is fetched once and handed to the conversion as is

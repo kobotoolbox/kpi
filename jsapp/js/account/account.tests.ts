@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { EnvironmentResponse } from '#/api/models/environmentResponse'
 import { environmentResponse } from '#/endpoints/environment.mocks'
 import type { AccountFieldsValues, UserFieldName, UserMetadataField } from './account.constants'

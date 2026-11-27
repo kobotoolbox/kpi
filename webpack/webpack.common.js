@@ -10,11 +10,15 @@ const outputPath = path.resolve(__dirname, '../jsapp/compiled/')
 // ExtractTranslationKeysPlugin, for one, just fails if this directory doesn't exist
 fs.mkdirSync(outputPath, { recursive: true })
 
+// css-loader 7 defaults to named exports. This keeps `import styles from` and class names as written.
+// `auto: true` applies CSS Modules to `*.module.*` files only.
+const cssModulesOptions = { auto: true, namedExport: false, exportLocalsConvention: 'as-is' }
+
 // Production extracts CSS into its own files; dev keeps `style-loader` for hot reloading.
 // `sourceMap` is set explicitly because loaders otherwise follow the JS source maps, which production keeps.
 const getStyleLoaders = (isProduction, { sass = false, modules } = {}) => [
   isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
-  { loader: 'css-loader', options: { sourceMap: !isProduction, ...(modules && { modules }) } },
+  { loader: 'css-loader', options: { sourceMap: !isProduction, modules: { ...cssModulesOptions, ...modules } } },
   // HACK: we needed to define this postcss-loader because of a problem with
   // including CSS files from node_modules directory, i.e. this build error:
   // `Error: No PostCSS Config found in: /srv/node_modules/…`

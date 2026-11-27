@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { validateEmailFormat, validatePassword, validatePasswordConfirm, validateRequiredField } from './authValidation'
 
 describe('validateRequiredField', () => {

@@ -4,6 +4,7 @@ import React from 'react'
 import { assetsAttachmentsAudioDurationCreate } from '#/api/react-query/survey-data'
 import type { SubmissionResponse } from '#/dataInterface'
 import { AudioDurationsProvider, useAttachmentDuration } from './AudioDurationsContext'
+import type { VisibleAudioXpaths } from './table.types'
 import { buildSubmissionWithAttachments, mockAudioDurationResponse } from './useCalculateAudioDuration.mocks'
 
 jest.mock('#/api/react-query/survey-data', () => {
@@ -12,21 +13,9 @@ jest.mock('#/api/react-query/survey-data', () => {
   }
 })
 
-jest.mock('#/envStore', () => {
-  return {
-    __esModule: true,
-    default: {
-      data: {
-        asr_mt_features_enabled: true,
-      },
-    },
-  }
-})
-
 const createMock = assetsAttachmentsAudioDurationCreate as jest.MockedFunction<
   typeof assetsAttachmentsAudioDurationCreate
 >
-const envStore = require('#/envStore').default as { data: { asr_mt_features_enabled: boolean } }
 
 /**
  * Renders `useAttachmentDuration` inside the provider so we exercise the whole
@@ -34,9 +23,10 @@ const envStore = require('#/envStore').default as { data: { asr_mt_features_enab
  */
 function renderProviderHook(options: {
   submissions: SubmissionResponse[]
-  visibleAudioXpaths: string[]
+  visibleAudioXpaths: Partial<VisibleAudioXpaths>
   attachmentUid: string
 }) {
+  const visibleAudioXpaths = { audioQuestion: [], noQuestion: [], ...options.visibleAudioXpaths }
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return renderHook(() => useAttachmentDuration(options.attachmentUid), {
     wrapper: ({ children }: { children: React.ReactNode }) => (
@@ -44,7 +34,7 @@ function renderProviderHook(options: {
         <AudioDurationsProvider
           assetUid='asset-1'
           submissions={options.submissions}
-          visibleAudioXpaths={options.visibleAudioXpaths}
+          visibleAudioXpaths={visibleAudioXpaths}
         >
           {children}
         </AudioDurationsProvider>
@@ -56,34 +46,20 @@ function renderProviderHook(options: {
 describe('AudioDurationsProvider', () => {
   beforeEach(() => {
     jest.resetAllMocks()
-    envStore.data.asr_mt_features_enabled = true
   })
 
+  // ASR/MT is off here (envStore default), so this proves durations load without it.
   it('fetches and exposes the backend duration for a visible audio attachment', async () => {
     createMock.mockResolvedValue(mockAudioDurationResponse({ attachments: [{ uid: 'a', seconds: 8 }], total: 8 }))
 
     const { result } = renderProviderHook({
       submissions: [buildSubmissionWithAttachments([{ uid: 'a', question_xpath: 'audio_q' }])],
-      visibleAudioXpaths: ['audio_q'],
+      visibleAudioXpaths: { audioQuestion: ['audio_q'] },
       attachmentUid: 'a',
     })
 
     await waitFor(() => chai.expect(result.current).to.equal(8))
     chai.expect(createMock.mock.calls[0][1].attachment_uids).to.deep.equal(['a'])
-  })
-
-  it('does not fetch when ASR/MT features are disabled', () => {
-    envStore.data.asr_mt_features_enabled = false
-
-    const { result } = renderProviderHook({
-      submissions: [buildSubmissionWithAttachments([{ uid: 'a', question_xpath: 'audio_q' }])],
-      visibleAudioXpaths: ['audio_q'],
-      attachmentUid: 'a',
-    })
-
-    chai.expect(createMock.mock.calls.length).to.equal(0)
-    // Falls back to undefined so the player uses the browser-decoded duration.
-    chai.expect(result.current).to.equal(undefined)
   })
 
   it('skips attachments whose column is not visible', async () => {
@@ -97,7 +73,7 @@ describe('AudioDurationsProvider', () => {
         ]),
       ],
       // Only `audio_q` is shown, so `other_audio_q`'s attachment is excluded.
-      visibleAudioXpaths: ['audio_q'],
+      visibleAudioXpaths: { audioQuestion: ['audio_q'] },
       attachmentUid: 'visible',
     })
 
@@ -105,7 +81,7 @@ describe('AudioDurationsProvider', () => {
     chai.expect(createMock.mock.calls[0][1].attachment_uids).to.deep.equal(['visible'])
   })
 
-  it('skips deleted and non-audio attachments', async () => {
+  it('skips deleted attachments', async () => {
     createMock.mockResolvedValue(mockAudioDurationResponse({ attachments: [{ uid: 'audio', seconds: 3 }], total: 3 }))
 
     renderProviderHook({
@@ -113,10 +89,9 @@ describe('AudioDurationsProvider', () => {
         buildSubmissionWithAttachments([
           { uid: 'audio', question_xpath: 'audio_q' },
           { uid: 'deleted', question_xpath: 'audio_q', is_deleted: true },
-          { uid: 'image', question_xpath: 'audio_q', mimetype: 'image/jpeg' },
         ]),
       ],
-      visibleAudioXpaths: ['audio_q'],
+      visibleAudioXpaths: { audioQuestion: ['audio_q'] },
       attachmentUid: 'audio',
     })
 
@@ -124,10 +99,45 @@ describe('AudioDurationsProvider', () => {
     chai.expect(createMock.mock.calls[0][1].attachment_uids).to.deep.equal(['audio'])
   })
 
+  // The cell plays these by question type, so the mimetype doesn't matter.
+  it("fetches an audio question's file even when it has no mimetype", async () => {
+    createMock.mockResolvedValue(mockAudioDurationResponse({ attachments: [{ uid: 'untyped', seconds: 4 }], total: 4 }))
+
+    const { result } = renderProviderHook({
+      submissions: [buildSubmissionWithAttachments([{ uid: 'untyped', question_xpath: 'audio_q', mimetype: '' }])],
+      visibleAudioXpaths: { audioQuestion: ['audio_q'] },
+      attachmentUid: 'untyped',
+    })
+
+    await waitFor(() => chai.expect(result.current).to.equal(4))
+    chai.expect(createMock.mock.calls[0][1].attachment_uids).to.deep.equal(['untyped'])
+  })
+
+  // With no question, the cell guesses the type from the mimetype.
+  it('fetches only audio mimetypes from a column with no question', async () => {
+    createMock.mockResolvedValue(mockAudioDurationResponse({ attachments: [], total: 0 }))
+
+    renderProviderHook({
+      submissions: [
+        buildSubmissionWithAttachments([
+          { uid: 'mp3', question_xpath: 'old_q' },
+          { uid: 'ogg', question_xpath: 'old_q', mimetype: 'application/ogg' },
+          { uid: 'untyped', question_xpath: 'old_q', mimetype: '' },
+          { uid: 'image', question_xpath: 'old_q', mimetype: 'image/jpeg' },
+        ]),
+      ],
+      visibleAudioXpaths: { noQuestion: ['old_q'] },
+      attachmentUid: 'mp3',
+    })
+
+    await waitFor(() => chai.expect(createMock.mock.calls.length).to.equal(1))
+    chai.expect(createMock.mock.calls[0][1].attachment_uids).to.deep.equal(['mp3', 'ogg'])
+  })
+
   it('does not fetch when there are no visible audio columns', () => {
     renderProviderHook({
       submissions: [buildSubmissionWithAttachments([{ uid: 'a', question_xpath: 'audio_q' }])],
-      visibleAudioXpaths: [],
+      visibleAudioXpaths: {},
       attachmentUid: 'a',
     })
 

@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { ProcessingTab, getProcessingRouteParts, isAnyProcessingRoute } from './routes.utils'
 
 describe('processing routes.utils tests', () => {
