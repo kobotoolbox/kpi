@@ -45,8 +45,10 @@ def get_xform_id_strings_by_asset_uid(asset_uids) -> dict[str, str]:
     # XForm lives in the KoboCAT database. Evaluate `asset_uids` first so that
     # a KPI queryset never ends up as a subquery in a KoboCAT query.
     asset_uids = list(asset_uids)
+    # `all_objects` includes the XForms of projects in the trash: their Enketo
+    # links stay in Redis and must follow the token until they are restored.
     return dict(
-        XForm.objects.filter(kpi_asset_uid__in=asset_uids).values_list(
+        XForm.all_objects.filter(kpi_asset_uid__in=asset_uids).values_list(
             'kpi_asset_uid', 'id_string'
         )
     )
