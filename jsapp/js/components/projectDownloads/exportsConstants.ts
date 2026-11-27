@@ -105,3 +105,13 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   // DEFAULT_EXPORT_SETTINGS is responsible to fill it up
   SELECTED_ROWS: new Set(),
 })
+
+/**
+ * Shared layout for the exports list and the synchronous exports table, so
+ * their columns line up on the downloads page. Relative column weights, in
+ * order: type, name, date, language, include groups, multiple versions,
+ * actions. The actions weight keeps the two icon buttons fitting at the
+ * minimum width.
+ */
+export const EXPORTS_TABLE_COLUMN_WEIGHTS = [1.5, 4.5, 2, 2.5, 1.5, 1.5, 2.2]
+export const EXPORTS_TABLE_MIN_WIDTH = 700

@@ -10,6 +10,12 @@ interface SimpleTableProps extends MantineStyleProps {
    * the screen is).
    */
   minWidth?: number
+  /**
+   * Relative width of each column (in order), e.g. `[1, 2, 1]` makes the middle
+   * column twice as wide as the others. Passing this switches the table to
+   * fixed layout, so tables sharing the same weights line up with each other.
+   */
+  columnWeights?: number[]
 }
 
 /**
@@ -17,7 +23,9 @@ interface SimpleTableProps extends MantineStyleProps {
  * headings, column data, and has optional minimum width. You can pass all
  * standard Mantine style props down to the inner `Table`.
  */
-export default function SimpleTable({ head, body, minWidth, ...styleProps }: SimpleTableProps) {
+export default function SimpleTable({ head, body, minWidth, columnWeights, ...styleProps }: SimpleTableProps) {
+  const totalWeight = columnWeights?.reduce((sum, weight) => sum + weight, 0) ?? 0
+
   const table = (
     <Table
       {...styleProps}
@@ -27,10 +35,19 @@ export default function SimpleTable({ head, body, minWidth, ...styleProps }: Sim
         th: styles.SimpleTableTh,
         td: styles.SimpleTableTd,
       }}
-      data={{ head: head, body: body }}
       horizontalSpacing='sm'
       verticalSpacing='sm'
-    />
+      layout={columnWeights ? 'fixed' : undefined}
+    >
+      {columnWeights && (
+        <colgroup>
+          {columnWeights.map((weight, index) => (
+            <col key={index} style={{ width: `${(weight / totalWeight) * 100}%` }} />
+          ))}
+        </colgroup>
+      )}
+      <Table.DataRenderer data={{ head: head, body: body }} />
+    </Table>
   )
 
   if (minWidth) {
