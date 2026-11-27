@@ -841,8 +841,9 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
                 </Box>
                 {state.selectedDefinedExport && canManageExportSettings && (
                   <ActionIcon
-                    variant='danger'
+                    variant='danger-secondary'
                     size='lg'
+                    tooltip={t('Delete')}
                     onClick={(evt: React.MouseEvent<HTMLButtonElement>) => {
                       evt.preventDefault()
                       if (state.selectedDefinedExport?.data.uid) {
