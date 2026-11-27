@@ -157,7 +157,6 @@ class TestDataCollectorUtils(TestCase):
                 a = Asset.objects.create(
                     name=f'a_{i}', data_collector_group=group_to_assign, owner=u
                 )
-                a.save()
                 a.deploy(backend='mock')
                 assets.append(a)
             DataCollector.objects.create(

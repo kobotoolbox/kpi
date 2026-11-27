@@ -38,13 +38,17 @@ class TestDataCollector(BaseTestCase):
 
     # plumbing tests, actual utils tested elsewhere
     def test_create_data_collector_with_group_creates_links(self):
+        self.asset.save()
+        self.asset.deploy(backend='mock')
         with patch(
             'kobo.apps.data_collectors.signals.set_data_collector_enketo_links'
         ) as patched_set:
             dc = DataCollector.objects.create(
                 name='DC2', group=self.data_collector_group
             )
-        patched_set.assert_called_once_with(dc.token, [self.asset.uid])
+        patched_set.assert_called_once_with(
+            dc.token, [self.asset.deployment.xform.id_string]
+        )
 
     @patch('kobo.apps.data_collectors.signals.rename_data_collector_enketo_links')
     def test_rotate_token_updates_enketo_links(self, patched_rename):
@@ -67,6 +71,8 @@ class TestDataCollector(BaseTestCase):
     ):
         someuser = User.objects.get(username='someuser')
         asset = Asset.objects.filter(owner=someuser).last()
+        asset.save()
+        asset.deploy(backend='mock')
         another_group = DataCollectorGroup.objects.create(
             name='DCG1', owner=User.objects.get(username='someuser')
         )
@@ -75,7 +81,9 @@ class TestDataCollector(BaseTestCase):
         self.data_collector.group = another_group
         self.data_collector.save()
         patched_remove.assert_called_once_with(self.data_collector.token)
-        patched_set.assert_called_once_with(self.data_collector.token, [asset.uid])
+        patched_set.assert_called_once_with(
+            self.data_collector.token, [asset.deployment.xform.id_string]
+        )
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
@@ -84,6 +92,8 @@ class TestDataCollector(BaseTestCase):
     ):
         someuser = User.objects.get(username='someuser')
         asset = Asset.objects.filter(owner=someuser).last()
+        asset.save()
+        asset.deploy(backend='mock')
         another_group = DataCollectorGroup.objects.create(
             name='DCG1', owner=User.objects.get(username='someuser')
         )
@@ -94,7 +104,9 @@ class TestDataCollector(BaseTestCase):
         self.data_collector.token = 'new_token'
         self.data_collector.save()
         patched_remove.assert_called_once_with(old_token)
-        patched_set.assert_called_once_with('new_token', [asset.uid])
+        patched_set.assert_called_once_with(
+            'new_token', [asset.deployment.xform.id_string]
+        )
 
     def test_remove_owner_permission_removes_assets(self):
         self.data_collector_group.assets.clear()
