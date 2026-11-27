@@ -15,7 +15,7 @@ import { userCan } from '#/components/permissions/utils'
 import ConflictingOngoingJobAlert from '#/components/processing/common/ConflictingOngoingJobAlert'
 import { isConflictingOngoingJobForSubmission } from '#/components/processing/common/conflictingOngoingJob'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
-import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
+import { getTranslationSourcePayload, isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
@@ -29,6 +29,8 @@ interface Props {
   supplement: DataSupplementResponse
   activeBulkActions: BulkActionResponse[]
   translationVersion: TranslationVersionItem
+  /** The language of a text response, saved along with its translation. `null` for a transcript. */
+  sourceLanguage: LanguageCode | null
   onBack: () => void
   onSave: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -42,6 +44,7 @@ export default function Editor({
   supplement,
   activeBulkActions,
   translationVersion,
+  sourceLanguage,
   onBack,
   onSave,
   onUnsavedWorkChange,
@@ -134,6 +137,7 @@ export default function Editor({
             [ActionEnum.manual_translation]: {
               language: translationVersion._data.language,
               value: value,
+              ...getTranslationSourcePayload(sourceLanguage),
             },
           },
         },

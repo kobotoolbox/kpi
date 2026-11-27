@@ -15,4 +15,5 @@ export type PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation = {
   locale?: string
   accepted?: boolean
   value?: null
+  source_language?: string
 }

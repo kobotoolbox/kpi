@@ -1,5 +1,6 @@
 import { actions } from '#/actions'
 import { endpoints } from '#/api.endpoints'
+import profileStore from '#/stores/profile'
 import type { BridgeSuccessHandler } from './shared'
 import { SpecializedAssetPatchField, getLegacyDeploymentAsset, isRecord, toLegacyAssetFromUnknown } from './shared'
 
@@ -89,6 +90,38 @@ export const BRIDGE_SUCCESS_HANDLERS: ReadonlyArray<BridgeSuccessHandler> = [
         // by a few components in Library code, we will fix up the code in there
         // to avoid over-engineering here.
         actions.resources.deleteAsset.completed({ uid: assetUid, assetType: '' })
+      }
+    },
+  },
+  {
+    endpoint: 'POST /api/v2/assets/:uid/permission-assignments/',
+    refluxAction: 'actions.permissions.assignAssetPermission.completed',
+    matches: ({ assetUid }) => Boolean(assetUid),
+    run: ({ assetUid }) => {
+      if (assetUid) {
+        actions.permissions.assignAssetPermission.completed(assetUid)
+      }
+    },
+  },
+  {
+    endpoint: 'DELETE /api/v2/assets/:uid/permission-assignments/:perm/',
+    refluxAction: 'actions.permissions.removeAssetPermission.completed',
+    // `:perm` also matches the literal `bulk` segment.
+    matches: ({ assetUid, pathname }) => Boolean(assetUid && pathname.split('/').filter(Boolean).at(-1) !== 'bulk'),
+    run: ({ assetUid }) => {
+      if (assetUid) {
+        actions.permissions.removeAssetPermission.completed(assetUid, undefined)
+      }
+    },
+  },
+  {
+    endpoint: 'DELETE /api/v2/assets/:uid/permission-assignments/bulk/',
+    refluxAction: 'actions.permissions.removeAssetPermission.completed (bulk)',
+    matches: ({ assetUid }) => Boolean(assetUid),
+    run: ({ assetUid, requestBody }) => {
+      if (assetUid) {
+        const isRemovingSelf = requestBody?.username === profileStore.currentAccount.username
+        actions.permissions.removeAssetPermission.completed(assetUid, isRemovingSelf)
       }
     },
   },

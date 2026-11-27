@@ -263,9 +263,15 @@ class Organization(AbstractOrganization):
 
     @cache_for_request
     def is_admin_only(self, user: 'User') -> bool:
+        """
+        Not a pure role check: tells whether `user` holds the implicit org-admin
+        rights over org-owned assets, which exist only while the organization is
+        MMO. When the plan lapses, admins keep their role but lose this access
+        (DEV-3169).
+        """
 
         # Be aware: Owners are also Admins
-        return super().is_admin(user) and not self.is_owner(user)
+        return super().is_admin(user) and not self.is_owner(user) and self.is_mmo
 
     @cache_for_request
     def is_owner(self, user: 'User') -> bool:
@@ -286,6 +292,20 @@ class Organization(AbstractOrganization):
             return self.owner.organization_user.user
         except ObjectDoesNotExist:
             return
+
+    @property
+    @cache_for_request
+    def has_pending_ownership_transfer(self) -> bool:
+        if not self.pk:
+            return False
+
+        OrgOwnershipTransferInvite = apps.get_model(
+            'project_ownership', 'OrgOwnershipTransferInvite'
+        )
+        return OrgOwnershipTransferInvite.objects.filter(
+            metadata__organization_id=str(self.id),
+            status=OrgOwnershipTransferInvite.Status.PENDING,
+        ).exists()
 
 
 class EmptyOrganization(Organization):

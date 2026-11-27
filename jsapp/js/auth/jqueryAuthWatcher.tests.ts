@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import $ from 'jquery'
 import { queryClient } from '#/api/queryClient'
 import { getAuthStatusQueryKey } from './authChangeWatcher'

@@ -1,6 +1,7 @@
 from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.subsequences.actions import AUTOMATIC_TRANSCRIPTION_ACTION_IDS
 from kobo.apps.subsequences.constants import (
     SUBMISSION_UUID_FIELD,
     SUPPLEMENT_KEY,
@@ -44,7 +45,7 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
         # list to be returned. Grouping fields together with their sources is
         # handled by logic elsewhere
         Action.MANUAL_TRANSCRIPTION: [],
-        Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: [],
+        **{action_id: [] for action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS},
         Action.MANUAL_TRANSLATION: [],
         Action.AUTOMATIC_GOOGLE_TRANSLATION: [],
         Action.MANUAL_QUAL: [],

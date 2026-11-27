@@ -23,6 +23,7 @@ It covers how the payload is validated through the various schemas (`params_sche
    3. [external_data_schema](#external_data_schema)
    4. [result_schema](#result_schema)
    5. [result_schema with dependencies](#result_schema-with-dependencies)
+4. [Google credentials for local development](#google-credentials-for-local-development)
 
 ## Subsequence user flow
 
@@ -865,6 +866,19 @@ Each action has its own expected format:
   { "language": "en" }
   ```
 
+- **Translation of a text question (manual or automatic)**
+
+  A text response is translated straight from the submission, which does not
+  record the language it was written in, so `source_language` is required. It
+  must differ from `language`, and it is rejected for other questions, whose
+  translations use the language of the accepted transcript.
+  ```json
+  { "language": "en", "source_language": "es" }
+  ```
+  ```json
+  { "language": "en", "source_language": "es", "value": "My translation" }
+  ```
+
 - **All actions – delete request**
   ```json
   { "language": "en", "value": null }
@@ -1062,3 +1076,54 @@ In this case, a `_dependency` property is added to the persisted JSON.
 - The `_dependency` object references the transcription result that the translation was built upon.
 - It reuses the UUID and action ID from the transcription’s persisted result, ensuring referential integrity.
 - This allows clients to trace back a translation to the exact transcription version it relied on.
+
+**Example: Automatic Translation of a text question**
+
+There is no transcript to depend on: `_dependency` points at the submission
+itself, and the language of the response is kept in `_data`.
+
+```json
+{
+  "_dateCreated": "2025-09-01T12:15:42Z",
+  "_dateModified": "2025-09-01T12:17:28Z",
+  "_versions": [
+    {
+      "_data": {
+        "language": "en",
+        "source_language": "es",
+        "value": "Lunch was great today.",
+        "status": "complete"
+      },
+      "_dateCreated": "2025-09-01T12:17:28Z",
+      "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
+      "_dependency": {
+        "_uuid": "2bb75d6b-45f5-48ac-9472-38d7246c84f7",
+        "_actionId": "submission"
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Google credentials for local development
+
+Automatic transcription and translation call Google Cloud with the service
+account stored in the Constance setting `ASR_MT_GOOGLE_CREDENTIALS`.
+
+When that setting is empty, the Google clients fall back to
+[Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials).
+To work locally without a service account key:
+
+1. Log in with your own Google account, which must have access to the project:
+   ```
+   gcloud auth application-default login
+   ```
+2. Make the resulting credentials file available to the `kpi` and worker
+   containers, and point `GOOGLE_APPLICATION_CREDENTIALS` to it.
+3. Set `ASR_MT_GOOGLE_PROJECT_ID` in Constance to the project to bill, and leave
+   `ASR_MT_GOOGLE_CREDENTIALS` empty.
+
+The model used by Gemini transcription is the Django setting `GEMINI_MODEL`. It
+is not a Constance setting on purpose, so that it only changes with a release.

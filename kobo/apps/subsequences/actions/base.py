@@ -11,7 +11,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.stripe.utils.limit_enforcement import raise_if_usage_limit_exceeded
 from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
 )
@@ -586,7 +586,7 @@ class BaseAction:
 
     @property
     def _limit_identifier(self):
-        # See AutomaticGoogleTranscriptionAction._limit_identifier() for example
+        # See BaseAutomaticTranscriptionAction._limit_identifier() for example
         raise NotImplementedError()
 
 
@@ -987,7 +987,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 action_data,
                 bulk_action_uid=bulk_action_uid,
             )
-        except GoogleQuotaExceededError as err:
+        except ServiceQuotaExceededError as err:
             if celery_app.current_worker_task:
                 raise
 

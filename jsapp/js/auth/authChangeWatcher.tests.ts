@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { fetchGet } from '#/api'
 import { fetchWithAuth } from '#/api/orval.mutator'
 import { queryClient } from '#/api/queryClient'
