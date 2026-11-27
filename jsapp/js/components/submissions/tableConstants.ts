@@ -25,6 +25,7 @@ export const EXCLUDED_COLUMNS = [
   'meta/deprecatedID',
   // Internal only: the list of form versions a submission has been through
   'meta/formVersions',
+  '_date_modified',
   '_validation_status',
   // The audit log, which a submission carries in its `meta` block per the ODK
   // spec: https://getodk.github.io/xforms-spec/#metadata. The survey's own audit
@@ -119,6 +120,9 @@ CELLS_WIDTH_OVERRIDES[VALIDATION_STATUS_ID_PROP] = 125
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.start] = 110
 CELLS_WIDTH_OVERRIDES[META_QUESTION_TYPES.end] = 110
 CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._id] = 100
+// Wide enough to show the whole UUID
+CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS._uuid] = 280
+CELLS_WIDTH_OVERRIDES[ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']] = 310
 CELLS_WIDTH_OVERRIDES[QuestionTypeName.image] = 110
 CELLS_WIDTH_OVERRIDES[QuestionTypeName.audio] = 170
 CELLS_WIDTH_OVERRIDES[QuestionTypeName.video] = 110

@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { ServerError } from '#/api/ServerError'
 import { getReauthenticationAsk } from './reauthentication.utils'
 

@@ -4,6 +4,19 @@ import webpack from 'webpack'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+// Keep in sync with `cssModulesOptions` in `webpack/webpack.common.js`.
+const cssModulesLoader = {
+  loader: 'css-loader',
+  options: {
+    modules: {
+      localIdentName: '[name]__[local]--[hash:base64:5]',
+      namedExport: false,
+      exportLocalsConvention: 'as-is',
+    },
+    sourceMap: true,
+  },
+}
+
 export default {
   stories: ['../jsapp/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
@@ -84,34 +97,11 @@ export default {
       },
       {
         test: /\.module\.scss$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
-              },
-              sourceMap: true,
-            },
-          },
-          'sass-loader',
-        ],
+        use: ['style-loader', cssModulesLoader, 'sass-loader'],
       },
       {
         test: /\.module\.css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]--[hash:base64:5]',
-              },
-              sourceMap: true,
-            },
-          },
-        ],
+        use: ['style-loader', cssModulesLoader],
       },
     )
 

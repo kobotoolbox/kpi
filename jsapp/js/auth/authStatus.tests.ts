@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { AllauthResponse } from './allauthErrors'
 import { ANONYMOUS_AUTH_STATUS, AuthChangeEvent, determineAuthChangeEvent, getAuthStatus } from './authStatus'
 

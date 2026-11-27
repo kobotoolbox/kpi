@@ -21,6 +21,9 @@ from kpi.constants import (
     PREFIX_PARTIAL_PERMS,
     SUFFIX_SUBMISSIONS_PERMS,
 )
+from kpi.deployment_backends.kc_access.utils import (
+    set_kc_anonymous_permissions_xform_flags,
+)
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
@@ -897,6 +900,10 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 asset.asset_partial_permissions.filter(user_id__in=fast_pks).delete()
                 for user_pk in fast_pks:
                     user_obj = user_pk_to_obj_cache[user_pk]
+                    if is_user_anonymous(user_obj):
+                        set_kc_anonymous_permissions_xform_flags(
+                            asset, list(codenames_per_user[user_pk]), remove=True
+                        )
                     for codename in codenames_per_user[user_pk]:
                         post_remove_perm.send(
                             sender=asset.__class__,

@@ -11,7 +11,7 @@ jest.mock('@sentry/react', () => {
   return { captureMessage: mockedCaptureMessage }
 })
 
-import chai from 'chai'
+import * as chai from 'chai'
 import { handleApiFail, reportApiFail } from '#/api'
 import type { FailResponse } from '#/dataInterface'
 

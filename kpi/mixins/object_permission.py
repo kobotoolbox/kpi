@@ -127,7 +127,7 @@ class ObjectPermissionMixin:
         else:
             return False
 
-    @transaction.atomic
+    @transaction.atomic(savepoint=False)
     def save(self, *args, **kwargs):
         # Make sure we exist in the database before proceeding
         super().save(*args, **kwargs)
@@ -724,6 +724,11 @@ class ObjectPermissionMixin:
                 codename=codename,
             )
 
+        # Handle KoboCat xform flags for the anonymous user, implied
+        # permissions included
+        if is_user_anonymous(user_obj):
+            set_kc_anonymous_permissions_xform_flags(self, codename, remove=True)
+
         # Internal recursive call for an implied permission.
         # No need to update partial or descendant perms, this is done at the top level
         if _implied:
@@ -734,11 +739,6 @@ class ObjectPermissionMixin:
         # Recalculate all descendants (deferred by callers doing bulk ops)
         if not defer_recalc:
             self.recalculate_descendants_perms()
-
-        is_anonymous = is_user_anonymous(user_obj)
-        # Handle KoboCat xform flags for the anonymous user
-        if is_anonymous:
-            set_kc_anonymous_permissions_xform_flags(self, codename, remove=True)
 
     @staticmethod
     @cache_for_request
