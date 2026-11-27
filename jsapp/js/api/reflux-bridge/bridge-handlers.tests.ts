@@ -1,10 +1,18 @@
 // Jest needs the mock to be defined before any imports. And we use `var` to avoid Jest hoisting issues - it ensures
 // the variable is available when the mock factory runs, preventing ReferenceError from happening.
 var mockedActions: any
+jest.mock('#/stores/profile', () => ({
+  __esModule: true,
+  default: { currentAccount: { username: 'testuser' } },
+}))
 jest.mock('#/actions', () => {
   // Keep the mock small. Pulling in the real actions module would drag unrelated Reflux setup
   // into a test that only cares about bridge routing.
   mockedActions = {
+    permissions: {
+      assignAssetPermission: { completed: jest.fn(), failed: jest.fn() },
+      removeAssetPermission: { completed: jest.fn(), failed: jest.fn() },
+    },
     reports: {
       setStyle: { completed: jest.fn(), failed: jest.fn() },
       setCustom: { completed: jest.fn(), failed: jest.fn() },
@@ -24,7 +32,7 @@ jest.mock('#/actions', () => {
   return { actions: mockedActions }
 })
 
-import chai from 'chai'
+import * as chai from 'chai'
 import {
   bridgeOrvalFailureToLegacyActions,
   bridgeOrvalStartToLegacyActions,
@@ -137,6 +145,52 @@ describe('reflux bridge handler flow', () => {
     chai.expect(reportActions.setStyle.completed.mock.calls.length).to.equal(0)
     chai.expect(reportActions.setCustom.completed.mock.calls.length).to.equal(0)
     chai.expect(mapActions.setMapStyles.completed.mock.calls.length).to.equal(0)
+  })
+
+  it('dispatches assignAssetPermission.completed for permission assignment POSTs', () => {
+    const url = '/api/v2/assets/abc123/permission-assignments/'
+    const config = {
+      method: 'POST' as const,
+      body: JSON.stringify({ user: 'user-url', permission: 'permission-url' }),
+    }
+
+    bridgeOrvalSuccessToLegacyActions(url, config, {
+      data: {},
+      status: 201,
+      headers: new Headers(),
+    })
+
+    chai.expect(mockedActions.permissions.assignAssetPermission.completed.mock.calls).to.deep.equal([['abc123']])
+  })
+
+  it('dispatches removeAssetPermission.completed for single and bulk permission DELETEs', () => {
+    const config = { method: 'DELETE' as const }
+    const singleUrl = '/api/v2/assets/abc123/permission-assignments/perm123/'
+    const bulkUrl = '/api/v2/assets/abc123/permission-assignments/bulk/'
+
+    // `:perm` matches `bulk`, so the handler must exclude that path.
+    chai
+      .expect(doesEndpointMatchHandler('DELETE /api/v2/assets/:uid/permission-assignments/:perm/', 'DELETE', bulkUrl))
+      .to.equal(true)
+    chai
+      .expect(doesEndpointMatchHandler('DELETE /api/v2/assets/:uid/permission-assignments/bulk/', 'DELETE', bulkUrl))
+      .to.equal(true)
+
+    bridgeOrvalSuccessToLegacyActions(singleUrl, config, {
+      data: {},
+      status: 204,
+      headers: new Headers(),
+    })
+    bridgeOrvalSuccessToLegacyActions(
+      bulkUrl,
+      { ...config, body: JSON.stringify({ username: 'testuser' }) },
+      { data: {}, status: 204, headers: new Headers() },
+    )
+
+    chai.expect(mockedActions.permissions.removeAssetPermission.completed.mock.calls).to.deep.equal([
+      ['abc123', undefined],
+      ['abc123', true],
+    ])
   })
 })
 

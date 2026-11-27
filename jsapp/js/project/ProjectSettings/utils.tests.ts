@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import envStore from '#/envStore'
 import type { ProjectSettingsFields } from './types'
 import { getSettingsForEndpoint, validateProjectFields } from './utils'

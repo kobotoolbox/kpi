@@ -100,6 +100,7 @@ from .permissions import (
     IsOrgAdminPermission,
     OrganizationNestedHasOrgRolePermission,
     OrganizationOwnershipTransferPermission,
+    OrgAssetAccessPermission,
     OrgMembershipCreateOrDeleteInvitePermission,
     OrgMembershipInvitePermission,
 )
@@ -336,7 +337,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=[IsOrgAdminPermission],
+        permission_classes=[OrgAssetAccessPermission],
         pagination_class=AssetPagination,
     )
     def assets(self, request: Request, *args, **kwargs):
@@ -355,7 +356,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=[IsOrgAdminPermission],
+        permission_classes=[OrgAssetAccessPermission],
         url_path='assets/counts',
     )
     def asset_counts(self, request: Request, *args, **kwargs):
@@ -369,7 +370,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=[IsOrgAdminPermission],
+        permission_classes=[OrgAssetAccessPermission],
         url_path='assets/minimal-list',
     )
     def asset_minimal_list(self, request: Request, *args, **kwargs):

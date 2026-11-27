@@ -6,7 +6,7 @@ from kobo.apps.openrosa.libs.permissions import (
     XFORM_MODELS_NAMES,
     get_xform_ids_for_user,
 )
-from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_ASSET
+from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_VIEW_ASSET, PERM_VIEW_SUBMISSIONS
 from kpi.utils.object_permission import get_database_user
 
 
@@ -87,6 +87,10 @@ class AnonDjangoObjectPermissionFilter(ObjectPermissionsFilter):
             return queryset
 
         return super().filter_queryset(request, queryset, view)
+
+
+class SubmissionObjectPermissionFilter(AnonDjangoObjectPermissionFilter):
+    permission = PERM_VIEW_SUBMISSIONS
 
 
 class RowLevelObjectPermissionFilter(ObjectPermissionsFilter):

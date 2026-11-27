@@ -12,9 +12,7 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.integrations.google.google_translate import (
     GoogleTranslationService,
 )
-from kobo.apps.subsequences.integrations.google.rate_limit import (
-    GoogleServiceRateLimitExceeded,
-)
+from kobo.apps.subsequences.integrations.rate_limit import ServiceRateLimitExceeded
 from kpi.exceptions import UsageLimitExceededException
 from kpi.models import Asset
 
@@ -433,12 +431,12 @@ class TestGoogleTranslate(TestCase):
                 with patch.object(
                     service,
                     'begin_google_operation',
-                    side_effect=GoogleServiceRateLimitExceeded(
+                    side_effect=ServiceRateLimitExceeded(
                         'translate_v3_batch_translate_text',
                         retry_after=1,
                     ),
                 ):
-                    with self.assertRaises(GoogleServiceRateLimitExceeded):
+                    with self.assertRaises(ServiceRateLimitExceeded):
                         service.process_data(
                             'mock_xpath',
                             {
@@ -469,13 +467,13 @@ class TestGoogleTranslate(TestCase):
                 service, '_get_translation_language_code', return_value='fr'
             ):
                 with patch(
-                    'kobo.apps.subsequences.integrations.google.google_translate.require_google_service_quota',  # noqa
-                    side_effect=GoogleServiceRateLimitExceeded(
+                    'kobo.apps.subsequences.integrations.google.google_translate.require_service_quota',  # noqa
+                    side_effect=ServiceRateLimitExceeded(
                         'translate_v3_translate_text',
                         retry_after=1,
                     ),
                 ):
-                    with self.assertRaises(GoogleServiceRateLimitExceeded):
+                    with self.assertRaises(ServiceRateLimitExceeded):
                         service.process_data(
                             'mock_xpath',
                             {

@@ -125,12 +125,11 @@ module.exports = do ->
 
     finalize: ->
       # ensure that all options have names
-      names = []
+      # Seed with existing names, so auto names can't reuse a later choice's name
+      names = @getNames()
       for option in @options.models
-        label = option.get("label")
-        name = option.get("name")
-        if not name
-          name = $modelUtils.sluggify(label, {
+        if not option.get("name")
+          name = $modelUtils.sluggify(option.get("label"), {
             preventDuplicates: names
             lowerCase: true
             lrstrip: true
@@ -139,7 +138,7 @@ module.exports = do ->
             validXmlTag: false
           })
           option.set("name", name)
-        names.push name
+          names.push name
       return
 
     # This is a helper function for `BaseRowView.clone`, it makes a copy of the choices list in the parent row

@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { SocialApp } from '#/api/models/socialApp'
 import { findManagedSsoProvider, validateEmail, validateUsername } from './registerValidation'
 

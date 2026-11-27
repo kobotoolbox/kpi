@@ -390,6 +390,14 @@ def create_instance(
             if not has_new_attachments:
                 raise DuplicateInstanceError
             else:
+                # The XML is unchanged but `_attachments` is not: refresh
+                # `date_modified` so API consumers can detect the change.
+                # A queryset update avoids `Instance.save()`, which would
+                # reprocess the XML and fire the `post_save` receivers
+                existing_instance.date_modified = dj_timezone.now()
+                Instance.objects.filter(pk=existing_instance.pk).update(
+                    date_modified=existing_instance.date_modified
+                )
                 # Update Mongo via the related ParsedInstance
                 existing_instance.parsed_instance.save(asynchronous=False)
                 update_user_counters(
