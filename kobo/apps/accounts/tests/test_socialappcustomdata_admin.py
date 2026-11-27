@@ -42,11 +42,13 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         confirmed=False,
         send_in_app_message=None,
         in_app_message_body=None,
+        logout_behavior='local_only',
     ):
         domains = domains or []
         data = {
             'social_app': self.social_app.pk,
             'is_public': 'on',
+            'logout_behavior': logout_behavior,
             'domains-TOTAL_FORMS': str(len(domains) + 1),
             'domains-INITIAL_FORMS': '0',
             'domains-MIN_NUM_FORMS': '0',
@@ -89,6 +91,7 @@ class SocialAppCustomDataAdminTestCase(TestCase):
         data = {
             'social_app': new_app.pk,
             'is_public': 'on',
+            'logout_behavior': 'local_only',
             'domains-TOTAL_FORMS': '2',
             'domains-INITIAL_FORMS': '0',
             'domains-MIN_NUM_FORMS': '0',
@@ -238,6 +241,7 @@ class SocialAppCustomDataAdminTestCase(TestCase):
             'social_app': self.social_app.pk,
             'is_public': 'on',
             'managed': 'on',
+            'logout_behavior': 'local_only',
             'domains-TOTAL_FORMS': '3',
             'domains-INITIAL_FORMS': '1',
             'domains-MIN_NUM_FORMS': '0',

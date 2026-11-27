@@ -15,7 +15,7 @@ from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.error_pages import dev_error_page_preview
 from kpi.views.token import TokenView
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
-from kpi.views.v2.logout import logout_from_all_devices
+from kpi.views.v2.logout import LogoutView, logout_from_all_devices
 from .router_api_v2 import URL_NAMESPACE
 from .router_api_v2 import urls_patterns as router_api_v2_urls
 
@@ -61,6 +61,7 @@ urlpatterns = [
         'superuser_stats/',
         include(('kobo.apps.superuser_stats.urls', 'superuser_stats')),
     ),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('logout-all/', logout_from_all_devices, name='logout_all'),
 ]
 
