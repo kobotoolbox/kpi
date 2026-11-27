@@ -9,7 +9,6 @@ from django.test import TestCase, override_settings
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.data_collectors.utils import (
-    get_all_redis_entries_for_token,
     get_redis_key_for_enketo_id,
     get_redis_key_for_token_and_xform,
     remove_data_collector_enketo_links,
@@ -104,7 +103,7 @@ class TestDataCollectorUtils(TestCase):
         enketo_id_key_a = get_redis_key_for_enketo_id(enketo_id_to_remove_a)
         enketo_id_key_b = get_redis_key_for_enketo_id(enketo_id_to_remove_b)
 
-        remove_data_collector_enketo_links('1')
+        remove_data_collector_enketo_links('1', ['a12345', 'b12345'])
         # make sure all data for this DC has been removed
         assert self.redis_client.get(enketo_url_key_a) is None
         assert self.redis_client.get(enketo_url_key_b) is None
@@ -122,8 +121,9 @@ class TestDataCollectorUtils(TestCase):
             assert log_message in log_context.output[0]
 
             # non-existent token
-            remove_data_collector_enketo_links('2')
-            log_message = f'No redis entries found for data collector token 2'
+            remove_data_collector_enketo_links('2', ['a12345'])
+            expected_key = get_redis_key_for_token_and_xform('2', 'a12345')
+            log_message = f'No redis entry found for key {expected_key}'
             assert log_message in log_context.output[1]
 
     def test_rename_data_collector_links(self):
@@ -132,16 +132,18 @@ class TestDataCollectorUtils(TestCase):
         self._check_expected_redis_entries('1', 'a12345')
         self._check_expected_redis_entries('1', 'b12345')
 
-        rename_data_collector_enketo_links('1', '2')
+        rename_data_collector_enketo_links('1', '2', ['a12345', 'b12345'])
         self._check_expected_redis_entries('2', 'a12345')
         self._check_expected_redis_entries('2', 'b12345')
-        assert get_all_redis_entries_for_token(self.redis_client, '1') == []
+        for xform_id_string in ('a12345', 'b12345'):
+            old_key = get_redis_key_for_token_and_xform('1', xform_id_string)
+            assert self.redis_client.get(old_key) is None
 
     def test_rename_non_existent_links(self):
-        rename_data_collector_enketo_links('1', '2')
         with self.assertLogs(logger=logging.name, level='WARNING') as log_context:
-            rename_data_collector_enketo_links('1', '2')
-            log_message = f'No redis entries found for data collector token 1'
+            rename_data_collector_enketo_links('1', '2', ['a12345'])
+            expected_key = get_redis_key_for_token_and_xform('1', 'a12345')
+            log_message = f'Attempt to rename non-existent key {expected_key}'
             assert log_message in log_context.output[0]
 
     @override_settings(

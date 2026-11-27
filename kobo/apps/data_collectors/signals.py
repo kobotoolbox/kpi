@@ -24,13 +24,19 @@ def update_enketo_links(sender, instance, created, **kwargs):
     remove_all_links = group_changed and instance._initial_group_id is not None
     if remove_all_links:
         # use _initial_token just in case both the token and the group changed
-        token = instance._initial_token
-        remove_data_collector_enketo_links(token)
+        remove_data_collector_enketo_links(
+            instance._initial_token,
+            get_xform_id_strings_for_group(instance._initial_group_id),
+        )
     if add_new_links:
         xform_id_strings = get_xform_id_strings_for_group(instance.group_id)
         set_data_collector_enketo_links(instance.token, xform_id_strings)
-    if token_changed and not group_changed:
-        rename_data_collector_enketo_links(instance._initial_token, instance.token)
+    if token_changed and not group_changed and instance.group_id is not None:
+        rename_data_collector_enketo_links(
+            instance._initial_token,
+            instance.token,
+            get_xform_id_strings_for_group(instance.group_id),
+        )
     # now that we may have enketo links, keep track of the token we used to create
     # them so we can remove later if necessary
     instance._initial_token = instance.token
@@ -39,13 +45,19 @@ def update_enketo_links(sender, instance, created, **kwargs):
 
 @receiver(pre_delete, sender=DataCollector)
 def remove_enketo_links_on_delete_data_collector(sender, instance, **kwargs):
-    remove_data_collector_enketo_links(instance.token)
+    if instance.group_id is None:
+        return
+    remove_data_collector_enketo_links(
+        instance.token, get_xform_id_strings_for_group(instance.group_id)
+    )
 
 
 @receiver(pre_delete, sender=DataCollectorGroup)
 def remove_enketo_links_on_delete_data_collector_group(sender, instance, **kwargs):
-    for data_collector in instance.data_collectors.all():
-        remove_data_collector_enketo_links(data_collector.token)
+    # the assets still belong to the group in `pre_delete`
+    xform_id_strings = get_xform_id_strings_for_group(instance.pk)
+    for token in instance.data_collectors.values_list('token', flat=True):
+        remove_data_collector_enketo_links(token, xform_id_strings)
 
 
 @receiver(post_delete, sender=ObjectPermission)
