@@ -61,10 +61,13 @@ class AttachmentTrashAdvancedSearchFilter(TrashAdvancedSearchFilter):
 
     examples = [
         ('Attachments of a project', ['metadata__asset_uid:aXXXXXXXXXXXXXXXXXXXXX']),
-        ('Attachments of an owner', ['request_author__username:bob']),
+        ('Attachments trashed by a user', ['request_author__username:bob']),
         (
-            'Attachments of an owner trashed before January 1, 2027',
-            ['request_author__username:bob', 'AND date_created__lt:2027-01-01'],
+            'Attachments of a project trashed before January 1, 2027',
+            [
+                'metadata__asset_uid:aXXXXXXXXXXXXXXXXXXXXX',
+                'AND date_created__lt:2027-01-01',
+            ],
         ),
         ('Attachment by its ID in KoboCAT', ['attachment_id:123']),
     ]
@@ -270,9 +273,11 @@ class AttachmentTrashAdmin(AdvancedSearchMixin, TrashMixin, admin.ModelAdmin):
         'get_auto_restarts',
     ]
     list_filter = [AttachmentTrashAdvancedSearchFilter, StatusListFilter]
-    # `request_author` is the owner: only the automatic cleanup of the
-    # attachments over the storage limit trashes attachments, on behalf of
-    # their owner
+    # `request_author` is the user who trashed the attachments: the owner when
+    # the automatic cleanup of the attachments over the storage limit trashes
+    # them, or the user who deleted them through the API, who may be a
+    # collaborator. The record does not store the owner: the attachments of a
+    # project are found with `metadata__asset_uid`
     search_default_field_lookups = [
         'uid',
         'metadata__attachment_uid',
