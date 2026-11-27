@@ -14,6 +14,7 @@ from django.conf import settings
 from django.core.cache import cache
 from google.api_core import client_options
 from google.api_core.exceptions import (
+    DeadlineExceeded,
     GoogleAPIError,
     InvalidArgument,
     PermissionDenied,
@@ -641,6 +642,15 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 f'retry_after={retry_after}: {err}'
             )
             raise GoogleQuotaExceededError(retry_after=retry_after) from err
+        except DeadlineExceeded as err:
+            # Google may have started the job anyway, without telling its
+            # name. Failed, so the next attempt writes to a folder of its own
+            # instead of next to that job's results
+            logging.error(
+                f'Google timed out while starting chunk {chunk.index} of '
+                f'version {chunk.version_uuid}: {err}'
+            )
+            return JobReport('failed', error=f'Transcription failed with error {err}')
         except (GoogleAPIError, GoogleCloudError) as err:
             # Google could not be reached: no job was started
             logging.error(
@@ -648,6 +658,14 @@ class GoogleTranscriptionService(GoogleService, ChunkedTranscriptionEngine):
                 f'of version {chunk.version_uuid}: {err}'
             )
             return JobReport('in_progress')
+        except Exception as err:
+            # Failed as the check of a job does, so the chunk is retried and
+            # keeps the error
+            logging.exception(
+                f'Could not start the transcription job of chunk {chunk.index} '
+                f'of version {chunk.version_uuid}'
+            )
+            return JobReport('failed', error=f'Transcription failed with error {err}')
         return JobReport('in_progress', service_id=operation.operation.name)
 
     def check_chunk(self, chunk) -> JobReport:

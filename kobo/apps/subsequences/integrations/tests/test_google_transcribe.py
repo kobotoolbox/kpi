@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 from google.api_core.exceptions import (
+    DeadlineExceeded,
     Forbidden,
     InvalidArgument,
     NotFound,
@@ -736,6 +737,10 @@ def test_starting_a_chunk_submits_its_job_without_waiting():
         (Unauthenticated('invalid credentials'), 'failed', False),
         # Not sent: sent again as the same attempt
         (ServiceUnavailable('unreachable'), 'in_progress', True),
+        # Maybe sent: sent again as a new attempt, with its own output folder
+        (DeadlineExceeded('timed out'), 'failed', True),
+        # Unexpected: sent again as a new attempt, keeping the error
+        (RuntimeError('unexpected'), 'failed', True),
     ],
 )
 def test_a_chunk_google_does_not_take_is_reported(error, status, retryable):

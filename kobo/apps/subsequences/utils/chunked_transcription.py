@@ -271,6 +271,10 @@ class ChunkedTranscriptionRun:
         at that moment waits, then finds it cancelled and stops the job it
         has just started
         """
+        # A run without a version has no rows to cancel: `start()` never saves
+        # any for it
+        if not self.version_uuid:
+            return
         now = timezone.now()
         with transaction.atomic():
             running = list(
