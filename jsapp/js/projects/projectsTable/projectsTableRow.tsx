@@ -52,10 +52,10 @@ export default function ProjectsTableRow(props: ProjectsTableRowProps) {
       case 'ownerOrganization':
         return 'owner__organization' in props.asset ? props.asset.owner__organization : null
       case 'lastModifiedBy':
-        if (props.asset.last_modified_by === null) {
-          return null
-        }
-        return <Avatar username={props.asset.last_modified_by} size='s' isUsernameVisible />
+      case 'createdBy': {
+        const username = field.name === 'createdBy' ? props.asset.created_by : props.asset.last_modified_by
+        return username === null ? null : <Avatar username={username} size='s' isUsernameVisible />
+      }
       case 'dateModified':
         return props.asset.date_modified ? formatTime(props.asset.date_modified) : '-'
       case 'dateDeployed':

@@ -36,6 +36,8 @@ DENY_ALL = frozenset({'*'})  # Deny all fields in the table
 # }
 # ```
 
+# Stops black from reflowing every `frozenset` below
+# fmt: off
 ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
     'audit_log.accesslog': frozenset({
         'action',
@@ -82,6 +84,7 @@ ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
         'uid',
         'data_sharing',    # To allow data_sharing__enabled
         'last_modified_by',
+        'created_by',
     }),
     'kpi.importtask': frozenset({
         'data',
@@ -147,6 +150,7 @@ ALLOWED_LOOKUP_FIELDS: LookupFieldsMap = {
         'name',
     }),
 }
+# fmt: on
 # The denylist is kept purely as documentation and does not participate in runtime
 # authorization. It records what is explicitly banned and why.
 DENIED_LOOKUP_FIELDS: LookupFieldsMap = {
@@ -228,7 +232,6 @@ DENIED_LOOKUP_FIELDS: LookupFieldsMap = {
         'assetsnapshot',  # Unnecessary relational traversal
         'children',  # Unnecessary relational traversal
         'content',  # Internal system data
-        'created_by',  # Unnecessary relational traversal
         'data_collector_group',  # Unnecessary relational traversal
         'data_collector_group_id',  # Internal system data
         'disclaimers',  # Unnecessary relational traversal

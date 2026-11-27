@@ -109,6 +109,10 @@ describe('projectViewsUtils', () => {
           out: 'owner__organizations_organization__name:""',
         },
         {
+          in: { fieldName: 'createdBy', condition: 'is', value: 'foo' },
+          out: 'created_by__iexact:"foo"',
+        },
+        {
           in: { fieldName: 'description', condition: 'isNot', value: 'foo' },
           out: 'NOT settings__description__iexact:"foo"',
         },

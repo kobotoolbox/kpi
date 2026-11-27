@@ -3484,6 +3484,22 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
         self.assertEqual(asset.created_by, self.some_user.username)
         self.assertEqual(asset.last_modified_by, another_user.username)
 
+    def test_filter_by_created_by_keeps_quoted_values(self):
+        uids = {}
+        for created_by in ['null', '00123', 'x123']:
+            asset, _ = self.create_and_fetch_asset()
+            # The API always sets the logged-in user, so override it here
+            Asset.objects.filter(pk=asset.pk).update(created_by=created_by)
+            uids[created_by] = asset.uid
+
+        for query, expected in [
+            ('created_by__iexact:"null"', 'null'),
+            ('created_by__icontains:"00123"', '00123'),
+        ]:
+            response = self.client.get(self.url, {'q': query})
+            found = [a['uid'] for a in response.data['results']]
+            assert found == [uids[expected]]
+
 
 class TestAssetMetadataViewSet(BaseAssetTestCase):
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
