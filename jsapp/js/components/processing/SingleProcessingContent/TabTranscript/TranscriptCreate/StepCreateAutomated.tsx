@@ -22,6 +22,8 @@ import type { AssetResponse } from '#/dataInterface'
 import { getSubmissionRootUuid, notify } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
+import { secondsToTranscriptionEstimate } from '../transcript.utils'
+import { useTranscriptionSourceSeconds } from '../useTranscriptionSourceSeconds'
 
 interface Props {
   asset: AssetResponse
@@ -43,6 +45,7 @@ export default function StepCreateAutomated({
   advancedFeatures,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
+  const sourceSeconds = useTranscriptionSourceSeconds(asset, questionXpath, submission)
 
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.automatic_google_transcription && af.question_xpath === questionXpath,
@@ -191,6 +194,15 @@ export default function StepCreateAutomated({
             'audio for improving its transcription service.',
         )}
       </p>
+
+      {sourceSeconds !== undefined && (
+        <p>
+          {t('Estimated time for completion: ##estimate##').replace(
+            '##estimate##',
+            secondsToTranscriptionEstimate(sourceSeconds),
+          )}
+        </p>
+      )}
 
       {hasConflictingOngoingJob && <ConflictingOngoingJobAlert mt='md' />}
 

@@ -492,9 +492,10 @@ export const truncateNumber = (decimal: number, decimalPlaces = 2) => Number.par
 export const convertSecondsToMinutes = (seconds: number) => Math.floor(truncateNumber(seconds / 60, 1))
 
 /**
- * Rough estimate used for automatic transcription completion timing.
+ * Rough estimate of how long an automatic transcription takes, in seconds. Based on the 75th percentile of measured
+ * runs, so it leans high.
  */
-export const getEstimatedTranscriptionDurationSeconds = (sourceSeconds: number) => Math.round(sourceSeconds * 0.5 + 10)
+export const getEstimatedTranscriptionDurationSeconds = (sourceSeconds: number) => Math.round(sourceSeconds * 0.06 + 17)
 
 /**
  * Generates a simple lowercase, underscored version of a string. Useful for
@@ -596,16 +597,6 @@ export function moveArrayElementToIndex(arr: any[], fromIndex: number, toIndex: 
   copiedArr.splice(fromIndex, 1)
   copiedArr.splice(toIndex, 0, element)
   return copiedArr
-}
-
-export function getAudioDuration(src: string): Promise<number> {
-  return new Promise((resolve) => {
-    const audio = new Audio()
-    $(audio).on('loadedmetadata', () => {
-      resolve(audio.duration)
-    })
-    audio.src = src
-  })
 }
 
 /**

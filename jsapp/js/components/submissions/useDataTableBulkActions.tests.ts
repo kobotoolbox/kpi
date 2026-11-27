@@ -204,13 +204,14 @@ describe('useDataTableBulkActions', () => {
     chai.expect(getBulkActionsPollingIntervalMs([])).to.equal(false)
   })
 
-  it('caps transcription polling interval to the maximum of 30 seconds', () => {
+  it('polls transcription at the estimate for a default one-minute file', () => {
     const action = buildBulkAction(BulkActionResponseStatusEnum.in_progress, 'zefir', {
       action_id: ActionIdEnum.automatic_google_transcription,
       submission_uuids: ['s-1'],
     })
 
-    chai.expect(getBulkActionsPollingIntervalMs([action])).to.equal(30000)
+    // 60 s * 0.06 + 17
+    chai.expect(getBulkActionsPollingIntervalMs([action])).to.equal(21000)
   })
 
   it('uses a bounded fixed interval for translation polling', () => {
