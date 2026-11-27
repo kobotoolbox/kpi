@@ -688,10 +688,12 @@ export default function ProjectExportsCreator(props: ProjectExportsCreatorProps)
   }
 
   useEffect(() => {
+    // The form no longer matches the selected saved settings, but we keep
+    // the name so that exporting updates the saved settings of that name.
     if (props.selectedExportType.value !== stateRef.current.selectedExportType.value) {
       mergeState({
         selectedExportType: props.selectedExportType,
-        customExportName: '',
+        selectedDefinedExport: null,
       })
     }
   }, [props.selectedExportType])
