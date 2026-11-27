@@ -15,3 +15,5 @@ Examples:
 ```
 
 Results are order by `featured` first (descending order), then by their name.
+
+The services of a language are ordered by `priority` (lower values first), then by name.

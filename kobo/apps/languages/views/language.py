@@ -1,6 +1,7 @@
 # coding: utf-8
 from collections import defaultdict
 
+from django.db.models import Model
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 
@@ -80,25 +81,32 @@ class LanguageViewSet(BaseViewSet):
 
             # We cache service objects to avoid multiple queries within the
             # serializer to retrieve them.
-            transcription_services = defaultdict(set)
-            queryset = (
-                Language.transcription_services.through.objects.select_related(
-                    'service'
-                )
+            context['transcription_services'] = self._get_services_by_language(
+                Language.transcription_services.through
             )
-            for through in queryset.all():
-                transcription_services[through.language_id].add(through.service)
-
-            translation_services = defaultdict(set)
-            queryset = (
-                Language.translation_services.through.objects.select_related(
-                    'service'
-                )
+            context['translation_services'] = self._get_services_by_language(
+                Language.translation_services.through
             )
-            for through in queryset.all():
-                translation_services[through.language_id].add(through.service)
-
-            context['transcription_services'] = transcription_services
-            context['translation_services'] = translation_services
 
         return context
+
+    @staticmethod
+    def _get_services_by_language(
+        through_model: type[Model],
+    ) -> dict[int, list[Model]]:
+        """
+        Return the services of each language, ordered by priority
+        """
+        queryset = through_model.objects.select_related('service').order_by(
+            'service__priority', 'service__name'
+        )
+        # A language has one row per (service, region). Use a dict rather than
+        # a set to drop duplicated services without losing the order.
+        services = defaultdict(dict)
+        for through in queryset:
+            services[through.language_id][through.service] = None
+
+        return {
+            language_id: list(language_services)
+            for language_id, language_services in services.items()
+        }

@@ -2,6 +2,8 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.languages.models.transcription import TranscriptionService
+from kobo.apps.languages.models.translation import TranslationService
 from .base import BaseApiTestCase
 
 
@@ -79,6 +81,34 @@ class LanguageListApiTestCase(BaseApiTestCase):
             [language['name'] for language in response.data['results']],
         )
 
+    def test_services_are_ordered_by_priority(self):
+        url = f"{reverse(self._get_endpoint('language-list'))}?q=fr"
+
+        for priorities, expected_codes in (
+            ({'goog': 1, 'msft': 2}, ['goog', 'msft']),
+            ({'goog': 2, 'msft': 1}, ['msft', 'goog']),
+        ):
+            for code, priority in priorities.items():
+                TranscriptionService.objects.filter(code=code).update(priority=priority)
+                TranslationService.objects.filter(code=code).update(priority=priority)
+
+            response = self.client.get(url)
+            french = response.data['results'][0]
+            assert french['code'] == 'fr'
+            for field in ('transcription_services', 'translation_services'):
+                # A service linked to several regions is listed only once
+                assert [service['code'] for service in french[field]] == expected_codes
+
+    def test_services_with_same_priority_are_ordered_by_name(self):
+        url = f"{reverse(self._get_endpoint('language-list'))}?q=fr"
+        response = self.client.get(url)
+        french = response.data['results'][0]
+        for field in ('transcription_services', 'translation_services'):
+            assert [service['name'] for service in french[field]] == [
+                'Google',
+                'Microsoft',
+            ]
+
 
 class LanguageApiTestCase(BaseApiTestCase):
 
@@ -131,3 +161,16 @@ class LanguageApiTestCase(BaseApiTestCase):
         self.client.logout()
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_services_are_ordered_by_priority(self):
+        for priorities, expected_codes in (
+            ({'goog': 1, 'msft': 2}, ['goog', 'msft']),
+            ({'goog': 2, 'msft': 1}, ['msft', 'goog']),
+        ):
+            for code, priority in priorities.items():
+                TranscriptionService.objects.filter(code=code).update(priority=priority)
+                TranslationService.objects.filter(code=code).update(priority=priority)
+
+            response = self.client.get(self.detail_url)
+            for field in ('transcription_services', 'translation_services'):
+                assert list(response.data[field]) == expected_codes
