@@ -178,6 +178,9 @@ class AccountAdapter(DefaultAccountAdapter):
         if not hasattr(request, 'session'):
             return None
 
+        session_provider = request.session.get('socialaccount_provider')
+        session_uid = request.session.get('socialaccount_uid')
+
         auth_methods = request.session.get(AUTHENTICATION_METHODS_SESSION_KEY, [])
         login_records = [
             record for record in auth_methods if not record.get('reauthenticated')
@@ -191,24 +194,23 @@ class AccountAdapter(DefaultAccountAdapter):
                 ),
                 None,
             )
-            if social_record:
-                active_provider = social_record.get('provider') or request.session.get(
-                    'socialaccount_provider'
-                )
-                active_uid = social_record.get('uid') or request.session.get(
-                    'socialaccount_uid'
-                )
+            if session_provider:
+                # Prefer the active connected SSO provider from this session,
+                # e.g. if the initial provider was disconnected and a replacement
+                # connected in the same session.
+                active_provider = session_provider
+                active_uid = session_uid
+            elif social_record:
+                active_provider = social_record.get('provider')
+                active_uid = social_record.get('uid')
             else:
-                active_provider = request.session.get('socialaccount_provider')
-                active_uid = request.session.get('socialaccount_uid')
-                if not active_provider:
-                    # Session started via password or other non-social method
-                    # without linking an SSO account during this session;
-                    # do not trigger RP-initiated logout.
-                    return None
+                # Session started via password or other non-social method
+                # without linking an SSO account during this session;
+                # do not trigger RP-initiated logout.
+                return None
         else:
-            active_provider = request.session.get('socialaccount_provider')
-            active_uid = request.session.get('socialaccount_uid')
+            active_provider = session_provider
+            active_uid = session_uid
 
         if active_provider:
             accounts = SocialAccount.objects.filter(
@@ -265,11 +267,6 @@ class AccountAdapter(DefaultAccountAdapter):
 
         parsed = urlparse(end_session_endpoint)
         query_params = dict(parse_qsl(parsed.query))
-
-        if hasattr(request, 'session'):
-            id_token = request.session.get('oidc_id_token')
-            if isinstance(id_token, str) and id_token.strip():
-                query_params['id_token_hint'] = id_token
 
         post_logout_redirect_uri = (
             custom_data.post_logout_redirect_uri

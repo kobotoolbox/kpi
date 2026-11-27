@@ -202,7 +202,6 @@ def clear_social_session_on_disconnect(sender=None, **kwargs):
         if not active_uid or active_uid == socialaccount.uid:
             request.session.pop('socialaccount_provider', None)
             request.session.pop('socialaccount_uid', None)
-            request.session.pop('oidc_id_token', None)
 
 
 @receiver(post_save, sender=ExtraUserDetail)

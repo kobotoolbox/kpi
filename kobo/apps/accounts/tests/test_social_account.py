@@ -8,7 +8,7 @@ from allauth.account.internal.flows.login import AUTHENTICATION_METHODS_SESSION_
 from allauth.core.exceptions import ImmediateHttpResponse
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from allauth.socialaccount.providers.base.constants import AuthProcess
-from allauth.socialaccount.signals import social_account_added
+from allauth.socialaccount.signals import social_account_added, social_account_removed
 from ddt import data, ddt
 from django.conf import settings
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -728,27 +728,80 @@ class SocialAccountLogoutTestCase(TestCase):
         )
         self.assertEqual(query.get('client_id'), ['kpi-client-id'])
 
-    def test_rp_initiated_includes_id_token_hint_when_present_in_session(self):
-        jwt_token = (
-            'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.'
-            'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.'
-            'signature-with_dashes_underscores_and_padding=='
-        )
-        SocialAccount.objects.create(
-            user=self.user,
-            provider='keycloak',
-            uid='12345',
+    def test_replacement_provider_in_same_session_triggers_rp_logout_for_new_provider(
+        self,
+    ):
+        provider_b_app = SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id='azure',
+            name='Azure SSO',
+            client_id='azure-client-id',
+            secret='azure-secret',
         )
         SocialAppCustomData.objects.create(
             social_app=self.social_app,
             logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
             end_session_endpoint='https://idp.com/protocol/openid-connect/logout',
+            post_logout_redirect_uri='https://kpi.example.com/login/',
+        )
+        SocialAppCustomData.objects.create(
+            social_app=provider_b_app,
+            logout_behavior=SocialAppCustomData.LogoutBehavior.RP_INITIATED,
+            end_session_endpoint='https://azure.example.com/logout',
+            post_logout_redirect_uri='https://kpi.example.com/login/',
         )
 
-        request = self._get_authenticated_request()
-        request.session['oidc_id_token'] = jwt_token
-        url = self.adapter.get_logout_redirect_url(request)
+        account_a = SocialAccount.objects.create(
+            user=self.user,
+            provider='keycloak',
+            uid='12345',
+        )
 
+        # 1. User initially logs in via Provider A
+        request = self._get_authenticated_request()
+        request.session[AUTHENTICATION_METHODS_SESSION_KEY] = [
+            {
+                'method': 'socialaccount',
+                'provider': 'keycloak',
+                'uid': '12345',
+                'at': 1700000000,
+            }
+        ]
+        request.session['socialaccount_provider'] = 'keycloak'
+        request.session['socialaccount_uid'] = '12345'
+
+        # 2. User disconnects Provider A
+        account_a.delete()
+        social_account_removed.send(
+            sender=SocialAccount, request=request, socialaccount=account_a
+        )
+        self.assertNotIn('socialaccount_provider', request.session)
+
+        # 3. User connects Provider B in the same session
+        account_b = SocialAccount.objects.create(
+            user=self.user,
+            provider='azure',
+            uid='67890',
+        )
+        sociallogin_b = SocialLogin(user=self.user, account=account_b)
+        sociallogin_b.state = {'process': AuthProcess.CONNECT}
+        social_account_added.send(
+            sender=SocialLogin, request=request, sociallogin=sociallogin_b
+        )
+        self.assertEqual(request.session.get('socialaccount_provider'), 'azure')
+
+        # 4. Logout must target Provider B (the active replacement),
+        #    not deleted Provider A
+        url = self.adapter.get_logout_redirect_url(request)
         parsed = urlparse(url)
         query = parse_qs(parsed.query)
-        self.assertEqual(query.get('id_token_hint'), [jwt_token])
+
+        self.assertEqual(
+            f'{parsed.scheme}://{parsed.netloc}{parsed.path}',
+            'https://azure.example.com/logout',
+        )
+        self.assertEqual(query.get('client_id'), ['azure-client-id'])
+        self.assertEqual(
+            query.get('post_logout_redirect_uri'),
+            ['https://kpi.example.com/login/'],
+        )
