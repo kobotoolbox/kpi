@@ -54,6 +54,9 @@ def get_xform_id_strings_by_asset_uid(asset_uids) -> dict[str, str]:
     a redeployment keeps the `id_string` of the first deployment.
     """
 
+    # XForm lives in the KoboCAT database. Evaluate `asset_uids` first so that
+    # a KPI queryset never ends up as a subquery in a KoboCAT query.
+    asset_uids = list(asset_uids)
     return dict(
         XForm.objects.filter(kpi_asset_uid__in=asset_uids).values_list(
             'kpi_asset_uid', 'id_string'
