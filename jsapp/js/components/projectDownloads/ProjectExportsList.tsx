@@ -1,10 +1,11 @@
 import { Flex, Text } from '@mantine/core'
+import { IconDownload, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'
+import ActionIcon from '#/components/common/ActionIcon'
 import SimpleTable from '#/components/common/SimpleTable'
-import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
@@ -184,11 +185,11 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         </Text>,
         <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
           {exportData.status === ExportStatusName.complete && (
-            <Button
-              type='secondary'
-              size='m'
-              startIcon='download'
-              label={t('Download')}
+            <ActionIcon
+              variant='light'
+              size='md'
+              icon={IconDownload}
+              tooltip={t('Download')}
               onClick={() => {
                 if (exportData.result !== null) {
                   window.open(exportData.result, '_blank')
@@ -208,11 +209,12 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
           )}
 
           {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
-            <Button
-              type='secondary-danger'
-              size='m'
-              startIcon='trash'
-              isPending={deletingExports.has(exportData.uid)}
+            <ActionIcon
+              variant='danger-secondary'
+              size='md'
+              icon={IconTrash}
+              tooltip={t('Delete')}
+              loading={deletingExports.has(exportData.uid)}
               onClick={() => deleteExport(exportData.uid)}
             />
           )}
