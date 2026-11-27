@@ -106,15 +106,18 @@ def toggle_internal_external_open_rosa_server_for_all_data_collectors():
         return
 
     enketo_id_values = redis_client.mget(*[key for _, key in tokens_and_keys])
+    # read the constance setting once, not once per link
+    server_url_template = to_internal_or_external_url(
+        DC_ENKETO_URL_TEMPLATE, openrosa=True
+    )
     pipeline = redis_client.pipeline()
     for (token, _), enketo_id_bytes in zip(tokens_and_keys, enketo_id_values):
         if enketo_id_bytes is None:
             continue
-        server_url = DC_ENKETO_URL_TEMPLATE.format(token)
         pipeline.hset(
             get_redis_key_for_enketo_id(enketo_id_bytes.decode('utf-8')),
             'openRosaServer',
-            to_internal_or_external_url(server_url, openrosa=True),
+            server_url_template.format(token),
         )
     pipeline.execute()
 

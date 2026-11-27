@@ -1024,15 +1024,23 @@ class DataViewSet(
         }
         # Add attachments if any.
         attachments = deployment.get_attachment_objects_from_dict(submission_json)
+        # `to_internal_or_external_url()` reads a constance setting on each call.
+        # Convert one URL that has a placeholder instead of the attachment UID,
+        # then replace the placeholder for each attachment. The placeholder is
+        # plain text because `reverse()` URL-encodes `{}`, which rules out
+        # `str.format()`.
+        attachment_url_template = to_internal_or_external_url(
+            reverse(
+                'attachment-detail',
+                args=(self.asset.uid, submission_id, 'ATTACHMENT_UID'),
+                request=request,
+            ),
+            openrosa=False,
+        )
         for attachment in attachments:
             key_ = f'instance_attachments[{attachment.media_file_basename}]'
-            data[key_] = to_internal_or_external_url(
-                reverse(
-                    'attachment-detail',
-                    args=(self.asset.uid, submission_id, attachment.uid),
-                    request=request,
-                ),
-                openrosa=False,
+            data[key_] = attachment_url_template.replace(
+                'ATTACHMENT_UID', attachment.uid
             )
 
         response = requests.post(
