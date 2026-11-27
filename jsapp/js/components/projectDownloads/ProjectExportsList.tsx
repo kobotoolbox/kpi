@@ -1,5 +1,5 @@
 import { Box, Flex, Text } from '@mantine/core'
-import { IconDownload, IconTrash } from '@tabler/icons-react'
+import { IconDownload, IconTrashFilled } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
@@ -213,7 +213,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
             <ActionIcon
               variant='danger-secondary'
               size='md'
-              icon={IconTrash}
+              icon={IconTrashFilled}
               tooltip={t('Delete')}
               loading={deletingExports.has(exportData.uid)}
               onClick={() => deleteExport(exportData.uid)}
@@ -242,10 +242,10 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
         head={[
           t('Type'),
           t('Export name'),
-          t('Created'),
+          t('Date created'),
           t('Language'),
           <Box key='include-groups' ta='center'>
-            {t('Include Groups')}
+            {t('Groups')}
           </Box>,
           <Box key='multiple-versions' ta='center'>
             {t('Multiple Versions')}
