@@ -1199,6 +1199,78 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
 
+class TextQuestionTranslationAPITestCase(SubsequenceBaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.asset.content = {'survey': [{'type': 'text', 'label': 'q1', 'name': 'q1'}]}
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_translation',
+            params=[{'language': 'fr'}],
+        )
+
+    def test_cannot_translate_without_source_language(self):
+        payload = {
+            '_version': '20250820',
+            'q1': {'manual_translation': {'language': 'fr', 'value': 'Bonjour'}},
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['detail'] == (
+            'The source language is required to translate a text response.'
+        )
+
+    def test_cannot_translate_into_the_source_language(self):
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'fr',
+                    'source_language': 'fr',
+                    'value': 'Bonjour',
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['detail'] == (
+            '`source_language` must differ from `language`'
+        )
+
+    def test_translation_stores_its_source_language(self):
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'fr',
+                    'source_language': 'es',
+                    'value': 'Bonjour',
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        versions = response.data['q1']['manual_translation']['fr']['_versions']
+        version_data = versions[0]['_data']
+        assert version_data['source_language'] == 'es'
+
+
 @ddt
 class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
     def setUp(self):

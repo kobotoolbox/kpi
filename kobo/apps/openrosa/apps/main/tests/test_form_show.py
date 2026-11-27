@@ -1,6 +1,6 @@
-# coding: utf-8
 import os
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.base import ContentFile
 from django.urls import reverse
 
@@ -11,6 +11,7 @@ from kobo.apps.openrosa.apps.logger.views import (
     download_xlsform,
 )
 from kobo.apps.openrosa.libs.tests.utils import publish_xml_form
+from kpi.constants import PERM_VIEW_ASSET
 from .test_base import TestBase
 
 
@@ -53,8 +54,7 @@ class TestFormShow(TestBase):
         self.assertEqual(response.status_code, 200)
 
     def test_dl_json_to_anon_if_public(self):
-        self.xform.shared = True
-        self.xform.save()
+        self.xform.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         response = self.anon.get(reverse(download_jsonform, kwargs={
             'username': self.user.username,
             'id_string': self.xform.id_string
@@ -62,8 +62,7 @@ class TestFormShow(TestBase):
         self.assertEqual(response.status_code, 200)
 
     def test_dl_jsonp_to_anon_if_public(self):
-        self.xform.shared = True
-        self.xform.save()
+        self.xform.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         callback = 'jsonpCallback'
         response = self.anon.get(reverse(download_jsonform, kwargs={
             'username': self.user.username,

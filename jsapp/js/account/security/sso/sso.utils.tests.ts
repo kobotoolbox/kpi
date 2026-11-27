@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { ProviderAccount } from '#/api/models/providerAccount'
 import type { EnvStoreData, SocialApp } from '#/envStore'
 import { findAppForProviderAccount, getSsoConnectErrorMessage } from './sso.utils'

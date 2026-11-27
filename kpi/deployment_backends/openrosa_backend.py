@@ -52,6 +52,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.apps.main.models import MetaData
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
+from kobo.apps.openrosa.libs.utils.common_tags import DATE_MODIFIED
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
@@ -1642,15 +1643,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         else:
             attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
+        fields = params.get('fields') or []
+        inject_date_modified = not fields or DATE_MODIFIED in fields
+
         mongo_cursor = (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 attachment_xpaths,
+                inject_date_modified=inject_date_modified,
             )
             for submission in mongo_cursor
         )
 
-        fields = params.get('fields', [])
         if len(fields) > 0 and self.SUBMISSION_ROOT_UUID_XPATH not in fields:
             # skip the query if submission '_uuid' is not even q'd from mongo
             return mongo_cursor

@@ -513,7 +513,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   onHideField(fieldId: string) {
-    tableStore.hideField(this.props.asset, this.state.submissions, this.props.activeBulkActions || [], fieldId)
+    tableStore.hideField(fieldId)
   }
 
   onFieldFrozenChange(fieldId: string, isFrozen: boolean) {
@@ -582,10 +582,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     this.openBulkProcessingModal(fieldId, 'approve')
   }
 
-  _getColumnWidth(columnId: AnyRowTypeName | string | undefined) {
-    if (!columnId) {
-      return DEFAULT_DATA_CELL_WIDTH
-    }
+  /** Takes a question type or a column key. */
+  _getColumnWidth(columnId: AnyRowTypeName | string) {
     return CELLS_WIDTH_OVERRIDES[columnId] || DEFAULT_DATA_CELL_WIDTH
   }
 
@@ -896,6 +894,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         id: key,
         accessor: (row) => selectNestedRow(row, key, rootParentGroup),
         question: q,
+        legacyAttachmentPaths: legacyAttachmentPathsByColumn.get(key),
         // This (and the Filter itself) will be set below (we do it separately,
         // because we need to do it for all the columns, not only the ones in
         // this loop)
@@ -904,7 +903,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
-        width: this._getColumnWidth(q?.type),
+        // Metadata columns have no question, so they use their key.
+        width: this._getColumnWidth(q?.type ?? key),
         Cell: (row: CellInfo) => (
           <DataTableCell
             asset={this.props.asset}
@@ -964,20 +964,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       }
     })
 
-    // prepare list of selected columns, if configured
-    const selectedColumnsIds = tableStore.getSelectedColumns()
-    if (selectedColumnsIds) {
-      // always include frozen columns
-      selectedColumnsIds.unshift(...frozenColumns.filter((id) => !selectedColumnsIds.includes(id)))
-
-      columnsToRender = columnsToRender.filter((el) => {
-        // always include checkbox column
-        if (el.id === SUBMISSION_ACTIONS_ID) {
-          return true
-        }
-        return Boolean(el.id && selectedColumnsIds.includes(el.id) !== false)
-      })
-    }
+    // Frozen and checkbox columns always stay, see `isFieldVisible`.
+    columnsToRender = columnsToRender.filter((el) => !el.id || tableStore.isFieldVisible(el.id))
 
     // Only the last frozen column (the checkbox one if none) gets the border and
     // shadow. CSS `order` keeps list order, so last here is last on screen.

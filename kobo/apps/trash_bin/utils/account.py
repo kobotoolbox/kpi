@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -58,7 +59,15 @@ def delete_account(account_trash: AccountTrash):
 
     user = account_trash.user
     user_id = user.pk
-    date_removal_requested = user.extra_details.date_removal_requested
+    # A user that was created outside the usual sign-up flow may have no extra
+    # details, which the placeholder below relies on. The removal was requested
+    # when the account was moved to trash.
+    extra_details, _ = ExtraUserDetail.objects.get_or_create(
+        user=user,
+        defaults={'date_removal_requested': account_trash.date_created},
+    )
+    date_removal_requested = extra_details.date_removal_requested
+
     try:
         # We need to deactivate this post_delete signal because it's triggered
         # on `User` delete cascade and fails to insert into DB within a transaction.

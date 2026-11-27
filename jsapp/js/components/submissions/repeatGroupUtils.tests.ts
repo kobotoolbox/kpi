@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import React from 'react'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import type { SubmissionResponse } from '#/dataInterface'

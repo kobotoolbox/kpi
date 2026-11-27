@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import type { AccountFieldsValues, UserFieldName, UserMetadataField } from '#/account/account.constants'
 import { ORG_FIELDS } from '#/account/account.mocks'
 import { getInitialAccountFieldsValues } from '#/account/account.utils'

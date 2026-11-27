@@ -1,12 +1,10 @@
-# coding: utf-8
-
 from django.conf import settings
 from django.http import HttpResponse
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request as DRFRequest
 
 from kobo.apps.openrosa.apps.api.utils.rest_framework import openrosa_drf_settings
-from kpi.constants import PERM_VIEW_ASSET
+from kpi.constants import PERM_VIEW_ASSET, PERM_VIEW_SUBMISSIONS
 
 
 class HttpResponseNotAuthorized(HttpResponse):
@@ -19,16 +17,21 @@ class HttpResponseNotAuthorized(HttpResponse):
         )
 
 
-def has_permission(xform, owner, request, shared=False):
+def has_permission(xform, owner, request):
     # PERM_VIEW_ASSET covers holders of PERM_CHANGE_ASSET too: the asset model
     # declares change_asset → view_asset in its IMPLIED_PERMISSIONS mapping.
     user = request.user
-    return (
-        shared
-        or xform.shared_data
-        or owner == user
-        or user.has_perm(PERM_VIEW_ASSET, xform.asset)
-    )
+    return owner == user or user.has_perm(PERM_VIEW_ASSET, xform.asset)
+
+
+def has_view_data_permission(xform, owner, request):
+    """
+    Return whether the requesting user can view all the submissions of
+    `xform`.
+    """
+
+    user = request.user
+    return owner == user or user.has_perm(PERM_VIEW_SUBMISSIONS, xform.asset)
 
 
 def helper_auth_helper(request):

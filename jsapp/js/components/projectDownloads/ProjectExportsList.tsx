@@ -1,17 +1,20 @@
-import { Flex, Text } from '@mantine/core'
+import { Box, Flex, Text } from '@mantine/core'
+import { IconDownload, IconTrash } from '@tabler/icons-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { assetsExportsRetrieve, useAssetsExportsDestroy, useAssetsExportsList } from '#/api/react-query/survey-data'
 import { getLanguageIndex } from '#/assetUtils'
-import bem from '#/bem'
+import ActionIcon from '#/components/common/ActionIcon'
 import SimpleTable from '#/components/common/SimpleTable'
-import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
+import BooleanCell from '#/components/projectDownloads/BooleanCell'
+import ExportTypeBadge from '#/components/projectDownloads/ExportTypeBadge'
 import ExportFetcher from '#/components/projectDownloads/exportFetcher'
 import {
+  EXPORTS_TABLE_COLUMN_WEIGHTS,
+  EXPORTS_TABLE_MIN_WIDTH,
   EXPORT_FORMATS,
-  EXPORT_TYPES,
   ExportStatusName,
   type ExportTypeDefinition,
 } from '#/components/projectDownloads/exportsConstants'
@@ -148,17 +151,6 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }, [exportsListQuery.isError])
 
   /**
-   * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
-   */
-  function renderBooleanAnswer(isTrue: boolean) {
-    if (isTrue) {
-      return t('Yes')
-    } else {
-      return t('No')
-    }
-  }
-
-  /**
    * Unchecked wisdom copied from old version of this component:
    * > Some old SPSS exports may have a meaningless `lang` attribute -- disregard it
    */
@@ -182,22 +174,23 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
       const exportType = exportData.data.type
 
       return [
-        EXPORT_TYPES[exportType]?.label || t('Unknown format'),
+        <ExportTypeBadge exportType={exportType} />,
+        exportData.data.name || '–',
         formatTime(exportData.date_created),
         renderLanguage(exportData.data.lang),
-        <Text key='include-groups' ta='center'>
-          {renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
-        </Text>,
-        <Text key='multiple-versions' ta='center'>
-          {renderBooleanAnswer(exportData.data.fields_from_all_versions)}
-        </Text>,
+        <Box key='include-groups' ta='center'>
+          <BooleanCell value={exportData.data.hierarchy_in_labels} />
+        </Box>,
+        <Box key='multiple-versions' ta='center'>
+          <BooleanCell value={exportData.data.fields_from_all_versions} />
+        </Box>,
         <Flex gap='xs' justify='flex-end' align='center' direction='row' wrap='nowrap' key='buttons'>
           {exportData.status === ExportStatusName.complete && (
-            <Button
-              type='secondary'
-              size='m'
-              startIcon='download'
-              label={t('Download')}
+            <ActionIcon
+              variant='light'
+              size='md'
+              icon={IconDownload}
+              tooltip={t('Download')}
               onClick={() => {
                 if (exportData.result !== null) {
                   window.open(exportData.result, '_blank')
@@ -217,11 +210,12 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
           )}
 
           {userCan(PERMISSIONS_CODENAMES.view_submissions, props.asset) && (
-            <Button
-              type='secondary-danger'
-              size='m'
-              startIcon='trash'
-              isPending={deletingExports.has(exportData.uid)}
+            <ActionIcon
+              variant='danger-secondary'
+              size='md'
+              icon={IconTrash}
+              tooltip={t('Delete')}
+              loading={deletingExports.has(exportData.uid)}
               onClick={() => deleteExport(exportData.uid)}
             />
           )}
@@ -231,13 +225,7 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
   }
 
   if (!isComponentReady) {
-    return (
-      <bem.FormView__row>
-        <bem.FormView__cell>
-          <LoadingSpinner />
-        </bem.FormView__cell>
-      </bem.FormView__row>
-    )
+    return <LoadingSpinner />
   }
 
   if (rows.length === 0 || props.selectedExportType.isLegacy) {
@@ -246,23 +234,27 @@ export default function ProjectExportsList(props: ProjectExportsListProps) {
 
   return (
     <React.Fragment>
-      <bem.FormView__cell m={['page-subtitle']}>{t('Exports')}</bem.FormView__cell>
+      <Text fz={18} fw={500} mt={30} mb={15}>
+        {t('Exports')}
+      </Text>
 
       <SimpleTable
         head={[
           t('Type'),
+          t('Export name'),
           t('Created'),
           t('Language'),
-          <Text key='include-groups' ta='center'>
+          <Box key='include-groups' ta='center'>
             {t('Include Groups')}
-          </Text>,
-          <Text key='multiple-versions' ta='center'>
+          </Box>,
+          <Box key='multiple-versions' ta='center'>
             {t('Multiple Versions')}
-          </Text>,
+          </Box>,
           '',
         ]}
         body={getRows()}
-        minWidth={600}
+        minWidth={EXPORTS_TABLE_MIN_WIDTH}
+        columnWeights={EXPORTS_TABLE_COLUMN_WEIGHTS}
       />
     </React.Fragment>
   )

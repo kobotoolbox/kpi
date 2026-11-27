@@ -390,6 +390,14 @@ def create_instance(
             if not has_new_attachments:
                 raise DuplicateInstanceError
             else:
+                # The XML is unchanged but `_attachments` is not: refresh
+                # `date_modified` so API consumers can detect the change.
+                # A queryset update avoids `Instance.save()`, which would
+                # reprocess the XML and fire the `post_save` receivers
+                existing_instance.date_modified = dj_timezone.now()
+                Instance.objects.filter(pk=existing_instance.pk).update(
+                    date_modified=existing_instance.date_modified
+                )
                 # Update Mongo via the related ParsedInstance
                 existing_instance.parsed_instance.save(asynchronous=False)
                 update_user_counters(
@@ -997,19 +1005,17 @@ def get_soft_deleted_attachments(instance: Instance) -> list[Attachment]:
     # If the new attachment has the same basename as an existing one but
     # different content, update the existing one.
 
-    # FIXME Temporary hack to leave background-audio files and audit files alone
-    #  Bug comes from `get_xform_media_question_xpaths()`
+    # Two kinds of files are never matched against a question:
+    # - the files of an encrypted submission, whose XML is an envelope that
+    #   lists them outside of any question;
+    # - the audit, which pyxform places under `meta/` while the `$xpath` of a
+    #   KPI form version leaves `meta/` out, so a version other than the
+    #   deployed one would never find it. Its name is always `audit.csv`
     queryset = (
         Attachment.objects.filter(instance=instance)
         .exclude(
             Q(media_file_basename__endswith='.enc')
             | Q(media_file_basename='audit.csv')
-            | Q(
-                media_file_basename__regex=r'^\d{10,}\.(m4a|amr)$'
-            )  # background audio file by Collect
-            | Q(
-                media_file_basename__regex=r'^background-audio-\d{8}_\d{6}\.webm$'
-            )  # background audio file by Enketo
         )
         .order_by('-id')
     )

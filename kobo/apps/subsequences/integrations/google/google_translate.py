@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import posixpath
-import re
 from concurrent.futures import TimeoutError
 from typing import Any
 
@@ -29,25 +28,17 @@ from ...constants import (
     DEPENDENCY_ACTION_ID_FIELD,
     DEPENDENCY_SOURCE_SUBMISSION,
     GOOGLE_CACHE_TIMEOUT,
-    GOOGLE_CODE,
 )
 from ...exceptions import (
-    GoogleQuotaExceededError,
+    ServiceQuotaExceededError,
     SubsequenceTimeoutError,
     TranslationResultNotFound,
 )
-from ...utils.survey import get_form_language
+from ..rate_limit import ServiceRateLimitExceeded, require_service_quota
 from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
 from .locations import get_translate_endpoint, get_translate_location
-from .rate_limit import (
-    GoogleServiceRateLimitExceeded,
-    get_google_retry_after_seconds,
-    require_google_service_quota,
-)
-
-# Matches the trailing `(code)` in a form language like 'English (en)'
-_FORM_LANGUAGE_CODE_RE = re.compile(r'\(([^)]+)\)\s*$')
+from .rate_limit import get_google_retry_after_seconds
 
 
 class GoogleTranslationService(GoogleService):
@@ -120,7 +111,7 @@ class GoogleTranslationService(GoogleService):
             f'{target_lang=}'
         )
         # Check Redis bucket and halt locally if we are exceeding allowed requests
-        require_google_service_quota('translate_v3_batch_translate_text')
+        require_service_quota('translate_v3_batch_translate_text')
         self._cleanup_batch_files(xpath, source_lang, target_lang)
 
         destination = self.bucket.blob(source_path)
@@ -191,10 +182,9 @@ class GoogleTranslationService(GoogleService):
             if from_submission:
                 # Direct-text source: read the answer straight from the submission
                 content = self.submission.get(xpath)
-                source_lang = None
             else:
                 content = dependency['value']
-                source_lang = dependency['language']
+            source_lang = dependency['language']
         except KeyError:
             message = 'Error while setting up translation'
             logging.exception(message)
@@ -208,23 +198,13 @@ class GoogleTranslationService(GoogleService):
 
         try:
             if from_submission:
-                source_language_code = self._get_submission_language_code()
+                source_language_code = self._get_translation_language_code(source_lang)
             else:
                 source_language_code = self._get_source_language_code(source_lang)
             target_language_code = self._get_translation_language_code(target_lang)
         except LanguageNotSupported as err:
             message = str(err) or 'Translation is not supported for this language.'
             return {'status': 'failed', 'error': message}
-
-        if len(content) > self.MAX_SYNC_CHARS and not source_language_code:
-            # Google's batch API cannot detect the source language on its own
-            return {
-                'status': 'failed',
-                'error': (
-                    'This response is too long to translate without knowing its '
-                    'language. Set the form language and try again.'
-                ),
-            }
 
         if len(content) <= self.MAX_SYNC_CHARS:
             self._before_new_operation()
@@ -275,19 +255,17 @@ class GoogleTranslationService(GoogleService):
         )
         try:
             # Check Redis bucket and halt locally if we are exceeding allowed requests
-            require_google_service_quota('translate_v3_translate_text')
+            require_service_quota('translate_v3_translate_text')
             request = {
                 'contents': [content],
                 'target_language_code': target_language_code,
                 'parent': self.translate_parent,
                 'mime_type': 'text/plain',
                 'labels': {'username': self.asset.owner.username},
+                'source_language_code': source_language_code,
             }
-            if source_language_code:
-                # Omitting it entirely asks Google to detect the language
-                request['source_language_code'] = source_language_code
             response = self.translate_client.translate_text(request=request)
-        except GoogleServiceRateLimitExceeded as err:
+        except ServiceRateLimitExceeded as err:
             logging.info(
                 'Deferred Google sync translation because project quota is '
                 'exhausted for '
@@ -300,7 +278,7 @@ class GoogleTranslationService(GoogleService):
                 'Google sync translation quota was exhausted for '
                 f'{self.submission_root_uuid=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except InvalidArgument as err:
             logging.exception('Error when processing translation')
             return {
@@ -348,7 +326,7 @@ class GoogleTranslationService(GoogleService):
                 target_lang=target_language_code,
                 content=content,
             )
-        except GoogleServiceRateLimitExceeded as err:
+        except ServiceRateLimitExceeded as err:
             logging.info(
                 'Deferred Google async translation because project quota is '
                 f'exhausted for {xpath=}, retry_after={err.retry_after}'
@@ -360,7 +338,7 @@ class GoogleTranslationService(GoogleService):
                 'Google async translation quota was exhausted for '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except InvalidArgument as err:
             logging.exception('Error when starting translation')
             return {
@@ -423,7 +401,7 @@ class GoogleTranslationService(GoogleService):
                 'Google async translation quota was exhausted while waiting for '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check on the operation, but the batch
             # job itself may still be running. Report 'in_progress' so
@@ -497,7 +475,7 @@ class GoogleTranslationService(GoogleService):
                 'Google async translation quota was exhausted while polling '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Keep the operation reference so a later polling attempt can
             # resume instead of recreating the Google job
@@ -515,39 +493,13 @@ class GoogleTranslationService(GoogleService):
         )
         return {'status': 'complete', 'value': value}
 
-    def _get_submission_language_code(self) -> str | None:
-        """
-        Return the Google code for the language a response is written in.
-
-        Nothing declares the language of a response typed by a respondent, so
-        the form's own language is used as a hint. It is often unset or not a
-        language Google translates, in which case None asks Google to detect
-        the language instead of failing the translation.
-        """
-        form_language = get_form_language(self.asset)
-        if not form_language:
-            return None
-
-        # e.g. 'en' from 'English (en)', or the raw value when it has no suffix
-        match = _FORM_LANGUAGE_CODE_RE.search(form_language)
-        language = match.group(1) if match else form_language
-
-        try:
-            return self._get_translation_language_code(language)
-        except LanguageNotSupported:
-            logging.info(
-                f'Google cannot translate from the form language {language!r} '
-                f'for {self.submission_root_uuid=}, letting it detect instead'
-            )
-            return None
-
     def _get_source_language_code(self, requested_language: str) -> str:
         """
         Resolve the Google source language code from the transcription record
         """
         try:
             transcription_lang_service = TranscriptionService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranscriptionService.DoesNotExist:
             raise LanguageNotSupported(
@@ -561,7 +513,7 @@ class GoogleTranslationService(GoogleService):
         """
         try:
             translation_lang_service = TranslationService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranslationService.DoesNotExist:
             raise LanguageNotSupported(

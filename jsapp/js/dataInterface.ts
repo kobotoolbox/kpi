@@ -173,13 +173,6 @@ export interface PasswordUpdateFailResponse {
   new_password: string[]
 }
 
-interface ProcessingResponseData {
-  [questionName: string]: any
-  _id: number
-}
-
-export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingResponseData>
-
 /**
  * @deprecated use _DataResponseAttachments from Orval instead.
  */
@@ -605,7 +598,7 @@ export interface TableSortBySetting {
  * a new settings draft too and it's simpler that way.
  */
 export interface AssetTableSettings {
-  'selected-columns'?: string[] | null
+  'hidden-columns'?: string[] | null
   /** Old settings keep a single column id as a string, see `tableStore.getFrozenColumns`. */
   'frozen-column'?: string[] | string | null
   'show-group-name'?: boolean | null
@@ -1140,7 +1133,7 @@ export interface ExportDataResponse {
   result: string | null
   data: {
     lang: ExportDataLang
-    name: null
+    name: string | null
     type: ExportTypeName
     /** List of form row names. */
     fields: string[]
@@ -1911,13 +1904,6 @@ export const dataInterface: DataInterface = {
 
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-      method: 'GET',
-    })
-  },
-
-  getSubmission(uid: string, sid: string): JQuery.jqXHR<SubmissionResponse> {
-    return $ajax({
-      url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
       method: 'GET',
     })
   },

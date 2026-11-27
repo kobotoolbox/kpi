@@ -10,7 +10,9 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
+from kobo.apps.subsequences.actions import AUTOMATIC_TRANSCRIPTION_ACTION_IDS
 from kpi.schema_extensions.v2.data.mixins import (
+    TRANSLATION_SOURCE_PROPERTIES,
     SupplementalDataComponentsRegistrationMixin,
 )
 from kpi.schema_extensions.v2.generic.schema import (
@@ -126,16 +128,26 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'manual_transcription': self._nlp_manual_action_schema,
-                'manual_translation': self._nlp_manual_action_schema,
-                'automatic_google_transcription': self._nlp_automatic_action_schema,
-                'automatic_google_translation': self._nlp_automatic_action_schema,
+                'manual_translation': self._with_source_language(
+                    self._nlp_manual_action_schema
+                ),
+                **{
+                    action_id: self._nlp_automatic_action_schema
+                    for action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS
+                },
+                'automatic_google_translation': self._with_source_language(
+                    self._nlp_automatic_action_schema
+                ),
                 'manual_qual': self._manual_qual_schema(references),
                 'automatic_bedrock_qual': self._automatic_qual_schema(references),
             },
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
-                {'required': ['automatic_google_transcription']},
+                *(
+                    {'required': [action_id]}
+                    for action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS
+                ),
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
                 {'required': ['automatic_bedrock_qual']}
@@ -229,6 +241,16 @@ class DataSupplementPayloadExtension(
             required=['language', 'value'],
         )
 
+    @staticmethod
+    def _with_source_language(schema: dict) -> dict:
+        """
+        Add the language a text response is written in, required to translate
+        it. Other sources are transcripts, which carry their own language.
+        """
+
+        schema['properties'].update(TRANSLATION_SOURCE_PROPERTIES)
+        return schema
+
 
 class DataSupplementResponseExtension(
     QualComponentsRegistrationMixin,
@@ -244,9 +266,10 @@ class DataSupplementResponseExtension(
             properties={
                 'manual_transcription': supp_references['action_object_manual'],
                 'manual_translation': supp_references['translation_map_manual'],
-                'automatic_google_transcription': supp_references[
-                    'action_object_automatic'
-                ],
+                **{
+                    action_id: supp_references['action_object_automatic']
+                    for action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS
+                },
                 'automatic_google_translation': supp_references[
                     'translation_map_automatic'
                 ],
@@ -257,7 +280,10 @@ class DataSupplementResponseExtension(
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
-                {'required': ['automatic_google_transcription']},
+                *(
+                    {'required': [action_id]}
+                    for action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS
+                ),
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
                 {'required': ['automatic_bedrock_qual']},
@@ -374,16 +400,17 @@ class DataSupplementalDetailsFieldExtension(
                     description='Manual translation supplemental details',
                 ),
                 # Option 3: AI-generated audio/video transcription
-                build_object_type(
-                    additionalProperties=build_object_type(
-                        properties={
-                            'automatic_google_transcription': supp_references[
-                                'action_object_automatic'
-                            ],
-                        },
-                        required=['automatic_google_transcription'],
-                    ),
-                    description='Automatic transcription supplemental details',
+                *(
+                    build_object_type(
+                        additionalProperties=build_object_type(
+                            properties={
+                                action_id: supp_references['action_object_automatic'],
+                            },
+                            required=[action_id],
+                        ),
+                        description='Automatic transcription supplemental details',
+                    )
+                    for action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS
                 ),
                 # Option 4: AI-generated text translation
                 build_object_type(

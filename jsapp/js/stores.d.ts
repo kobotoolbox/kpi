@@ -34,10 +34,7 @@ export interface SurveyStateStore {
 }
 
 export interface Stores {
-  tags: any
   surveyState: SurveyStateStore
-  translations: any
-  snapshots: any
 }
 
 export declare const stores: Stores

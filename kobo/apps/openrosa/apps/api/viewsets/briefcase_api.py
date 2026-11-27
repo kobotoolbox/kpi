@@ -8,7 +8,7 @@ from rest_framework import exceptions, mixins, permissions
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from kobo.apps.openrosa.apps.api.permissions import AssetObjectPermissions
+from kobo.apps.openrosa.apps.api.permissions import SubmissionObjectPermissions
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -72,9 +72,10 @@ class BriefcaseApi(
     Implements the [Briefcase Aggregate API](\
     https://code.google.com/p/opendatakit/wiki/BriefcaseAggregateAPI).
     """
-    filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
+
+    filter_backends = (filters.SubmissionObjectPermissionFilter,)
     queryset = XForm.objects.all()
-    permission_classes = (permissions.IsAuthenticated, AssetObjectPermissions)
+    permission_classes = (permissions.IsAuthenticated, SubmissionObjectPermissions)
     renderer_classes = (TemplateXMLRenderer, OpenRosaBasicHTMLRenderer)
     serializer_class = XFormListSerializer
     template_name = 'openrosa_response.xml'

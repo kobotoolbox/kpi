@@ -1,3 +1,6 @@
+from django.utils.translation import gettext as t
+
+
 class AnalysisQuestionNotFound(Exception):
     """
     Raised when the uuid for automatic qual analysis is not found in the manual params
@@ -35,16 +38,14 @@ class GoogleTranscriptionServiceNotConfigured(Exception):
     pass
 
 
-class GoogleQuotaExceededError(Exception):
+class ServiceQuotaExceededError(Exception):
     """
-    Raised when Google rejects or would reject a request due to project quota
+    Raised when an NLP service rejects or would reject a request due to quota
     """
 
     def __init__(self, retry_after: int = 100):
         self.retry_after = retry_after
-        super().__init__(
-            f'Google project quota exceeded. Retry after {retry_after} seconds.'
-        )
+        super().__init__(f'Service quota exceeded. Retry after {retry_after} seconds.')
 
 
 class SubsequenceDeletionError(Exception):
@@ -121,6 +122,25 @@ class TranscriptionNotFound(DependencyNotFound):
         )
     ):
         super().__init__(message)
+
+
+class InvalidSourceLanguage(Exception):
+    """
+    Raised when a translation request has an unusable `source_language`
+    """
+
+
+class SourceLanguageNotFound(DependencyNotFound):
+    """
+    Raised when translating a text response without its source language
+    """
+
+    def __init__(self, message=None):
+        # Translated when raised, so it's in the language of the request
+        super().__init__(
+            message
+            or t('The source language is required to translate a text response.')
+        )
 
 
 class TranscriptionResultNotFound(Exception):

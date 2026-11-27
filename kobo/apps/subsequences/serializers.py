@@ -7,7 +7,10 @@ from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 
 from kobo.apps.openrosa.apps.logger.models import Instance
-from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
+from kobo.apps.subsequences.actions import (
+    ACTION_IDS_TO_CLASSES,
+    AUTOMATIC_TRANSCRIPTION_ACTION_IDS,
+)
 from kobo.apps.subsequences.models import (
     BulkActionItemStatus,
     BulkActionStatus,
@@ -160,7 +163,7 @@ class BulkActionResponseSerializer(serializers.ModelSerializer):
 
 class BulkActionCreateSerializer(serializers.Serializer):
     ACTION_CHOICES = (
-        'automatic_google_transcription',
+        *AUTOMATIC_TRANSCRIPTION_ACTION_IDS,
         'automatic_google_translation',
     )
 
@@ -281,7 +284,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
         for submission_uuid in submission_uuids:
             supplement = supplements_by_uuid.get(submission_uuid, {})
             question_data = supplement.get(question_xpath) or {}
-            if action_id == 'automatic_google_transcription':
+            if action_id in AUTOMATIC_TRANSCRIPTION_ACTION_IDS:
                 if self._has_existing_transcription(question_data, params):
                     ineligible.add(submission_uuid)
             elif action_id == 'automatic_google_translation':
@@ -292,7 +295,7 @@ class BulkActionCreateSerializer(serializers.Serializer):
 
     def _has_existing_transcription(self, question_data: dict, params: dict) -> bool:
         candidates = []
-        for key in ('manual_transcription', 'automatic_google_transcription'):
+        for key in ('manual_transcription', *AUTOMATIC_TRANSCRIPTION_ACTION_IDS):
             action_data = question_data.get(key) or {}
             candidates.extend(action_data.get('_versions', []))
 
@@ -431,7 +434,7 @@ class BulkAcceptSerializer(serializers.Serializer):
     """
 
     ACTION_CHOICES = (
-        'automatic_google_transcription',
+        *AUTOMATIC_TRANSCRIPTION_ACTION_IDS,
         'automatic_google_translation',
     )
 

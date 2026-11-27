@@ -34,25 +34,22 @@ from kpi.exceptions import (
     XPathNotFoundException,
 )
 from kpi.utils.log import logging
-from ...constants import GOOGLE_CACHE_TIMEOUT, GOOGLE_CODE
+from ...constants import GOOGLE_CACHE_TIMEOUT
 from ...exceptions import (
     AudioTooLongError,
-    GoogleQuotaExceededError,
     GoogleTranscriptionServiceNotConfigured,
+    ServiceQuotaExceededError,
     SubsequenceTimeoutError,
     TranscriptionResultNotFound,
 )
+from ..rate_limit import ServiceRateLimitExceeded, require_service_quota
 from .base import GoogleService
 from .locations import (
     get_asr_language_code_overrides,
     get_speech_location_for_model,
     get_speech_location_for_region,
 )
-from .rate_limit import (
-    GoogleServiceRateLimitExceeded,
-    get_google_retry_after_seconds,
-    require_google_service_quota,
-)
+from .rate_limit import get_google_retry_after_seconds
 
 # https://cloud.google.com/speech-to-text/docs/quotas
 ASYNC_MAX_LENGTH = timedelta(minutes=479)
@@ -146,7 +143,7 @@ class GoogleTranscriptionService(GoogleService):
             f'{speech_location=}, {speech_model=}'
         )
         # Check Redis bucket and halt locally if we are exceeding allowed requests
-        require_google_service_quota('speech_v2_batch_recognize')
+        require_service_quota('speech_v2_batch_recognize')
         self._cleanup_batch_files(xpath, source_lang)
         gcs_input_uri = self.store_file(flac_content, input_path)
 
@@ -206,9 +203,9 @@ class GoogleTranscriptionService(GoogleService):
         - `failed` with a user-facing error for expected failures
 
         Quota Management Flow:
-        1. INTERNAL CHECK: Before reaching out to Google, require_google_service_quota()
+        1. INTERNAL CHECK: Before reaching out to Google, require_service_quota()
            checks our Redis token bucket. If we are sending too many requests,
-           it raises GoogleServiceRateLimitExceeded and Celery is told to wait.
+           it raises ServiceRateLimitExceeded and Celery is told to wait.
         2. EXTERNAL CHECK: If Google's servers reject our request, we catch
            ResourceExhausted. We read Google's 'Retry-After' header and tell
            Celery to sleep for that exact amount of time.
@@ -298,7 +295,7 @@ class GoogleTranscriptionService(GoogleService):
                     'status': 'failed',
                     'error': f'Transcription failed with error {str(err)}',
                 }
-            except GoogleServiceRateLimitExceeded as err:
+            except ServiceRateLimitExceeded as err:
                 logging.info(
                     'Deferred Google transcription start because project quota '
                     f'is exhausted for {xpath=}, '
@@ -311,7 +308,7 @@ class GoogleTranscriptionService(GoogleService):
                     'Google transcription quota was exhausted while starting '
                     f'{xpath=}, retry_after={retry_after}: {err}'
                 )
-                raise GoogleQuotaExceededError(retry_after=retry_after) from err
+                raise ServiceQuotaExceededError(retry_after=retry_after) from err
             except (GoogleAPIError, GoogleCloudError) as err:
                 # Unable to reach Google to start the transcription job,
                 # return 'in_progress' to allow celery to retry
@@ -391,7 +388,7 @@ class GoogleTranscriptionService(GoogleService):
                     'Google transcription quota was exhausted while waiting for '
                     f'{xpath=}, retry_after={retry_after}: {err}'
                 )
-                raise GoogleQuotaExceededError(retry_after=retry_after) from err
+                raise ServiceQuotaExceededError(retry_after=retry_after) from err
             except (GoogleAPIError, GoogleCloudError) as err:
                 # Unable to reach Google to check the operation status, but the
                 # job may have still succeeded. Return 'in_progress' to allow Celery
@@ -490,7 +487,7 @@ class GoogleTranscriptionService(GoogleService):
                 'Google transcription quota was exhausted while polling '
                 f'{xpath=}, retry_after={retry_after}: {err}'
             )
-            raise GoogleQuotaExceededError(retry_after=retry_after) from err
+            raise ServiceQuotaExceededError(retry_after=retry_after) from err
         except (GoogleAPIError, GoogleCloudError) as err:
             # Unable to reach Google to check the operation status.
             # The transcription may still be running, so return 'in_progress'
@@ -532,7 +529,7 @@ class GoogleTranscriptionService(GoogleService):
         """
         try:
             transcription_lang_service = TranscriptionService.objects.get(
-                code=GOOGLE_CODE
+                code=self.SERVICE_CODE
             )
         except TranscriptionService.DoesNotExist:
             raise GoogleTranscriptionServiceNotConfigured(

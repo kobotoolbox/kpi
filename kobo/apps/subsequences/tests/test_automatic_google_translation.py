@@ -13,8 +13,21 @@ from django.test import TestCase
 from ...kobo_auth.shortcuts import User
 from ...organizations.constants import UsageType
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
-from ..exceptions import GoogleQuotaExceededError, TranscriptionNotFound
-from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
+from ..exceptions import (
+    InvalidSourceLanguage,
+    ServiceQuotaExceededError,
+    SourceLanguageNotFound,
+    TranscriptionNotFound,
+)
+from .constants import (
+    EMPTY_SUBMISSION,
+    EMPTY_SUPPLEMENT,
+    QUESTION_SUPPLEMENT,
+    TEXT_QUESTION_XPATH,
+    TEXT_SUBMISSION,
+    TEXT_SUBMISSION_UUID,
+)
+from .utils import get_mock_text_question_asset
 
 
 def test_valid_params_pass_validation():
@@ -582,32 +595,96 @@ def test_find_the_most_recent_accepted_transcription():
 
 
 def test_attach_action_dependency_for_text_source_question():
-    xpath = 'text_question'
-    params = [{'language': 'fr'}, {'language': 'es'}]
-    mock_asset = MagicMock()
-    mock_asset.content = {'survey': [{'type': 'text', 'name': xpath, '$xpath': xpath}]}
-    # A mock has no unset attributes, so spell out what the metadata helper
-    # relies on: nothing memoized yet, and no deployed version to cache against
-    mock_asset._survey_metadata = None
-    mock_asset.latest_deployed_version_uid = None
-    action = AutomaticGoogleTranslationAction(
-        xpath,
-        params,
-        asset=mock_asset,
-        prefetched_dependencies={'question_supplemental_data': {}},
+    action = _get_text_action()
+
+    result = action.attach_action_dependency(
+        {'language': 'fr', 'source_language': 'es'}, TEXT_SUBMISSION
     )
 
-    submission_uuid = '2bb75d6b-45f5-48ac-9472-38d7246c84f7'
-    submission = {
-        'meta/rootUuid': f'uuid:{submission_uuid}',
-        '_uuid': submission_uuid,
-        xpath: 'Some free text answer',
-    }
-    result = action.attach_action_dependency({'language': 'fr'}, submission)
-
     assert result['_dependency']['_actionId'] == 'submission'
-    assert result['_dependency']['_uuid'] == submission_uuid
+    assert result['_dependency']['_uuid'] == TEXT_SUBMISSION_UUID
     assert result['_dependency']['_question_type'] == 'text'
+    assert result['_dependency']['language'] == 'es'
+
+
+def test_cannot_translate_text_source_without_source_language():
+    action = _get_text_action()
+
+    with pytest.raises(SourceLanguageNotFound):
+        action.revise_data(TEXT_SUBMISSION, EMPTY_SUPPLEMENT, {'language': 'fr'})
+
+
+def test_text_source_accept_and_delete_do_not_need_source_language():
+    action = _get_text_action()
+
+    # Neither runs a new translation, so there is nothing to translate from
+    action.validate_data({'language': 'fr', 'accepted': True})
+    action.validate_data({'language': 'fr', 'value': None})
+
+
+def test_text_source_language_cannot_be_empty():
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        _get_text_action().validate_data({'language': 'fr', 'source_language': ''})
+
+
+def test_text_source_language_must_differ_from_target_language():
+    # Google rejects a translation into the language it is written in
+    with pytest.raises(InvalidSourceLanguage, match='must differ from'):
+        _get_text_action().validate_data({'language': 'es', 'source_language': 'es'})
+
+
+def test_source_language_is_only_accepted_for_text_source_questions():
+    data = {'language': 'fr', 'source_language': 'es'}
+
+    _get_text_action().validate_data(data)
+
+    # A transcript carries its own language
+    with pytest.raises(InvalidSourceLanguage):
+        _get_action().validate_data(data)
+
+
+def test_text_source_translation_stores_its_source_language():
+    action = _get_text_action()
+    mock_service = MagicMock()
+    sent_params = []
+
+    def process_data(xpath, params, **kwargs):
+        # `revise_data` pops the dependency afterwards, so keep it as sent
+        sent_params.append(deepcopy(params))
+        return {'value': 'Bonjour', 'status': 'complete'}
+
+    mock_service.process_data.side_effect = process_data
+
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        return_value=mock_service,
+    ):
+        result = action.revise_data(
+            TEXT_SUBMISSION,
+            EMPTY_SUPPLEMENT,
+            {'language': 'fr', 'source_language': 'es'},
+        )
+
+    assert sent_params[0]['_dependency']['language'] == 'es'
+
+    version = result['fr']['_versions'][0]
+    assert version['_data'] == {
+        'language': 'fr',
+        'source_language': 'es',
+        'value': 'Bonjour',
+        'status': 'complete',
+    }
+    # Only a reference to the source is kept
+    assert version['_dependency'] == {
+        '_actionId': 'submission',
+        '_uuid': TEXT_SUBMISSION_UUID,
+    }
+    action.validate_result(result)
+
+    # The whole supplement is validated on every write, so the stored version
+    # must stay valid even once the question is no longer a text question
+    # (renamed, removed or changed type in a later deployment)
+    _get_action().validate_result(result)
 
 
 def test_async_translation_timeout_schedules_background_polling():
@@ -660,7 +737,7 @@ def test_google_quota_error_schedules_background_polling_for_async_translation()
         'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
-        mock_service.process_data.side_effect = GoogleQuotaExceededError(
+        mock_service.process_data.side_effect = ServiceQuotaExceededError(
             retry_after=123
         )
         with patch(
@@ -771,6 +848,15 @@ def _get_action(question_supplement=None):
         prefetched_dependencies={'question_supplemental_data': supplement},
     )
     return action
+
+
+def _get_text_action():
+    return AutomaticGoogleTranslationAction(
+        TEXT_QUESTION_XPATH,
+        [{'language': 'fr'}, {'language': 'es'}],
+        asset=get_mock_text_question_asset(),
+        prefetched_dependencies={'question_supplemental_data': {}},
+    )
 
 
 @ddt

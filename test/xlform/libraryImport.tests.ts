@@ -1,4 +1,4 @@
-import chai from 'chai'
+import * as chai from 'chai'
 import { surveyToValidJson, unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
 import { GroupTypeBeginName, GroupTypeEndName, QuestionTypeName } from '#/constants'
 import type { AssetContent, SurveyChoice, SurveyRow } from '#/dataInterface'
