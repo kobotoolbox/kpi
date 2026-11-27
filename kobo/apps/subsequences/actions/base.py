@@ -1065,7 +1065,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                 action_data,
                 in_progress_created_upfront,
             )
-        except (GoogleQuotaExceededError, APIException):
+        except (ServiceQuotaExceededError, APIException):
             # Not failures of the service, re-raised on purpose: Celery retries
             # the quota error later, and an `APIException` (e.g. the usage
             # limit) is the response the client must get. The caller then
