@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import RequestFactory, TestCase, override_settings
 from rest_framework.exceptions import AuthenticationFailed
 
@@ -22,7 +24,8 @@ class TestDataCollectorAuthentication(TestCase):
         self.asset.save()
         self.asset.deploy(backend='mock')
 
-    def test_data_collector_token_authentication(self):
+    @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
+    def test_data_collector_token_authentication(self, _):
         request = RequestFactory().get('/')
         setattr(request, 'parser_context', {'kwargs': {'token': 'token_a'}})
         data_collector_group = DataCollectorGroup.objects.create(
@@ -52,7 +55,8 @@ class TestDataCollectorAuthentication(TestCase):
         # no permission for an asset not in the asset list
         assert not user.has_perm(PERM_ADD_SUBMISSIONS, second_asset.deployment.xform)
 
-    def test_bad_data_collector_token(self):
+    @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
+    def test_bad_data_collector_token(self, _):
         request = RequestFactory().get('/')
         setattr(request, 'parser_context', {'kwargs': {'token': 'this_is_a_bad_token'}})
         data_collector_group = DataCollectorGroup.objects.create(

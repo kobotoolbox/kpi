@@ -972,7 +972,8 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                             response, 'Successful submission.', status_code=201
                         )
 
-    def test_submission_data_collector(self):
+    @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
+    def test_submission_data_collector(self, _):
         dcg = DataCollectorGroup.objects.create(name='DCG')
         dcg.assets.add(self.xform.asset)
         dc = DataCollector.objects.create(name='DC', group=dcg)

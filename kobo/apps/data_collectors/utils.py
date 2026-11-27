@@ -1,10 +1,13 @@
 import re
 
 import redis.exceptions
+from django.contrib.postgres.aggregates import ArrayAgg
 from django_redis import get_redis_connection
 from shortuuid import ShortUUID
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
+from kobo.apps.data_collectors.models import DataCollectorGroup
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.utils.viewer_tools import EnketoError
 from kpi.deployment_backends.openrosa_utils import (
     fetch_enketo_links,
@@ -43,37 +46,81 @@ def get_all_redis_entries_for_token(redis_client, token):
     return [key.decode('utf-8') for key in keys]
 
 
+def get_xform_id_strings_by_asset_uid(asset_uids) -> dict[str, str]:
+    """
+    Map the UID of each deployed asset to the `id_string` of its XForm
+
+    Enketo links use the XForm `id_string`, which is not always the asset UID:
+    a redeployment keeps the `id_string` of the first deployment.
+    """
+
+    # XForm lives in the KoboCAT database. Evaluate `asset_uids` first so that
+    # a KPI queryset never ends up as a subquery in a KoboCAT query.
+    asset_uids = list(asset_uids)
+    return dict(
+        XForm.objects.filter(kpi_asset_uid__in=asset_uids).values_list(
+            'kpi_asset_uid', 'id_string'
+        )
+    )
+
+
+def get_xform_id_strings_for_group(group_id: str) -> list[str]:
+    """
+    Return the XForm `id_string` of each deployed asset in the data collector
+    group
+    """
+
+    asset_uids = DataCollectorGroup.objects.filter(pk=group_id).values_list(
+        'assets__uid', flat=True
+    )
+    return list(get_xform_id_strings_by_asset_uid(asset_uids).values())
+
+
 def toggle_internal_external_open_rosa_server_for_all_data_collectors():
     redis_client = get_redis_connection('enketo_redis_main')
+    # scanning redis for all keys in the data collector format is an O(n)
+    # operation on at minimum all xforms currently accepting submissions,
+    # so construct the redis keys that are *supposed* to be there from the DB objects
+    data_collector_groups = list(
+        DataCollectorGroup.objects.filter(
+            assets__isnull=False, data_collectors__isnull=False
+        )
+        .values('uid')
+        .annotate(
+            asset_uids=ArrayAgg('assets__uid', distinct=True),
+            tokens=ArrayAgg('data_collectors__token', distinct=True),
+        )
+    )
+    xform_id_strings = get_xform_id_strings_by_asset_uid(
+        {uid for dcg in data_collector_groups for uid in dcg['asset_uids']}
+    )
 
-    # All data collector keys use the '/collector' url prefix
-    base_url = get_url_for_enketo_key(DC_ENKETO_URL_TEMPLATE.format(''))
-    pattern = f'or:{base_url}*'
-    cursor, all_or_keys = redis_client.scan(cursor=0, match=pattern)
-    while cursor > 0:
-        cursor, more_keys = redis_client.scan(cursor=cursor, match=pattern)
-        all_or_keys.extend(more_keys)
+    # should be one redis entry per data collector per deployed asset
+    tokens_and_keys = []
+    for dcg in data_collector_groups:
+        for asset_uid in dcg['asset_uids']:
+            if not (xform_id_string := xform_id_strings.get(asset_uid)):
+                continue
+            for token in dcg['tokens']:
+                key = get_redis_key_for_token_and_xform(token, xform_id_string)
+                tokens_and_keys.append((token, key))
 
-    if not all_or_keys:
+    if not tokens_and_keys:
         return
 
-    all_or_keys = [key.decode('utf-8') for key in all_or_keys]
-    enketo_id_values = redis_client.mget(*all_or_keys)
-
-    # Reconstruct the server URL from each or-key to avoid a separate hget
-    # pipeline: the key format is or:<host>/collector/<token>,<xform_id>.
+    enketo_id_values = redis_client.mget(*[key for _, key in tokens_and_keys])
+    # read the constance setting once, not once per link
+    server_url_template = to_internal_or_external_url(
+        DC_ENKETO_URL_TEMPLATE, openrosa=True
+    )
     pipeline = redis_client.pipeline()
-    for or_key, enketo_id_bytes in zip(all_or_keys, enketo_id_values):
+    for (token, _), enketo_id_bytes in zip(tokens_and_keys, enketo_id_values):
         if enketo_id_bytes is None:
             continue
-        enketo_id = enketo_id_bytes.decode('utf-8')
-        url_without_scheme = or_key[3:].split(',')[0].rstrip('/')
-        *_, token = url_without_scheme.split('/')
-        server_url = DC_ENKETO_URL_TEMPLATE.format(token)
         pipeline.hset(
-            f'id:{enketo_id}',
+            get_redis_key_for_enketo_id(enketo_id_bytes.decode('utf-8')),
             'openRosaServer',
-            to_internal_or_external_url(server_url, openrosa=True),
+            server_url_template.format(token),
         )
     pipeline.execute()
 

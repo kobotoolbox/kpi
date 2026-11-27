@@ -16,46 +16,52 @@ class TestDataCollector(BaseTestCase):
 
     def setUp(self):
         someuser = User.objects.get(username='someuser')
-        asset = Asset.objects.filter(owner=someuser).first()
+        self.asset = Asset.objects.filter(owner=someuser).first()
         self.data_collector_group = DataCollectorGroup.objects.create(
             name='DCG', owner=someuser
         )
-        self.data_collector_group.assets.add(asset)
+        self.data_collector_group.assets.add(self.asset)
+        with patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links'):
+            self.data_collector = DataCollector.objects.create(
+                name='DC0', group=self.data_collector_group
+            )
 
     def test_token_created_on_save(self):
-        data_collector = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
+        data_collector = DataCollector.objects.create(name='DC')
         assert data_collector.token is not None
 
     @patch('kobo.apps.data_collectors.signals.rename_data_collector_enketo_links')
     def test_rotate_token(self, _):
-        data_collector_0 = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
-        initial_token = data_collector_0.token
-        data_collector_0.rotate_token()
-        assert not data_collector_0.token == initial_token
+        initial_token = self.data_collector.token
+        self.data_collector.rotate_token()
+        assert not self.data_collector.token == initial_token
 
     # plumbing tests, actual utils tested elsewhere
+    def test_create_data_collector_with_group_creates_links(self):
+        self.asset.save()
+        self.asset.deploy(backend='mock')
+        with patch(
+            'kobo.apps.data_collectors.signals.set_data_collector_enketo_links'
+        ) as patched_set:
+            dc = DataCollector.objects.create(
+                name='DC2', group=self.data_collector_group
+            )
+        patched_set.assert_called_once_with(
+            dc.token, [self.asset.deployment.xform.id_string]
+        )
+
     @patch('kobo.apps.data_collectors.signals.rename_data_collector_enketo_links')
     def test_rotate_token_updates_enketo_links(self, patched_rename):
-        data_collector_0 = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
-        initial_token = data_collector_0.token
-        data_collector_0.rotate_token()
-        new_token = data_collector_0.token
+        initial_token = self.data_collector.token
+        self.data_collector.rotate_token()
+        new_token = self.data_collector.token
         patched_rename.assert_called_once_with(initial_token, new_token)
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     def test_remove_group_removes_enketo_links(self, patched_remove):
-        data_collector_0 = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
-        data_collector_0.group = None
-        data_collector_0.save()
-        token = data_collector_0.token
+        self.data_collector.group = None
+        self.data_collector.save()
+        token = self.data_collector.token
         patched_remove.assert_called_once_with(token)
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
@@ -65,19 +71,19 @@ class TestDataCollector(BaseTestCase):
     ):
         someuser = User.objects.get(username='someuser')
         asset = Asset.objects.filter(owner=someuser).last()
-        data_collector_0 = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
+        asset.save()
+        asset.deploy(backend='mock')
         another_group = DataCollectorGroup.objects.create(
             name='DCG1', owner=User.objects.get(username='someuser')
         )
         another_group.assets.add(asset)
-        patched_set.reset_mock()
 
-        data_collector_0.group = another_group
-        data_collector_0.save()
-        patched_remove.assert_called_once_with(data_collector_0.token)
-        patched_set.assert_called_once_with(data_collector_0.token, [asset.uid])
+        self.data_collector.group = another_group
+        self.data_collector.save()
+        patched_remove.assert_called_once_with(self.data_collector.token)
+        patched_set.assert_called_once_with(
+            self.data_collector.token, [asset.deployment.xform.id_string]
+        )
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
@@ -86,21 +92,21 @@ class TestDataCollector(BaseTestCase):
     ):
         someuser = User.objects.get(username='someuser')
         asset = Asset.objects.filter(owner=someuser).last()
-        data_collector_0 = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
+        asset.save()
+        asset.deploy(backend='mock')
         another_group = DataCollectorGroup.objects.create(
             name='DCG1', owner=User.objects.get(username='someuser')
         )
         another_group.assets.add(asset)
-        patched_set.reset_mock()
 
-        old_token = data_collector_0.token
-        data_collector_0.group = another_group
-        data_collector_0.token = 'new_token'
-        data_collector_0.save()
+        old_token = self.data_collector.token
+        self.data_collector.group = another_group
+        self.data_collector.token = 'new_token'
+        self.data_collector.save()
         patched_remove.assert_called_once_with(old_token)
-        patched_set.assert_called_once_with('new_token', [asset.uid])
+        patched_set.assert_called_once_with(
+            'new_token', [asset.deployment.xform.id_string]
+        )
 
     def test_remove_owner_permission_removes_assets(self):
         self.data_collector_group.assets.clear()
@@ -117,7 +123,10 @@ class TestDataCollector(BaseTestCase):
         asset.data_collector_group = another_group
         asset.save()
         asset.deploy(backend='mock')
-        data_collector = DataCollector.objects.create(name='DC', group=another_group)
+        with patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links'):
+            data_collector = DataCollector.objects.create(
+                name='DC', group=another_group
+            )
         with patch.object(
             asset.deployment, 'remove_enketo_links_for_single_data_collector'
         ) as patched_remove_links:
@@ -140,7 +149,10 @@ class TestDataCollector(BaseTestCase):
         asset.data_collector_group = another_group
         asset.save()
         asset.deploy(backend='mock')
-        data_collector = DataCollector.objects.create(name='DC', group=another_group)
+        with patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links'):
+            data_collector = DataCollector.objects.create(
+                name='DC', group=another_group
+            )
         self.client.force_login(user=someuser)
         with patch.object(
             MockDeploymentBackend, 'remove_enketo_links_for_single_data_collector'
@@ -156,11 +168,8 @@ class TestDataCollector(BaseTestCase):
 
     @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
     def test_delete_data_collector_group_removes_enketo_links(self, patched_remove):
-        data_collector_0 = DataCollector.objects.create(
-            name='DC0', group=self.data_collector_group
-        )
         self.data_collector_group.delete()
-        patched_remove.assert_called_once_with(data_collector_0.token)
+        patched_remove.assert_called_once_with(self.data_collector.token)
 
     @patch('kobo.apps.data_collectors.signals.set_data_collector_enketo_links')
     def test_change_group_does_not_produce_new_version(self, *_):

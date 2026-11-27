@@ -1,5 +1,3 @@
-from urllib.parse import urlparse
-
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
@@ -11,6 +9,10 @@ from django_redis import get_redis_connection
 
 from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
+from kobo.apps.data_collectors.utils import (
+    get_redis_key_for_token_and_xform,
+    get_xform_id_strings_by_asset_uid,
+)
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_MANAGE_ASSET
 from kpi.models import Asset
 from kpi.utils.object_permission import get_objects_for_user
@@ -158,16 +160,23 @@ class DataCollectorAdmin(admin.ModelAdmin):
     def enketo_urls(self, obj):
         redis_client = get_redis_connection('enketo_redis_main')
 
-        if not (obj and obj.token):
+        if not (obj and obj.token and obj.group):
             return '-'
 
-        parsed_url = urlparse(settings.KOBOCAT_URL)
+        assets = list(obj.group.assets.only('uid', 'name'))
+        xform_id_strings = get_xform_id_strings_by_asset_uid(
+            [asset.uid for asset in assets]
+        )
 
         items = ''
-        for asset in obj.group.assets.all():
+        for asset in assets:
+            if not (xform_id_string := xform_id_strings.get(asset.uid)):
+                continue
             enketo_id = redis_client.get(
-                f'or:{parsed_url.netloc}/collector/{obj.token},{asset.uid}'
+                get_redis_key_for_token_and_xform(obj.token, xform_id_string)
             )
+            if enketo_id is None:
+                continue
             enketo_url = f'{settings.ENKETO_URL}/x/{enketo_id.decode()}'
             items = (
                 items
