@@ -81,6 +81,5 @@ PENDING_TRANSFER_ACCOUNT_DELETION_ERROR = t(
 PENDING_TRANSFER_ROLE_LOCKED_ERROR = t(
     'Role cannot be changed while an ownership transfer is pending for this user.'
 )
-TRANSFER_EXPIRED_ERROR = t('Transfer has expired.')
 TRANSFER_NO_LONGER_VALID_ERROR = t('Transfer is no longer valid.')
 TRANSFER_NOT_PENDING_ERROR = t('Transfer is not pending.')
