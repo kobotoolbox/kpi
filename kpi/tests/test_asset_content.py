@@ -10,7 +10,11 @@ from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase
 from formpack import FormPack
-from formpack.constants import INFERRED_VERSION_ID_KEY, UNSPECIFIED_TRANSLATION
+from formpack.constants import (
+    INFERRED_VERSION_ID_KEY,
+    UNSPECIFIED_TRANSLATION,
+    UNTRANSLATED,
+)
 from model_bakery import baker
 
 from kobo.apps.reports.report_data import build_formpack
@@ -856,6 +860,38 @@ def test_populates_xpath_correctly():
     assert [rr['$xpath'] for rr in rs] == ['g1', 'g1/r1', 'g1/g2', 'g1/g2/r2']
 
 
+def _analysis_form() -> list[dict]:
+    """
+    Return analysis questions on the two select questions of
+    `_content_with_list()`, in the format of `get_analysis_form_json()`.
+    """
+
+    return [
+        {
+            'type': 'qualSelectOne',
+            'name': 'colors/uuid_for_brightness',
+            'dtpath': 'colors/uuid_for_brightness',
+            'label': 'How bright is it?',
+            'source': 'colors',
+            'choices': [
+                {'uuid': 'uuid_for_bright', 'labels': {'_default': 'Bright'}},
+                {'uuid': 'uuid_for_dark', 'labels': {'_default': 'Dark'}},
+            ],
+        },
+        {
+            'type': 'qualSelectMultiple',
+            'name': 'tags/uuid_for_moods',
+            'dtpath': 'tags/uuid_for_moods',
+            'label': 'Which moods does it bring?',
+            'source': 'tags',
+            'choices': [
+                {'uuid': 'uuid_for_calm', 'labels': {'_default': 'Calm'}},
+                {'uuid': 'uuid_for_joy', 'labels': {'_default': 'Joy'}},
+            ],
+        },
+    ]
+
+
 def _content_with_choices() -> dict:
     return {
         'survey': [
@@ -1305,44 +1341,61 @@ class TestAssetContent(TestCase):
         time must not change a single cell, nor the order of the columns.
         """
 
-        newest_version = None
-        for choices in (
-            [('red', 'Red'), ('blue', 'Blue')],
-            [('red', 'Dark red'), ('blue', 'Blue')],
-            [('green', 'Green'), ('red', 'Dark red')],
-            [('green', 'Green'), ('red', 'Red')],
-        ):
-            newest_version = self._add_deployed_version(_content_with_list(choices))
-        versions_newest_first = list(self.asset.deployed_versions)
-        schemas = [version.to_formpack_schema() for version in versions_newest_first]
-        for schema in schemas:
-            schema['version_id_key'] = INFERRED_VERSION_ID_KEY
-        converted_pack = FormPack(
-            versions=reversed(schemas), title=self.asset.name, id_string=self.asset.uid
-        )
-
-        pack, submission_stream = build_formpack(
-            Asset.objects.get(pk=self.asset.pk),
-            submission_stream=[
-                {'__version__': version.uid, 'colors': 'red', 'tags': 'red'}
-                for version in versions_newest_first
-            ],
-        )
-        submissions = list(submission_stream)
+        pack, converted_pack, submissions = self._build_both_formpacks()
 
         assert list(pack.versions) == list(converted_pack.versions)
-        assert list(pack.versions)[-1] == newest_version.uid
-        for multiple_select in ('both', 'summary', 'details'):
-            exports = [
-                current_pack.export(
-                    versions=current_pack.versions.keys(),
-                    multiple_select=multiple_select,
-                    lang=UNSPECIFIED_TRANSLATION,
-                ).to_dict(deepcopy(submissions))
-                for current_pack in (pack, converted_pack)
-            ]
-            # A JSON dump also compares the order of the columns
-            assert json.dumps(exports[0]) == json.dumps(exports[1])
+        assert list(pack.versions)[-1] == self.asset.deployed_versions.first().uid
+        self._assert_same_exports(pack, converted_pack, submissions)
+
+    @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
+    def test_build_formpack_exports_the_same_with_analysis_questions(self, _repair):
+        """
+        An export with analysis questions extends the pack after `build_formpack()`
+        has dropped the choices from the schema of each version. The analysis
+        questions bring their own choices, and the select questions that they
+        analyze keep their options.
+        """
+
+        pack, converted_pack, submissions = self._build_both_formpacks()
+        for submission in submissions:
+            submission['_supplementalDetails'] = {
+                'colors': {
+                    'qual': {
+                        'uuid_for_brightness': {
+                            'value': {
+                                'uuid': 'uuid_for_dark',
+                                'labels': {'_default': 'Dark'},
+                            }
+                        }
+                    }
+                },
+                'tags': {
+                    'qual': {
+                        'uuid_for_moods': {
+                            'value': [
+                                {
+                                    'uuid': 'uuid_for_calm',
+                                    'labels': {'_default': 'Calm'},
+                                }
+                            ]
+                        }
+                    }
+                },
+            }
+        for current_pack in (pack, converted_pack):
+            current_pack.extend_survey(_analysis_form())
+
+        self._assert_same_exports(pack, converted_pack, submissions)
+        export = pack.export(versions=pack.versions.keys(), lang=UNTRANSLATED).to_dict(
+            deepcopy(submissions)
+        )
+        (sheet,) = export.values()
+        first_row = dict(zip(sheet['fields'], sheet['data'][0]))
+        # The comparison above covers the analysis columns, and the select
+        # question keeps the label that the newest version gives to its option
+        assert first_row['colors'] == 'Red'
+        assert first_row['colors - How bright is it?'] == 'Dark'
+        assert first_row['tags - Which moods does it bring?'] == 'Calm'
 
     @patch('kobo.apps.reports.report_data.repair_file_column_content_and_save')
     def test_build_formpack_keeps_no_raw_choices(self, _repair):
@@ -1665,6 +1718,54 @@ class TestAssetContent(TestCase):
         assert mock_get_xpaths_from_version.call_count == 2
         for call in mock_get_xpaths_from_version.call_args_list:
             assert 'version_content' in call.args[0].get_deferred_fields()
+
+    def _assert_same_exports(
+        self, pack: FormPack, converted_pack: FormPack, submissions: list[dict]
+    ):
+        for lang in (UNSPECIFIED_TRANSLATION, UNTRANSLATED):
+            for multiple_select in ('both', 'summary', 'details'):
+                exports = [
+                    current_pack.export(
+                        versions=current_pack.versions.keys(),
+                        multiple_select=multiple_select,
+                        lang=lang,
+                    ).to_dict(deepcopy(submissions))
+                    for current_pack in (pack, converted_pack)
+                ]
+                # A JSON dump also compares the order of the columns
+                assert json.dumps(exports[0]) == json.dumps(exports[1])
+
+    def _build_both_formpacks(self) -> tuple[FormPack, FormPack, list[dict]]:
+        """
+        Return the pack of `build_formpack()`, the pack built from converted
+        schemas, and one submission per version, on versions whose choices and
+        labels change.
+        """
+
+        for choices in (
+            [('red', 'Red'), ('blue', 'Blue')],
+            [('red', 'Dark red'), ('blue', 'Blue')],
+            [('green', 'Green'), ('red', 'Dark red')],
+            [('green', 'Green'), ('red', 'Red')],
+        ):
+            self._add_deployed_version(_content_with_list(choices))
+        versions_newest_first = list(self.asset.deployed_versions)
+        schemas = [version.to_formpack_schema() for version in versions_newest_first]
+        for schema in schemas:
+            schema['version_id_key'] = INFERRED_VERSION_ID_KEY
+        converted_pack = FormPack(
+            versions=reversed(schemas), title=self.asset.name, id_string=self.asset.uid
+        )
+
+        pack, submission_stream = build_formpack(
+            Asset.objects.get(pk=self.asset.pk),
+            submission_stream=[
+                {'__version__': version.uid, 'colors': 'red', 'tags': 'red'}
+                for version in versions_newest_first
+            ],
+        )
+
+        return pack, converted_pack, list(submission_stream)
 
     def _converted_schema(self, content: dict, **fields) -> dict:
         return AssetVersion(
